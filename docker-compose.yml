@@ -9,7 +9,7 @@ services:
     networks:
       - proxy
 
+# Usa la red externa compartida
 networks:
-  proxy:
-    external: true
-    name: nginx_reverse_proxy # ← la red de tu reverse proxy (docker network ls)
+  web_network:
+    external: true  # La red debe existir previamente
