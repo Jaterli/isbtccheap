@@ -7,7 +7,7 @@ services:
       # Los JSON diarios se leen del repositorio: un git pull basta para actualizarlos, sin reconstruir la imagen
       - ./web/public/data:/usr/share/nginx/html/data:ro
     networks:
-      - proxy
+      - web_network
 
 # Usa la red externa compartida
 networks:
