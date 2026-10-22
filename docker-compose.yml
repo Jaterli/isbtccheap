@@ -12,4 +12,4 @@ services:
 networks:
   proxy:
     external: true
-    name: reverse-proxy_default # ← la red de tu reverse proxy (docker network ls)
+    name: nginx_reverse_proxy # ← la red de tu reverse proxy (docker network ls)
