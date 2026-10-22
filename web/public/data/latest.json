@@ -1,0 +1,193 @@
+{
+  "updated_at": "2026-10-22T13:48:14+00:00",
+  "as_of": "2026-10-21",
+  "price": 84176.0796,
+  "score_1d": 50.0561,
+  "categories": {
+    "valoracion": {
+      "name": "Valoración on-chain",
+      "score": 49.605,
+      "metrics": [
+        {
+          "id": "mvrv",
+          "name": "MVRV",
+          "value": 1.5604,
+          "score": 41.0774
+        },
+        {
+          "id": "puell",
+          "name": "Puell Multiple",
+          "value": 1.1362,
+          "score": 53.4613
+        },
+        {
+          "id": "mayer",
+          "name": "Mayer Multiple (precio / MA200d)",
+          "value": 1.1574,
+          "score": 54.2763
+        }
+      ]
+    },
+    "ciclo": {
+      "name": "Ciclo",
+      "score": 19.558,
+      "metrics": [
+        {
+          "id": "halving_phase",
+          "name": "Fase del ciclo de halving",
+          "value": 8.4684,
+          "score": 8.4684
+        },
+        {
+          "id": "power_law",
+          "name": "Desviación de la power law",
+          "value": -0.2327,
+          "score": 25.3872
+        },
+        {
+          "id": "wma200_ratio",
+          "name": "Precio / MA200 semanas",
+          "value": 1.2584,
+          "score": 24.8183
+        }
+      ]
+    },
+    "liquidez": {
+      "name": "Liquidez",
+      "score": 63.6999,
+      "metrics": [
+        {
+          "id": "net_liquidity_roc",
+          "name": "Liquidez neta Fed (var. 13 sem.)",
+          "value": -0.0077,
+          "score": 63.8058
+        },
+        {
+          "id": "m2_yoy",
+          "name": "M2 EE. UU. (var. interanual)",
+          "value": 0.0491,
+          "score": 64.3587
+        },
+        {
+          "id": "dxy_roc",
+          "name": "Dólar DXY amplio (var. 13 sem.)",
+          "value": 0.0069,
+          "score": 54.9667
+        },
+        {
+          "id": "stablecoin_roc",
+          "name": "Oferta de stablecoins (var. 90 d)",
+          "value": 0.0094,
+          "score": 71.6682
+        }
+      ]
+    },
+    "sentimiento": {
+      "name": "Sentimiento",
+      "score": 63.0,
+      "metrics": [
+        {
+          "id": "fear_greed",
+          "name": "Fear & Greed Index",
+          "value": 63.0,
+          "score": 63.0
+        }
+      ]
+    },
+    "tecnico": {
+      "name": "Técnico",
+      "score": 57.357,
+      "metrics": [
+        {
+          "id": "rsi_14",
+          "name": "RSI 14",
+          "value": 57.357,
+          "score": 57.357
+        }
+      ]
+    }
+  },
+  "weights": {
+    "15m": {
+      "tecnico": 45,
+      "sentimiento": 25,
+      "valoracion": 15,
+      "ciclo": 10,
+      "liquidez": 5
+    },
+    "1h": {
+      "tecnico": 40,
+      "sentimiento": 25,
+      "valoracion": 17,
+      "ciclo": 12,
+      "liquidez": 6
+    },
+    "4h": {
+      "tecnico": 30,
+      "sentimiento": 25,
+      "valoracion": 22,
+      "ciclo": 15,
+      "liquidez": 8
+    },
+    "1d": {
+      "tecnico": 15,
+      "sentimiento": 20,
+      "valoracion": 30,
+      "ciclo": 20,
+      "liquidez": 15
+    },
+    "1w": {
+      "tecnico": 10,
+      "sentimiento": 15,
+      "valoracion": 35,
+      "ciclo": 25,
+      "liquidez": 15
+    }
+  },
+  "labels": [
+    {
+      "max": 20,
+      "label": "Muy barato"
+    },
+    {
+      "max": 40,
+      "label": "Barato"
+    },
+    {
+      "max": 60,
+      "label": "Neutral"
+    },
+    {
+      "max": 80,
+      "label": "Caro"
+    },
+    {
+      "max": 100,
+      "label": "Muy caro"
+    }
+  ],
+  "missing_sources": [],
+  "attribution": [
+    {
+      "name": "Coin Metrics Community",
+      "url": "https://coinmetrics.io/community-network-data/",
+      "license": "CC BY-NC 4.0"
+    },
+    {
+      "name": "Alternative.me Fear & Greed",
+      "url": "https://alternative.me/crypto/fear-and-greed-index/"
+    },
+    {
+      "name": "FRED, Federal Reserve Bank of St. Louis",
+      "url": "https://fred.stlouisfed.org/"
+    },
+    {
+      "name": "DefiLlama",
+      "url": "https://defillama.com/stablecoins"
+    },
+    {
+      "name": "Binance (precio y funding en vivo)",
+      "url": "https://www.binance.com/"
+    }
+  ]
+}
