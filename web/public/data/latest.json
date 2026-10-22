@@ -1,36 +1,36 @@
 {
-  "updated_at": "2026-10-22T13:48:14+00:00",
+  "updated_at": "2026-10-22T17:31:55+00:00",
   "as_of": "2026-10-21",
   "price": 84176.0796,
-  "score_1d": 50.0561,
+  "score_1d": 48.7114,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 49.605,
+      "score": 55.373,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
           "value": 1.5604,
-          "score": 41.0774
+          "score": 43.4634
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
           "value": 1.1362,
-          "score": 53.4613
+          "score": 61.0541
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
           "value": 1.1574,
-          "score": 54.2763
+          "score": 61.6016
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 19.558,
+      "score": 23.7445,
       "metrics": [
         {
           "id": "halving_phase",
@@ -42,43 +42,43 @@
           "id": "power_law",
           "name": "Desviación de la power law",
           "value": -0.2327,
-          "score": 25.3872
+          "score": 22.0397
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
           "value": 1.2584,
-          "score": 24.8183
+          "score": 40.7255
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 63.6999,
+      "score": 49.9829,
       "metrics": [
         {
           "id": "net_liquidity_roc",
           "name": "Liquidez neta Fed (var. 13 sem.)",
           "value": -0.0077,
-          "score": 63.8058
+          "score": 59.0691
         },
         {
           "id": "m2_yoy",
           "name": "M2 EE. UU. (var. interanual)",
           "value": 0.0491,
-          "score": 64.3587
+          "score": 11.1567
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
           "value": 0.0069,
-          "score": 54.9667
+          "score": 67.8987
         },
         {
           "id": "stablecoin_roc",
           "name": "Oferta de stablecoins (var. 90 d)",
           "value": 0.0094,
-          "score": 71.6682
+          "score": 61.807
         }
       ]
     },
@@ -96,13 +96,25 @@
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 57.357,
+      "score": 70.9123,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
           "value": 57.357,
-          "score": 57.357
+          "score": 68.3926
+        },
+        {
+          "id": "bollinger",
+          "name": "Bollinger %B (20, 2)",
+          "value": 66.2194,
+          "score": 66.2194
+        },
+        {
+          "id": "ma200_ratio",
+          "name": "Precio / MA200 (percentil)",
+          "value": 1.1574,
+          "score": 78.125
         }
       ]
     }
@@ -111,39 +123,40 @@
     "15m": {
       "tecnico": 45,
       "sentimiento": 25,
-      "valoracion": 15,
-      "ciclo": 10,
-      "liquidez": 5
+      "valoracion": 16,
+      "ciclo": 11,
+      "liquidez": 3
     },
     "1h": {
       "tecnico": 40,
-      "sentimiento": 25,
-      "valoracion": 17,
-      "ciclo": 12,
-      "liquidez": 6
+      "sentimiento": 23,
+      "valoracion": 20,
+      "ciclo": 14,
+      "liquidez": 3
     },
     "4h": {
       "tecnico": 30,
-      "sentimiento": 25,
-      "valoracion": 22,
-      "ciclo": 15,
-      "liquidez": 8
+      "sentimiento": 20,
+      "valoracion": 27,
+      "ciclo": 19,
+      "liquidez": 4
     },
     "1d": {
-      "tecnico": 15,
-      "sentimiento": 20,
-      "valoracion": 30,
-      "ciclo": 20,
-      "liquidez": 15
+      "tecnico": 12,
+      "sentimiento": 15,
+      "valoracion": 38,
+      "ciclo": 30,
+      "liquidez": 5
     },
     "1w": {
-      "tecnico": 10,
-      "sentimiento": 15,
-      "valoracion": 35,
-      "ciclo": 25,
-      "liquidez": 15
+      "tecnico": 8,
+      "sentimiento": 12,
+      "valoracion": 42,
+      "ciclo": 33,
+      "liquidez": 5
     }
   },
+  "stretch": 1.0,
   "labels": [
     {
       "max": 20,

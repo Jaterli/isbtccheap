@@ -1,6 +1,7 @@
-.venv/
+# Sin barra final: en WSL node_modules y .venv son enlaces simbólicos al disco de Linux
+.venv
 __pycache__/
-node_modules/
+node_modules
 web/dist/
 *.tsbuildinfo
 .env

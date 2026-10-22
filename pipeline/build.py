@@ -13,7 +13,7 @@ from pathlib import Path
 import metrics as metrics_mod
 import scoring
 import sources
-from config import CATEGORIES, LABELS, METRICS, TIMEFRAME_WEIGHTS
+from config import CATEGORIES, LABELS, METRICS, SCORE_STRETCH, TIMEFRAME_WEIGHTS
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
 FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS"]
@@ -26,7 +26,7 @@ ATTRIBUTION = [
     {"name": "Binance (precio y funding en vivo)", "url": "https://www.binance.com/"},
 ]
 
-log = logging.getLogger("satoshi_score")
+log = logging.getLogger("isbtccheap")
 
 
 def _clean(x):
@@ -87,6 +87,7 @@ def main() -> None:
             for cat, name in CATEGORIES.items()
         },
         "weights": TIMEFRAME_WEIGHTS,
+        "stretch": SCORE_STRETCH,
         "labels": [{"max": mx, "label": lb} for mx, lb in LABELS],
         "missing_sources": missing,
         "attribution": ATTRIBUTION,

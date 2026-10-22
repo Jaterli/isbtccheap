@@ -1,10 +1,12 @@
-# Satoshi Score
+# Is BTC Cheap?
+
+https://isbtccheap.com
 
 Índice de 1 a 100 que estima si Bitcoin está **barato (1)** o **caro (100)** combinando cinco categorías:
 valoración on-chain, ciclo, liquidez, sentimiento y análisis técnico. Se puede consultar en cinco temporalidades:
 15 min, 1 h, 4 h, 1 día y 1 semana.
 
-Coste de funcionamiento: 0 € (solo el dominio, si quieres uno propio).
+Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certificado HTTPS son gratis.
 
 ## Cómo funciona
 
@@ -32,23 +34,43 @@ Coste de funcionamiento: 0 € (solo el dominio, si quieres uno propio).
 
 ### Normalización
 
-Cada métrica se convierte a 0-100 con su **percentil histórico expansivo**: cada día se compara solo con su
-pasado, para que el backtest no mire al futuro. Las métricas en las que un valor alto es favorable, como la
-liquidez creciente, se invierten (`invert: True`). Si falta una métrica o una categoría, sus pesos se reparten
-entre las demás.
+Cada métrica se convierte a 0-100 con su **percentil histórico en una ventana móvil de 4 años** (un ciclo de
+halving): cada día se compara solo con su pasado, para que el backtest no mire al futuro. Con una ventana
+expansiva los techos de 2021 y 2025 no pasaban de ~70 porque se comparaban con las burbujas de 2013 y 2017.
+Las métricas en las que un valor alto es favorable, como la liquidez creciente, se invierten (`invert: True`).
+Si falta una métrica o una categoría, sus pesos se reparten entre las demás.
+
+La media ponderada de señales poco correlacionadas tiende a 50, así que el resultado se estira con
+`50 + 50·tanh(k·(x−50)/50)/tanh(k)` (`SCORE_STRETCH` en `pipeline/config.py`). Con la configuración actual los
+suelos de 2015, 2018, 2020 y 2022 quedan en ~8 y los techos de 2013-2025 entre ~78 y ~97.
 
 ## Puesta en marcha local
 
+### En WSL con el proyecto en un disco de Windows (configuración actual)
+
+Leer muchos ficheros a través de `/mnt/...` es muy lento. Por eso `web/node_modules` y `.venv` son enlaces
+simbólicos a `~/satoshi_score_deps`, en el disco de Linux. El script los crea y los rellena:
+
+```bash
+bash scripts/setup-wsl.sh          # solo la primera vez o si se borran las dependencias
+.venv/bin/python pipeline/build.py # datos
+cd web && npm run dev              # http://localhost:5173
+```
+
+Para **instalar o quitar paquetes** usa `bash scripts/npm.sh install <paquete>` (o `uninstall`) en lugar de
+`npm install`: npm no admite que `node_modules` sea un enlace y lo reinstalaría en `/mnt`, que es lento.
+`npm run …` funciona con normalidad.
+
+Abre el proyecto en VS Code **desde WSL** (`code .` en la terminal de Linux). VS Code en modo Windows no
+puede seguir los enlaces simbólicos y marcaría errores falsos de dependencias.
+
+### En Windows (PowerShell)
+
 ```powershell
-# 1. Datos
 python -m venv .venv
 .\.venv\Scripts\pip install -r pipeline\requirements.txt
 .\.venv\Scripts\python pipeline\build.py
-
-# 2. Web
-cd web
-npm install
-npm run dev        # http://localhost:5173
+cd web; npm install; npm run dev
 ```
 
 ## Despliegue gratuito
@@ -63,7 +85,8 @@ npm run dev        # http://localhost:5173
    - Comando de build: `npm run build`
    - Directorio de salida: `dist`
    Cada commit diario del workflow redespliega la web automáticamente.
-5. Apunta tu dominio a Cloudflare Pages.
+5. En Cloudflare Pages → **Custom domains**, añade `isbtccheap.com` y `www.isbtccheap.com` (redirige `www` al
+   dominio raíz). Si el dominio está en Cloudflare Registrar, el DNS y el certificado HTTPS se configuran solos.
 
 ## Estructura
 

@@ -31,6 +31,8 @@ export interface Latest {
   score_1d: number | null;
   categories: Record<CategoryId, Category>;
   weights: Record<Timeframe, Record<CategoryId, number>>;
+  /** Factor k del estirado final (ver pipeline/config.py → SCORE_STRETCH) */
+  stretch?: number;
   labels: { max: number; label: string }[];
   missing_sources: string[];
   attribution: { name: string; url: string; license?: string }[];

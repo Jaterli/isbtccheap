@@ -81,7 +81,7 @@ export const METRIC_INFO: Record<string, Description> = {
   },
   rsi_14: {
     what: "Relative Strength Index de 14 velas: compara la fuerza de las subidas con la de las bajadas recientes.",
-    read: "Por encima de 70, sobrecompra; por debajo de 30, sobreventa. Se usa directamente como puntuación.",
+    read: "Por encima de 70, sobrecompra; por debajo de 30, sobreventa. Puntúa 0 con RSI 30 o menos y 100 con RSI 70 o más.",
   },
   bollinger: {
     what: "Posición del precio dentro de las bandas de Bollinger (media de 20 velas ± 2 desviaciones típicas).",
@@ -94,4 +94,4 @@ export const METRIC_INFO: Record<string, Description> = {
 };
 
 export const SCORE_COLUMNS =
-  "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a toda su historia salvo que se indique otra cosa.";
+  "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa.";

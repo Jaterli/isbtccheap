@@ -32,7 +32,7 @@ interface Props {
 export function Gauge({ score, label, info }: Props) {
   const [nx, ny] = point(score ?? 50, R - 28);
   return (
-    <figure className="gauge" aria-label={score === null ? "Sin datos" : `Satoshi Score ${Math.round(score)}: ${label}`}>
+    <figure className="gauge" aria-label={score === null ? "Sin datos" : `Score ${Math.round(score)}: ${label}`}>
       <svg viewBox="0 0 240 140" role="img">
         {BANDS.map((c, i) => (
           <path key={i} d={arc(i * 20 + 0.8, (i + 1) * 20 - 0.8)} stroke={c} strokeWidth="18" fill="none" />

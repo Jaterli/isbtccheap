@@ -6,13 +6,14 @@ import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchFundingRate } from "./lib/binance";
 import { computeScore, labelFor, technicalFromCandles } from "./lib/score";
+import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
 
 const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : `${ms / 60_000} min`);
 
 const DATA = `${import.meta.env.BASE_URL}data`;
-const TF_KEY = "satoshi-score:tf";
+const TF_KEY = "isbtccheap:tf";
 // Cada cuánto se refrescan las velas según la temporalidad
 const REFRESH_MS: Record<Timeframe, number> = { "15m": 30_000, "1h": 60_000, "4h": 120_000, "1d": 300_000, "1w": 600_000 };
 // El funding de Binance solo cambia cada 8 h: basta con pedirlo cada 5 min
@@ -134,7 +135,7 @@ export function App() {
     <main className="container">
       <header className="top">
         <h1 className="brand">
-          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Satoshi Score" width="320" height="320" />
+          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
         </h1>
         <p className="muted">¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.</p>
       </header>
@@ -155,8 +156,8 @@ export function App() {
             score={result.score}
             label={label}
             info={
-              <InfoTip label="el Satoshi Score" title="Satoshi Score">
-                <p>Índice de 1 a 100 que estima si Bitcoin está barato o caro. Es la media ponderada de las cinco categorías de abajo; cada métrica se puntúa según su percentil histórico.</p>
+              <InfoTip label="el score" title="Score">
+                <p>Índice de 1 a 100 que estima si Bitcoin está barato o caro. Es la media ponderada de las cinco categorías de abajo, estirada para que los extremos sean alcanzables; cada métrica se puntúa según su percentil histórico.</p>
                 <ul className="info-list">
                   {latest.labels.map((l, i) => (
                     <li key={l.label}>
@@ -194,6 +195,8 @@ export function App() {
 
       {history && <HistoryChart history={history} />}
 
+      <Donate />
+
       <footer className="muted small">
         <p>
           Datos on-chain, de ciclo y de liquidez a {latest.as_of} (se recalculan una vez al día; última ejecución{" "}
@@ -212,7 +215,7 @@ export function App() {
         </p>
         <p>Este indicador es informativo y no constituye asesoramiento financiero.</p>
         <p className="credit">
-          Desarrollado por <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli (jaterli.com)</a>
+          Desarrollado por <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
       </footer>
     </main>

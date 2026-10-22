@@ -1,5 +1,5 @@
 {
-  "name": "satoshi-score-web",
+  "name": "isbtccheap-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "qrcode-generator": "^1.4.4",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

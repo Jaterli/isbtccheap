@@ -82,7 +82,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     if "fear_greed" in extra:
         m["fear_greed"] = extra["fear_greed"].reindex(idx)
 
-    # Técnico
+    # Técnico (mismas métricas que calcula el frontend con las velas)
     m["rsi_14"] = rsi(price)
+    ma20, sd20 = price.rolling(20).mean(), price.rolling(20).std(ddof=0)
+    m["bollinger"] = (price - (ma20 - 2 * sd20)) / (4 * sd20) * 100
+    m["ma200_ratio"] = m["mayer"]
 
     return m.replace([np.inf, -np.inf], np.nan)

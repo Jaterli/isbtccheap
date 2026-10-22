@@ -16,7 +16,7 @@ const PAD_L = 8;
 const PAD_R = 52;
 const MIN_SPAN = 14; // días mínimos visibles al hacer zoom
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
-const HEIGHTS_KEY = "satoshi-score:chart-heights";
+const HEIGHTS_KEY = "isbtccheap:chart-heights";
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 /** Ventana visible: índices (fraccionarios) del primer y último día. */
@@ -310,7 +310,7 @@ export function HistoryChart({ history }: { history: History }) {
         <h3>
           Histórico del score diario frente al precio
           <InfoTip label="el histórico" title="Histórico">
-            <p>Arriba, el precio de Bitcoin en escala logarítmica; abajo, el Satoshi Score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).</p>
+            <p>Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).</p>
             <p>Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.</p>
           </InfoTip>
         </h3>
@@ -350,7 +350,7 @@ export function HistoryChart({ history }: { history: History }) {
           onPointerCancel={onPointerEnd}
           onPointerLeave={() => setHover(null)}
           role="img"
-          aria-label="Gráfico histórico del precio de Bitcoin y del Satoshi Score"
+          aria-label="Gráfico histórico del precio de Bitcoin y del score"
         >
           <defs>
             <clipPath id={`${uid}p`}>

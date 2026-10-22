@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 
 TIMEOUT = 60
-HEADERS = {"User-Agent": "satoshi-score/0.1 (+https://github.com/)"}
+HEADERS = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 
 
 def _get(url: str, params: dict | None = None) -> requests.Response:

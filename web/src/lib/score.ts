@@ -12,7 +12,8 @@ export function technicalFromCandles(candles: Candle[]): Category {
   const p = percentileOfLast(ratios);
 
   const metrics: MetricScore[] = [
-    { id: "rsi_14", name: "RSI 14", value: r, score: r === null ? null : clamp(r) },
+    // RSI 30 → 0, 70 → 100: usado en bruto apenas salía de 30-70 y aplanaba el score
+    { id: "rsi_14", name: "RSI 14", value: r, score: r === null ? null : clamp(((r - 30) / 40) * 100) },
     { id: "bollinger", name: "Bollinger %B (20, 2)", value: b, score: b === null ? null : clamp(b) },
     { id: "ma200_ratio", name: "Precio / MA200 (percentil)", value: ratios.at(-1) ?? null, score: p },
   ];
@@ -57,7 +58,12 @@ export function computeScore(
     acc += s * w;
     total += w;
   }
-  return { score: total ? 1 + (acc / total) * 0.99 : null, categories, weights };
+  return { score: total ? 1 + stretch(acc / total, latest.stretch ?? 0) * 0.99 : null, categories, weights };
+}
+
+/** Igual que scoring.stretch del pipeline: contrarresta la compresión hacia 50 de la media. */
+function stretch(x: number, k: number): number {
+  return k ? 50 + (50 * Math.tanh((k * (x - 50)) / 50)) / Math.tanh(k) : x;
 }
 
 export function labelFor(score: number, labels: Latest["labels"]): string {
