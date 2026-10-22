@@ -1,4 +1,6 @@
+import { CATEGORY_INFO, METRIC_INFO, SCORE_COLUMNS } from "../lib/descriptions";
 import type { Category, CategoryId } from "../types";
+import { InfoTip } from "./InfoTip";
 
 interface Props {
   categories: Record<CategoryId, Category>;
@@ -36,7 +38,14 @@ export function Breakdown({ categories, weights }: Props) {
         return (
           <article key={id} className="card category">
             <header>
-              <h3>{c.name}</h3>
+              <h3>
+                {c.name}
+                <InfoTip label={c.name} title={c.name}>
+                  <p>{CATEGORY_INFO[id].what}</p>
+                  <p>{CATEGORY_INFO[id].read}</p>
+                  <p className="muted">{SCORE_COLUMNS}</p>
+                </InfoTip>
+              </h3>
               <span className="muted">peso {w.toFixed(0)} %</span>
               <strong className="num">{c.score === null ? "—" : Math.round(c.score)}</strong>
             </header>
@@ -44,7 +53,15 @@ export function Breakdown({ categories, weights }: Props) {
             <ul>
               {c.metrics.map((m) => (
                 <li key={m.id}>
-                  <span>{m.name}</span>
+                  <span>
+                    {m.name}
+                    {METRIC_INFO[m.id] && (
+                      <InfoTip label={m.name} title={m.name}>
+                        <p>{METRIC_INFO[m.id].what}</p>
+                        <p>{METRIC_INFO[m.id].read}</p>
+                      </InfoTip>
+                    )}
+                  </span>
                   <span className="muted num">{fmt(m.value)}</span>
                   <span className="num">{m.score === null ? "—" : Math.round(m.score)}</span>
                 </li>

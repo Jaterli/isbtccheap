@@ -1,4 +1,6 @@
-const BANDS = ["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
+import type { ReactNode } from "react";
+
+const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
 const CX = 120;
 const CY = 120;
 const R = 100;
@@ -7,6 +9,11 @@ const R = 100;
 function point(score: number, r = R) {
   const a = Math.PI * (1 - score / 100);
   return [CX + r * Math.cos(a), CY - r * Math.sin(a)];
+}
+
+/** Color del tramo del medidor en el que cae el score (mismos cortes que las etiquetas: ≤20, ≤40…) */
+export function bandColor(score: number) {
+  return BANDS[Math.min(4, Math.max(0, Math.ceil(score / 20) - 1))];
 }
 
 function arc(from: number, to: number) {
@@ -18,9 +25,11 @@ function arc(from: number, to: number) {
 interface Props {
   score: number | null;
   label: string;
+  /** Icono de información junto a la etiqueta */
+  info?: ReactNode;
 }
 
-export function Gauge({ score, label }: Props) {
+export function Gauge({ score, label, info }: Props) {
   const [nx, ny] = point(score ?? 50, R - 28);
   return (
     <figure className="gauge" aria-label={score === null ? "Sin datos" : `Satoshi Score ${Math.round(score)}: ${label}`}>
@@ -38,8 +47,13 @@ export function Gauge({ score, label }: Props) {
         <text x="226" y="138" className="gauge-end" textAnchor="end">Caro</text>
       </svg>
       <figcaption>
-        <span className="gauge-value">{score === null ? "—" : Math.round(score)}</span>
-        <span className="gauge-label">{label}</span>
+        <span className="gauge-value" style={score === null ? undefined : { color: bandColor(score) }}>
+          {score === null ? "—" : Math.round(score)}
+        </span>
+        <span className="gauge-label">
+          {label}
+          {info}
+        </span>
       </figcaption>
     </figure>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Breakdown } from "./components/Breakdown";
 import { Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
@@ -6,12 +6,23 @@ import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchFundingRate } from "./lib/binance";
 import { computeScore, labelFor, technicalFromCandles } from "./lib/score";
-import type { Category, History, Latest, Timeframe } from "./types";
+import { InfoTip } from "./components/InfoTip";
+import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
+
+const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : `${ms / 60_000} min`);
 
 const DATA = `${import.meta.env.BASE_URL}data`;
 const TF_KEY = "satoshi-score:tf";
 // Cada cuánto se refrescan las velas según la temporalidad
 const REFRESH_MS: Record<Timeframe, number> = { "15m": 30_000, "1h": 60_000, "4h": 120_000, "1d": 300_000, "1w": 600_000 };
+// El funding de Binance solo cambia cada 8 h: basta con pedirlo cada 5 min
+const FUNDING_MS = 300_000;
+
+interface LiveEntry {
+  technical: Category;
+  price: number | null;
+  at: number;
+}
 
 function loadTf(): Timeframe {
   try {
@@ -36,7 +47,6 @@ export function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [nextAt, setNextAt] = useState(0);
-  const [liveAt, setLiveAt] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([getJson("latest.json"), getJson("history.json")])
@@ -47,8 +57,11 @@ export function App() {
       .catch(() => setError("No se pudieron cargar los datos diarios. Ejecuta el pipeline (python pipeline/build.py)."));
   }, [refreshKey]);
 
-  // Al cambiar de temporalidad, el técnico anterior ya no vale
-  useEffect(() => setTechnical(null), [tf]);
+  // Caché por temporalidad: al volver a una temporalidad ya cargada no se llama a la API
+  // hasta que caduca su intervalo de refresco
+  const cache = useRef(new Map<Timeframe, LiveEntry>());
+  const fundingCache = useRef<{ value: number; at: number } | null>(null);
+  const lastRefreshKey = useRef(refreshKey);
 
   useEffect(() => {
     try {
@@ -56,24 +69,53 @@ export function App() {
     } catch {
       /* almacenamiento no disponible: no pasa nada */
     }
+    const ms = REFRESH_MS[tf];
+    const forced = lastRefreshKey.current !== refreshKey; // botón de actualizar
+    lastRefreshKey.current = refreshKey;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
-    const load = async () => {
-      setLoading(true);
-      const [candles, fr] = await Promise.allSettled([fetchCandles(tf), fetchFundingRate()]);
-      if (cancelled) return;
-      if (candles.status === "fulfilled") {
-        setTechnical(technicalFromCandles(candles.value));
-        setPrice(candles.value.at(-1)?.close ?? null);
+
+    const schedule = (fetchedAt: number) => {
+      setNextAt(fetchedAt + ms);
+      timer = setTimeout(() => load(false), Math.max(0, fetchedAt + ms - Date.now()));
+    };
+
+    const load = async (force: boolean) => {
+      const cached = cache.current.get(tf);
+      if (!force && cached && Date.now() - cached.at < ms) {
+        setTechnical(cached.technical);
+        setPrice(cached.price);
+        setLiveError(false);
+        schedule(cached.at);
+        return;
       }
-      if (fr.status === "fulfilled") setFunding(fr.value);
+      // Sin caché válida: mientras carga se muestra el técnico diario, no el de otra temporalidad
+      if (!cached) setTechnical(null);
+      setLoading(true);
+      const f = fundingCache.current;
+      const needFunding = force || !f || Date.now() - f.at > FUNDING_MS;
+      const [candles, fr] = await Promise.allSettled([
+        fetchCandles(tf),
+        needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
+      ]);
+      if (cancelled) return;
+      const now = Date.now();
+      if (candles.status === "fulfilled") {
+        const entry = { technical: technicalFromCandles(candles.value), price: candles.value.at(-1)?.close ?? null, at: now };
+        cache.current.set(tf, entry);
+        setTechnical(entry.technical);
+        setPrice(entry.price);
+      }
+      if (fr.status === "fulfilled") {
+        if (needFunding) fundingCache.current = { value: fr.value, at: now };
+        setFunding(fr.value);
+      }
       setLiveError(candles.status === "rejected");
       setLoading(false);
-      setLiveAt(Date.now());
-      setNextAt(Date.now() + REFRESH_MS[tf]);
-      timer = setTimeout(load, REFRESH_MS[tf]);
+      schedule(now);
     };
-    load();
+
+    load(forced);
     return () => {
       cancelled = true;
       clearTimeout(timer);
@@ -91,23 +133,58 @@ export function App() {
   return (
     <main className="container">
       <header className="top">
-        <h1>Satoshi Score</h1>
+        <h1 className="brand">
+          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Satoshi Score" width="320" height="320" />
+        </h1>
         <p className="muted">¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.</p>
       </header>
 
       <section className="dashboard">
         <article className="hero card">
-          <TimeframeSelector value={tf} onChange={setTf} />
-          <Gauge score={result.score} label={label} />
+          <div className="hero-top">
+            <TimeframeSelector value={tf} onChange={setTf} />
+            <InfoTip label="la temporalidad" title="Temporalidad">
+              <p>Elige el horizonte del análisis. El técnico se calcula con velas de esa temporalidad y los pesos de cada categoría cambian: en las cortas pesa más el técnico y el sentimiento; en las largas, la valoración y el ciclo.</p>
+              <p className="muted">
+                Pesos en {TIMEFRAMES.find((t) => t.id === tf)?.label}:{" "}
+                {Object.entries(latest.weights[tf]).map(([id, w]) => `${latest.categories[id as CategoryId].name} ${w} %`).join(" · ")}
+              </p>
+            </InfoTip>
+          </div>
+          <Gauge
+            score={result.score}
+            label={label}
+            info={
+              <InfoTip label="el Satoshi Score" title="Satoshi Score">
+                <p>Índice de 1 a 100 que estima si Bitcoin está barato o caro. Es la media ponderada de las cinco categorías de abajo; cada métrica se puntúa según su percentil histórico.</p>
+                <ul className="info-list">
+                  {latest.labels.map((l, i) => (
+                    <li key={l.label}>
+                      <span className="swatch" style={{ background: `var(--band-${i + 1})` }} />
+                      {i === 0 ? 1 : latest.labels[i - 1].max + 1}–{l.max}: {l.label}
+                    </li>
+                  ))}
+                </ul>
+                <p className="muted">Es una referencia informativa, no una recomendación de inversión.</p>
+              </InfoTip>
+            }
+          />
           <p className="price num">
             BTC {shownPrice.toLocaleString("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+            <InfoTip label="el precio" title="Precio">
+              <p>Último precio de BTC/USDT en Binance, tomado del cierre de la vela más reciente. Si Binance no está disponible, se muestra el precio diario de Coin Metrics.</p>
+            </InfoTip>
           </p>
           <RefreshStatus
             nextAt={nextAt}
-            intervalMs={REFRESH_MS[tf]}
-            updatedAt={liveAt}
             loading={loading}
             onRefresh={() => setRefreshKey((k) => k + 1)}
+            info={
+              <InfoTip label="la actualización" title="Actualización">
+                <p>El técnico y el funding se actualizan solos cada {fmtInterval(REFRESH_MS[tf])} en esta temporalidad. Al cambiar de temporalidad se reutilizan los datos ya descargados mientras sigan vigentes.</p>
+                <p>Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día. El botón ↻ fuerza la recarga de todo.</p>
+              </InfoTip>
+            }
           />
           {liveError && <p className="notice">Sin conexión con Binance: se usan los datos técnicos diarios.</p>}
         </article>
