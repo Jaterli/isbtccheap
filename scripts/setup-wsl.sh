@@ -2,15 +2,15 @@
 # Prepara el proyecto para trabajar desde WSL estando en un disco de Windows (/mnt/...).
 #
 # Leer miles de ficheros a través de /mnt es muy lento, así que las dependencias viven en el disco
-# de Linux (~/satoshi_score_deps) y en el proyecto solo hay enlaces simbólicos:
-#   web/node_modules -> ~/satoshi_score_deps/web/node_modules
-#   .venv            -> ~/satoshi_score_deps/venv
+# de Linux (~/isbtccheap_deps) y en el proyecto solo hay enlaces simbólicos:
+#   web/node_modules -> ~/isbtccheap_deps/web/node_modules
+#   .venv            -> ~/isbtccheap_deps/venv
 #
 # Uso (desde la raíz del proyecto, en WSL):  bash scripts/setup-wsl.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEPS="${SATOSHI_DEPS:-$HOME/satoshi_score_deps}"
+DEPS="${ISBTCCHEAP_DEPS:-$HOME/isbtccheap_deps}"
 
 echo "== Web: dependencias de npm"
 bash "$ROOT/scripts/npm.sh" install

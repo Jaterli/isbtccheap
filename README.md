@@ -49,7 +49,7 @@ suelos de 2015, 2018, 2020 y 2022 quedan en ~8 y los techos de 2013-2025 entre ~
 ### En WSL con el proyecto en un disco de Windows (configuración actual)
 
 Leer muchos ficheros a través de `/mnt/...` es muy lento. Por eso `web/node_modules` y `.venv` son enlaces
-simbólicos a `~/satoshi_score_deps`, en el disco de Linux. El script los crea y los rellena:
+simbólicos a `~/isbtccheap_deps`, en el disco de Linux. El script los crea y los rellena:
 
 ```bash
 bash scripts/setup-wsl.sh          # solo la primera vez o si se borran las dependencias

@@ -13,7 +13,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEPS="${SATOSHI_DEPS:-$HOME/satoshi_score_deps}/web"
+DEPS="${ISBTCCHEAP_DEPS:-$HOME/isbtccheap_deps}/web"
 WEB="$ROOT/web"
 
 mkdir -p "$DEPS"
