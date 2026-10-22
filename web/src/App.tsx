@@ -5,7 +5,7 @@ import { HistoryChart } from "./components/HistoryChart";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchFundingRate } from "./lib/binance";
-import { computeScore, labelFor, technicalFromCandles } from "./lib/score";
+import { computeScore, labelFor, technicalFromCandles, type ScoreResult } from "./lib/score";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
@@ -39,7 +39,8 @@ export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
-  const [technical, setTechnical] = useState<Category | null>(null);
+  // Técnico en vivo y la temporalidad a la que pertenece (technical null: Binance no respondió y se usa el diario)
+  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [funding, setFunding] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
@@ -84,14 +85,14 @@ export function App() {
     const load = async (force: boolean) => {
       const cached = cache.current.get(tf);
       if (!force && cached && Date.now() - cached.at < ms) {
-        setTechnical(cached.technical);
+        setLive({ tf, technical: cached.technical });
         setPrice(cached.price);
         setLiveError(false);
         schedule(cached.at);
         return;
       }
-      // Sin caché válida: mientras carga se muestra el técnico diario, no el de otra temporalidad
-      if (!cached) setTechnical(null);
+      // Caché caducada: mientras se refresca se muestra la de esta temporalidad, no la de otra
+      if (cached) setLive({ tf, technical: cached.technical });
       setLoading(true);
       const f = fundingCache.current;
       const needFunding = force || !f || Date.now() - f.at > FUNDING_MS;
@@ -104,8 +105,10 @@ export function App() {
       if (candles.status === "fulfilled") {
         const entry = { technical: technicalFromCandles(candles.value), price: candles.value.at(-1)?.close ?? null, at: now };
         cache.current.set(tf, entry);
-        setTechnical(entry.technical);
+        setLive({ tf, technical: entry.technical });
         setPrice(entry.price);
+      } else {
+        setLive({ tf, technical: cached?.technical ?? null });
       }
       if (fr.status === "fulfilled") {
         if (needFunding) fundingCache.current = { value: fr.value, at: now };
@@ -123,12 +126,23 @@ export function App() {
     };
   }, [tf, refreshKey]);
 
-  const result = useMemo(() => (latest ? computeScore(latest, tf, technical, funding) : null), [latest, tf, technical, funding]);
+  const ready = live?.tf === tf;
+  const computed = useMemo(
+    () => (latest ? computeScore(latest, tf, ready ? live.technical : null, funding) : null),
+    [latest, tf, live, ready, funding],
+  );
+  // Hasta tener el técnico de la nueva temporalidad se mantiene el último score: si no, saltaría a un valor
+  // calculado con el técnico de otra temporalidad o con el diario. En la primera carga no hay anterior: "—"
+  const lastReady = useRef<ScoreResult | null>(null);
+  if (ready && computed) lastReady.current = computed;
+  const shown = ready ? computed : lastReady.current;
 
   if (error) return <main className="container"><p className="notice">{error}</p></main>;
-  if (!latest || !result) return <main className="container"><p className="muted">Cargando…</p></main>;
+  if (!latest || !computed) return <main className="container"><p className="muted">Cargando…</p></main>;
 
-  const label = result.score === null ? "Sin datos" : labelFor(result.score, latest.labels);
+  const result = shown ?? computed;
+  const score = shown ? shown.score : null;
+  const label = !shown ? "Cargando…" : score === null ? "Sin datos" : labelFor(score, latest.labels);
   const shownPrice = price ?? latest.price;
 
   return (
@@ -153,7 +167,7 @@ export function App() {
             </InfoTip>
           </div>
           <Gauge
-            score={result.score}
+            score={score}
             label={label}
             info={
               <InfoTip label="el score" title="Score">
