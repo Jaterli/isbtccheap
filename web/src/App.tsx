@@ -8,6 +8,7 @@ import { fetchCandles, fetchFundingRate } from "./lib/binance";
 import { computeScore, labelFor, technicalFromCandles, type ScoreResult } from "./lib/score";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
+import { Outlook } from "./components/Outlook";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
 
 const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : `${ms / 60_000} min`);
@@ -208,6 +209,8 @@ export function App() {
       </section>
 
       {history && <HistoryChart history={history} />}
+
+      {history && <Outlook history={history} labels={latest.labels} />}
 
       <Donate />
 
