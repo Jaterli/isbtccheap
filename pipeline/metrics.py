@@ -7,6 +7,9 @@ import pandas as pd
 from config import HALVING_PHASE_CURVE, HALVINGS
 
 GENESIS = pd.Timestamp("2009-01-03")
+# Coin Metrics publica algunas series (MVRV, emisión) un día más tarde que el precio. Sin rellenar, el último día
+# se quedaría sin ellas y la valoración se calcularía solo con el Mayer Multiple
+CM_LAG_FILL_DAYS = 3
 
 
 def rsi(price: pd.Series, period: int = 14) -> pd.Series:
@@ -55,9 +58,9 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
 
     # Valoración
     if "CapMVRVCur" in cm:
-        m["mvrv"] = cm["CapMVRVCur"].reindex(idx)
+        m["mvrv"] = cm["CapMVRVCur"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
     if "IssTotUSD" in cm:
-        iss = cm["IssTotUSD"].reindex(idx)
+        iss = cm["IssTotUSD"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
         m["puell"] = iss / iss.rolling(365).mean()
     m["mayer"] = price / price.rolling(200).mean()
 
@@ -80,7 +83,12 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
 
     # Sentimiento
     if "fear_greed" in extra:
-        m["fear_greed"] = extra["fear_greed"].reindex(idx)
+        fg = extra["fear_greed"]
+        m["fear_greed"] = fg.reindex(idx)
+        # Coin Metrics va un día por detrás y Alternative.me publica el de hoy a las 00:00 UTC: el último día usa
+        # el índice más reciente, que es el que se ve en su web. Al día siguiente esa fila recupera el suyo.
+        if fg.index[-1] > idx[-1]:
+            m.loc[idx[-1], "fear_greed"] = fg.iloc[-1]
 
     # Técnico (mismas métricas que calcula el frontend con las velas)
     m["rsi_14"] = rsi(price)
