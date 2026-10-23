@@ -216,7 +216,7 @@ h3 { font-size: 1rem; }
 .outlook header h3 { flex: 1 1 260px; }
 .outlook-lead { margin: 12px 0; display: grid; gap: 6px; }
 /* Líneas de longitud pareja: sin una palabra suelta en la última */
-.outlook-lead p, .outlook-vol { letter-spacing: -0.015em; text-wrap: balance; }
+.outlook-lead p, .outlook-vol { letter-spacing: -0.018em; }
 .outlook-lead p { margin: 0; }
 .outlook-sample { margin: 0 0 4px; font-size: 0.85rem; }
 .outlook-table-wrap { overflow-x: auto; }
