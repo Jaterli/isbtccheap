@@ -66,8 +66,10 @@ function stretch(x: number, k: number): number {
   return k ? 50 + (50 * Math.tanh((k * (x - 50)) / 50)) / Math.tanh(k) : x;
 }
 
-export function labelFor(score: number, labels: Latest["labels"]): string {
-  return labels.find((l) => score <= l.max)?.label ?? labels[labels.length - 1].label;
+/** Posición del tramo de la escala en que cae el score (la etiqueta se traduce por posición) */
+export function labelIndex(score: number, labels: Latest["labels"]): number {
+  const i = labels.findIndex((l) => score <= l.max);
+  return i === -1 ? labels.length - 1 : i;
 }
 
 function mean(xs: (number | null)[]): number | null {

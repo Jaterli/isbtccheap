@@ -1,6 +1,7 @@
 import qrcode from "qrcode-generator";
 import { useEffect, useMemo, useState } from "react";
 import { CRYPTO, PAYPAL_URL } from "../donations";
+import { t } from "../i18n";
 import { InfoTip } from "./InfoTip";
 
 function Qr({ text }: { text: string }) {
@@ -15,7 +16,7 @@ function Qr({ text }: { text: string }) {
   }, [text]);
   // Fondo blanco siempre (también en modo oscuro) para que lo lean todas las cámaras
   return (
-    <svg className="qr" viewBox={`-2 -2 ${size + 4} ${size + 4}`} role="img" aria-label="Código QR de la dirección">
+    <svg className="qr" viewBox={`-2 -2 ${size + 4} ${size + 4}`} role="img" aria-label={t.donate.qrAria}>
       <rect x="-2" y="-2" width={size + 4} height={size + 4} fill="#fff" />
       <path d={path} fill="#000" shapeRendering="crispEdges" />
     </svg>
@@ -35,7 +36,7 @@ function CopyButton({ text }: { text: string }) {
   };
   return (
     <button type="button" className="btn" onClick={copy} aria-live="polite">
-      {copied ? "¡Copiada!" : "Copiar"}
+      {copied ? t.donate.copied : t.donate.copy}
     </button>
   );
 }
@@ -68,33 +69,33 @@ export function Donate() {
       <header>
         <h3>
           <button type="button" className="collapse-toggle" aria-expanded={open} aria-controls="donar-body" onClick={() => setOpen((o) => !o)}>
-            Apoya el proyecto
+            {t.donate.title}
             <svg className="chevron" viewBox="0 0 16 16" aria-hidden="true">
               <path d="M4 6l4 4 4-4" />
             </svg>
           </button>
-          <InfoTip label="las donaciones" title="Donaciones">
-            <p>Is BTC Cheap? es gratuito y sin publicidad. Las donaciones son voluntarias y ayudan a cubrir el dominio y el tiempo de desarrollo; no dan acceso a nada adicional.</p>
-            <p>Las direcciones de wallet son públicas: cualquier pago a ellas queda registrado en la blockchain.</p>
+          <InfoTip label={t.donate.infoLabel} title={t.donate.infoTitle}>
+            <p>{t.donate.info1}</p>
+            <p>{t.donate.info2}</p>
           </InfoTip>
         </h3>
       </header>
 
       {open && (
         <div id="donar-body">
-          <p className="muted">Si te resulta útil, puedes invitarme a un café ☕</p>
+          <p className="muted">{t.donate.coffee}</p>
 
           <div className="donate-body">
             {PAYPAL_URL && (
               <a className="btn btn-paypal" href={PAYPAL_URL} target="_blank" rel="noreferrer">
-                Donar con PayPal
+                {t.donate.paypal}
               </a>
             )}
 
             {m && (
               <div className="crypto">
                 {methods.length > 1 && (
-                  <div className="segmented small" role="tablist" aria-label="Red">
+                  <div className="segmented small" role="tablist" aria-label={t.donate.networkAria}>
                     {methods.map((x) => (
                       <button key={x.id} role="tab" aria-selected={x.id === m.id} className={x.id === m.id ? "active" : ""} onClick={() => setActive(x.id)}>
                         {x.label}
@@ -105,11 +106,11 @@ export function Donate() {
                 <div className="crypto-row">
                   <Qr text={m.uri(m.address)} />
                   <div className="crypto-info">
-                    <span className="small muted">{methods.length === 1 ? `${m.label} · ` : ""}{m.hint}</span>
+                    <span className="small muted">{methods.length === 1 ? `${m.label} · ` : ""}{t.donate.hints[m.id]}</span>
                     <code className="address">{m.address}</code>
                     <div className="crypto-actions">
                       <CopyButton text={m.address} />
-                      <a className="btn" href={m.uri(m.address)}>Abrir en wallet</a>
+                      <a className="btn" href={m.uri(m.address)}>{t.donate.openWallet}</a>
                     </div>
                   </div>
                 </div>

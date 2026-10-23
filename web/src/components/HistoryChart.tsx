@@ -1,12 +1,14 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { locale, t } from "../i18n";
 import type { History } from "../types";
 import { InfoTip } from "./InfoTip";
 
+// Los nombres están en i18n (t.history.ranges)
 const RANGES = [
-  { id: "1m", label: "1 mes", days: 30 },
-  { id: "1y", label: "1 año", days: 365 },
-  { id: "4y", label: "4 años", days: 1461 },
-  { id: "all", label: "Todo", days: Infinity },
+  { id: "1m", days: 30 },
+  { id: "1y", days: 365 },
+  { id: "4y", days: 1461 },
+  { id: "all", days: Infinity },
 ];
 
 const GAP = 18; // separador entre paneles (es también la barra para cambiar el alto)
@@ -17,7 +19,6 @@ const PAD_R = 52;
 const MIN_SPAN = 14; // días mínimos visibles al hacer zoom
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
 const HEIGHTS_KEY = "isbtccheap:chart-heights";
-const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 /** Ventana visible: índices (fraccionarios) del primer y último día. */
 interface View {
@@ -71,7 +72,8 @@ function dateTicks(dates: string[], v0: number, v1: number, maxTicks: number) {
     .filter((_, k) => k % step === 0)
     .map((i) => {
       const [y, m, d] = dates[i].split("-");
-      const label = unit === "y" ? y : unit === "m" ? `${MONTHS[+m - 1]} ${y.slice(2)}` : `${+d} ${MONTHS[+m - 1]}`;
+      const month = t.history.months[+m - 1];
+      const label = unit === "y" ? y : unit === "m" ? `${month} ${y.slice(2)}` : `${+d} ${month}`;
       return { i, label };
     });
 }
@@ -252,12 +254,12 @@ export function HistoryChart({ history }: { history: History }) {
       style={{ top, height: h }}
       role="separator"
       aria-orientation="horizontal"
-      aria-label={panel === "price" ? "Alto del gráfico de precio" : "Alto del gráfico del score"}
+      aria-label={panel === "price" ? t.history.resizePrice : t.history.resizeScore}
       aria-valuenow={heights[panel]}
       aria-valuemin={LIMITS[panel][0]}
       aria-valuemax={LIMITS[panel][1]}
       tabIndex={0}
-      title="Arrastra para cambiar el alto · doble clic para restablecer"
+      title={t.history.resizeTitle}
       onPointerDown={startResize(panel)}
       onDoubleClick={() => saveHeights(null)}
       onKeyDown={keyResize(panel)}
@@ -284,7 +286,7 @@ export function HistoryChart({ history }: { history: History }) {
     const cy = yScore(history.score[i]);
     // La etiqueta va hacia el lado con más espacio
     const toRight = cx < PAD_L + plotW * 0.6;
-    const [yy, mm, dd] = history.dates[i].split("-");
+    const date = new Date(`${history.dates[i]}T00:00:00`).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
     const py = chart.yPrice(history.price[i]);
     const tx = cx + (toRight ? 8 : -8);
     const anchor = toRight ? "start" : "end";
@@ -294,11 +296,11 @@ export function HistoryChart({ history }: { history: History }) {
         <circle cx={cx} cy={py} r="4" />
         {/* Precio de BTC ese día, junto a su punto en el gráfico de precio (dentro del panel) */}
         <text x={tx} y={clamp(py + 4, 14, heights.price - 4)} textAnchor={anchor}>
-          {`$${Math.round(history.price[i]).toLocaleString("es-ES")}`}
+          {`$${Math.round(history.price[i]).toLocaleString(locale)}`}
         </text>
         <circle cx={cx} cy={cy} r="4.5" />
         <text x={tx} y={cy + 4} textAnchor={anchor}>
-          {kind === "max" ? "Máx" : "Mín"} {history.score[i].toFixed(0)} · {dd}/{mm}/{yy}
+          {kind === "max" ? t.history.max : t.history.min} {history.score[i].toFixed(0)} · {date}
         </text>
       </g>
     );
@@ -308,23 +310,23 @@ export function HistoryChart({ history }: { history: History }) {
     <section className="card chart">
       <header>
         <h3>
-          Histórico del score diario frente al precio
-          <InfoTip label="el histórico" title="Histórico">
-            <p>Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).</p>
-            <p>Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.</p>
+          {t.history.title}
+          <InfoTip label={t.history.infoLabel} title={t.history.infoTitle}>
+            <p>{t.history.info1}</p>
+            <p>{t.history.info2}</p>
           </InfoTip>
         </h3>
         <div className="chart-controls">
-          <div className="segmented small" role="group" aria-label="Rango del histórico">
+          <div className="segmented small" role="group" aria-label={t.history.rangeAria}>
             {RANGES.map((r) => (
               <button key={r.id} className={range === r.id ? "active" : ""} onClick={() => selectRange(r)}>
-                {r.label}
+                {t.history.ranges[r.id]}
               </button>
             ))}
           </div>
           <div className="segmented small" role="group" aria-label="Zoom">
-            <button onClick={() => zoomButton(1.5)} aria-label="Alejar" title="Alejar" disabled={span >= N - 1.5}>−</button>
-            <button onClick={() => zoomButton(1 / 1.5)} aria-label="Acercar" title="Acercar" disabled={span <= MIN_SPAN + 0.5}>+</button>
+            <button onClick={() => zoomButton(1.5)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={span >= N - 1.5}>−</button>
+            <button onClick={() => zoomButton(1 / 1.5)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={span <= MIN_SPAN + 0.5}>+</button>
           </div>
         </div>
       </header>
@@ -332,7 +334,7 @@ export function HistoryChart({ history }: { history: History }) {
       <p className="chart-readout">
         <span className="muted num">{history.dates[h]}</span>
         <span className="legend legend-price num">
-          Precio <strong>{history.price[h]?.toLocaleString("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
+          {t.history.price} <strong>{history.price[h]?.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>
         <span className="legend legend-score num">
           Score <strong>{history.score[h]?.toFixed(0)}</strong>
@@ -350,7 +352,7 @@ export function HistoryChart({ history }: { history: History }) {
           onPointerCancel={onPointerEnd}
           onPointerLeave={() => setHover(null)}
           role="img"
-          aria-label="Gráfico histórico del precio de Bitcoin y del score"
+          aria-label={t.history.chartAria}
         >
           <defs>
             <clipPath id={`${uid}p`}>
@@ -401,8 +403,7 @@ export function HistoryChart({ history }: { history: History }) {
       </div>
 
       <p className="chart-hint muted">
-        Arrastra el gráfico para desplazarte · Ctrl + rueda, pellizco o <kbd>+</kbd>/<kbd>−</kbd> para hacer zoom · arrastra las
-        barras <span aria-hidden="true">═</span> para cambiar el alto de cada gráfico
+        {t.history.hint}
       </p>
     </section>
   );

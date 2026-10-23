@@ -1,8 +1,9 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { t } from "../i18n";
 
 interface Props {
-  /** Qué explica, para lectores de pantalla: "Información sobre {label}" */
+  /** Qué explica, para lectores de pantalla: "Información sobre {label}" (t.infoAbout) */
   label: string;
   title?: string;
   children: ReactNode;
@@ -63,7 +64,7 @@ export function InfoTip({ label, title, children }: Props) {
         ref={btnRef}
         type="button"
         className={`info-btn${open ? " open" : ""}`}
-        aria-label={`Información sobre ${label}`}
+        aria-label={t.infoAbout(label)}
         aria-expanded={open}
         aria-describedby={open ? id : undefined}
         onClick={() => (pinned ? close() : setPinned(true))}

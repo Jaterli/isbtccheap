@@ -1,4 +1,4 @@
-import { CATEGORY_INFO, METRIC_INFO, SCORE_COLUMNS } from "../lib/descriptions";
+import { locale, t } from "../i18n";
 import type { Category, CategoryId } from "../types";
 import { InfoTip } from "./InfoTip";
 
@@ -12,7 +12,7 @@ const ORDER: CategoryId[] = ["valoracion", "ciclo", "liquidez", "sentimiento", "
 function fmt(v: number | null) {
   if (v === null) return "—";
   const abs = Math.abs(v);
-  return v.toLocaleString("es-ES", { maximumFractionDigits: abs >= 100 ? 0 : abs >= 1 ? 2 : 4 });
+  return v.toLocaleString(locale, { maximumFractionDigits: abs >= 100 ? 0 : abs >= 1 ? 2 : 4 });
 }
 
 function Bar({ score }: { score: number | null }) {
@@ -35,37 +35,42 @@ export function Breakdown({ categories, weights }: Props) {
         const c = categories[id];
         if (!c) return null;
         const w = c.score === null ? 0 : (weights[id] / totalW) * 100;
+        const info = t.categories[id];
         return (
           <article key={id} className="card category">
             <header>
               <h3>
-                {c.name}
-                <InfoTip label={c.name} title={c.name}>
-                  <p>{CATEGORY_INFO[id].what}</p>
-                  <p>{CATEGORY_INFO[id].read}</p>
-                  <p className="muted">{SCORE_COLUMNS}</p>
+                {info.name}
+                <InfoTip label={info.name} title={info.name}>
+                  <p>{info.what}</p>
+                  <p>{info.read}</p>
+                  <p className="muted">{t.scoreColumns}</p>
                 </InfoTip>
               </h3>
-              <span className="muted">peso {w.toFixed(0)} %</span>
+              <span className="muted">{t.weight(w.toFixed(0))}</span>
               <strong className="num">{c.score === null ? "—" : Math.round(c.score)}</strong>
             </header>
             <Bar score={c.score} />
             <ul>
-              {c.metrics.map((m) => (
-                <li key={m.id}>
-                  <span>
-                    {m.name}
-                    {METRIC_INFO[m.id] && (
-                      <InfoTip label={m.name} title={m.name}>
-                        <p>{METRIC_INFO[m.id].what}</p>
-                        <p>{METRIC_INFO[m.id].read}</p>
-                      </InfoTip>
-                    )}
-                  </span>
-                  <span className="muted num">{fmt(m.value)}</span>
-                  <span className="num">{m.score === null ? "—" : Math.round(m.score)}</span>
-                </li>
-              ))}
+              {c.metrics.map((m) => {
+                const mi = t.metrics[m.id];
+                const name = mi?.name ?? m.name;
+                return (
+                  <li key={m.id}>
+                    <span>
+                      {name}
+                      {mi && (
+                        <InfoTip label={name} title={name}>
+                          <p>{mi.what}</p>
+                          <p>{mi.read}</p>
+                        </InfoTip>
+                      )}
+                    </span>
+                    <span className="muted num">{fmt(m.value)}</span>
+                    <span className="num">{m.score === null ? "—" : Math.round(m.score)}</span>
+                  </li>
+                );
+              })}
             </ul>
           </article>
         );

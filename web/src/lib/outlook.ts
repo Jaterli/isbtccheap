@@ -1,11 +1,7 @@
 import type { History, Latest } from "../types";
 
-export const HORIZONS = [
-  { days: 30, label: "1 mes" },
-  { days: 90, label: "3 meses" },
-  { days: 180, label: "6 meses" },
-  { days: 365, label: "1 año" },
-];
+/** Plazos en días; sus nombres están en i18n (t.outlook.horizons) */
+export const HORIZONS = [30, 90, 180, 365];
 
 // Muestra de las rentabilidades: días con un score diario a menos de esto del de hoy. Un rango centrado
 // compara situaciones parecidas; una zona fija mezclaría, con un score de 39, días de 22 y dejaría fuera los de 42
@@ -22,7 +18,6 @@ const VOL_LOOKBACK = 1461; // percentil de la volatilidad frente a los últimos 
 
 export interface ForwardStats {
   days: number;
-  label: string;
   /** Días de la muestra con precio conocido al cabo del horizonte */
   n: number;
   /** Episodios distintos a los que pertenecen esos días: es el tamaño real de la muestra */
@@ -134,7 +129,7 @@ export function computeOutlook(history: History, labels: Latest["labels"], fromI
   const avgRuns = runs(avg.map((s, i) => i >= fromIndex && inside(s, avgBand)), 0);
   const current = avgRuns.at(-1)!; // la media de hoy está en su zona por definición
 
-  const forward = HORIZONS.map(({ days, label }) => {
+  const forward = HORIZONS.map((days) => {
     const rets: number[] = [];
     const used = new Set<number>();
     eps.forEach(([a, b], k) => {
@@ -148,7 +143,6 @@ export function computeOutlook(history: History, labels: Latest["labels"], fromI
     const has = rets.length > 0;
     return {
       days,
-      label,
       n: rets.length,
       episodes: used.size,
       median: has ? quantile(rets, 0.5) : null,

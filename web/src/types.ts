@@ -1,12 +1,7 @@
 export type Timeframe = "15m" | "1h" | "4h" | "1d" | "1w";
 
-export const TIMEFRAMES: { id: Timeframe; label: string; short: string }[] = [
-  { id: "15m", label: "15 minutos", short: "15 min" },
-  { id: "1h", label: "1 hora", short: "1 h" },
-  { id: "4h", label: "4 horas", short: "4 h" },
-  { id: "1d", label: "1 día", short: "1 día" },
-  { id: "1w", label: "1 semana", short: "1 sem" },
-];
+/** Orden del selector; los nombres están en i18n (t.timeframes) */
+export const TIMEFRAMES: Timeframe[] = ["15m", "1h", "4h", "1d", "1w"];
 
 export type CategoryId = "valoracion" | "ciclo" | "liquidez" | "sentimiento" | "tecnico";
 

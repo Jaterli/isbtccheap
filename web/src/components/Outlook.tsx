@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
+import { labelAt, locale, t } from "../i18n";
 import { computeOutlook, type Band } from "../lib/outlook";
 import type { History, Latest } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
 
+// Los nombres están en i18n (t.outlook.periods)
 const PERIODS = [
-  { id: "4y", label: "Últimos 4 años", days: 1461 },
-  { id: "8y", label: "Últimos 8 años", days: 2922 },
-  { id: "all", label: "Desde 2011", days: Infinity },
+  { id: "4y", days: 1461 },
+  { id: "8y", days: 2922 },
+  { id: "all", days: Infinity },
 ];
 const DEFAULT_PERIOD = "8y";
 const PERIOD_KEY = "isbtccheap:outlook-period";
@@ -22,11 +24,11 @@ function loadPeriod() {
 
 function pct(r: number) {
   const v = r * 100;
-  const s = Math.abs(v).toLocaleString("es-ES", { maximumFractionDigits: Math.abs(v) >= 10 ? 0 : 1 });
-  return `${v > 0 ? "+" : v < 0 ? "−" : ""}${s} %`;
+  const s = Math.abs(v).toLocaleString(locale, { maximumFractionDigits: Math.abs(v) >= 10 ? 0 : 1 });
+  return `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(s)}`;
 }
 
-const fmtDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+const fmtDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 
 function median(xs: number[]) {
   const s = [...xs].sort((a, b) => a - b);
@@ -60,25 +62,26 @@ export function Outlook({ history, labels }: Props) {
   const zone = (b: Band) => `${b.lo === 0 ? 1 : b.lo + 1}–${b.hi}`;
   const sm = o.smooth;
   const longer = sm.pastDurations.filter((d) => d > sm.streakDays).length;
-  const one = (n: number) => Math.round(n).toLocaleString("es-ES");
+  const one = (n: number) => Math.round(n).toLocaleString(locale);
+  const name = (b: Band) => labelAt(b.index, b.label);
+  const tx = t.outlook;
 
   return (
     <section className="card outlook">
       <header>
         <h3>
-          Qué hizo el precio después
-          <InfoTip label="qué hizo el precio después" title="Qué hizo el precio después">
-            <p>La tabla toma los días del histórico con un score diario parecido al de hoy (±7,5 puntos) y mide cuánto había cambiado el precio al cabo de cada plazo.</p>
-            <p>Los días cercanos se parecen mucho entre sí, así que se agrupan en episodios: días de la muestra separados por menos de un mes son el mismo episodio. El tamaño real de la muestra es el número de episodios, no el de días.</p>
-            <p>El tiempo en una zona se mide con la media de 30 días del score, porque el valor diario es demasiado ruidoso: en pocas semanas puede cruzar varias zonas.</p>
-            <p>"Últimos 4 años" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "Últimos 8 años" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.</p>
-            <p className="muted">El score histórico usa una regresión power law ajustada con todos los datos, así que los resultados pasados salen algo mejores de lo que habría marcado en su momento. Describe el pasado, no predice el futuro.</p>
+          {tx.title}
+          <InfoTip label={tx.title} title={tx.title}>
+            {tx.info.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+            <p className="muted">{tx.infoNote}</p>
           </InfoTip>
         </h3>
-        <div className="segmented small" role="group" aria-label="Periodo de la muestra">
+        <div className="segmented small" role="group" aria-label={tx.periodAria}>
           {PERIODS.map((p) => (
             <button key={p.id} className={period === p.id ? "active" : ""} onClick={() => selectPeriod(p.id)}>
-              {p.label}
+              {tx.periods[p.id]}
             </button>
           ))}
         </div>
@@ -86,52 +89,55 @@ export function Outlook({ history, labels }: Props) {
 
       <div className="outlook-lead">
         <p>
-          El score diario está en{" "}
-          <strong className="num" style={{ color: bandColor(o.score) }}>{one(o.score)}</strong> ({o.band.label}, zona {zone(o.band)}).
-          En los últimos {o.recentDays} días ha estado en esa zona el <strong className="num">{Math.round(o.recentShare * 100)} %</strong> del tiempo.
+          {tx.today(
+            <strong className="num" style={{ color: bandColor(o.score) }}>{one(o.score)}</strong>,
+            name(o.band),
+            zone(o.band),
+            o.recentDays,
+            <strong className="num">{t.percent(String(Math.round(o.recentShare * 100)))}</strong>,
+          )}
         </p>
         <p>
-          Su media de {sm.days} días está en{" "}
-          <strong className="num" style={{ color: bandColor(sm.value) }}>{one(sm.value)}</strong> ({sm.band.label}) y lleva{" "}
-          <strong className="num">{sm.streakDays}</strong> {sm.streakDays === 1 ? "día seguido" : "días seguidos"} en la zona {zone(sm.band)}, desde el {fmtDate(sm.since)}.
-          {sm.pastDurations.length > 0 && (
-            <>
-              {" "}De {sm.pastDurations.length} {sm.pastDurations.length === 1 ? "racha anterior" : "rachas anteriores"} en esa zona,{" "}
-              {longer === 0 ? "ninguna duró más" : `${longer} ${longer === 1 ? "duró" : "duraron"} más`} (mediana {one(median(sm.pastDurations))} días).
-            </>
+          {tx.smooth(
+            sm.days,
+            <strong className="num" style={{ color: bandColor(sm.value) }}>{one(sm.value)}</strong>,
+            name(sm.band),
+            <strong className="num">{sm.streakDays}</strong>,
+            sm.streakDays,
+            zone(sm.band),
+            fmtDate(sm.since),
           )}
+          {sm.pastDurations.length > 0 && tx.past(sm.pastDurations.length, longer, one(median(sm.pastDurations)))}
         </p>
       </div>
 
       <p className="outlook-sample muted">
-        Días con un score diario entre {one(o.similar.lo)} y {one(o.similar.hi)}: qué hizo el precio después.
+        {tx.sample(one(o.similar.lo), one(o.similar.hi))}
       </p>
 
       <div className="outlook-table-wrap">
         <table className="outlook-table num">
           <thead>
             <tr>
-              <th scope="col">Plazo</th>
-              <th scope="col">Mediana</th>
-              <th scope="col">Subió</th>
-              <th scope="col">Peor / mejor</th>
-              <th scope="col">Muestra</th>
+              <th scope="col">{tx.cols.horizon}</th>
+              <th scope="col">{tx.cols.median}</th>
+              <th scope="col">{tx.cols.rose}</th>
+              <th scope="col">{tx.cols.range}</th>
+              <th scope="col">{tx.cols.sample}</th>
             </tr>
           </thead>
           <tbody>
             {o.forward.map((f) => (
               <tr key={f.days}>
-                <th scope="row">{f.label}</th>
+                <th scope="row">{tx.horizons[f.days]}</th>
                 {f.median === null ? (
-                  <td colSpan={4} className="muted">Sin datos suficientes</td>
+                  <td colSpan={4} className="muted">{tx.notEnough}</td>
                 ) : (
                   <>
                     <td className={f.median >= 0 ? "up" : "down"}>{pct(f.median)}</td>
-                    <td>{Math.round(f.positive! * 100)} %</td>
+                    <td>{t.percent(String(Math.round(f.positive! * 100)))}</td>
                     <td>{pct(f.min!)} / {pct(f.max!)}</td>
-                    <td title={`${f.n} días`}>
-                      {f.episodes} {f.episodes === 1 ? "episodio" : "episodios"}
-                    </td>
+                    <td title={tx.days(f.n)}>{tx.episodes(f.episodes)}</td>
                   </>
                 )}
               </tr>
@@ -142,13 +148,15 @@ export function Outlook({ history, labels }: Props) {
 
       {o.vol && (
         <p className="outlook-vol">
-          Volatilidad de los últimos 30 días: <strong className="num">{Math.round(o.vol.current * 100)} %</strong> anualizada,
-          percentil <strong className="num">{Math.round(o.vol.percentile)}</strong> de los últimos 4 años.
-          {o.vol.percentile <= 20 && " Una volatilidad tan baja suele anticipar un movimiento fuerte, pero no indica en qué dirección."}
-          {o.vol.percentile >= 80 && " Una volatilidad tan alta suele darse en caídas bruscas o subidas verticales."}
+          {tx.vol(
+            <strong className="num">{t.percent(String(Math.round(o.vol.current * 100)))}</strong>,
+            <strong className="num">{Math.round(o.vol.percentile)}</strong>,
+          )}
+          {o.vol.percentile <= 20 && tx.volLow}
+          {o.vol.percentile >= 80 && tx.volHigh}
         </p>
       )}
-      <p className="muted small outlook-note">Datos históricos, no una predicción ni una recomendación de inversión.</p>
+      <p className="muted small outlook-note">{tx.note}</p>
     </section>
   );
 }

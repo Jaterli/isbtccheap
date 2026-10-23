@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { TIMEFRAMES, type Timeframe } from "../types";
 
 interface Props {
@@ -7,18 +8,18 @@ interface Props {
 
 export function TimeframeSelector({ value, onChange }: Props) {
   return (
-    <div className="segmented timeframes" role="radiogroup" aria-label="Temporalidad">
+    <div className="segmented timeframes" role="radiogroup" aria-label={t.timeframeAria}>
       {TIMEFRAMES.map((tf) => (
         <button
-          key={tf.id}
+          key={tf}
           role="radio"
-          aria-checked={value === tf.id}
-          aria-label={tf.label}
-          title={tf.label}
-          className={value === tf.id ? "active" : ""}
-          onClick={() => onChange(tf.id)}
+          aria-checked={value === tf}
+          aria-label={t.timeframes[tf].label}
+          title={t.timeframes[tf].label}
+          className={value === tf ? "active" : ""}
+          onClick={() => onChange(tf)}
         >
-          {tf.short}
+          {t.timeframes[tf].short}
         </button>
       ))}
     </div>

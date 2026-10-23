@@ -1,0 +1,274 @@
+import type { ReactNode } from "react";
+import type { CategoryId, Timeframe } from "../types";
+
+interface Description {
+  /** Qué mide */
+  what: string;
+  /** Cómo interpretarlo en el score */
+  read: string;
+}
+
+export const es = {
+  loading: "Cargando…",
+  noData: "Sin datos",
+  dataError: "No se pudieron cargar los datos diarios. Ejecuta el pipeline (python pipeline/build.py).",
+  infoAbout: (label: string) => `Información sobre ${label}`,
+  percent: (n: string) => `${n} %`,
+  language: "Idioma",
+
+  tagline: "¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.",
+
+  timeframes: {
+    "15m": { label: "15 minutos", short: "15 min" },
+    "1h": { label: "1 hora", short: "1 h" },
+    "4h": { label: "4 horas", short: "4 h" },
+    "1d": { label: "1 día", short: "1 día" },
+    "1w": { label: "1 semana", short: "1 sem" },
+  } satisfies Record<Timeframe, { label: string; short: string }>,
+  timeframeAria: "Temporalidad",
+  timeframeInfo: {
+    label: "la temporalidad",
+    title: "Temporalidad",
+    body: "Elige el horizonte del análisis. El técnico se calcula con velas de esa temporalidad y los pesos de cada categoría cambian: en las cortas pesa más el técnico y el sentimiento; en las largas, la valoración y el ciclo.",
+    weightsIn: (tf: string) => `Pesos en ${tf}:`,
+  },
+
+  gauge: { cheap: "Barato", expensive: "Caro" },
+  scoreInfo: {
+    label: "el score",
+    title: "Score",
+    body: "Índice de 1 a 100 que estima si Bitcoin está barato o caro. Es la media ponderada de las cinco categorías de abajo, estirada para que los extremos sean alcanzables; cada métrica se puntúa según su percentil histórico.",
+    disclaimer: "Es una referencia informativa, no una recomendación de inversión.",
+  },
+  /** Etiquetas de la escala, en el mismo orden que LABELS del pipeline */
+  labels: ["Muy barato", "Barato", "Neutral", "Caro", "Muy caro"],
+
+  priceInfo: {
+    label: "el precio",
+    title: "Precio",
+    body: "Último precio de BTC/USDT en Binance, tomado del cierre de la vela más reciente. Si Binance no está disponible, se muestra el precio diario de Coin Metrics.",
+  },
+
+  refresh: {
+    updating: "Actualizando…",
+    next: (countdown: string) => `Próxima actualización en ${countdown}`,
+    now: "Actualizar ahora",
+    infoLabel: "la actualización",
+    infoTitle: "Actualización",
+    info1: (interval: string) =>
+      `El técnico y el funding se actualizan solos cada ${interval} en esta temporalidad. Al cambiar de temporalidad se reutilizan los datos ya descargados mientras sigan vigentes.`,
+    info2: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día. El botón ↻ fuerza la recarga de todo.",
+  },
+  liveError: "Sin conexión con Binance: se usan los datos técnicos diarios.",
+
+  categories: {
+    valoracion: {
+      name: "Valoración on-chain",
+      what: "Compara el precio con lo que «vale» la red según datos on-chain: el precio medio pagado por los holders, los ingresos de los mineros y la media de 200 días.",
+      read: "Es la base del score y pesa más en temporalidades largas. Valores altos indican que el precio está muy por encima de su valor de referencia.",
+    },
+    ciclo: {
+      name: "Ciclo",
+      what: "Sitúa el momento actual dentro del ciclo de unos 4 años que marcan los halvings y respecto a la tendencia de largo plazo de Bitcoin.",
+      read: "Históricamente los techos llegan entre 12 y 18 meses después del halving y los suelos unos 2–2,5 años después.",
+    },
+    liquidez: {
+      name: "Liquidez",
+      what: "Mide si entra o sale dinero del sistema: liquidez de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins.",
+      read: "Más liquidez es un entorno favorable para Bitcoin y resta al score; menos liquidez o un dólar fuerte suman.",
+    },
+    sentimiento: {
+      name: "Sentimiento",
+      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros.",
+      read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
+    },
+    tecnico: {
+      name: "Técnico",
+      what: "Indicadores de precio calculados en vivo con las velas de la temporalidad elegida.",
+      read: "Es la parte que más cambia y la que más pesa en temporalidades cortas (15 min, 1 h). Valores altos indican sobrecompra.",
+    },
+  } satisfies Record<CategoryId, Description & { name: string }>,
+  weight: (w: string) => `peso ${w} %`,
+  scoreColumns:
+    "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa.",
+
+  metrics: {
+    mvrv: {
+      name: "MVRV",
+      what: "Market Value to Realized Value: capitalización de mercado dividida por la capitalización realizada, que valora cada bitcoin al precio al que se movió por última vez.",
+      read: "Por encima de 3,5 ha marcado techos de ciclo; por debajo de 1 el mercado cotiza por debajo de lo que pagaron los holders (zona de suelo).",
+    },
+    puell: {
+      name: "Puell Multiple",
+      what: "Ingresos diarios de los mineros por emisión de nuevos bitcoins divididos por su media de 365 días.",
+      read: "Alto: los mineros ganan mucho y tienden a vender. Bajo: capitulación minera, históricamente zona de compra.",
+    },
+    mayer: {
+      name: "Mayer Multiple (precio / MA200d)",
+      what: "Mayer Multiple: precio dividido por su media móvil de 200 días.",
+      read: "Por encima de 2,4 ha coincidido con burbujas; por debajo de 1 con zonas baratas.",
+    },
+    halving_phase: {
+      name: "Fase del ciclo de halving",
+      what: "Posición dentro del ciclo entre dos halvings (cada ~4 años se reduce a la mitad la emisión de nuevos bitcoins).",
+      read: "El valor ya es una puntuación: sube hacia la zona en la que históricamente se formaron los techos y baja hacia la de los suelos.",
+    },
+    power_law: {
+      name: "Desviación de la power law",
+      what: "Distancia, en escala logarítmica, entre el precio y la tendencia de largo plazo (ley de potencia) que ha seguido Bitcoin desde su creación.",
+      read: "Positivo: por encima de la tendencia (caro). Negativo: por debajo (barato).",
+    },
+    wma200_ratio: {
+      name: "Precio / MA200 semanas",
+      what: "Precio dividido por la media móvil de 200 semanas (unos 4 años, un ciclo completo).",
+      read: "Esa media ha actuado como suelo en todos los ciclos: cerca de 1 es zona muy barata; muy por encima, zona de euforia.",
+    },
+    net_liquidity_roc: {
+      name: "Liquidez neta Fed (var. 13 sem.)",
+      what: "Variación en 13 semanas de la liquidez neta de la Fed: balance de la Reserva Federal menos la cuenta del Tesoro y los repos inversos.",
+      read: "Si sube, entra liquidez en los mercados y resta al score; si baja, suma.",
+    },
+    m2_yoy: {
+      name: "M2 EE. UU. (var. interanual)",
+      what: "Crecimiento interanual de la masa monetaria M2 de EE. UU. (efectivo, depósitos y equivalentes).",
+      read: "La expansión monetaria favorece a los activos escasos como Bitcoin y resta al score.",
+    },
+    dxy_roc: {
+      name: "Dólar DXY amplio (var. 13 sem.)",
+      what: "Variación en 13 semanas del índice amplio del dólar frente a las principales divisas.",
+      read: "Un dólar que se fortalece endurece las condiciones financieras globales y suma al score.",
+    },
+    stablecoin_roc: {
+      name: "Oferta de stablecoins (var. 90 d)",
+      what: "Crecimiento en 90 días de la oferta total de stablecoins (USDT, USDC…), dinero listo para entrar en cripto.",
+      read: "Si crece, hay más «pólvora seca» disponible y resta al score.",
+    },
+    fear_greed: {
+      name: "Fear & Greed Index",
+      what: "Crypto Fear & Greed Index de Alternative.me: combina volatilidad, volumen, redes sociales, dominancia y búsquedas. Va de 0 (miedo extremo) a 100 (codicia extrema).",
+      read: "Se usa directamente como puntuación.",
+    },
+    funding: {
+      name: "Funding rate perpetuos (Binance)",
+      what: "Funding rate de los futuros perpetuos de Binance: el pago periódico (cada 8 h) entre posiciones largas y cortas.",
+      read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
+    },
+    rsi_14: {
+      name: "RSI 14",
+      what: "Relative Strength Index de 14 velas: compara la fuerza de las subidas con la de las bajadas recientes.",
+      read: "Por encima de 70, sobrecompra; por debajo de 30, sobreventa. Puntúa 0 con RSI 30 o menos y 100 con RSI 70 o más.",
+    },
+    bollinger: {
+      name: "Bollinger %B (20, 2)",
+      what: "Posición del precio dentro de las bandas de Bollinger (media de 20 velas ± 2 desviaciones típicas).",
+      read: "100: en la banda superior (estirado al alza). 0: en la inferior (estirado a la baja).",
+    },
+    ma200_ratio: {
+      name: "Precio / MA200 (percentil)",
+      what: "Precio dividido por su media de 200 velas en la temporalidad elegida, comparado con las últimas 1000 velas.",
+      read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
+    },
+  } as Record<string, Description & { name: string }>,
+
+  history: {
+    title: "Histórico del score diario frente al precio",
+    infoLabel: "el histórico",
+    infoTitle: "Histórico",
+    info1: "Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).",
+    info2: "Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.",
+    ranges: { "1m": "1 mes", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    rangeAria: "Rango del histórico",
+    zoomOut: "Alejar",
+    zoomIn: "Acercar",
+    price: "Precio",
+    chartAria: "Gráfico histórico del precio de Bitcoin y del score",
+    resizePrice: "Alto del gráfico de precio",
+    resizeScore: "Alto del gráfico del score",
+    resizeTitle: "Arrastra para cambiar el alto · doble clic para restablecer",
+    months: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+    max: "Máx",
+    min: "Mín",
+    hint: (
+      <>
+        Arrastra el gráfico para desplazarte · Ctrl + rueda, pellizco o <kbd>+</kbd>/<kbd>−</kbd> para hacer zoom · arrastra las
+        barras <span aria-hidden="true">═</span> para cambiar el alto de cada gráfico
+      </>
+    ) as ReactNode,
+  },
+
+  outlook: {
+    title: "Qué hizo el precio después",
+    info: [
+      "La tabla toma los días del histórico con un score diario parecido al de hoy (±7,5 puntos) y mide cuánto había cambiado el precio al cabo de cada plazo.",
+      "Los días cercanos se parecen mucho entre sí, así que se agrupan en episodios: días de la muestra separados por menos de un mes son el mismo episodio. El tamaño real de la muestra es el número de episodios, no el de días.",
+      "El tiempo en una zona se mide con la media de 30 días del score, porque el valor diario es demasiado ruidoso: en pocas semanas puede cruzar varias zonas.",
+      '"Últimos 4 años" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "Últimos 8 años" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.',
+    ],
+    infoNote:
+      "El score histórico usa una regresión power law ajustada con todos los datos, así que los resultados pasados salen algo mejores de lo que habría marcado en su momento. Describe el pasado, no predice el futuro.",
+    periods: { "4y": "Últimos 4 años", "8y": "Últimos 8 años", all: "Desde 2011" } as Record<string, string>,
+    periodAria: "Periodo de la muestra",
+    today: (score: ReactNode, label: string, zone: string, days: number, share: ReactNode) => (
+      <>
+        El score diario está en {score} ({label}, zona {zone}). En los últimos {days} días ha estado en esa zona el {share} del
+        tiempo.
+      </>
+    ),
+    smooth: (days: number, value: ReactNode, label: string, streak: ReactNode, streakDays: number, zone: string, since: string) => (
+      <>
+        Su media de {days} días está en {value} ({label}) y lleva {streak} {streakDays === 1 ? "día seguido" : "días seguidos"} en
+        la zona {zone}, desde el {since}.
+      </>
+    ),
+    past: (count: number, longer: number, median: string) =>
+      ` De ${count} ${count === 1 ? "racha anterior" : "rachas anteriores"} en esa zona, ${
+        longer === 0 ? "ninguna duró más" : `${longer} ${longer === 1 ? "duró" : "duraron"} más`
+      } (mediana ${median} días).`,
+    sample: (lo: string, hi: string) => `Días con un score diario entre ${lo} y ${hi}: qué hizo el precio después.`,
+    horizons: { 30: "1 mes", 90: "3 meses", 180: "6 meses", 365: "1 año" } as Record<number, string>,
+    cols: { horizon: "Plazo", median: "Mediana", rose: "Subió", range: "Peor / mejor", sample: "Muestra" },
+    notEnough: "Sin datos suficientes",
+    days: (n: number) => `${n} días`,
+    episodes: (n: number) => `${n} ${n === 1 ? "episodio" : "episodios"}`,
+    vol: (value: ReactNode, pct: ReactNode) => (
+      <>
+        Volatilidad de los últimos 30 días: {value} anualizada, percentil {pct} de los últimos 4 años.
+      </>
+    ),
+    volLow: " Una volatilidad tan baja suele anticipar un movimiento fuerte, pero no indica en qué dirección.",
+    volHigh: " Una volatilidad tan alta suele darse en caídas bruscas o subidas verticales.",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+  },
+
+  donate: {
+    title: "Apoya el proyecto",
+    infoLabel: "las donaciones",
+    infoTitle: "Donaciones",
+    info1: "Is BTC Cheap? es gratuito y sin publicidad. Las donaciones son voluntarias y ayudan a cubrir el dominio y el tiempo de desarrollo; no dan acceso a nada adicional.",
+    info2: "Las direcciones de wallet son públicas: cualquier pago a ellas queda registrado en la blockchain.",
+    coffee: "Si te resulta útil, puedes invitarme a un café ☕",
+    paypal: "Donar con PayPal",
+    networkAria: "Red",
+    qrAria: "Código QR de la dirección",
+    copy: "Copiar",
+    copied: "¡Copiada!",
+    openWallet: "Abrir en wallet",
+    hints: {
+      btc: "Red Bitcoin (on-chain). Envía solo BTC a esta dirección.",
+      ln: "Lightning Network: pagos instantáneos y casi sin comisión, ideal para cantidades pequeñas.",
+    } as Record<string, string>,
+  },
+
+  footer: {
+    dataAsOf: (asOf: string, updated: string) =>
+      `Datos on-chain, de ciclo y de liquidez a ${asOf} (se recalculan una vez al día; última ejecución ${updated}).`,
+    missing: (list: string) => ` Fuentes no disponibles hoy: ${list}.`,
+    sources: "Fuentes:",
+    /** Nombres de las fuentes por URL; las que no estén usan el nombre del pipeline */
+    attribution: {} as Record<string, string>,
+    disclaimer: "Este indicador es informativo y no constituye asesoramiento financiero.",
+    credit: "Desarrollado por",
+  },
+};
+
+export type Messages = typeof es;

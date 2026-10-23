@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 
 interface Props {
   nextAt: number;
@@ -26,10 +27,10 @@ export function RefreshStatus({ nextAt, loading, onRefresh, info }: Props) {
   return (
     <div className="refresh">
       <span className="num muted">
-        {loading ? "Actualizando…" : `Próxima actualización en ${fmtCountdown(left)}`}
+        {loading ? t.refresh.updating : t.refresh.next(fmtCountdown(left))}
         {info}
       </span>
-      <button className="btn btn-icon" onClick={onRefresh} disabled={loading} aria-label="Actualizar ahora" title="Actualizar ahora">
+      <button className="btn btn-icon" onClick={onRefresh} disabled={loading} aria-label={t.refresh.now} title={t.refresh.now}>
         <span aria-hidden="true" className={loading ? "spin" : ""}>↻</span>
       </button>
     </div>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "../i18n";
 
 const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
 const CX = 120;
@@ -32,7 +33,7 @@ interface Props {
 export function Gauge({ score, label, info }: Props) {
   const [nx, ny] = point(score ?? 50, R - 28);
   return (
-    <figure className="gauge" aria-label={score === null ? "Sin datos" : `Score ${Math.round(score)}: ${label}`}>
+    <figure className="gauge" aria-label={score === null ? t.noData : `Score ${Math.round(score)}: ${label}`}>
       <svg viewBox="0 0 240 140" role="img">
         {BANDS.map((c, i) => (
           <path key={i} d={arc(i * 20 + 0.8, (i + 1) * 20 - 0.8)} stroke={c} strokeWidth="18" fill="none" />
@@ -43,8 +44,8 @@ export function Gauge({ score, label, info }: Props) {
             <circle cx={CX} cy={CY} r="6" fill="var(--fg)" />
           </>
         )}
-        <text x="14" y="138" className="gauge-end">Barato</text>
-        <text x="226" y="138" className="gauge-end" textAnchor="end">Caro</text>
+        <text x="14" y="138" className="gauge-end">{t.gauge.cheap}</text>
+        <text x="226" y="138" className="gauge-end" textAnchor="end">{t.gauge.expensive}</text>
       </svg>
       <figcaption>
         <span className="gauge-value" style={score === null ? undefined : { color: bandColor(score) }}>

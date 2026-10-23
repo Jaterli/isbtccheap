@@ -10,8 +10,8 @@ export interface CryptoMethod {
   address: string;
   /** Enlace que abre la app de wallet del usuario */
   uri: (address: string) => string;
-  hint: string;
 }
+// La explicación de cada método está en i18n (t.donate.hints, por id)
 
 export const CRYPTO: CryptoMethod[] = [
   {
@@ -19,13 +19,11 @@ export const CRYPTO: CryptoMethod[] = [
     label: "Bitcoin",
     address: "3PaRjB5uzksnyQaggVxrhknWSoi1pPUBkT", // dirección on-chain, p. ej. bc1q…
     uri: (a) => `bitcoin:${a}`,
-    hint: "Red Bitcoin (on-chain). Envía solo BTC a esta dirección.",
   },
   {
     id: "ln",
     label: "Lightning",
     address: "", // Lightning address, p. ej. usuario@walletofsatoshi.com
     uri: (a) => `lightning:${a}`,
-    hint: "Lightning Network: pagos instantáneos y casi sin comisión, ideal para cantidades pequeñas.",
   },
 ];
