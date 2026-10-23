@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Actualiza el despliegue del droplet. Lo lanza el cron cada día, después de la GitHub Action.
-# Si solo han cambiado los datos basta el git pull (están montados como volumen); si cambia el código, reconstruye.
+# Actualiza el código desplegado en el servidor. Los datos diarios no lo necesitan: la web los lee de GitHub.
+# Los commits que solo cambian datos no reconstruyen la imagen.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

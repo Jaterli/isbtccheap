@@ -12,10 +12,10 @@ import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, 
 
 const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : `${ms / 60_000} min`);
 
-const DATA = `${import.meta.env.BASE_URL}data`;
+const DATA = import.meta.env.VITE_DATA_URL ?? `${import.meta.env.BASE_URL}data`;
 const TF_KEY = "isbtccheap:tf";
 // Cada cuánto se refrescan las velas según la temporalidad
-const REFRESH_MS: Record<Timeframe, number> = { "15m": 30_000, "1h": 60_000, "4h": 120_000, "1d": 300_000, "1w": 600_000 };
+const REFRESH_MS: Record<Timeframe, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000 };
 // El funding de Binance solo cambia cada 8 h: basta con pedirlo cada 5 min
 const FUNDING_MS = 300_000;
 

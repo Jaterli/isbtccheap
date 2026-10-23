@@ -3,9 +3,6 @@ services:
     build: ./web
     container_name: isbtccheap_frontend # ← el nombre que usa el upstream del reverse proxy
     restart: unless-stopped
-    volumes:
-      # Los JSON diarios se leen del repositorio: un git pull basta para actualizarlos, sin reconstruir la imagen
-      - ./web/public/data:/usr/share/nginx/html/data:ro
     networks:
       - web_network
 

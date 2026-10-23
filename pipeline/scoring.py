@@ -55,5 +55,6 @@ def composite(cats: pd.DataFrame, timeframe: str) -> pd.Series:
     total = w.sum(axis=1)
     raw = (cats.fillna(0) * w).sum(axis=1) / total
     # Exigimos al menos valoración y ciclo para considerar el score válido
-    raw[~(present.get("valoracion", False) & present.get("ciclo", False))] = float("nan")
+    valid = present.reindex(columns=["valoracion", "ciclo"], fill_value=False).all(axis=1)
+    raw = raw.where(valid)
     return 1 + stretch(raw) * 0.99
