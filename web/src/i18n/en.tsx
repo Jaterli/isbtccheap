@@ -107,7 +107,7 @@ export const en: Messages = {
     },
     power_law: {
       name: "Power law deviation",
-      what: "Distance, on a log scale, between the price and the long-term trend (power law) Bitcoin has followed since its creation.",
+      what: "How far the price is above or below the long-term trend (power law) Bitcoin has followed since its creation. Measured on a log scale and shown as a percentage.",
       read: "Positive: above the trend (expensive). Negative: below it (cheap).",
     },
     wma200_ratio: {

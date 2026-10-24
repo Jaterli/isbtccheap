@@ -55,7 +55,7 @@ a { color: inherit; }
 h1, h3 { margin: 0; }
 h1 { font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.1rem); letter-spacing: -0.02em; }
 h3 { font-size: 1rem; }
-
+header {position: relative;}
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -77,8 +77,8 @@ h3 { font-size: 1rem; }
   display: block; width: clamp(108px, 18vw, 160px); height: auto;
 }
 /* Selector de idioma: arriba a la derecha de la cabecera */
-.top { position: relative; }
-.lang-switch { margin-left: auto; align-self: flex-start; display: flex; gap: 2px; font-size: 0.85rem; }
+.top { position: relative; margin-top: 30px; }
+.lang-switch { margin-left: auto; align-self: flex-start; display: flex; gap: 2px; font-size: 0.85rem; right: 0; position: absolute; }
 .lang-switch a { padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 600; }
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
@@ -92,6 +92,7 @@ h3 { font-size: 1rem; }
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard .hero { grid-column: 1 / -1; }
   .dashboard .category:last-child { grid-column: 1 / -1; }
+  .top { margin-top: 0; }
 }
 
 @media (min-width: 1024px) {

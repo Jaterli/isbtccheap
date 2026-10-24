@@ -150,11 +150,7 @@ export function App() {
 
   return (
     <main className="container">
-      <header className="top">
-        <h1 className="brand">
-          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
-        </h1>
-        <p className="muted">{t.tagline}</p>
+      <header>
         <nav className="lang-switch" aria-label={t.language}>
           {(["es", "en"] as Lang[]).map((l) => (
             <a key={l} href={LANG_PATH[l]} hrefLang={l} lang={l} aria-current={l === lang ? "true" : undefined} onClick={() => savePref(l)}>
@@ -162,6 +158,12 @@ export function App() {
             </a>
           ))}
         </nav>
+        <div className="top">
+        <h1 className="brand">
+          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
+        </h1>
+        <p className="muted">{t.tagline}</p>
+        </div>
       </header>
 
       <section className="dashboard">

@@ -9,8 +9,26 @@ interface Props {
 
 const ORDER: CategoryId[] = ["valoracion", "ciclo", "liquidez", "sentimiento", "tecnico"];
 
-function fmt(v: number | null) {
+// Métricas que se leen mejor como porcentaje: el valor del pipeline → fracción a mostrar
+const AS_PERCENT: Record<string, (v: number) => number> = {
+  // Variaciones: 0,0491 es un +4,91 %
+  net_liquidity_roc: (v) => v,
+  m2_yoy: (v) => v,
+  dxy_roc: (v) => v,
+  stablecoin_roc: (v) => v,
+  // Residuo en log10 frente a la tendencia: 10^v − 1 es cuánto está el precio por encima o por debajo
+  power_law: (v) => 10 ** v - 1,
+};
+
+function fmt(v: number | null, id: string) {
   if (v === null) return "—";
+  // El funding se publica como porcentaje cada 8 h (0,01 % es neutro); como fracción, 0,0000267 redondeaba a 0
+  if (id === "funding") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 4 }));
+  if (AS_PERCENT[id]) {
+    const p = AS_PERCENT[id](v) * 100;
+    const s = p.toLocaleString(locale, { maximumFractionDigits: Math.abs(p) >= 10 ? 1 : 2 });
+    return t.percent(p > 0 ? `+${s}` : s);
+  }
   const abs = Math.abs(v);
   return v.toLocaleString(locale, { maximumFractionDigits: abs >= 100 ? 0 : abs >= 1 ? 2 : 4 });
 }
@@ -66,7 +84,7 @@ export function Breakdown({ categories, weights }: Props) {
                         </InfoTip>
                       )}
                     </span>
-                    <span className="muted num">{fmt(m.value)}</span>
+                    <span className="muted num">{fmt(m.value, m.id)}</span>
                     <span className="num">{m.score === null ? "—" : Math.round(m.score)}</span>
                   </li>
                 );

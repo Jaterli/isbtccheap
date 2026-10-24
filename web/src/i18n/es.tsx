@@ -115,7 +115,7 @@ export const es = {
     },
     power_law: {
       name: "Desviación de la power law",
-      what: "Distancia, en escala logarítmica, entre el precio y la tendencia de largo plazo (ley de potencia) que ha seguido Bitcoin desde su creación.",
+      what: "Cuánto está el precio por encima o por debajo de la tendencia de largo plazo (ley de potencia) que ha seguido Bitcoin desde su creación. Se mide en escala logarítmica y se muestra en porcentaje.",
       read: "Positivo: por encima de la tendencia (caro). Negativo: por debajo (barato).",
     },
     wma200_ratio: {
