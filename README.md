@@ -4,7 +4,7 @@ https://isbtccheap.com
 
 Índice de 1 a 100 que estima si Bitcoin está **barato (1)** o **caro (100)** combinando cinco categorías:
 valoración on-chain, ciclo, liquidez, sentimiento y análisis técnico. Se puede consultar en cinco temporalidades:
-15 min, 1 h, 4 h, 1 día y 1 semana.
+1 h, 4 h, 1 día, 1 semana y 1 mes.
 
 Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certificado HTTPS son gratis.
 

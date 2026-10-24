@@ -41,11 +41,12 @@ METRICS = [
 # Pesos por temporalidad. En temporalidades cortas pesa más lo que cambia rápido.
 # La liquidez pesa poco: en los suelos históricos puntuaba ~75 (endurecimiento previo) y restaba fiabilidad.
 TIMEFRAME_WEIGHTS = {
-    "15m": {"tecnico": 45, "sentimiento": 25, "valoracion": 16, "ciclo": 11, "liquidez": 3},
     "1h": {"tecnico": 40, "sentimiento": 23, "valoracion": 20, "ciclo": 14, "liquidez": 3},
     "4h": {"tecnico": 30, "sentimiento": 20, "valoracion": 27, "ciclo": 19, "liquidez": 4},
     "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 30, "liquidez": 5},
     "1w": {"tecnico": 8, "sentimiento": 12, "valoracion": 42, "ciclo": 33, "liquidez": 5},
+    # A un mes vista el Fear & Greed (diario) y el funding (cada 8 h) apenas dicen nada; la liquidez, más
+    "1M": {"tecnico": 10, "sentimiento": 5, "valoracion": 40, "ciclo": 35, "liquidez": 10},
 }
 
 # Ventana del percentil: un ciclo de halving. Con ventana expansiva los techos recientes nunca llegaban

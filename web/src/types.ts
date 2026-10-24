@@ -1,7 +1,7 @@
-export type Timeframe = "15m" | "1h" | "4h" | "1d" | "1w";
+export type Timeframe = "1h" | "4h" | "1d" | "1w" | "1M";
 
 /** Orden del selector; los nombres están en i18n (t.timeframes) */
-export const TIMEFRAMES: Timeframe[] = ["15m", "1h", "4h", "1d", "1w"];
+export const TIMEFRAMES: Timeframe[] = ["1h", "4h", "1d", "1w", "1M"];
 
 export type CategoryId = "valoracion" | "ciclo" | "liquidez" | "sentimiento" | "tecnico";
 

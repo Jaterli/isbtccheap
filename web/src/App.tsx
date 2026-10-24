@@ -5,20 +5,20 @@ import { HistoryChart } from "./components/HistoryChart";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchFundingRate } from "./lib/binance";
-import { computeScore, labelIndex, technicalFromCandles, type ScoreResult } from "./lib/score";
+import { computeScore, labelIndex, technicalFromCandles, withMonthlyHistory, type ScoreResult } from "./lib/score";
 import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
 import { Outlook } from "./components/Outlook";
-import type { Category, CategoryId, History, Latest, Timeframe } from "./types";
+import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
 
-const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : `${ms / 60_000} min`);
+const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : ms < 3_600_000 ? `${ms / 60_000} min` : `${ms / 3_600_000} h`);
 
 const DATA = import.meta.env.VITE_DATA_URL ?? `${import.meta.env.BASE_URL}data`;
 const TF_KEY = "isbtccheap:tf";
 // Cada cuánto se refrescan las velas según la temporalidad
-const REFRESH_MS: Record<Timeframe, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000 };
+const REFRESH_MS: Record<Timeframe, number> = { "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000, "1M": 3_600_000 };
 // El funding de Binance solo cambia cada 8 h: basta con pedirlo cada 5 min
 const FUNDING_MS = 300_000;
 
@@ -30,7 +30,10 @@ interface LiveEntry {
 
 function loadTf(): Timeframe {
   try {
-    return (localStorage.getItem(TF_KEY) as Timeframe) || "1d";
+    const saved = localStorage.getItem(TF_KEY);
+    // 15 min se quitó: quien la tenía guardada pasa a la más cercana
+    if (saved === "15m") return "1h";
+    return TIMEFRAMES.includes(saved as Timeframe) ? (saved as Timeframe) : "1d";
   } catch {
     return "1d";
   }
@@ -95,13 +98,13 @@ export function App() {
       const f = fundingCache.current;
       const needFunding = !f || Date.now() - f.at > FUNDING_MS;
       const [candles, fr] = await Promise.allSettled([
-        fetchCandles(tf),
+        tf === "1M" ? fetchCandles(tf).then((c) => withMonthlyHistory(c, history)) : fetchCandles(tf),
         needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
       ]);
       if (cancelled) return;
       const now = Date.now();
       if (candles.status === "fulfilled") {
-        const entry = { technical: technicalFromCandles(candles.value), price: candles.value.at(-1)?.close ?? null, at: now };
+        const entry = { technical: technicalFromCandles(candles.value, tf), price: candles.value.at(-1)?.close ?? null, at: now };
         cache.current.set(tf, entry);
         setLive({ tf, technical: entry.technical });
         setPrice(entry.price);
@@ -122,7 +125,8 @@ export function App() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [tf]);
+    // En mensual el técnico usa también el histórico diario: se recalcula cuando llega
+  }, [tf, tf === "1M" ? history : null]);
 
   const ready = live?.tf === tf;
   const computed = useMemo(
@@ -170,7 +174,7 @@ export function App() {
               <p>{t.timeframeInfo.body}</p>
               <p className="muted">
                 {t.timeframeInfo.weightsIn(t.timeframes[tf].label)}{" "}
-                {Object.entries(latest.weights[tf]).map(([id, w]) => `${t.categories[id as CategoryId].name} ${t.percent(String(w))}`).join(" · ")}
+                {Object.entries(latest.weights[tf] ?? latest.weights["1w"]).map(([id, w]) => `${t.categories[id as CategoryId].name} ${t.percent(String(w))}`).join(" · ")}
               </p>
             </InfoTip>
           </div>

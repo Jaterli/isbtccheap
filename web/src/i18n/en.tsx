@@ -14,11 +14,11 @@ export const en: Messages = {
   tagline: "Is Bitcoin cheap or expensive? A 1 to 100 index that combines on-chain valuation, cycles, liquidity, sentiment and technical analysis.",
 
   timeframes: {
-    "15m": { label: "15 minutes", short: "15m" },
     "1h": { label: "1 hour", short: "1h" },
     "4h": { label: "4 hours", short: "4h" },
     "1d": { label: "1 day", short: "1D" },
     "1w": { label: "1 week", short: "1W" },
+    "1M": { label: "1 month", short: "1M" },
   },
   timeframeAria: "Timeframe",
   timeframeInfo: {
@@ -78,7 +78,7 @@ export const en: Messages = {
     tecnico: {
       name: "Technical",
       what: "Price indicators calculated live from the candles of the selected timeframe.",
-      read: "It is the part that changes the most and weighs the most on short timeframes (15m, 1h). High values mean overbought.",
+      read: "It is the part that changes the most and weighs the most on short timeframes (1h, 4h). High values mean overbought.",
     },
   },
   weight: (w: string) => `weight ${w}%`,
@@ -159,6 +159,11 @@ export const en: Messages = {
     ma200_ratio: {
       name: "Price / 200 MA (percentile)",
       what: "Price divided by its 200-candle average in the selected timeframe, compared with the last 1,000 candles.",
+      read: "The score is the percentile: high means the price is further from its average than usual.",
+    },
+    ma48_ratio: {
+      name: "Price / 48-month MA (percentile)",
+      what: "Price divided by its 48 monthly candle average (4 years, one halving cycle), compared with the whole monthly history since 2011. On the monthly timeframe this average replaces the 200-candle one, which would be 16 years.",
       read: "The score is the percentile: high means the price is further from its average than usual.",
     },
   },

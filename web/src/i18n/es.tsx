@@ -22,11 +22,11 @@ export const es = {
   tagline: "¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.",
 
   timeframes: {
-    "15m": { label: "15 minutos", short: "15 min" },
     "1h": { label: "1 hora", short: "1 h" },
     "4h": { label: "4 horas", short: "4 h" },
     "1d": { label: "1 día", short: "1 día" },
     "1w": { label: "1 semana", short: "1 sem" },
+    "1M": { label: "1 mes", short: "1 mes" },
   } satisfies Record<Timeframe, { label: string; short: string }>,
   timeframeAria: "Temporalidad",
   timeframeInfo: {
@@ -87,7 +87,7 @@ export const es = {
     tecnico: {
       name: "Técnico",
       what: "Indicadores de precio calculados en vivo con las velas de la temporalidad elegida.",
-      read: "Es la parte que más cambia y la que más pesa en temporalidades cortas (15 min, 1 h). Valores altos indican sobrecompra.",
+      read: "Es la parte que más cambia y la que más pesa en temporalidades cortas (1 h, 4 h). Valores altos indican sobrecompra.",
     },
   } satisfies Record<CategoryId, Description & { name: string }>,
   weight: (w: string) => `peso ${w} %`,
@@ -168,6 +168,11 @@ export const es = {
     ma200_ratio: {
       name: "Precio / MA200 (percentil)",
       what: "Precio dividido por su media de 200 velas en la temporalidad elegida, comparado con las últimas 1000 velas.",
+      read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
+    },
+    ma48_ratio: {
+      name: "Precio / MA48 meses (percentil)",
+      what: "Precio dividido por su media de 48 velas mensuales (4 años, un ciclo de halving), comparado con todo el histórico mensual desde 2011. En mensual se usa esta media en lugar de la de 200 velas, que serían 16 años.",
       read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
     },
   } as Record<string, Description & { name: string }>,
