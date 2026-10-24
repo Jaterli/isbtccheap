@@ -72,7 +72,7 @@ export const en: Messages = {
     },
     sentimiento: {
       name: "Sentiment",
-      what: "Measures investor fear or euphoria and leverage in the futures markets.",
+      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, which is daily, and funding.",
       read: "Extreme greed tends to coincide with tops and extreme fear with bottoms, so greed raises the score.",
     },
     tecnico: {
@@ -145,6 +145,21 @@ export const en: Messages = {
       name: "Perpetual funding rate (Binance)",
       what: "Funding rate of Binance perpetual futures: the periodic payment (every 8h) between long and short positions.",
       read: "0.01% is neutral. Strongly positive means excess bullish leverage (raises the score); negative means pessimism (lowers it).",
+    },
+    open_interest: {
+      name: "Open interest (BTC)",
+      what: "Bitcoins in open perpetual futures contracts on Binance: how much leverage there is in the market.",
+      read: "Scored by its percentile over the last 30 days. High: a lot of leverage has built up, which tends to end in sharp moves and liquidations (raises the score). Low: the market has deleveraged (lowers it).",
+    },
+    long_short: {
+      name: "Long/short account ratio",
+      what: "Binance accounts with a long BTC futures position divided by those with a short one.",
+      read: "Scored by its percentile over the last 30 days. Read as a contrarian signal: when almost everyone is betting on a rise, the market is crowded with buyers (raises the score); when shorts dominate, the opposite (lowers it).",
+    },
+    taker_ratio: {
+      name: "Market buy/sell ratio",
+      what: "Volume bought with market orders divided by volume sold, on Binance futures (average of the last 3 candles). Shows who is in a hurry to get in.",
+      read: "Scored by its percentile over the last 30 days. Above 1, aggressive buying dominates (raises the score); below 1, selling does (lowers it).",
     },
     rsi_14: {
       name: "RSI 14",

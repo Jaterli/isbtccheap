@@ -21,14 +21,17 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 ┌──────────────── En el navegador (en vivo) ──────────────────────┐
 │ Velas de Binance de la temporalidad elegida → categoría técnica  │
 │ Funding rate de los perpetuos → se suma al sentimiento           │
+│ En 1 h y 4 h: open interest y ratios long/short y compra/venta   │
+│   → sustituyen al Fear & Greed (diario) en el sentimiento        │
 │ Pesos por temporalidad → score final 1-100                       │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 - Las métricas lentas (on-chain, ciclo y liquidez) solo cambian una vez al día. Las calcula el pipeline y la web
   las lee de un JSON estático, así que las visitas nunca consumen las cuotas de las APIs.
-- Las métricas rápidas (RSI, Bollinger %B, precio / MA200 y funding) las calcula el navegador con la API pública de
-  Binance, que no necesita clave.
+- Las métricas rápidas (RSI, Bollinger %B, precio / MA200, funding y, en 1 h y 4 h, open interest y ratios
+  long/short y compra/venta de los futuros) las calcula el navegador con la API pública de Binance, que no
+  necesita clave.
 - En temporalidades cortas pesa más el técnico y el sentimiento; en las largas, la valoración y el ciclo.
   Los pesos están en `pipeline/config.py` → `TIMEFRAME_WEIGHTS`.
 

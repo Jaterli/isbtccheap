@@ -81,7 +81,7 @@ export const es = {
     },
     sentimiento: {
       name: "Sentimiento",
-      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros.",
+      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, que es diario, y el funding.",
       read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
     },
     tecnico: {
@@ -154,6 +154,21 @@ export const es = {
       name: "Funding rate perpetuos (Binance)",
       what: "Funding rate de los futuros perpetuos de Binance: el pago periódico (cada 8 h) entre posiciones largas y cortas.",
       read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
+    },
+    open_interest: {
+      name: "Open interest (BTC)",
+      what: "Bitcoins en contratos de futuros perpetuos abiertos en Binance: cuánto apalancamiento hay en el mercado.",
+      read: "Puntúa por su percentil en los últimos 30 días. Alto: mucho apalancamiento acumulado, que suele acabar en movimientos bruscos y liquidaciones (suma). Bajo: el mercado se ha desapalancado (resta).",
+    },
+    long_short: {
+      name: "Ratio long/short de cuentas",
+      what: "Cuentas de Binance con posición larga en futuros de BTC divididas por las que tienen posición corta.",
+      read: "Puntúa por su percentil en los últimos 30 días. Se usa a la contra: cuando casi todos apuestan al alza, el mercado está saturado de compradores (suma); cuando dominan los cortos, al revés (resta).",
+    },
+    taker_ratio: {
+      name: "Ratio compras/ventas a mercado",
+      what: "Volumen comprado con órdenes a mercado dividido por el vendido, en los futuros de Binance (media de las 3 últimas velas). Mide quién tiene prisa por entrar.",
+      read: "Puntúa por su percentil en los últimos 30 días. Por encima de 1 dominan las compras agresivas (suma); por debajo, las ventas (resta).",
     },
     rsi_14: {
       name: "RSI 14",

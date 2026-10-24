@@ -4,14 +4,22 @@ import { Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
-import { fetchCandles, fetchFundingRate } from "./lib/binance";
-import { computeScore, labelIndex, technicalFromCandles, withMonthlyHistory, type ScoreResult } from "./lib/score";
+import { fetchCandles, fetchDerivatives, fetchFundingRate } from "./lib/binance";
+import {
+  computeScore,
+  DERIVATIVES_TFS,
+  derivativesMetrics,
+  labelIndex,
+  technicalFromCandles,
+  withMonthlyHistory,
+  type ScoreResult,
+} from "./lib/score";
 import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
 import { Outlook } from "./components/Outlook";
-import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
+import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type MetricScore, type Timeframe } from "./types";
 
 const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : ms < 3_600_000 ? `${ms / 60_000} min` : `${ms / 3_600_000} h`);
 
@@ -24,6 +32,8 @@ const FUNDING_MS = 300_000;
 
 interface LiveEntry {
   technical: Category;
+  /** Sentimiento de derivados (solo en DERIVATIVES_TFS) */
+  derivatives: MetricScore[] | null;
   price: number | null;
   at: number;
 }
@@ -45,8 +55,8 @@ export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
-  // Técnico en vivo y la temporalidad a la que pertenece (technical null: Binance no respondió y se usa el diario)
-  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null } | null>(null);
+  // Datos en vivo y la temporalidad a la que pertenecen (null: Binance no respondió y se usa lo diario del pipeline)
+  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [funding, setFunding] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
@@ -86,30 +96,32 @@ export function App() {
     const load = async () => {
       const cached = cache.current.get(tf);
       if (cached && Date.now() - cached.at < ms) {
-        setLive({ tf, technical: cached.technical });
+        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
         setPrice(cached.price);
         setLiveError(false);
         schedule(cached.at);
         return;
       }
       // Caché caducada: mientras se refresca se muestra la de esta temporalidad, no la de otra
-      if (cached) setLive({ tf, technical: cached.technical });
+      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
       setLoading(true);
       const f = fundingCache.current;
       const needFunding = !f || Date.now() - f.at > FUNDING_MS;
-      const [candles, fr] = await Promise.allSettled([
+      const [candles, fr, derivs] = await Promise.allSettled([
         tf === "1M" ? fetchCandles(tf).then((c) => withMonthlyHistory(c, history)) : fetchCandles(tf),
         needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
+        DERIVATIVES_TFS.includes(tf) ? fetchDerivatives(tf).then(derivativesMetrics) : Promise.resolve(null),
       ]);
       if (cancelled) return;
       const now = Date.now();
+      const derivatives = derivs.status === "fulfilled" ? derivs.value : (cached?.derivatives ?? null);
       if (candles.status === "fulfilled") {
-        const entry = { technical: technicalFromCandles(candles.value, tf), price: candles.value.at(-1)?.close ?? null, at: now };
+        const entry = { technical: technicalFromCandles(candles.value, tf), derivatives, price: candles.value.at(-1)?.close ?? null, at: now };
         cache.current.set(tf, entry);
-        setLive({ tf, technical: entry.technical });
+        setLive({ tf, technical: entry.technical, derivatives });
         setPrice(entry.price);
       } else {
-        setLive({ tf, technical: cached?.technical ?? null });
+        setLive({ tf, technical: cached?.technical ?? null, derivatives });
       }
       if (fr.status === "fulfilled") {
         if (needFunding) fundingCache.current = { value: fr.value, at: now };
@@ -130,7 +142,7 @@ export function App() {
 
   const ready = live?.tf === tf;
   const computed = useMemo(
-    () => (latest ? computeScore(latest, tf, ready ? live.technical : null, funding) : null),
+    () => (latest ? computeScore(latest, tf, ready ? live.technical : null, funding, ready ? live.derivatives : null) : null),
     [latest, tf, live, ready, funding],
   );
   // Hasta tener el técnico de la nueva temporalidad se mantiene el último score: si no, saltaría a un valor

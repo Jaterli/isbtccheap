@@ -26,3 +26,35 @@ export async function fetchFundingRate(): Promise<number> {
   const data = await res.json();
   return Number(data.lastFundingRate);
 }
+
+// Estadísticas de los futuros de Binance (sin clave, con CORS). Solo guardan los últimos 30 días
+const FUTURES_DATA = "https://fapi.binance.com/futures/data";
+
+/** Series de los derivados de BTCUSDT, de la más antigua a la más reciente. */
+export interface Derivatives {
+  /** Open interest en BTC: cuánto apalancamiento hay abierto */
+  openInterest: number[];
+  /** Cuentas con posición larga / cuentas con posición corta */
+  longShort: number[];
+  /** Volumen comprador / vendedor de las órdenes a mercado */
+  takerRatio: number[];
+}
+
+async function futuresData<T>(path: string, period: Timeframe): Promise<T[]> {
+  const res = await fetch(`${FUTURES_DATA}/${path}?symbol=BTCUSDT&period=${period}&limit=500`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`Binance ${path} ${res.status}`);
+  return res.json();
+}
+
+export async function fetchDerivatives(period: Timeframe): Promise<Derivatives> {
+  const [oi, ls, taker] = await Promise.all([
+    futuresData<{ sumOpenInterest: string }>("openInterestHist", period),
+    futuresData<{ longShortRatio: string }>("globalLongShortAccountRatio", period),
+    futuresData<{ buySellRatio: string }>("takerlongshortRatio", period),
+  ]);
+  return {
+    openInterest: oi.map((x) => Number(x.sumOpenInterest)),
+    longShort: ls.map((x) => Number(x.longShortRatio)),
+    takerRatio: taker.map((x) => Number(x.buySellRatio)),
+  };
+}

@@ -45,8 +45,9 @@ TIMEFRAME_WEIGHTS = {
     "4h": {"tecnico": 30, "sentimiento": 20, "valoracion": 27, "ciclo": 19, "liquidez": 4},
     "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 30, "liquidez": 5},
     "1w": {"tecnico": 8, "sentimiento": 12, "valoracion": 42, "ciclo": 33, "liquidez": 5},
-    # A un mes vista el Fear & Greed (diario) y el funding (cada 8 h) apenas dicen nada; la liquidez, más
-    "1M": {"tecnico": 10, "sentimiento": 5, "valoracion": 40, "ciclo": 35, "liquidez": 10},
+    # A un mes vista el Fear & Greed (diario) y el funding (cada 8 h) apenas dicen nada; la liquidez, más.
+    # El técnico sigue bajando con la temporalidad, como en el resto
+    "1M": {"tecnico": 6, "sentimiento": 5, "valoracion": 42, "ciclo": 37, "liquidez": 10},
 }
 
 # Ventana del percentil: un ciclo de halving. Con ventana expansiva los techos recientes nunca llegaban

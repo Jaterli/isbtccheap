@@ -1,4 +1,5 @@
 import type { Candle, Category, CategoryId, History, Latest, MetricScore, Timeframe } from "../types";
+import type { Derivatives } from "./binance";
 import { bollingerPctB, clamp, percentileOfLast, rsi, sma } from "./indicators";
 
 // Media del precio frente a la que se mide la distancia. En mensual, 200 velas serían 16 años: se usan 48
@@ -48,6 +49,27 @@ export function withMonthlyHistory(binance: Candle[], history: History | null): 
   return [...[...months.values()].filter((c) => c.time < first), ...binance];
 }
 
+/**
+ * Temporalidades en las que el sentimiento sale de los derivados: el Fear & Greed es diario y en 1 h o 4 h
+ * apenas cambia, mientras que el apalancamiento y el flujo de órdenes sí se mueven a ese ritmo
+ */
+export const DERIVATIVES_TFS: Timeframe[] = ["1h", "4h"];
+
+/**
+ * Sentimiento de los derivados: cada serie se puntúa por el percentil de su último valor frente a los últimos
+ * 30 días. Alto = más apalancamiento, más cuentas en largo o más compras agresivas que de costumbre (mercado
+ * recalentado, suma al score); bajo = desapalancamiento y pesimismo (resta).
+ */
+export function derivativesMetrics(d: Derivatives): MetricScore[] {
+  // El ratio de compras/ventas de una sola vela es muy ruidoso: se usa la media de las 3 últimas
+  const taker = d.takerRatio.map((_, i, xs) => (i < 2 ? null : (xs[i] + xs[i - 1] + xs[i - 2]) / 3)).filter((x): x is number => x !== null);
+  return [
+    { id: "open_interest", name: "Open interest (BTC)", value: d.openInterest.at(-1) ?? null, score: percentileOfLast(d.openInterest) },
+    { id: "long_short", name: "Ratio long/short de cuentas", value: d.longShort.at(-1) ?? null, score: percentileOfLast(d.longShort) },
+    { id: "taker_ratio", name: "Ratio compras/ventas a mercado", value: taker.at(-1) ?? null, score: percentileOfLast(taker) },
+  ];
+}
+
 /** Funding neutro ≈ 0,01 %/8 h. Cada +0,04 % sobre el neutro suma 50 puntos. */
 export function fundingScore(rate: number): number {
   return clamp(50 + ((rate - 0.0001) / 0.0004) * 50);
@@ -64,15 +86,17 @@ export function computeScore(
   tf: Timeframe,
   technical: Category | null,
   funding: number | null,
+  /** Métricas de derivados en 1 h y 4 h; null en el resto o si Binance no respondió (se usa el Fear & Greed) */
+  derivatives: MetricScore[] | null = null,
 ): ScoreResult {
   const categories = { ...latest.categories };
   if (technical) categories.tecnico = technical;
 
-  if (funding !== null) {
+  if (derivatives || funding !== null) {
     const sent = latest.categories.sentimiento;
     const metrics = [
-      ...sent.metrics,
-      { id: "funding", name: "Funding rate perpetuos (Binance)", value: funding, score: fundingScore(funding) },
+      ...(derivatives ?? sent.metrics),
+      ...(funding !== null ? [{ id: "funding", name: "Funding rate perpetuos (Binance)", value: funding, score: fundingScore(funding) }] : []),
     ];
     categories.sentimiento = { ...sent, metrics, score: mean(metrics.map((m) => m.score)) };
   }
