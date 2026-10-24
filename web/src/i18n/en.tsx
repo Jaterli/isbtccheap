@@ -8,6 +8,8 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
+  periods: { "2y": "2 years", "4y": "4 years", "8y": "8 years", all: "Since 2011" },
+  periodAria: "Sample period",
 
   tagline: "Is Bitcoin cheap or expensive? A 1 to 100 index that combines on-chain valuation, cycles, liquidity, sentiment and technical analysis.",
 
@@ -193,12 +195,10 @@ export const en: Messages = {
       "The table takes the days in the history with a daily score similar to today's (±7.5 points) and measures how much the price had changed after each period.",
       "Nearby days are very similar to each other, so they are grouped into episodes: sample days less than a month apart belong to the same episode. The real sample size is the number of episodes, not of days.",
       "Time in a zone is measured with the score's 30-day average, because the daily value is too noisy: in a few weeks it can cross several zones.",
-      '"Last 4 years" (one cycle) is closest to today\'s market but has few episodes; "Last 8 years" (about two cycles) balances similarity and sample size; "Since 2011" has the most episodes but includes the extreme rallies of the early years.',
+      '"2 years" shows only the most recent market and has very few episodes; "4 years" (one cycle) is closest to today\'s market but has few episodes; "8 years" (about two cycles) balances similarity and sample size; "Since 2011" has the most episodes but includes the extreme rallies of the early years.',
     ],
     infoNote:
       "The historical score uses a power law regression fitted on all the data, so past results look somewhat better than what the score would have shown at the time. It describes the past; it does not predict the future.",
-    periods: { "4y": "Last 4 years", "8y": "Last 8 years", all: "Since 2011" },
-    periodAria: "Sample period",
     today: (score: ReactNode, label: string, zone: string, days: number, share: ReactNode) => (
       <>
         The daily score is at {score} ({label}, zone {zone}). Over the last {days} days it has been in that zone {share} of the
@@ -228,6 +228,29 @@ export const en: Messages = {
     ),
     volLow: " Volatility this low tends to precede a strong move, but says nothing about its direction.",
     volHigh: " Volatility this high tends to come with sharp drops or vertical rallies.",
+    note: "Historical data, not a prediction or investment advice.",
+  },
+
+  moves: {
+    title: "Drops from highs and rallies from lows",
+    info: [
+      "Counts the days since the last drop and the last rally of each size, using daily closes, and compares them with what is typical in the selected period: how many days it had usually been on any given day (the median).",
+      "A 10% drop is counted when the close falls 10% below the high reached since the previous drop of that size; from there, it is measured again. Rallies work the same way from the low. Since Bitcoin trades 24h, each daily candle opens at the previous close, so this is equivalent to measuring from open to close.",
+      "The average time between two moves is not used because these moves come in bursts (several 5% drops in the same sell-off), which makes that average misleadingly short.",
+      "The bar shows the share of days in the period that had gone less time without that move than today; the middle mark is the typical value. In orange, those beyond 90% of days.",
+    ],
+    infoNote:
+      "Going longer than average without a move does not mean it is about to happen: these moves do not follow a schedule, and quiet phases tend to last.",
+    drops: "Drops from highs",
+    rallies: "Rallies from lows",
+    cols: { size: "Size", since: "Days since", typical: "Typical" },
+    days: (n: number) => `${n.toLocaleString("en-US")} ${n === 1 ? "day" : "days"}`,
+    count: (n: number) => `${n} ${n === 1 ? "time" : "times"} in the period`,
+    none: "None in the period",
+    percentile: (p: number) => `Longer without happening than on ${p}% of days in the period`,
+    overDrops: (list: string) => `Drops of ${list} have gone longer without happening than on 90% of days in the period.`,
+    overRallies: (list: string) => `Rallies of ${list} have gone longer without happening than on 90% of days in the period.`,
+    allNormal: "No drop or rally has gone an unusually long time without happening.",
     note: "Historical data, not a prediction or investment advice.",
   },
 

@@ -15,6 +15,9 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
+  /** Periodo de la muestra de las tarjetas de estadística histórica */
+  periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,
+  periodAria: "Periodo de la muestra",
 
   tagline: "¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.",
 
@@ -201,12 +204,10 @@ export const es = {
       "La tabla toma los días del histórico con un score diario parecido al de hoy (±7,5 puntos) y mide cuánto había cambiado el precio al cabo de cada plazo.",
       "Los días cercanos se parecen mucho entre sí, así que se agrupan en episodios: días de la muestra separados por menos de un mes son el mismo episodio. El tamaño real de la muestra es el número de episodios, no el de días.",
       "El tiempo en una zona se mide con la media de 30 días del score, porque el valor diario es demasiado ruidoso: en pocas semanas puede cruzar varias zonas.",
-      '"Últimos 4 años" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "Últimos 8 años" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.',
+      '"2 años" muestra solo el mercado más reciente y tiene muy pocos episodios; "4 años" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "8 años" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.',
     ],
     infoNote:
       "El score histórico usa una regresión power law ajustada con todos los datos, así que los resultados pasados salen algo mejores de lo que habría marcado en su momento. Describe el pasado, no predice el futuro.",
-    periods: { "4y": "Últimos 4 años", "8y": "Últimos 8 años", all: "Desde 2011" } as Record<string, string>,
-    periodAria: "Periodo de la muestra",
     today: (score: ReactNode, label: string, zone: string, days: number, share: ReactNode) => (
       <>
         El score diario está en {score} ({label}, zona {zone}). En los últimos {days} días ha estado en esa zona el {share} del
@@ -236,6 +237,29 @@ export const es = {
     ),
     volLow: " Una volatilidad tan baja suele anticipar un movimiento fuerte, pero no indica en qué dirección.",
     volHigh: " Una volatilidad tan alta suele darse en caídas bruscas o subidas verticales.",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+  },
+
+  moves: {
+    title: "Caídas y subidas desde máximo y mínimo",
+    info: [
+      "Cuenta los días desde la última caída y la última subida de cada tamaño, con precios de cierre diarios, y los compara con lo habitual en el periodo elegido: cuántos días solían llevar sin producirse en un día cualquiera (la mediana).",
+      "Una caída del 10 % se cuenta cuando el cierre queda un 10 % por debajo del máximo alcanzado desde la anterior caída de ese tamaño; desde ahí se vuelve a medir. Las subidas, igual desde el mínimo. Como Bitcoin cotiza 24 h, cada vela diaria abre en el cierre de la anterior, así que equivale a medir de apertura a cierre.",
+      "No se usa el tiempo medio entre dos casos porque estos movimientos llegan en rachas (varias caídas del 5 % en un mismo desplome) y esa media es engañosamente corta.",
+      "La barra indica qué parte de los días del periodo llevaban menos tiempo sin ese movimiento que hoy; la marca central es lo habitual. En naranja, los que superan al 90 % de los días.",
+    ],
+    infoNote:
+      "Llevar más tiempo que la media sin un movimiento no significa que vaya a producirse pronto: no siguen un calendario y las fases tranquilas tienden a alargarse.",
+    drops: "Caídas desde máximo",
+    rallies: "Subidas desde mínimo",
+    cols: { size: "Tamaño", since: "Hace", typical: "Habitual" },
+    days: (n: number) => `${n.toLocaleString("es-ES")} ${n === 1 ? "día" : "días"}`,
+    count: (n: number) => `${n} ${n === 1 ? "vez" : "veces"} en el periodo`,
+    none: "Ninguna en el periodo",
+    percentile: (p: number) => `Más tiempo sin producirse que en el ${p}\u00A0% de los días del periodo`,
+    overDrops: (list: string) => `Las caídas de ${list} llevan más tiempo sin producirse que en el 90\u00A0% de los días del periodo.`,
+    overRallies: (list: string) => `Las subidas de ${list} llevan más tiempo sin producirse que en el 90\u00A0% de los días del periodo.`,
+    allNormal: "Ninguna caída ni subida lleva un tiempo inusualmente largo sin producirse.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
 

@@ -1,26 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { labelAt, locale, t } from "../i18n";
 import { computeOutlook, type Band } from "../lib/outlook";
 import type { History, Latest } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
-
-// Los nombres están en i18n (t.outlook.periods)
-const PERIODS = [
-  { id: "4y", days: 1461 },
-  { id: "8y", days: 2922 },
-  { id: "all", days: Infinity },
-];
-const DEFAULT_PERIOD = "8y";
-const PERIOD_KEY = "isbtccheap:outlook-period";
-
-function loadPeriod() {
-  try {
-    return localStorage.getItem(PERIOD_KEY) ?? DEFAULT_PERIOD;
-  } catch {
-    return DEFAULT_PERIOD;
-  }
-}
+import { PeriodSelector, periodStart, usePeriod } from "./PeriodSelector";
 
 function pct(r: number) {
   const v = r * 100;
@@ -42,22 +26,12 @@ interface Props {
 
 /** Qué hizo el precio después de los días en que el score diario estaba en la misma zona que hoy. */
 export function Outlook({ history, labels }: Props) {
-  const [period, setPeriod] = useState(loadPeriod);
-  const days = (PERIODS.find((p) => p.id === period) ?? PERIODS.find((p) => p.id === DEFAULT_PERIOD)!).days;
+  const { period, days, select } = usePeriod("isbtccheap:outlook-period");
   const o = useMemo(
-    () => computeOutlook(history, labels, Math.max(0, history.score.length - days)),
+    () => computeOutlook(history, labels, periodStart(history.score.length, days)),
     [history, labels, days],
   );
   if (!o) return null;
-
-  const selectPeriod = (id: string) => {
-    setPeriod(id);
-    try {
-      localStorage.setItem(PERIOD_KEY, id);
-    } catch {
-      /* almacenamiento no disponible: no pasa nada */
-    }
-  };
 
   const zone = (b: Band) => `${b.lo === 0 ? 1 : b.lo + 1}–${b.hi}`;
   const sm = o.smooth;
@@ -78,13 +52,7 @@ export function Outlook({ history, labels }: Props) {
             <p className="muted">{tx.infoNote}</p>
           </InfoTip>
         </h3>
-        <div className="segmented small" role="group" aria-label={tx.periodAria}>
-          {PERIODS.map((p) => (
-            <button key={p.id} className={period === p.id ? "active" : ""} onClick={() => selectPeriod(p.id)}>
-              {tx.periods[p.id]}
-            </button>
-          ))}
-        </div>
+        <PeriodSelector value={period} onChange={select} />
       </header>
 
       <div className="outlook-lead">

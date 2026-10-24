@@ -10,6 +10,15 @@ interface Props {
 }
 
 const MARGIN = 12;
+const MAX_WIDTH = 340;
+
+interface Pos {
+  top: number;
+  left: number;
+  width: number;
+  /** Solo si no cabe entero ni debajo ni encima: alto disponible, con desplazamiento dentro */
+  maxHeight?: number;
+}
 
 /** Icono (i) con una explicación. Se abre al pasar el ratón o al enfocarlo; con clic/toque queda fija.
  * El panel se pinta en <body> con posición fija para que nunca lo recorte una tarjeta ni se salga de la pantalla. */
@@ -19,7 +28,7 @@ export function InfoTip({ label, title, children }: Props) {
   const popRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<Pos | null>(null);
   const open = hovered || pinned;
 
   const close = () => {
@@ -27,16 +36,26 @@ export function InfoTip({ label, title, children }: Props) {
     setHovered(false);
   };
 
-  // Colocación: debajo del icono si cabe, si no encima; siempre dentro del ancho de la pantalla
+  // Colocación: debajo del icono si cabe, si no encima; si no cabe en ningún lado, en el que tenga más espacio y
+  // con el alto limitado a ese espacio. Siempre dentro del ancho de la pantalla
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return setPos(null);
     const r = btnRef.current.getBoundingClientRect();
-    const width = Math.min(300, window.innerWidth - MARGIN * 2);
+    const width = Math.min(MAX_WIDTH, window.innerWidth - MARGIN * 2);
     const left = Math.min(Math.max(MARGIN, r.left + r.width / 2 - width / 2), window.innerWidth - MARGIN - width);
-    const h = popRef.current?.offsetHeight ?? 0;
+    // scrollHeight: alto del contenido completo, aunque ahora esté limitado
+    const h = popRef.current?.scrollHeight ?? 0;
     const below = r.bottom + 8;
-    const top = below + h > window.innerHeight - MARGIN && r.top - 8 - h > MARGIN ? r.top - 8 - h : below;
-    setPos((p) => (p && p.top === top && p.left === left && p.width === width ? p : { top, left, width }));
+    const spaceBelow = window.innerHeight - MARGIN - below;
+    const spaceAbove = r.top - 8 - MARGIN;
+    let next: Pos;
+    if (h <= spaceBelow) next = { top: below, left, width };
+    else if (h <= spaceAbove) next = { top: r.top - 8 - h, left, width };
+    else if (spaceBelow >= spaceAbove) next = { top: below, left, width, maxHeight: spaceBelow };
+    else next = { top: MARGIN, left, width, maxHeight: spaceAbove };
+    setPos((p) =>
+      p && p.top === next.top && p.left === next.left && p.width === next.width && p.maxHeight === next.maxHeight ? p : next,
+    );
   });
 
   useEffect(() => {
@@ -86,7 +105,11 @@ export function InfoTip({ label, title, children }: Props) {
             id={id}
             role="tooltip"
             className="info-pop"
-            style={pos ? { top: pos.top, left: pos.left, width: pos.width } : { visibility: "hidden", top: 0, left: 0 }}
+            style={
+              pos
+                ? { top: pos.top, left: pos.left, width: pos.width, maxHeight: pos.maxHeight, overflowY: pos.maxHeight ? "auto" : undefined }
+                : { visibility: "hidden", top: 0, left: 0, width: MAX_WIDTH }
+            }
             onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
             onPointerLeave={(e) => e.pointerType === "mouse" && setHovered(false)}
           >

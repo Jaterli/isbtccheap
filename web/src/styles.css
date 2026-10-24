@@ -78,7 +78,7 @@ header {position: relative;}
 }
 /* Selector de idioma: arriba a la derecha de la cabecera */
 .top { position: relative; margin-top: 30px; }
-.lang-switch { margin-left: auto; align-self: flex-start; display: flex; gap: 2px; font-size: 0.85rem; right: 0; position: absolute; }
+.lang-switch { margin-left: auto; align-self: flex-start; display: flex; gap: 2px; font-size: 0.85rem; right: 0; position: absolute; z-index: 1; }
 .lang-switch a { padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 600; }
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
@@ -236,6 +236,47 @@ header {position: relative;}
 .outlook-table td.down { color: var(--band-5); font-weight: 600; }
 .outlook-vol { margin: 12px 0 0; font-size: 0.9rem; }
 .outlook-note { margin: 6px 0 0; }
+
+/* Caídas y subidas desde máximo y mínimo */
+.moves header { flex-wrap: wrap; row-gap: 10px; }
+.moves header h3 { flex: 1 1 260px; }
+.moves-lead { margin: 12px 0 4px; }
+.moves-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: 0.9rem; }
+.moves-table th, .moves-table td { padding: 8px 0 8px 24px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: bottom; }
+.moves-table th:first-child { width: 3.4em; padding-left: 0; }
+.moves-table tbody th { font-weight: 600; vertical-align: middle; }
+.moves-table thead th:first-child { font-weight: 600; font-size: 0.8rem; color: var(--muted); }
+.mv-head { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; line-height: 1.25; }
+.mv-head svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mv-head.down svg { color: var(--band-5); }
+.mv-head.up svg { color: var(--band-1); }
+.mv-sub { display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.mv-in { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "since typical" "bar bar"; gap: 6px 8px; align-items: center; white-space: nowrap; }
+.mv-in strong { grid-area: since; font-weight: 600; }
+.mv-in span { grid-area: typical; color: var(--muted); }
+.mv-in .moves-bar { grid-area: bar; }
+.mv.over .mv-in strong { color: var(--accent); }
+@media (min-width: 900px) {
+  .mv-in { grid-template-columns: 4.8em 1fr 4.8em; grid-template-areas: "since bar typical"; gap: 12px; }
+  .mv-in span { text-align: right; }
+  .moves-table td { vertical-align: middle; }
+}
+.moves-bar { position: relative; height: 6px; border-radius: 3px; background: var(--border); }
+.moves-bar span { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--muted); }
+.mv.over .moves-bar span { background: var(--accent); }
+/* Marca de lo habitual, en el centro de la barra */
+.moves-bar i { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--fg); border-radius: 1px; }
+/* Pantallas pequeñas: letra algo menor y sin iconos, para que la tabla respire */
+@media (max-width: 480px) {
+  .moves-table { font-size: 0.8rem; }
+  .moves-table th, .moves-table td { padding-left: 12px; }
+  .moves-table thead th:first-child { font-size: 0.72rem; }
+  .mv-head { font-size: 0.8rem; }
+  .mv-head svg { display: none; }
+  .mv-sub { font-size: 0.72rem; }
+  .mv-in { gap: 5px 6px; }
+}
+.moves-note { margin: 10px 0 0; }
 
 /* Donaciones */
 .collapse-toggle {

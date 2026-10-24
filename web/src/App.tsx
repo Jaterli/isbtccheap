@@ -9,6 +9,7 @@ import { computeScore, labelIndex, technicalFromCandles, type ScoreResult } from
 import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
+import { Moves } from "./components/Moves";
 import { Outlook } from "./components/Outlook";
 import type { Category, CategoryId, History, Latest, Timeframe } from "./types";
 
@@ -219,6 +220,8 @@ export function App() {
       {history && <HistoryChart history={history} />}
 
       {history && <Outlook history={history} labels={latest.labels} />}
+
+      {history && <Moves history={history} />}
 
       <Donate />
 
