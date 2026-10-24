@@ -1,0 +1,33 @@
+name: Limpiar ejecuciones antiguas
+
+# El workflow diario deja una ejecución cada día en la pestaña Actions: una vez a la semana se borran las
+# terminadas hace más de RETENTION_DAYS días (de todos los workflows del repositorio, también este)
+on:
+  schedule:
+    - cron: "0 3 * * 0" # domingos a las 03:00 UTC
+  workflow_dispatch: # permite lanzarlo a mano desde la pestaña Actions
+
+permissions:
+  actions: write
+
+env:
+  RETENTION_DAYS: 10
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Borrar ejecuciones de más de ${{ env.RETENTION_DAYS }} días
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cutoff=$(date -u -d "$RETENTION_DAYS days ago" +%Y-%m-%d)
+          # Primero se listan todas y luego se borran: borrar mientras se pagina se saltaría ejecuciones
+          gh api -X GET "repos/$REPO/actions/runs" --paginate \
+            -f created="<$cutoff" -f status=completed -f per_page=100 \
+            --jq '.workflow_runs[].id' > ids.txt
+          echo "Ejecuciones anteriores al $cutoff: $(wc -l < ids.txt)"
+          while read -r id; do
+            gh api -X DELETE "repos/$REPO/actions/runs/$id" --silent || echo "No se pudo borrar la ejecución $id"
+          done < ids.txt
