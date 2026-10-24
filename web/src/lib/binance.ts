@@ -34,9 +34,9 @@ const FUTURES_DATA = "https://fapi.binance.com/futures/data";
 export interface Derivatives {
   /** Open interest en BTC: cuánto apalancamiento hay abierto */
   openInterest: number[];
-  /** Cuentas con posición larga / cuentas con posición corta */
+  /** Cuentas con posición larga / cuentas con posición corta (la web lo muestra como % de cuentas en largo) */
   longShort: number[];
-  /** Volumen comprador / vendedor de las órdenes a mercado */
+  /** Volumen comprador / vendedor de las órdenes a mercado (la web lo muestra como % de compras) */
   takerRatio: number[];
 }
 

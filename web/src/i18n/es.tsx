@@ -156,19 +156,19 @@ export const es = {
       read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
     },
     open_interest: {
-      name: "Open interest (BTC)",
+      name: "Open interest",
       what: "Bitcoins en contratos de futuros perpetuos abiertos en Binance: cuánto apalancamiento hay en el mercado.",
       read: "Puntúa por su percentil en los últimos 30 días. Alto: mucho apalancamiento acumulado, que suele acabar en movimientos bruscos y liquidaciones (suma). Bajo: el mercado se ha desapalancado (resta).",
     },
     long_short: {
-      name: "Ratio long/short de cuentas",
-      what: "Cuentas de Binance con posición larga en futuros de BTC divididas por las que tienen posición corta.",
+      name: "Cuentas en largo",
+      what: "De las cuentas de Binance con posición en futuros de BTC, qué parte apuesta al alza (en largo). El 50 % es el equilibrio entre largos y cortos.",
       read: "Puntúa por su percentil en los últimos 30 días. Se usa a la contra: cuando casi todos apuestan al alza, el mercado está saturado de compradores (suma); cuando dominan los cortos, al revés (resta).",
     },
     taker_ratio: {
-      name: "Ratio compras/ventas a mercado",
-      what: "Volumen comprado con órdenes a mercado dividido por el vendido, en los futuros de Binance (media de las 3 últimas velas). Mide quién tiene prisa por entrar.",
-      read: "Puntúa por su percentil en los últimos 30 días. Por encima de 1 dominan las compras agresivas (suma); por debajo, las ventas (resta).",
+      name: "Compras a mercado",
+      what: "Del volumen negociado con órdenes a mercado en los futuros de Binance, qué parte fueron compras (media de las 3 últimas velas). Mide quién tiene prisa por entrar o salir. El 50 % es el equilibrio.",
+      read: "Puntúa por su percentil en los últimos 30 días. Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
     },
     rsi_14: {
       name: "RSI 14",

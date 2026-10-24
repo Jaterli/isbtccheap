@@ -24,6 +24,9 @@ function fmt(v: number | null, id: string) {
   if (v === null) return "—";
   // El funding se publica como porcentaje cada 8 h (0,01 % es neutro); como fracción, 0,0000267 redondeaba a 0
   if (id === "funding") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 4 }));
+  // Partes del total (50 % = equilibrio entre largos y cortos, o entre compras y ventas): sin signo
+  if (id === "long_short" || id === "taker_ratio") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 1 }));
+  if (id === "open_interest") return `${Math.round(v).toLocaleString(locale)} BTC`;
   if (AS_PERCENT[id]) {
     const p = AS_PERCENT[id](v) * 100;
     const s = p.toLocaleString(locale, { maximumFractionDigits: Math.abs(p) >= 10 ? 1 : 2 });

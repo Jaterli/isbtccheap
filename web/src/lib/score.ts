@@ -61,12 +61,18 @@ export const DERIVATIVES_TFS: Timeframe[] = ["1h", "4h"];
  * recalentado, suma al score); bajo = desapalancamiento y pesimismo (resta).
  */
 export function derivativesMetrics(d: Derivatives): MetricScore[] {
+  // Los ratios (largos / cortos, compras / ventas) se muestran como parte del total, con el 50 % como equilibrio:
+  // r / (1 + r). Es la misma ordenación, así que el percentil no cambia
+  const share = (r: number) => r / (1 + r);
+  const longs = d.longShort.map(share);
   // El ratio de compras/ventas de una sola vela es muy ruidoso: se usa la media de las 3 últimas
-  const taker = d.takerRatio.map((_, i, xs) => (i < 2 ? null : (xs[i] + xs[i - 1] + xs[i - 2]) / 3)).filter((x): x is number => x !== null);
+  const buys = d.takerRatio
+    .map((_, i, xs) => (i < 2 ? null : share((xs[i] + xs[i - 1] + xs[i - 2]) / 3)))
+    .filter((x): x is number => x !== null);
   return [
-    { id: "open_interest", name: "Open interest (BTC)", value: d.openInterest.at(-1) ?? null, score: percentileOfLast(d.openInterest) },
-    { id: "long_short", name: "Ratio long/short de cuentas", value: d.longShort.at(-1) ?? null, score: percentileOfLast(d.longShort) },
-    { id: "taker_ratio", name: "Ratio compras/ventas a mercado", value: taker.at(-1) ?? null, score: percentileOfLast(taker) },
+    { id: "open_interest", name: "Open interest", value: d.openInterest.at(-1) ?? null, score: percentileOfLast(d.openInterest) },
+    { id: "long_short", name: "Cuentas en largo", value: longs.at(-1) ?? null, score: percentileOfLast(longs) },
+    { id: "taker_ratio", name: "Compras a mercado", value: buys.at(-1) ?? null, score: percentileOfLast(buys) },
   ];
 }
 
