@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-24T06:02:59+00:00",
+  "updated_at": "2026-10-24T21:35:36+00:00",
   "as_of": "2026-10-23",
   "price": 80924.1838,
   "score_1d": 40.6313,
@@ -120,13 +120,6 @@
     }
   },
   "weights": {
-    "15m": {
-      "tecnico": 45,
-      "sentimiento": 25,
-      "valoracion": 16,
-      "ciclo": 11,
-      "liquidez": 3
-    },
     "1h": {
       "tecnico": 40,
       "sentimiento": 23,
@@ -154,6 +147,13 @@
       "valoracion": 42,
       "ciclo": 33,
       "liquidez": 5
+    },
+    "1M": {
+      "tecnico": 10,
+      "sentimiento": 5,
+      "valoracion": 40,
+      "ciclo": 35,
+      "liquidez": 10
     }
   },
   "stretch": 1.0,
