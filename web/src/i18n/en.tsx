@@ -43,7 +43,7 @@ export const en: Messages = {
 
   refresh: {
     updating: "Updating…",
-    next: (countdown: string) => `Next update in ${countdown}`,
+    next: (countdown: string) => `Updates in ${countdown}`,
     infoLabel: "updates",
     infoTitle: "Updates",
     info1: (interval: string) =>

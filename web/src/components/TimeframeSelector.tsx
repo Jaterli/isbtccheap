@@ -8,7 +8,7 @@ interface Props {
 
 export function TimeframeSelector({ value, onChange }: Props) {
   return (
-    <div className="segmented timeframes" role="radiogroup" aria-label={t.timeframeAria}>
+    <div className="segmented small timeframes" role="radiogroup" aria-label={t.timeframeAria}>
       {TIMEFRAMES.map((tf) => (
         <button
           key={tf}

@@ -5,6 +5,8 @@ const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)"
 const CX = 120;
 const CY = 120;
 const R = 100;
+// Círculo con el score sobre el eje de la aguja
+const HUB_R = 25;
 
 // 0 -> izquierda (barato), 100 -> derecha (caro)
 function point(score: number, r = R) {
@@ -31,26 +33,24 @@ interface Props {
 }
 
 export function Gauge({ score, label, info }: Props) {
-  const [nx, ny] = point(score ?? 50, R - 28);
+  const [nx, ny] = point(score ?? 50, R - 24);
+  const color = score === null ? "var(--muted)" : bandColor(score);
   return (
     <figure className="gauge" aria-label={score === null ? t.noData : `Score ${Math.round(score)}: ${label}`}>
-      <svg viewBox="0 0 240 140" role="img">
+      <svg viewBox={`0 0 240 ${CY + HUB_R + 2}`} role="img">
         {BANDS.map((c, i) => (
           <path key={i} d={arc(i * 20 + 0.8, (i + 1) * 20 - 0.8)} stroke={c} strokeWidth="18" fill="none" />
         ))}
-        {score !== null && (
-          <>
-            <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="var(--fg)" strokeWidth="3" strokeLinecap="round" />
-            <circle cx={CX} cy={CY} r="6" fill="var(--fg)" />
-          </>
-        )}
+        {score !== null && <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="var(--fg)" strokeWidth="3" strokeLinecap="round" />}
+        {/* El círculo tapa el arranque de la aguja: parece que sale de él */}
+        <circle cx={CX} cy={CY} r={HUB_R} className="gauge-hub" style={{ stroke: color }} />
+        <text x={CX} y={CY} className="gauge-value" style={{ fill: color }} textAnchor="middle" dominantBaseline="central">
+          {score === null ? "—" : Math.round(score)}
+        </text>
         <text x="14" y="138" className="gauge-end">{t.gauge.cheap}</text>
         <text x="226" y="138" className="gauge-end" textAnchor="end">{t.gauge.expensive}</text>
       </svg>
       <figcaption>
-        <span className="gauge-value" style={score === null ? undefined : { color: bandColor(score) }}>
-          {score === null ? "—" : Math.round(score)}
-        </span>
         <span className="gauge-label">
           {label}
           {info}

@@ -24,11 +24,9 @@ export function RefreshStatus({ nextAt, loading, info }: Props) {
   const left = Math.max(0, Math.ceil((nextAt - now) / 1000));
 
   return (
-    <div className="refresh">
-      <span className="num muted">
-        {loading ? t.refresh.updating : t.refresh.next(fmtCountdown(left))}
-        {info}
-      </span>
-    </div>
+    <span className="refresh num muted">
+      {loading ? t.refresh.updating : t.refresh.next(fmtCountdown(left))}
+      {info}
+    </span>
   );
 }

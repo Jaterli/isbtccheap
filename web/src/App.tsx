@@ -191,22 +191,25 @@ export function App() {
               </InfoTip>
             }
           />
-          <p className="price num">
-            BTC {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-            <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
-              <p>{t.priceInfo.body}</p>
-            </InfoTip>
-          </p>
-          <RefreshStatus
-            nextAt={nextAt}
-            loading={loading}
-            info={
-              <InfoTip label={t.refresh.infoLabel} title={t.refresh.infoTitle}>
-                <p>{t.refresh.info1(fmtInterval(REFRESH_MS[tf]))}</p>
-                <p>{t.refresh.info2}</p>
+          {/* Precio y próxima actualización en una sola línea (en pantallas estrechas pasa a dos) */}
+          <div className="hero-meta">
+            <span className="price num">
+              BTC {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
+                <p>{t.priceInfo.body}</p>
               </InfoTip>
-            }
-          />
+            </span>
+            <RefreshStatus
+              nextAt={nextAt}
+              loading={loading}
+              info={
+                <InfoTip label={t.refresh.infoLabel} title={t.refresh.infoTitle}>
+                  <p>{t.refresh.info1(fmtInterval(REFRESH_MS[tf]))}</p>
+                  <p>{t.refresh.info2}</p>
+                </InfoTip>
+              }
+            />
+          </div>
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 

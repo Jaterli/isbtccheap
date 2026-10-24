@@ -51,7 +51,7 @@ export const es = {
 
   refresh: {
     updating: "Actualizando…",
-    next: (countdown: string) => `Próxima actualización en ${countdown}`,
+    next: (countdown: string) => `Se actualiza en ${countdown}`,
     infoLabel: "la actualización",
     infoTitle: "Actualización",
     info1: (interval: string) =>
