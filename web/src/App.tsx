@@ -47,8 +47,6 @@ export function App() {
   const [funding, setFunding] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // refreshKey cambia al pulsar "Actualizar": relanza la carga y reinicia el contador
-  const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [nextAt, setNextAt] = useState(0);
 
@@ -59,13 +57,12 @@ export function App() {
         setHistory(h);
       })
       .catch(() => setError(t.dataError));
-  }, [refreshKey]);
+  }, []);
 
   // Caché por temporalidad: al volver a una temporalidad ya cargada no se llama a la API
   // hasta que caduca su intervalo de refresco
   const cache = useRef(new Map<Timeframe, LiveEntry>());
   const fundingCache = useRef<{ value: number; at: number } | null>(null);
-  const lastRefreshKey = useRef(refreshKey);
 
   useEffect(() => {
     try {
@@ -74,19 +71,17 @@ export function App() {
       /* almacenamiento no disponible: no pasa nada */
     }
     const ms = REFRESH_MS[tf];
-    const forced = lastRefreshKey.current !== refreshKey; // botón de actualizar
-    lastRefreshKey.current = refreshKey;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
 
     const schedule = (fetchedAt: number) => {
       setNextAt(fetchedAt + ms);
-      timer = setTimeout(() => load(false), Math.max(0, fetchedAt + ms - Date.now()));
+      timer = setTimeout(load, Math.max(0, fetchedAt + ms - Date.now()));
     };
 
-    const load = async (force: boolean) => {
+    const load = async () => {
       const cached = cache.current.get(tf);
-      if (!force && cached && Date.now() - cached.at < ms) {
+      if (cached && Date.now() - cached.at < ms) {
         setLive({ tf, technical: cached.technical });
         setPrice(cached.price);
         setLiveError(false);
@@ -97,7 +92,7 @@ export function App() {
       if (cached) setLive({ tf, technical: cached.technical });
       setLoading(true);
       const f = fundingCache.current;
-      const needFunding = force || !f || Date.now() - f.at > FUNDING_MS;
+      const needFunding = !f || Date.now() - f.at > FUNDING_MS;
       const [candles, fr] = await Promise.allSettled([
         fetchCandles(tf),
         needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
@@ -121,12 +116,12 @@ export function App() {
       schedule(now);
     };
 
-    load(forced);
+    load();
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [tf, refreshKey]);
+  }, [tf]);
 
   const ready = live?.tf === tf;
   const computed = useMemo(
@@ -205,7 +200,6 @@ export function App() {
           <RefreshStatus
             nextAt={nextAt}
             loading={loading}
-            onRefresh={() => setRefreshKey((k) => k + 1)}
             info={
               <InfoTip label={t.refresh.infoLabel} title={t.refresh.infoTitle}>
                 <p>{t.refresh.info1(fmtInterval(REFRESH_MS[tf]))}</p>

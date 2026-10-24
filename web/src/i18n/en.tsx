@@ -44,12 +44,11 @@ export const en: Messages = {
   refresh: {
     updating: "Updating…",
     next: (countdown: string) => `Next update in ${countdown}`,
-    now: "Update now",
     infoLabel: "updates",
     infoTitle: "Updates",
     info1: (interval: string) =>
       `Technicals and funding update automatically every ${interval} in this timeframe. When you switch timeframes, data already downloaded is reused while it is still fresh.`,
-    info2: "On-chain, cycle and liquidity metrics are recalculated once a day. The ↻ button forces a full reload.",
+    info2: "On-chain, cycle and liquidity metrics are recalculated once a day.",
   },
   liveError: "No connection to Binance: using the daily technical data.",
 

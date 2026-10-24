@@ -52,12 +52,11 @@ export const es = {
   refresh: {
     updating: "Actualizando…",
     next: (countdown: string) => `Próxima actualización en ${countdown}`,
-    now: "Actualizar ahora",
     infoLabel: "la actualización",
     infoTitle: "Actualización",
     info1: (interval: string) =>
       `El técnico y el funding se actualizan solos cada ${interval} en esta temporalidad. Al cambiar de temporalidad se reutilizan los datos ya descargados mientras sigan vigentes.`,
-    info2: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día. El botón ↻ fuerza la recarga de todo.",
+    info2: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día.",
   },
   liveError: "Sin conexión con Binance: se usan los datos técnicos diarios.",
 

@@ -163,10 +163,6 @@ header {position: relative;}
 }
 .btn:hover:not(:disabled) { border-color: var(--accent); }
 .btn:disabled { opacity: 0.55; cursor: progress; }
-.btn-icon { width: 28px; height: 28px; padding: 0; justify-content: center; font-size: 1rem; line-height: 1; }
-.spin { display: inline-block; animation: spin 0.9s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 
 /* Categorías */
 .card header { display: flex; align-items: baseline; gap: 10px; }
