@@ -1,4 +1,4 @@
-import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
@@ -37,8 +37,30 @@ function i18nPages(): Plugin {
   };
 }
 
+/** En desarrollo sirve /news/*.json (noticias y agenda) desde news/out, donde los dejan los scripts de news/.
+ * En producción los sirve nginx desde la carpeta en la que escriben los scripts del droplet. */
+function devNews(): Plugin {
+  const dir = fileURLToPath(new URL("../news/out/", import.meta.url));
+  return {
+    name: "isbtccheap:dev-news",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use("/news", (req, res) => {
+        const name = (req.url ?? "").split("?")[0].replace(/^\//, "");
+        const file = dir + name;
+        if (!/^[\w-]+\.json$/.test(name) || !existsSync(file)) {
+          res.statusCode = 404;
+          return res.end();
+        }
+        res.setHeader("Content-Type", "application/json");
+        res.end(readFileSync(file));
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), i18nPages()],
+  plugins: [react(), i18nPages(), devNews()],
   server: {
     watch: {
       // Nada de esto es código de la web; vigilarlo solo ralentiza (un .venv son miles de ficheros)

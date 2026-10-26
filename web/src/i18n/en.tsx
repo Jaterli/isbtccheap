@@ -274,6 +274,36 @@ export const en: Messages = {
     note: "Historical data, not a prediction or investment advice.",
   },
 
+  calendar: {
+    title: "This week's economic calendar",
+    info: [
+      "This week's economic data and central bank decisions most likely to move markets and the BTC price: high-impact US releases and the rate decisions of the ECB, the Bank of Japan, the Bank of England and China.",
+      "Times are in your time zone. Forecast is what the market expects; previous, the last published figure. The price moves most when the data misses the forecast.",
+    ],
+    forecast: "Fcst.",
+    previous: "Prev.",
+    countries: { USD: "US", EUR: "Eurozone", JPY: "Japan", GBP: "UK", CNY: "China" },
+    note: "Source: Forex Factory calendar.",
+  },
+
+  news: {
+    title: "News that could move the price",
+    info: [
+      "Recent headlines from Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC and the Federal Reserve. Every 15 minutes an AI model rates them by their likely short-term impact on the BTC price and drops duplicates.",
+      "It shows the 10 with the most impact over the last 48 hours, newest first. The colour dot shows the estimated impact:",
+    ],
+    levels: { high: "High impact", mid: "Medium impact", low: "Moderate impact" },
+    categories: {
+      geopolitica: "Geopolitics",
+      macro: "Macro",
+      crisis: "Crisis",
+      mercados: "Markets",
+      flujos: "Flows",
+      cripto: "Crypto",
+    },
+    note: "Automatic AI selection: it may contain errors. Each headline links to the original story. Not financial advice.",
+  },
+
   donate: {
     title: "Support the project",
     infoLabel: "donations",

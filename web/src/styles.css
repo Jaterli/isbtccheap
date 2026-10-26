@@ -84,21 +84,24 @@ header {position: relative;}
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .lang-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- Panel principal: medidor + categorías ----------
-   móvil: 1 columna · tablet: medidor arriba y 2 columnas · escritorio: rejilla 3×2 */
+/* ---------- Panel principal: medidor + categorías + noticias ----------
+   móvil: 1 columna · tablet: medidor arriba, categorías en 2 columnas y noticias debajo ·
+   escritorio: medidor y categorías en 2 columnas × 3 filas, noticias en la 3.ª columna ocupando las 3 filas */
 .dashboard { display: grid; gap: var(--gutter); grid-template-columns: 1fr; }
 
 @media (min-width: 640px) {
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard .hero { grid-column: 1 / -1; }
-  .dashboard .category:last-child { grid-column: 1 / -1; }
+  .dashboard .hero, .dashboard .side { grid-column: 1 / -1; }
+  /* La 5.ª categoría queda sola en su fila: ocupa el ancho (las noticias son un <section>, no cuentan) */
+  .dashboard article.category:last-of-type { grid-column: 1 / -1; }
   .top { margin-top: 0; }
 }
 
 @media (min-width: 1024px) {
   .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashboard .hero { grid-column: auto; }
-  .dashboard .category:last-child { grid-column: auto; }
+  .dashboard .hero, .dashboard article.category:last-of-type { grid-column: auto; }
+  /* Las demás tarjetas se colocan solas en las columnas 1 y 2 */
+  .dashboard .side { grid-column: 3; grid-row: 1 / span 3; }
 }
 
 .hero { display: grid; justify-items: center; align-content: start; gap: 10px; }
@@ -277,6 +280,51 @@ header {position: relative;}
   .mv-in { gap: 5px 6px; }
 }
 .moves-note { margin: 10px 0 0; }
+
+/* Noticias */
+/* Columna de contexto (agenda + noticias) */
+.side { display: flex; flex-direction: column; gap: var(--gutter); min-width: 0; }
+.side:empty { display: none; }
+.news { display: flex; flex-direction: column; min-width: 0; }
+/* Desplazamiento dentro de la tarjeta: los titulares no alargan la página */
+.news-list {
+  list-style: none; margin: 10px 0 0; padding: 0 6px 0 0; display: grid; gap: 0 32px; align-content: start;
+  max-height: 520px; overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain;
+}
+@media (min-width: 900px) and (max-width: 1023px) { .news-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) {
+  /* contain: size → la columna no aporta altura a la rejilla: mide lo que las 3 filas de métricas. La agenda ocupa
+     lo que necesita y las noticias, el resto, con desplazamiento */
+  .dashboard .side { contain: size; }
+  .side .news { flex: 1; min-height: 0; }
+  /* La agenda cede sitio a las noticias: como mucho el 40 % de la columna, y desplaza lo que no quepa */
+  .side .calendar { flex: 0 1 auto; max-height: 40%; min-height: 0; display: flex; flex-direction: column; }
+  .side .cal-list { flex: 1; min-height: 0; max-height: none; }
+  .news-list { flex: 1; min-height: 0; max-height: none; }
+}
+.news-list li { display: flex; gap: 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--border); min-width: 0; }
+.news-list a { color: var(--fg); text-decoration: none; font-weight: 500; line-height: 1.35; text-wrap: pretty; }
+.news-list a:hover { color: var(--accent); }
+.news-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.news-meta { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.news-tag { padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.news-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); background: var(--muted); }
+.news-dot.high { background: var(--band-5); }
+.news-dot.mid { background: var(--band-4); }
+.news-dot.low { background: var(--band-3); }
+.news-note { margin: 10px 0 0; }
+
+/* Agenda económica */
+.calendar { flex: none; }
+.cal-list { margin-top: 6px; max-height: 300px; overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; padding-right: 6px; }
+.cal-day h4 { margin: 8px 0 0; font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: capitalize; }
+.cal-day ul { list-style: none; margin: 0; padding: 0; }
+.cal-day li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.cal-day li time { color: var(--muted); padding-top: 1px; }
+.cal-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-weight: 500; line-height: 1.35; }
+.cal-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: 2px; }
+.cal-day li.past { opacity: 0.5; }
+.cal-day li.next time, .cal-next { color: var(--accent); font-weight: 600; }
 
 /* Donaciones */
 .collapse-toggle {

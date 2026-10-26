@@ -283,6 +283,36 @@ export const es = {
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
 
+  calendar: {
+    title: "Agenda económica de la semana",
+    info: [
+      "Los datos económicos y decisiones de bancos centrales de esta semana que más pueden mover los mercados y el precio de BTC: los de impacto alto de EE. UU. y las decisiones de tipos del BCE, el Banco de Japón, el Banco de Inglaterra y China.",
+      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio.",
+    ],
+    forecast: "Prev.",
+    previous: "Ant.",
+    countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
+    note: "Fuente: calendario de Forex Factory. Nombres de los eventos traducidos con IA.",
+  },
+
+  news: {
+    title: "Noticias que pueden mover el precio",
+    info: [
+      "Titulares recientes de Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC y la Reserva Federal. Cada 15 minutos un modelo de IA los clasifica según su posible impacto en el precio de BTC a corto plazo, descarta los repetidos y traduce los titulares.",
+      "Se muestran las 10 de más impacto de las últimas 48 horas, de la más reciente a la más antigua. El indicador de color muestra el impacto estimado:",
+    ],
+    levels: { high: "Impacto alto", mid: "Impacto medio", low: "Impacto moderado" },
+    categories: {
+      geopolitica: "Geopolítica",
+      macro: "Macro",
+      crisis: "Crisis",
+      mercados: "Mercados",
+      flujos: "Flujos",
+      cripto: "Cripto",
+    } as Record<string, string>,
+    note: "Selección y traducción automáticas con IA: pueden contener errores. Cada titular enlaza a la noticia original. No es asesoramiento financiero.",
+  },
+
   donate: {
     title: "Apoya el proyecto",
     infoLabel: "las donaciones",

@@ -6,3 +6,7 @@ web/dist/
 *.tsbuildinfo
 /.env
 *.local
+# Noticias: salida y estado locales, y la clave
+news/out/
+news/state/
+news/.env

@@ -18,6 +18,8 @@ import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
+import { News } from "./components/News";
+import { Calendar } from "./components/Calendar";
 import { Outlook } from "./components/Outlook";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type MetricScore, type Timeframe } from "./types";
 
@@ -231,6 +233,12 @@ export function App() {
         </article>
 
         <Breakdown categories={result.categories} weights={result.weights} />
+
+        {/* Columna de contexto: agenda y noticias. Si ninguna tiene datos queda vacía y no ocupa sitio (:empty) */}
+        <div className="side">
+          <Calendar />
+          <News />
+        </div>
       </section>
 
       {history && <HistoryChart history={history} />}
