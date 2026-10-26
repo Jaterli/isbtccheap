@@ -263,7 +263,7 @@ export const es = {
   moves: {
     title: "Caídas y subidas desde máximo y mínimo",
     info: [
-      "Cuenta los días desde la última caída y la última subida de cada tamaño, con precios de cierre diarios, y los compara con lo habitual en el periodo elegido: cuántos días solían llevar sin producirse en un día cualquiera (la mediana).",
+      "Cuenta los días desde la última caída y la última subida de cada tamaño, con precios de cierre diarios más el precio actual como último dato, y los compara con lo habitual en el periodo elegido: cuántos días solían llevar sin producirse en un día cualquiera (la mediana).",
       "Una caída del 10 % se cuenta cuando el cierre queda un 10 % por debajo del máximo alcanzado desde la anterior caída de ese tamaño; desde ahí se vuelve a medir. Las subidas, igual desde el mínimo. Como Bitcoin cotiza 24 h, cada vela diaria abre en el cierre de la anterior, así que equivale a medir de apertura a cierre.",
       "No se usa el tiempo medio entre dos casos porque estos movimientos llegan en rachas (varias caídas del 5 % en un mismo desplome) y esa media es engañosamente corta.",
       "La barra indica qué parte de los días del periodo llevaban menos tiempo sin ese movimiento que hoy; la marca central es lo habitual. En naranja, los que superan al 90 % de los días.",
@@ -273,7 +273,7 @@ export const es = {
     drops: "Caídas desde máximo",
     rallies: "Subidas desde mínimo",
     cols: { size: "Tamaño", since: "Hace", typical: "Habitual" },
-    days: (n: number) => `${n.toLocaleString("es-ES")} ${n === 1 ? "día" : "días"}`,
+    days: (n: number) => (n === 0 ? "Hoy" : `${n.toLocaleString("es-ES")} ${n === 1 ? "día" : "días"}`),
     count: (n: number) => `${n} ${n === 1 ? "vez" : "veces"} en el periodo`,
     none: "Ninguna en el periodo",
     percentile: (p: number) => `Más tiempo sin producirse que en el ${p}\u00A0% de los días del periodo`,

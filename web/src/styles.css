@@ -144,7 +144,7 @@ header {position: relative;}
 .info-btn:hover, .info-btn.open { color: var(--accent); }
 .info-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .card header strong .info-btn, h3 .info-btn { font-size: 0.9rem; }
-.card li .info-btn { font-size: 0.85rem; }
+.category li .info-btn { font-size: 0.85rem; }
 
 .info-pop {
   position: fixed; z-index: 100;
@@ -176,10 +176,12 @@ header {position: relative;}
 .card header strong { font-size: 1.4rem; }
 .bar { height: 6px; border-radius: 3px; background: var(--border); margin: 10px 0 12px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.88rem; }
-.card li { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; gap: 10px; align-items: baseline; }
-.card li span:first-child { text-wrap: balance; }
-.card li span:last-child { text-align: right; font-weight: 600; }
+/* Filas de métrica de las categorías (nombre · valor · puntuación). Solo en .category: aplicadas a toda .card,
+   pisaban las columnas de otras listas, como la agenda, en pantallas pequeñas */
+.category ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.88rem; }
+.category li { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; gap: 10px; align-items: baseline; }
+.category li span:first-child { text-wrap: balance; }
+.category li span:last-child { text-align: right; font-weight: 600; }
 
 /* Gráfico */
 .chart header { flex-wrap: wrap; row-gap: 10px; }
@@ -334,8 +336,8 @@ header {position: relative;}
 .collapse-toggle:hover { color: var(--accent); }
 .collapse-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 .chevron { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
-.donate.open .chevron { transform: rotate(180deg); }
-.donate:not(.open) { padding-block: 12px; }
+.donate.open .chevron, .collapse-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.donate:not(.open), .card.collapsed { padding-block: 12px; }
 #donar-body > p { margin: 10px 0 14px; }
 .donate-body { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 32px; }
 .btn-paypal { background: #ffc439; border-color: #ffc439; color: #111; font-weight: 600; padding: 8px 18px; text-decoration: none; }
@@ -368,5 +370,5 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
   .container { padding-top: 16px; }
   .card { padding: 14px; border-radius: 12px; }
   .segmented.timeframes button { padding-inline: 2px; }
-  .card li { grid-template-columns: minmax(0, 1fr) auto 2em; gap: 8px; }
+  .category li { grid-template-columns: minmax(0, 1fr) auto 2em; gap: 8px; }
 }

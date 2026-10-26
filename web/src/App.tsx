@@ -245,7 +245,7 @@ export function App() {
 
       {history && <Outlook history={history} labels={latest.labels} />}
 
-      {history && <Moves history={history} />}
+      {history && <Moves history={history} livePrice={price} />}
 
       <Donate />
 

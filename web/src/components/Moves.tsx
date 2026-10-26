@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { locale, t } from "../i18n";
-import { computeMoves, type MoveStats } from "../lib/moves";
+import { computeMoves, withLivePrice, type MoveStats } from "../lib/moves";
 import type { History } from "../types";
 import { InfoTip } from "./InfoTip";
 import { PeriodSelector, periodStart, usePeriod } from "./PeriodSelector";
@@ -84,9 +84,12 @@ function MoveTable({ drops, rallies }: { drops: MoveStats[]; rallies: MoveStats[
 }
 
 /** Días que lleva BTC sin una caída (desde máximo) o subida (desde mínimo) de cada tamaño, frente a la media. */
-export function Moves({ history }: { history: History }) {
+export function Moves({ history, livePrice }: { history: History; livePrice: number | null }) {
   const { period, days, select } = usePeriod("isbtccheap:moves-period");
-  const m = useMemo(() => computeMoves(history, periodStart(history.price.length, days)), [history, days]);
+  const m = useMemo(() => {
+    const h = withLivePrice(history, livePrice);
+    return computeMoves(h, periodStart(h.price.length, days));
+  }, [history, livePrice, days]);
   if (!m) return null;
   const tx = t.moves;
 

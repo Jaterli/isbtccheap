@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { lang, locale, t } from "../i18n";
+import { CollapseTitle, useMobileCollapse } from "./Collapsible";
 import { InfoTip } from "./InfoTip";
 
 /** Salida de news/build_calendar.py */
@@ -26,6 +27,7 @@ const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 export function Calendar() {
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [now, setNow] = useState(Date.now());
+  const fold = useMobileCollapse();
 
   useEffect(() => {
     const load = () =>
@@ -64,10 +66,10 @@ export function Calendar() {
   const timeFmt = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <section className="card calendar">
+    <section className={`card calendar${fold.open ? "" : " collapsed"}`}>
       <header>
         <h3>
-          {tx.title}
+          <CollapseTitle state={fold}>{tx.title}</CollapseTitle>
           <InfoTip label={tx.title} title={tx.title}>
             {tx.info.map((p) => (
               <p key={p}>{p}</p>
@@ -75,38 +77,42 @@ export function Calendar() {
           </InfoTip>
         </h3>
       </header>
-      <div className="cal-list">
-        {[...days.values()].map((list) => (
-          <div key={dayKey(new Date(list[0].date))} className="cal-day">
-            <h4>{dayFmt.format(new Date(list[0].date))}</h4>
-            <ul>
-              {list.map((e) => {
-                const d = new Date(e.date);
-                const cls = isPast(d) ? "past" : e === next ? "next" : undefined;
-                return (
-                  <li key={e.title + e.date} className={cls}>
-                    <time dateTime={e.date} className="num">{timeFmt.format(d)}</time>
-                    <div>
-                      <span className="cal-title">
-                        <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
-                        {lang === "es" ? e.title_es : e.title}
-                      </span>
-                      {(e.forecast || e.previous) && (
-                        <span className="cal-meta muted small num">
-                          {e.forecast && `${tx.forecast} ${num(e.forecast)}`}
-                          {e.forecast && e.previous && " · "}
-                          {e.previous && `${tx.previous} ${num(e.previous)}`}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+      {fold.open && (
+        <>
+          <div className="cal-list" id={fold.bodyId}>
+            {[...days.values()].map((list) => (
+              <div key={dayKey(new Date(list[0].date))} className="cal-day">
+                <h4>{dayFmt.format(new Date(list[0].date))}</h4>
+                <ul>
+                  {list.map((e) => {
+                    const d = new Date(e.date);
+                    const cls = isPast(d) ? "past" : e === next ? "next" : undefined;
+                    return (
+                      <li key={e.title + e.date} className={cls}>
+                        <time dateTime={e.date} className="num">{timeFmt.format(d)}</time>
+                        <div>
+                          <span className="cal-title">
+                            <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
+                            {lang === "es" ? e.title_es : e.title}
+                          </span>
+                          {(e.forecast || e.previous) && (
+                            <span className="cal-meta muted small num">
+                              {e.forecast && `${tx.forecast} ${num(e.forecast)}`}
+                              {e.forecast && e.previous && " · "}
+                              {e.previous && `${tx.previous} ${num(e.previous)}`}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p className="muted small news-note">{tx.note}</p>
+          <p className="muted small news-note">{tx.note}</p>
+        </>
+      )}
     </section>
   );
 }

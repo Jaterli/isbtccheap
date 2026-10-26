@@ -254,7 +254,7 @@ export const en: Messages = {
   moves: {
     title: "Drops from highs and rallies from lows",
     info: [
-      "Counts the days since the last drop and the last rally of each size, using daily closes, and compares them with what is typical in the selected period: how many days it had usually been on any given day (the median).",
+      "Counts the days since the last drop and the last rally of each size, using daily closes plus the current price as the latest point, and compares them with what is typical in the selected period: how many days it had usually been on any given day (the median).",
       "A 10% drop is counted when the close falls 10% below the high reached since the previous drop of that size; from there, it is measured again. Rallies work the same way from the low. Since Bitcoin trades 24h, each daily candle opens at the previous close, so this is equivalent to measuring from open to close.",
       "The average time between two moves is not used because these moves come in bursts (several 5% drops in the same sell-off), which makes that average misleadingly short.",
       "The bar shows the share of days in the period that had gone less time without that move than today; the middle mark is the typical value. In orange, those beyond 90% of days.",
@@ -264,7 +264,7 @@ export const en: Messages = {
     drops: "Drops from highs",
     rallies: "Rallies from lows",
     cols: { size: "Size", since: "Days since", typical: "Typical" },
-    days: (n: number) => `${n.toLocaleString("en-US")} ${n === 1 ? "day" : "days"}`,
+    days: (n: number) => (n === 0 ? "Today" : `${n.toLocaleString("en-US")} ${n === 1 ? "day" : "days"}`),
     count: (n: number) => `${n} ${n === 1 ? "time" : "times"} in the period`,
     none: "None in the period",
     percentile: (p: number) => `Longer without happening than on ${p}% of days in the period`,

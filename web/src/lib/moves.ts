@@ -46,7 +46,8 @@ function moves(price: number[], dates: string[], fromIndex: number, down: boolea
       if (last !== null) ages.push(i - last);
     }
     const past = ages.slice(0, -1).sort((a, b) => a - b);
-    const daysSince = last === null ? null : N - 1 - last;
+    // Por fecha y no por posición: el último punto puede ser el precio de hoy, con un día sin cierre en medio
+    const daysSince = last === null ? null : Math.round((Date.parse(dates[N - 1]) - Date.parse(dates[last])) / 86_400_000);
     return {
       size,
       count,
@@ -56,6 +57,21 @@ function moves(price: number[], dates: string[], fromIndex: number, down: boolea
       percentile: past.length && daysSince !== null ? (past.filter((a) => a < daysSince).length / past.length) * 100 : null,
     };
   });
+}
+
+/**
+ * Histórico con el precio actual como último punto. El histórico va un día por detrás (Coin Metrics publica cada
+ * día cuando ha cerrado): sin esto, una caída o subida de hoy no contaría hasta pasado mañana.
+ */
+export function withLivePrice(history: History, live: number | null): History {
+  const today = new Date().toISOString().slice(0, 10);
+  const last = history.dates.length - 1;
+  if (live === null || last < 0 || history.dates[last] >= today) return history;
+  return {
+    dates: [...history.dates, today],
+    price: [...history.price, live],
+    score: [...history.score, history.score[last]],
+  };
 }
 
 export function computeMoves(history: History, fromIndex = 0) {
