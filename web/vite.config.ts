@@ -3,14 +3,27 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { META, type PageMeta } from "./src/i18n/meta";
+import { META } from "./src/i18n/meta";
+import { SEO } from "./src/i18n/seo";
 
 // En WSL, node_modules es un enlace simbólico al disco de Linux (mucho más rápido que /mnt/e):
 // hay que permitir a Vite servir ficheros desde su ubicación real
 const nodeModules = realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url)));
 
-const fillMeta = (html: string, meta: PageMeta) =>
-  html.replace(/__([A-Z_]+)__/g, (m, key: string) => meta[key as keyof PageMeta] ?? m);
+const fillMeta = (html: string, meta: Record<string, string>) =>
+  html.replace(/__([A-Z_]+)__/g, (m, key: string) => meta[key] ?? m);
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** Presentación y preguntas frecuentes en el HTML inicial (dentro de #root: React lo sustituye al cargar). Es lo que
+ * leen los rastreadores que no ejecutan JavaScript; Google indexa la sección visible de components/Faq.tsx */
+function seoHtml(lang: "es" | "en") {
+  const s = SEO[lang];
+  const faq = s.faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
+  return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
+}
+
+const pageMeta = (lang: "es" | "en") => ({ ...META[lang], SEO: seoHtml(lang) });
 
 /** Un index.html por idioma: el español en la raíz y el inglés en en/index.html, con sus metadatos para buscadores
  * y redes sociales. La app es la misma; el idioma lo decide la ruta (src/i18n). */
@@ -27,12 +40,12 @@ function i18nPages(): Plugin {
       order: "post",
       handler(html) {
         template = html;
-        return fillMeta(html, META.es);
+        return fillMeta(html, pageMeta("es"));
       },
     },
     writeBundle() {
       mkdirSync(resolve(outDir, "en"), { recursive: true });
-      writeFileSync(resolve(outDir, "en/index.html"), fillMeta(template, META.en));
+      writeFileSync(resolve(outDir, "en/index.html"), fillMeta(template, pageMeta("en")));
     },
   };
 }

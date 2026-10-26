@@ -334,6 +334,16 @@ header {position: relative;}
 .cal-day li.past { opacity: 0.5; }
 .cal-day li.next time { color: var(--accent); font-weight: 600; }
 
+/* Preguntas frecuentes */
+.faq h2 { margin: 0; font-size: 1rem; }
+.faq > p { margin: 8px 0 6px; }
+.faq details { border-bottom: 1px solid var(--border); }
+.faq details:last-child { border-bottom: 0; }
+.faq summary { padding: 10px 0; cursor: pointer; font-weight: 500; }
+.faq summary:hover { color: var(--accent); }
+.faq summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.faq details p { margin: 0 0 12px; color: var(--muted); }
+
 /* Donaciones */
 .collapse-toggle {
   display: inline-flex; align-items: center; gap: 6px;

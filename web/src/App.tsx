@@ -18,6 +18,7 @@ import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
+import { Faq } from "./components/Faq";
 import { News } from "./components/News";
 import { Calendar } from "./components/Calendar";
 import { Outlook } from "./components/Outlook";
@@ -250,6 +251,8 @@ export function App() {
       {history && <Outlook history={history} labels={latest.labels} />}
 
       {history && <Moves history={history} livePrice={price} />}
+
+      <Faq />
 
       <Donate />
 
