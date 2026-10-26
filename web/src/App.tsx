@@ -232,7 +232,7 @@ export function App() {
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 
-        <Breakdown categories={result.categories} weights={result.weights} />
+        <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 
         {/* Columna de contexto: agenda y noticias. Si ninguna tiene datos queda vacía y no ocupa sitio (:empty) */}
         <div className="side">

@@ -83,7 +83,12 @@ export const en: Messages = {
   },
   weight: (w: string) => `weight ${w}%`,
   scoreColumns:
-    "Each line shows the metric's current value and its score from 0 (cheap) to 100 (expensive), calculated as a percentile against the last 4 years (one halving cycle) unless stated otherwise.",
+    "Each line shows the metric's current value and its score from 0 (cheap) to 100 (expensive), calculated as a percentile against the last 4 years (one halving cycle) unless stated otherwise. If any is in an extreme zone (10 or below, or 90 or above), a note appears at the bottom of the card.",
+  extreme: {
+    cheap: "very cheap zone",
+    expensive: "very expensive zone",
+    item: (name: string, zone: string, score: number) => `${name} in ${zone} (${score})`,
+  },
 
   metrics: {
     mvrv: {
@@ -93,18 +98,18 @@ export const en: Messages = {
     },
     puell: {
       name: "Puell Multiple",
-      what: "Miners' daily revenue from newly issued bitcoins divided by its 365-day average.",
+      what: "How far miners' daily revenue from newly issued bitcoins is above or below its 365-day average.",
       read: "High: miners earn a lot and tend to sell. Low: miner capitulation, historically a buying zone.",
     },
     mayer: {
-      name: "Mayer Multiple (price / 200D MA)",
-      what: "Mayer Multiple: price divided by its 200-day moving average.",
-      read: "Above 2.4 it has coincided with bubbles; below 1, with cheap zones.",
+      name: "Mayer Multiple (vs. 200D MA)",
+      what: "Mayer Multiple: how far the price is above or below its 200-day moving average.",
+      read: "More than +140% (price at 2.4 times its average) has coincided with bubbles; below the average (negative values), with cheap zones.",
     },
     halving_phase: {
       name: "Halving cycle phase",
-      what: "Position within the cycle between two halvings (every ~4 years the issuance of new bitcoins is cut in half).",
-      read: "The value is already a score: it rises towards the phase where tops have historically formed and falls towards the phase of bottoms.",
+      what: "Share of the cycle elapsed since the last halving (April 2024) until the next one, expected in April 2028. At each halving, every ~4 years, the issuance of new bitcoins is cut in half.",
+      read: "Historically, tops have come around 33% into the cycle and bottoms around 60%. The score rises approaching the top zone and falls approaching the bottom zone.",
     },
     power_law: {
       name: "Power law deviation",
@@ -112,9 +117,9 @@ export const en: Messages = {
       read: "Positive: above the trend (expensive). Negative: below it (cheap).",
     },
     wma200_ratio: {
-      name: "Price / 200-week MA",
-      what: "Price divided by the 200-week moving average (about 4 years, a full cycle).",
-      read: "That average has acted as a floor in every cycle: near 1 is a very cheap zone; far above it, euphoria.",
+      name: "Price vs. 200-week MA",
+      what: "How far the price is above or below its 200-week moving average (about 4 years, a full cycle).",
+      read: "That average has acted as a floor in every cycle: near 0% (price at the average) is a very cheap zone; far above it, euphoria.",
     },
     net_liquidity_roc: {
       name: "Fed net liquidity (13-week change)",
@@ -172,13 +177,13 @@ export const en: Messages = {
       read: "100: at the upper band (stretched up). 0: at the lower band (stretched down).",
     },
     ma200_ratio: {
-      name: "Price / 200 MA (percentile)",
-      what: "Price divided by its 200-candle average in the selected timeframe, compared with the last 1,000 candles.",
+      name: "Price vs. 200 MA (percentile)",
+      what: "How far the price is above or below its 200-candle average in the selected timeframe, compared with the last 1,000 candles.",
       read: "The score is the percentile: high means the price is further from its average than usual.",
     },
     ma48_ratio: {
-      name: "Price / 48-month MA (percentile)",
-      what: "Price divided by its 48 monthly candle average (4 years, one halving cycle), compared with the whole monthly history since 2011. On the monthly timeframe this average replaces the 200-candle one, which would be 16 years.",
+      name: "Price vs. 48-month MA (percentile)",
+      what: "How far the price is above or below its 48 monthly candle average (4 years, one halving cycle), compared with the whole monthly history since 2011. On the monthly timeframe this average replaces the 200-candle one, which would be 16 years.",
       read: "The score is the percentile: high means the price is further from its average than usual.",
     },
   },

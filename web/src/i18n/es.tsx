@@ -92,7 +92,12 @@ export const es = {
   } satisfies Record<CategoryId, Description & { name: string }>,
   weight: (w: string) => `peso ${w} %`,
   scoreColumns:
-    "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa.",
+    "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa. Si alguna está en zona extrema (10 o menos, o 90 o más), se avisa al pie de la tarjeta.",
+  extreme: {
+    cheap: "zona muy barata",
+    expensive: "zona muy cara",
+    item: (name: string, zone: string, score: number) => `${name} en ${zone} (${score})`,
+  },
 
   metrics: {
     mvrv: {
@@ -102,18 +107,18 @@ export const es = {
     },
     puell: {
       name: "Puell Multiple",
-      what: "Ingresos diarios de los mineros por emisión de nuevos bitcoins divididos por su media de 365 días.",
+      what: "Cuánto están los ingresos diarios de los mineros por emisión de nuevos bitcoins por encima o por debajo de su media de 365 días.",
       read: "Alto: los mineros ganan mucho y tienden a vender. Bajo: capitulación minera, históricamente zona de compra.",
     },
     mayer: {
-      name: "Mayer Multiple (precio / MA200d)",
-      what: "Mayer Multiple: precio dividido por su media móvil de 200 días.",
-      read: "Por encima de 2,4 ha coincidido con burbujas; por debajo de 1 con zonas baratas.",
+      name: "Mayer Multiple (frente a MA200d)",
+      what: "Mayer Multiple: cuánto está el precio por encima o por debajo de su media móvil de 200 días.",
+      read: "Más de un +140 % (el precio a 2,4 veces su media) ha coincidido con burbujas; por debajo de la media (valores negativos), con zonas baratas.",
     },
     halving_phase: {
       name: "Fase del ciclo de halving",
-      what: "Posición dentro del ciclo entre dos halvings (cada ~4 años se reduce a la mitad la emisión de nuevos bitcoins).",
-      read: "El valor ya es una puntuación: sube hacia la zona en la que históricamente se formaron los techos y baja hacia la de los suelos.",
+      what: "Parte del ciclo transcurrida desde el último halving (abril de 2024) hasta el siguiente, previsto para abril de 2028. En cada halving, cada ~4 años, se reduce a la mitad la emisión de nuevos bitcoins.",
+      read: "Históricamente los techos llegan hacia el 33 % del ciclo y los suelos hacia el 60 %. La puntuación sube al acercarse a la zona de techos y baja al acercarse a la de suelos.",
     },
     power_law: {
       name: "Desviación de la power law",
@@ -121,9 +126,9 @@ export const es = {
       read: "Positivo: por encima de la tendencia (caro). Negativo: por debajo (barato).",
     },
     wma200_ratio: {
-      name: "Precio / MA200 semanas",
-      what: "Precio dividido por la media móvil de 200 semanas (unos 4 años, un ciclo completo).",
-      read: "Esa media ha actuado como suelo en todos los ciclos: cerca de 1 es zona muy barata; muy por encima, zona de euforia.",
+      name: "Precio frente a MA200 semanas",
+      what: "Cuánto está el precio por encima o por debajo de su media móvil de 200 semanas (unos 4 años, un ciclo completo).",
+      read: "Esa media ha actuado como suelo en todos los ciclos: cerca del 0 % (el precio en la media) es zona muy barata; muy por encima, zona de euforia.",
     },
     net_liquidity_roc: {
       name: "Liquidez neta Fed (var. 13 sem.)",
@@ -181,13 +186,13 @@ export const es = {
       read: "100: en la banda superior (estirado al alza). 0: en la inferior (estirado a la baja).",
     },
     ma200_ratio: {
-      name: "Precio / MA200 (percentil)",
-      what: "Precio dividido por su media de 200 velas en la temporalidad elegida, comparado con las últimas 1000 velas.",
+      name: "Precio frente a MA200 (percentil)",
+      what: "Cuánto está el precio por encima o por debajo de su media de 200 velas en la temporalidad elegida, comparado con las últimas 1000 velas.",
       read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
     },
     ma48_ratio: {
-      name: "Precio / MA48 meses (percentil)",
-      what: "Precio dividido por su media de 48 velas mensuales (4 años, un ciclo de halving), comparado con todo el histórico mensual desde 2011. En mensual se usa esta media en lugar de la de 200 velas, que serían 16 años.",
+      name: "Precio frente a MA48 meses (percentil)",
+      what: "Cuánto está el precio por encima o por debajo de su media de 48 velas mensuales (4 años, un ciclo de halving), comparado con todo el histórico mensual desde 2011. En mensual se usa esta media en lugar de la de 200 velas, que serían 16 años.",
       read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
     },
   } as Record<string, Description & { name: string }>,
