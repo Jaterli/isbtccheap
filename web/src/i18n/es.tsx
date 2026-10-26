@@ -287,19 +287,19 @@ export const es = {
     title: "Agenda económica de la semana",
     info: [
       "Los datos económicos y decisiones de bancos centrales de esta semana que más pueden mover los mercados y el precio de BTC: los de impacto alto de EE. UU. y las decisiones de tipos del BCE, el Banco de Japón, el Banco de Inglaterra y China.",
-      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio.",
+      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio. Nombres de los eventos traducidos con IA.",
     ],
     forecast: "Prev.",
     previous: "Ant.",
     countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
-    note: "Fuente: calendario de Forex Factory. Nombres de los eventos traducidos con IA.",
+    note: "Fuente: Forex Factory.",
   },
 
   news: {
-    title: "Noticias que pueden mover el precio",
+    title: "Últimas noticias del mercado",
     info: [
-      "Titulares recientes de Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC y la Reserva Federal. Cada 15 minutos un modelo de IA los clasifica según su posible impacto en el precio de BTC a corto plazo, descarta los repetidos y traduce los titulares.",
-      "Se muestran las 10 de más impacto de las últimas 48 horas, de la más reciente a la más antigua. El indicador de color muestra el impacto estimado:",
+      "Titulares recientes de Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC y la Reserva Federal. Cada 15 minutos en horario de mercado (cada hora el resto del tiempo), un modelo de IA los clasifica según su posible impacto en el precio de BTC a corto plazo, descarta los repetidos y traduce los titulares.",
+      "Se muestran las 10 de más impacto de las últimas 48 horas, con prioridad para las más recientes. Cada titular enlaza a la noticia original; la selección y la traducción automáticas pueden contener errores. El indicador de color muestra el impacto estimado:",
     ],
     levels: { high: "Impacto alto", mid: "Impacto medio", low: "Impacto moderado" },
     categories: {
@@ -310,7 +310,7 @@ export const es = {
       flujos: "Flujos",
       cripto: "Cripto",
     } as Record<string, string>,
-    note: "Selección y traducción automáticas con IA: pueden contener errores. Cada titular enlaza a la noticia original. No es asesoramiento financiero.",
+    note: "Seleccionadas y traducidas con IA.",
   },
 
   donate: {

@@ -91,6 +91,38 @@ cd web; npm install; npm run dev
 5. En Cloudflare Pages → **Custom domains**, añade `isbtccheap.com` y `www.isbtccheap.com` (redirige `www` al
    dominio raíz). Si el dominio está en Cloudflare Registrar, el DNS y el certificado HTTPS se configuran solos.
 
+## Noticias y agenda económica (droplet)
+
+Las tarjetas de noticias y agenda leen `/news/news.json` y `/news/calendar.json`. Los generan dos scripts de `news/`
+(solo librería estándar de Python 3.10+) con un modelo de la inferencia serverless de DigitalOcean (GLM-5.3 Flash: los de
+Anthropic y OpenAI exigen el nivel 3). nginx los sirve desde `news/out`, montado como volumen en `docker-compose.yml`.
+Sin esos ficheros las tarjetas no se muestran.
+
+- `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
+- `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
+
+En el droplet, una vez:
+
+```bash
+cd ~/isbtccheap && git pull && docker compose up -d --build
+cp news/.env.example news/.env && chmod 600 news/.env   # y pon la Model Access Key en DO_MODEL_ACCESS_KEY
+news/run.sh build_news.py && news/run.sh build_calendar.py   # primera ejecución, para comprobar
+crontab -e
+```
+
+```cron
+# Horas en UTC (la zona del droplet: compruébalo con `date`). Noticias cada 15 min, 5 min después de las horas en punto
+# y las medias, de lunes a viernes de 06:00 a 20:59 UTC: datos de la eurozona (desde las 07:00), BCE (12:15-13:45),
+# datos de EE. UU. (12:30-15:00) y Fed (18:00-19:30). El resto del tiempo y los fines de semana, cada hora
+5,20,35,50 6-20 * * 1-5 /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
+5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
+5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
+2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
+```
+
+Coste orientativo: 1-2 $/mes. En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+sirve `news/out` en `/news/`.
+
 ## Estructura
 
 ```

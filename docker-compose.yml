@@ -3,6 +3,9 @@ services:
     build: ./web
     container_name: isbtccheap_frontend # ← el nombre que usa el upstream del reverse proxy
     restart: unless-stopped
+    volumes:
+      # Noticias y agenda: las escriben los scripts de news/ (cron del droplet) y nginx las sirve en /news/
+      - ./news/out:/usr/share/nginx/html/news:ro
     networks:
       - web_network
 

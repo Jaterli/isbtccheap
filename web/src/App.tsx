@@ -236,8 +236,8 @@ export function App() {
 
         {/* Columna de contexto: agenda y noticias. Si ninguna tiene datos queda vacía y no ocupa sitio (:empty) */}
         <div className="side">
-          <Calendar />
           <News />
+          <Calendar />
         </div>
       </section>
 

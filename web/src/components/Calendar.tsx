@@ -22,15 +22,6 @@ const num = (v: string) => (lang === "es" ? v.replace(/(\d)\.(\d)/g, "$1,$2").re
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
-/** "en 2 días" / "en 3 h" hasta el próximo evento */
-function until(d: Date, now: number) {
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: "short" });
-  const min = Math.round((d.getTime() - now) / 60_000);
-  if (min < 60) return rtf.format(Math.max(min, 0), "minute");
-  const h = Math.round(min / 60);
-  return h < 24 ? rtf.format(h, "hour") : rtf.format(Math.round(h / 24), "day");
-}
-
 /** Agenda económica de la semana: los datos y decisiones que más pueden mover el mercado. */
 export function Calendar() {
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
@@ -46,7 +37,7 @@ export function Calendar() {
         });
     load();
     const data = setInterval(load, REFRESH_MS);
-    // Reloj para "en 3 h" y para atenuar lo que ya ha pasado
+    // Reloj para atenuar lo que ya ha pasado y resaltar el siguiente
     const clock = setInterval(() => setNow(Date.now()), 60_000);
     return () => {
       clearInterval(data);
@@ -100,9 +91,8 @@ export function Calendar() {
                         <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
                         {lang === "es" ? e.title_es : e.title}
                       </span>
-                      {(e.forecast || e.previous || e === next) && (
+                      {(e.forecast || e.previous) && (
                         <span className="cal-meta muted small num">
-                          {e === next && <strong className="cal-next">{until(d, now)}</strong>}
                           {e.forecast && `${tx.forecast} ${num(e.forecast)}`}
                           {e.forecast && e.previous && " · "}
                           {e.previous && `${tx.previous} ${num(e.previous)}`}
