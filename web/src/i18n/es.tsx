@@ -19,7 +19,8 @@ export const es = {
   periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,
   periodAria: "Periodo de la muestra",
 
-  tagline: "¿Está Bitcoin barato o caro? Un índice de 1 a 100 que combina valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.",
+  taglineTitle: "¿Está Bitcoin barato o caro?",
+  taglineRest: "Un índice de 1 a 100 que combina valoración on‑chain, ciclos, liquidez, sentimiento y análisis técnico.",
 
   timeframes: {
     "1h": { label: "1 hora", short: "1 h" },

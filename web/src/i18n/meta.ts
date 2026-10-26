@@ -12,7 +12,8 @@ export const META: Record<"es" | "en", PageMeta> = {
     LANG: "es",
     OG_LOCALE: "es_ES",
     URL: "https://isbtccheap.com/",
-    TITLE: "Is BTC Cheap? · ¿Está Bitcoin barato o caro?",
+    // La búsqueda primero y la marca al final: Google da más peso al principio del título
+    TITLE: "¿Está Bitcoin barato o caro hoy? Índice de 1 a 100 | Is BTC Cheap?",
     DESCRIPTION:
       "Índice de 1 a 100 que estima si Bitcoin está barato o caro combinando valoración on-chain, ciclos, liquidez, sentimiento y análisis técnico.",
   },
@@ -20,7 +21,7 @@ export const META: Record<"es" | "en", PageMeta> = {
     LANG: "en",
     OG_LOCALE: "en_US",
     URL: "https://isbtccheap.com/en/",
-    TITLE: "Is BTC Cheap? · Is Bitcoin cheap or expensive?",
+    TITLE: "Is Bitcoin cheap or expensive today? 1–100 index | Is BTC Cheap?",
     DESCRIPTION:
       "A 1 to 100 index that estimates whether Bitcoin is cheap or expensive by combining on-chain valuation, cycles, liquidity, sentiment and technical analysis.",
   },

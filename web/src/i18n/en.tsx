@@ -11,7 +11,8 @@ export const en: Messages = {
   periods: { "2y": "2 years", "4y": "4 years", "8y": "8 years", all: "Since 2011" },
   periodAria: "Sample period",
 
-  tagline: "Is Bitcoin cheap or expensive? A 1 to 100 index that combines on-chain valuation, cycles, liquidity, sentiment and technical analysis.",
+  taglineTitle: "Is Bitcoin cheap or expensive?",
+  taglineRest: "A 1 to 100 index that combines on‑chain valuation, cycles, liquidity, sentiment and technical analysis.",
 
   timeframes: {
     "1h": { label: "1 hour", short: "1h" },

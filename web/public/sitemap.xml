@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Una entrada por idioma, cada una enlazada con la otra (igual que los hreflang de index.html) -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://isbtccheap.com/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/" />
+  </url>
+</urlset>

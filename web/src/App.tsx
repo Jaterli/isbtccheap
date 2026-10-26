@@ -173,10 +173,14 @@ export function App() {
           ))}
         </nav>
         <div className="top">
-        <h1 className="brand">
+        <div className="brand">
           <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
-        </h1>
-        <p className="muted">{t.tagline}</p>
+        </div>
+        {/* El <h1> es la pregunta que buscan los usuarios (antes era solo la imagen del logo) */}
+        <div className="intro">
+          <h1>{t.taglineTitle}</h1>
+          <p className="muted">{t.taglineRest}</p>
+        </div>
         </div>
       </header>
 
