@@ -20,6 +20,7 @@ const VOLATILITY = { URL_ES: `${SITE}/volatilidad/`, URL_EN: `${SITE}/en/volatil
 const CYCLES = { URL_ES: `${SITE}/ciclos/`, URL_EN: `${SITE}/en/cycles/` };
 const VALUATION = { URL_ES: `${SITE}/valoracion/`, URL_EN: `${SITE}/en/valuation/` };
 const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
+const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -123,12 +124,32 @@ const DRAWDOWN_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const CATEGORIES_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...CATEGORIES,
+    URL: CATEGORIES.URL_ES,
+    TITLE: "Histórico del índice de Bitcoin por categorías | Is BTC Cheap?",
+    DESCRIPTION:
+      "Mapa de calor con la evolución desde 2011 de la valoración on-chain, el ciclo, la liquidez, el sentimiento y el técnico de Bitcoin, y lo que marcaban en cada techo y suelo de ciclo.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...CATEGORIES,
+    URL: CATEGORIES.URL_EN,
+    TITLE: "Bitcoin index history by category | Is BTC Cheap?",
+    DESCRIPTION:
+      "Heatmap of Bitcoin's on-chain valuation, cycle, liquidity, sentiment and technical scores since 2011, and what they showed at each cycle top and bottom.",
+  },
+};
+
 /** Por página: la principal (index.html) y las de gráficas, cada una en su carpeta (volatilidad/, ciclos/,
- * valoracion/, caidas/) */
+ * valoracion/, caidas/, categorias/) */
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
   cycles: CYCLES_META,
   valuation: VALUATION_META,
   drawdown: DRAWDOWN_META,
+  categories: CATEGORIES_META,
 };

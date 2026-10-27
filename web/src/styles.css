@@ -70,6 +70,8 @@ header {position: relative;}
   display: grid;
   gap: var(--gutter);
 }
+/* Ningún hijo de la rejilla puede ensancharla: el menú de páginas, más ancho que un móvil, se desplaza dentro de su fila */
+.container > * { min-width: 0; }
 .muted { color: var(--muted); }
 .small { font-size: 0.85rem; }
 .num { font-variant-numeric: tabular-nums; }
@@ -404,6 +406,17 @@ header {position: relative;}
 .dd-dot { fill: var(--band-5); }
 .dd-table-title { margin: 18px 0 0; font-size: 0.95rem; }
 .dd-table tbody tr.current th, .dd-table tbody tr.current td { color: var(--accent); }
+/* Histórico de categorías: mapa de calor, marcas de techos y suelos, y puntuaciones con el color de su tramo */
+.cat-empty { fill: var(--border); opacity: 0.4; }
+.cat-label.score { font-weight: 700; fill: var(--fg); }
+.cat-mark { stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
+.cat-mark.top, .cat-dot.top { stroke: var(--band-5); fill: var(--band-5); }
+.cat-mark.bottom, .cat-dot.bottom { stroke: var(--band-1); fill: var(--band-1); }
+.cat-readout i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+.cat-chip { display: inline-block; min-width: 2.2em; padding: 1px 6px; border-radius: 5px; color: #fff; font-weight: 700; text-align: center; text-shadow: 0 1px 1px rgb(0 0 0 / 0.35); }
+.cat-table td { text-align: center; }
+.cat-table td.num { text-align: right; }
+.cat-table tbody tr.ev-today th { color: var(--accent); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
 
 /* Preguntas frecuentes */

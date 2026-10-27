@@ -10,7 +10,7 @@ import { usd } from "./lib/chart";
 import { getJson } from "./lib/data";
 import { daysBetween, drawdownSeries, episodes } from "./lib/drawdown";
 import { lastDays } from "./lib/series";
-import type { BandsJson } from "./lib/valuation";
+import { bandsPrice, type BandsJson } from "./lib/valuation";
 
 // Grandes mercados bajistas: los de más de esta caída se usan para comparar con el actual
 const BEAR = -0.7;
@@ -30,7 +30,7 @@ export function DrawdownApp() {
     fetchCandles("1d", 1).then((c) => setLive(c.at(-1)?.close ?? null), () => {});
   }, []);
 
-  const full = useMemo(() => (bands ? drawdownSeries(bands, live) : null), [bands, live]);
+  const full = useMemo(() => (bands ? drawdownSeries(bandsPrice(bands, live)) : null), [bands, live]);
   const series = useMemo(() => (full ? lastDays(full, range.days) : null), [full, range.days]);
   const eps = useMemo(() => (full ? episodes(full) : []), [full]);
 

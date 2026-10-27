@@ -22,6 +22,16 @@ export interface ValuationSeries extends PriceSeries {
   high: number[];
 }
 
+/** Cierres diarios de bands.json (desde 2010) con el precio actual como último día, si aún no lo tiene. */
+export function bandsPrice(b: BandsJson, live: number | null): PriceSeries {
+  const start = Date.parse(`${b.start}T00:00:00Z`);
+  const s: PriceSeries = { time: [], price: [] };
+  b.price.forEach((p, i) => p !== null && (s.time.push(start + i * DAY), s.price.push(p)));
+  const today = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+  if (live !== null && s.time.length && s.time.at(-1)! < today) (s.time.push(today), s.price.push(live));
+  return s;
+}
+
 /** Series de la página con el precio actual como último día, si bands.json aún no lo tiene (los niveles se repiten). */
 export function valuationSeries(b: BandsJson, live: number | null): ValuationSeries {
   const start = Date.parse(`${b.start}T00:00:00Z`);

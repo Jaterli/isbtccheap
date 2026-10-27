@@ -71,4 +71,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/drawdown/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/drawdown/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/categorias/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/categorias/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/categories/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/categories/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/categories/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/categorias/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/categories/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/categories/" />
+  </url>
 </urlset>

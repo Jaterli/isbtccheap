@@ -1,5 +1,4 @@
 import type { PriceSeries } from "./series";
-import type { BandsJson } from "./valuation";
 
 const DAY = 86_400_000;
 // Caída a partir de la que un episodio entra en la tabla de grandes caídas (el actual se muestra siempre)
@@ -25,21 +24,11 @@ export interface Episode {
   recovered: number | null;
 }
 
-/** Precio diario (de bands.json, desde 2010) con el precio actual como último día, máximo histórico y caída. */
-export function drawdownSeries(b: BandsJson, live: number | null): DrawdownSeries {
-  const start = Date.parse(`${b.start}T00:00:00Z`);
-  const s: DrawdownSeries = { time: [], price: [], ath: [], dd: [] };
-  const push = (time: number, price: number) => {
-    const ath = Math.max(price, s.ath.at(-1) ?? 0);
-    s.time.push(time);
-    s.price.push(price);
-    s.ath.push(ath);
-    s.dd.push(price / ath - 1);
-  };
-  b.price.forEach((p, i) => p !== null && push(start + i * DAY, p));
-  const today = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
-  if (live !== null && s.time.length && s.time.at(-1)! < today) push(today, live);
-  return s;
+/** Máximo histórico y caída desde él de una serie de precios diaria (el máximo se cuenta desde su primer día). */
+export function drawdownSeries(p: PriceSeries): DrawdownSeries {
+  const ath: number[] = [];
+  p.price.forEach((x, i) => ath.push(Math.max(x, ath[i - 1] ?? 0)));
+  return { ...p, ath, dd: p.price.map((x, i) => x / ath[i] - 1) };
 }
 
 /** Episodios entre un máximo histórico y el siguiente: los de más de BIG_DRAWDOWN y el actual (el último). */
@@ -56,5 +45,9 @@ export function episodes(s: DrawdownSeries): Episode[] {
   if (cur) out.push(cur);
   return out;
 }
+
+/** Techos de ciclo: los máximos seguidos de una caída de más del 50 % que tardó más de medio año en tocar fondo (las
+ * correcciones bruscas dentro de una tendencia alcista, como la de mayo de 2021, tocan fondo antes) */
+export const cycleTops = (eps: Episode[]) => eps.filter((e) => e.dd <= BIG_DRAWDOWN && daysBetween(e.athTime, e.lowTime) > 180);
 
 export const daysBetween = (a: number, b: number) => Math.round((b - a) / DAY);

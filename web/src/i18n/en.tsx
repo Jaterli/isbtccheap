@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -105,6 +105,35 @@ export const en: Messages = {
     ongoing: "Ongoing",
     note: "Historical data, not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price with its all-time high and of the drawdown from that high",
+  },
+  catHistory: {
+    title: "Index history by category",
+    rest: "How the index's five categories have evolved since 2011 and what they showed at each cycle top and bottom.",
+    card: "Score and categories over time",
+    info: [
+      "Each row is the daily score (daily close) of a category, from 0 (cheap, green) to 100 (expensive, red), with the same color bands as the gauge. The first row is the 1-day score, which combines them with their weights. With long periods, each column is the average of several days.",
+      "The vertical lines mark cycle tops (red) and the bottoms that followed them (green). Sentiment starts in 2018, when the Fear & Greed Index begins.",
+    ],
+    current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
+      <>
+        At the {day} close the 1-day score is {score}. The cheapest category is {cheapest} {cheapV} and the most expensive,{" "}
+        {dearest} {dearV}.
+      </>
+    ),
+    short: {
+      score: "Score",
+      valoracion: "Valuation",
+      ciclo: "Cycle",
+      liquidez: "Liquidity",
+      sentimiento: "Sentiment",
+      tecnico: "Technical",
+    },
+    priceLegend: "Price",
+    tableTitle: "At cycle tops and bottoms",
+    cols: { when: "When", price: "Price" },
+    kinds: { today: "Today", top: "Top", bottom: "Bottom", lowSoFar: "Current low" },
+    note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
+    chartAria: "Chart of Bitcoin's price and heatmap of the score and its five categories since 2011",
   },
   charts: {
     tfAria: "Candle size",

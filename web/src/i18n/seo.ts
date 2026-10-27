@@ -267,3 +267,45 @@ export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+/** Página del histórico de categorías: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Histórico del índice por categorías",
+    intro:
+      "Mapa de calor con la puntuación diaria desde 2011 de las cinco categorías del índice Is BTC Cheap? (valoración on-chain, ciclo, liquidez, sentimiento y técnico) y lo que marcaba cada una en los techos y suelos de ciclo de Bitcoin.",
+    sections: [
+      {
+        h: "¿Qué muestra el histórico de categorías?",
+        p: "El score del índice combina cinco categorías, cada una puntuada de 0 (barato) a 100 (caro) comparándola con su propia historia. Verlas juntas en el tiempo muestra qué empujaba el score en cada momento: si el precio estaba caro por su valoración on-chain, por el momento del ciclo, por la liquidez global o por el sentimiento del mercado.",
+      },
+      {
+        h: "¿Qué marcaban en los techos y suelos?",
+        p: "En los suelos de 2015, 2018 y 2022, la valoración on-chain estaba entre 1 y 7 y el técnico entre 0 y 5, y el score de 1 día rondaba 8-9. En los techos de 2013, 2017 y 2021 ocurría lo contrario: valoración entre 78 y 100, técnico entre 91 y 98 y ciclo por encima de 80, con el score entre 85 y 98. Son las categorías que mejor han marcado los extremos.",
+      },
+      {
+        h: "¿Por qué la liquidez va a contracorriente?",
+        p: "En los suelos de 2015, 2018 y 2022 la liquidez estaba en zona cara (entre 83 y 90): esos mercados bajistas coincidieron con un endurecimiento de la liquidez global, con subidas de tipos, retirada de estímulos o un dólar fuerte. La liquidez no señala bien los extremos, pero sí ayuda a anticipar el año siguiente; por eso pesa poco en las temporalidades cortas y más en la mensual.",
+      },
+    ],
+  },
+  en: {
+    title: "Index history by category",
+    intro:
+      "Heatmap of the daily score since 2011 of the five categories of the Is BTC Cheap? index (on-chain valuation, cycle, liquidity, sentiment and technical) and what each one showed at Bitcoin's cycle tops and bottoms.",
+    sections: [
+      {
+        h: "What does the category history show?",
+        p: "The index score combines five categories, each scored from 0 (cheap) to 100 (expensive) by comparing it with its own history. Seeing them together over time shows what was driving the score at each moment: whether the price was expensive because of its on-chain valuation, the point in the cycle, global liquidity or market sentiment.",
+      },
+      {
+        h: "What did they show at tops and bottoms?",
+        p: "At the 2015, 2018 and 2022 bottoms, on-chain valuation was between 1 and 7 and technical between 0 and 5, with the 1-day score around 8-9. At the 2013, 2017 and 2021 tops it was the opposite: valuation between 78 and 100, technical between 91 and 98 and cycle above 80, with the score between 85 and 98. These are the categories that have best marked the extremes.",
+      },
+      {
+        h: "Why does liquidity run against the grain?",
+        p: "At the 2015, 2018 and 2022 bottoms, liquidity was in expensive territory (between 83 and 90): those bear markets coincided with tightening global liquidity, with rate hikes, withdrawal of stimulus or a strong dollar. Liquidity does not mark the extremes well, but it does help anticipate the following year; that is why it weighs little on short timeframes and more on the monthly one.",
+      },
+    ],
+  },
+};

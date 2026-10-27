@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -112,6 +112,35 @@ export const es = {
     ongoing: "En curso",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin con su máximo histórico y de la caída desde ese máximo",
+  },
+  catHistory: {
+    title: "Histórico del índice por categorías",
+    rest: "Cómo han evolucionado desde 2011 las cinco categorías del índice y qué marcaban en cada techo y suelo de ciclo.",
+    card: "Score y categorías en el tiempo",
+    info: [
+      "Cada fila es la puntuación diaria (cierre del día) de una categoría, de 0 (barato, verde) a 100 (caro, rojo), con los mismos tramos de color que el medidor. La primera fila es el score de 1 día, que las combina con sus pesos. Con periodos largos, cada columna es la media de varios días.",
+      "Las líneas verticales marcan los techos de ciclo (rojo) y los suelos que los siguieron (verde). El sentimiento empieza en 2018, cuando se publica el Fear & Greed Index.",
+    ],
+    current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
+      <>
+        Al cierre del {day} el score de 1 día es {score}. La categoría más barata es {cheapest} {cheapV} y la más cara, {dearest}{" "}
+        {dearV}.
+      </>
+    ),
+    short: {
+      score: "Score",
+      valoracion: "Valoración",
+      ciclo: "Ciclo",
+      liquidez: "Liquidez",
+      sentimiento: "Sentimiento",
+      tecnico: "Técnico",
+    },
+    priceLegend: "Precio",
+    tableTitle: "En los techos y suelos de ciclo",
+    cols: { when: "Momento", price: "Precio" },
+    kinds: { today: "Hoy", top: "Techo", bottom: "Suelo", lowSoFar: "Mínimo actual" },
+    note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin y mapa de calor del score y de sus cinco categorías desde 2011",
   },
   charts: {
     tfAria: "Tamaño de vela",

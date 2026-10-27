@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json y bands.json.
+Genera web/public/data/latest.json, history.json, categories.json y bands.json.
 """
 
 import json
@@ -9,6 +9,8 @@ import logging
 import math
 from datetime import datetime, timezone
 from pathlib import Path
+
+import pandas as pd
 
 import metrics as metrics_mod
 import scoring
@@ -100,9 +102,18 @@ def main() -> None:
         "score": [round(float(v), 1) for v in hist.values],
     }
 
+    # Puntuación de cada categoría con las mismas fechas que history.json (página de categorías, web/categorias)
+    categories_hist = {
+        "start": history["dates"][0] if history["dates"] else None,
+        "categories": {
+            cat: [None if pd.isna(v) else round(float(v)) for v in cats[cat].reindex(hist.index)] for cat in cats.columns
+        },
+    }
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
+    (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
     # Para la página de bandas de valoración (web/valoracion)
     bands = metrics_mod.valuation_bands(cm)
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
