@@ -358,11 +358,8 @@ header {position: relative;}
 .vol-chart svg { display: block; touch-action: pan-y; }
 .vol-area { fill: var(--accent); opacity: 0.12; }
 .vol-note { margin: 8px 0 0; }
-/* Bollinger: área entre bandas, bordes y media */
-.bb-band { fill: var(--price); opacity: 0.1; }
-.bb-edge { fill: none; stroke: var(--price); stroke-width: 1; opacity: 0.45; }
-.bb-mid { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
-.bb-ref { stroke-dasharray: 3 3; }
+/* Línea de referencia discontinua (×1 en la gráfica de ciclos) */
+.grid-ref { stroke-dasharray: 3 3; }
 /* Ciclos de halving: una línea por ciclo, el actual más gruesa y encima */
 .cycle-2012 { --c: var(--cycle-2012); }
 .cycle-2016 { --c: var(--cycle-2016); }

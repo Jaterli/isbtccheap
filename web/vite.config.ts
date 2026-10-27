@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { META } from "./src/i18n/meta";
-import { SEO, SEO_BB, SEO_CYCLES, SEO_VOL } from "./src/i18n/seo";
+import { SEO, SEO_CYCLES, SEO_VOL } from "./src/i18n/seo";
 
 // En WSL, node_modules es un enlace simbólico al disco de Linux (mucho más rápido que /mnt/e):
 // hay que permitir a Vite servir ficheros desde su ubicación real
@@ -23,7 +23,7 @@ function seoHtml(lang: "es" | "en") {
   return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
 }
 
-/** Lo mismo para las páginas de gráficas (volatilidad, Bollinger, ciclos): título, introducción y secciones explicativas */
+/** Lo mismo para las páginas de gráficas (volatilidad, ciclos): título, introducción y secciones explicativas */
 function chartSeoHtml(texts: typeof SEO_VOL, lang: "es" | "en") {
   const s = texts[lang];
   const secs = s.sections.map((x) => `<h2>${esc(x.h)}</h2><p>${esc(x.p)}</p>`).join("");
@@ -35,7 +35,6 @@ type Page = keyof typeof META;
 const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") => string }> = {
   index: { input: "index.html", en: "en/index.html", seo: seoHtml },
   volatility: { input: "volatilidad/index.html", en: "en/volatility/index.html", seo: (l) => chartSeoHtml(SEO_VOL, l) },
-  bollinger: { input: "bollinger/index.html", en: "en/bollinger/index.html", seo: (l) => chartSeoHtml(SEO_BB, l) },
   cycles: { input: "ciclos/index.html", en: "en/cycles/index.html", seo: (l) => chartSeoHtml(SEO_CYCLES, l) },
 };
 
@@ -82,7 +81,6 @@ function devNews(): Plugin {
       // Las páginas en inglés no tienen HTML propio en desarrollo: usan el de su versión en español
       server.middlewares.use((req, _res, next) => {
         if (req.url?.startsWith("/en/volatility")) req.url = "/volatilidad/";
-        else if (req.url?.startsWith("/en/bollinger")) req.url = "/bollinger/";
         else if (req.url?.startsWith("/en/cycles")) req.url = "/ciclos/";
         next();
       });

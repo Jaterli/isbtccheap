@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { locale } from "../i18n";
 import { isIntraday, type CandleTf } from "./series";
 
-/** Utilidades comunes de las gráficas de las páginas de volatilidad y Bollinger */
+/** Utilidades comunes de las gráficas de las páginas de volatilidad y ciclos */
 
 export const shortUsd = (p: number) =>
   p >= 1000 ? `$${(p / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`;

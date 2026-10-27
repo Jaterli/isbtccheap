@@ -1,6 +1,6 @@
 import type { Candle, History } from "../types";
 
-/** Tamaños de vela de las páginas de gráficas (volatilidad, Bollinger) */
+/** Tamaños de vela de las páginas de gráficas (volatilidad) */
 export type CandleTf = "1h" | "4h" | "1d" | "1w";
 export const CANDLE_TFS: CandleTf[] = ["1h", "4h", "1d", "1w"];
 export const isIntraday = (tf: CandleTf) => tf === "1h" || tf === "4h";

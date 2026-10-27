@@ -8,32 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", bollinger: "Bollinger %B", cycles: "Cycles" },
-  bb: {
-    title: "Bitcoin Bollinger %B",
-    rest: "Where the BTC price sits within its Bollinger Bands, by candle size.",
-    card: "Bollinger Bands and %B",
-    info: [
-      "Bollinger Bands are the average of the last 20 candles ± 2 standard deviations. %B shows where the close sits between them: 0 is the lower band, 50 the average and 100 the upper band. It can go outside 0-100 when the price breaks a band.",
-      "1h and 4h use Binance candles; 1 day and 1 week, the price history since 2011 plus the current price. The daily %B is the same one used by the index's technical category.",
-    ],
-    zones: {
-      above: "above the upper band",
-      nearUpper: "near the upper band",
-      inside: "within the bands",
-      nearLower: "near the lower band",
-      below: "below the lower band",
-    },
-    current: (b: ReactNode, zone: string, width: ReactNode, wPct: ReactNode) => (
-      <>
-        Current %B: {b}, the price is {zone}. Band width: {width} of the average, percentile {wPct} of the period shown.
-      </>
-    ),
-    squeeze: " Very narrow bands: they tend to precede a strong move, but say nothing about its direction.",
-    priceLegend: "Price",
-    bandsLegend: "Bands",
-    chartAria: "Chart of Bitcoin's price with its Bollinger Bands and of %B",
-  },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",

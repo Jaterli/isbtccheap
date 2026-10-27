@@ -15,32 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", bollinger: "Bollinger %B", cycles: "Ciclos" },
-  bb: {
-    title: "Bollinger %B de Bitcoin",
-    rest: "Dónde está el precio de BTC dentro de sus bandas de Bollinger, según el tamaño de vela.",
-    card: "Bandas de Bollinger y %B",
-    info: [
-      "Las bandas de Bollinger son la media de las últimas 20 velas ± 2 desviaciones típicas. El %B indica dónde está el cierre entre ellas: 0 es la banda inferior, 50 la media y 100 la superior. Puede salirse de 0-100 cuando el precio rompe una banda.",
-      "En 1 h y 4 h se usan las velas de Binance; en 1 día y 1 semana, el histórico desde 2011 más el precio actual. El %B diario es el mismo que usa el técnico del índice.",
-    ],
-    zones: {
-      above: "por encima de la banda superior",
-      nearUpper: "cerca de la banda superior",
-      inside: "dentro de las bandas",
-      nearLower: "cerca de la banda inferior",
-      below: "por debajo de la banda inferior",
-    },
-    current: (b: ReactNode, zone: string, width: ReactNode, wPct: ReactNode) => (
-      <>
-        %B actual: {b}, el precio está {zone}. Ancho de las bandas: {width} de la media, percentil {wPct} del periodo mostrado.
-      </>
-    ),
-    squeeze: " Bandas muy estrechas: suelen preceder a un movimiento fuerte, pero no indican su dirección.",
-    priceLegend: "Precio",
-    bandsLegend: "Bandas",
-    chartAria: "Gráfico del precio de Bitcoin con sus bandas de Bollinger y del %B",
-  },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",

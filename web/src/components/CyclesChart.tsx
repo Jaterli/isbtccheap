@@ -65,7 +65,7 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {chart.ticks.map((v) => (
           <g key={v}>
-            <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(v)} y2={chart.y(v)} className={v === 1 ? "grid bb-ref" : "grid"} />
+            <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(v)} y2={chart.y(v)} className={v === 1 ? "grid grid-ref" : "grid"} />
             <text x={PAD_L + plotW + 6} y={chart.y(v) + 4} className="axis">{fmtMult(v)}</text>
           </g>
         ))}
