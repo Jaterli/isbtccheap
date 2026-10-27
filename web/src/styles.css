@@ -91,7 +91,9 @@ header {position: relative;}
 .top { position: relative; margin-top: 30px; }
 /* Arriba a la derecha: navegación entre páginas e idioma */
 .top-nav { position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: 14px; font-size: 0.85rem; }
-.page-nav { display: flex; gap: 2px; }
+.page-nav { position: relative; }
+.page-links { display: flex; gap: 2px; }
+.nav-toggle { display: none; }
 .page-nav a { padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 600; }
 .page-nav a:hover { color: var(--fg); }
 .page-nav a[aria-current] { color: var(--accent); }
@@ -101,12 +103,27 @@ header {position: relative;}
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .lang-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Móvil: con cinco páginas el menú no cabe encima del logo; va en su propia fila y, si aun así no cabe, se desplaza */
+/* Móvil: los enlaces no caben en una fila. El menú va en su propia fila, encima del logo, y un botón con la página
+   actual abre los enlaces en un desplegable */
 @media (max-width: 639px) {
-  .top-nav { position: static; justify-content: space-between; gap: 8px; font-size: 0.8rem; }
-  .page-nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
-  .page-nav::-webkit-scrollbar { display: none; }
-  .page-nav a, .lang-switch a { padding: 3px 6px; white-space: nowrap; }
+  .top-nav { position: static; justify-content: space-between; gap: 8px; }
+  .nav-toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--fg); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .nav-toggle svg { stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+  .nav-toggle[aria-expanded="true"] { border-color: var(--accent); }
+  .nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .page-links {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 10;
+    flex-direction: column; gap: 0; min-width: 190px; padding: 6px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  }
+  .page-links.open { display: flex; }
+  .page-links a { padding: 9px 10px; font-size: 0.95rem; }
+  .page-links a[aria-current] { background: var(--bg); }
   .top { margin-top: 12px; }
 }
 

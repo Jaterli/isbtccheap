@@ -1,27 +1,50 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18n";
 
 const PAGES: Page[] = ["index", "volatility", "cycles", "valuation", "drawdown", "categories"];
 
 /** Cabecera común: navegación entre páginas, selector de idioma (a la misma página en el otro idioma), logo y título. */
 export function Header({ title, rest }: { title: string; rest: string }) {
+  // En pantallas pequeñas los enlaces no caben en una fila: un botón con la página actual los abre en un desplegable
+  // (en las grandes el botón está oculto y los enlaces siempre a la vista, ver styles.css)
+  const [open, setOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
-  // En móvil el menú no cabe y se desplaza: que la página actual quede a la vista
+  const toggle = useRef<HTMLButtonElement>(null);
+
+  // Se cierra al pulsar fuera o con Escape (devolviendo el foco al botón)
   useEffect(() => {
-    const el = nav.current;
-    const current = el?.querySelector<HTMLElement>("[aria-current]");
-    const overflow = el && current ? current.getBoundingClientRect().right - el.getBoundingClientRect().right : 0;
-    if (overflow > 0) el!.scrollLeft += overflow;
-  }, []);
+    if (!open) return;
+    const onDown = (e: PointerEvent) => !nav.current?.contains(e.target as Node) && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      toggle.current?.focus();
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
     <header>
       <div className="top-nav">
         <nav className="page-nav" aria-label={t.nav.aria} ref={nav}>
-          {PAGES.map((p) => (
-            <a key={p} href={PAGE_PATH[p][lang]} aria-current={p === page ? "page" : undefined}>
-              {t.nav[p]}
-            </a>
-          ))}
+          <button ref={toggle} type="button" className="nav-toggle" aria-expanded={open} aria-controls="page-links" onClick={() => setOpen(!open)}>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path d="M2 4h12M2 8h12M2 12h12" />
+            </svg>
+            {t.nav[page]}
+          </button>
+          <div id="page-links" className={open ? "page-links open" : "page-links"}>
+            {PAGES.map((p) => (
+              <a key={p} href={PAGE_PATH[p][lang]} aria-current={p === page ? "page" : undefined} onClick={() => setOpen(false)}>
+                {t.nav[p]}
+              </a>
+            ))}
+          </div>
         </nav>
         <nav className="lang-switch" aria-label={t.language}>
           {(["es", "en"] as Lang[]).map((l) => (
