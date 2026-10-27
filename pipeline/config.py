@@ -39,15 +39,20 @@ METRICS = [
 ]
 
 # Pesos por temporalidad. En temporalidades cortas pesa más lo que cambia rápido.
-# La liquidez pesa poco: en los suelos históricos puntuaba ~75 (endurecimiento previo) y restaba fiabilidad.
+# La liquidez pesa poco en plazos cortos: en los suelos de 2015, 2018 y 2022 puntuaba 83-89 (endurecimiento previo) y
+# en los techos de 2021 y 2025, 20-25, así que difumina los extremos. Pero es la segunda categoría que mejor anticipa la
+# rentabilidad del año siguiente (correlación −0,16, tras el ciclo), así que sube en 1 semana y 1 mes.
+# El técnico baja en esos plazos: a un año vista funciona al revés (momentum: correlación +0,27).
+# En 1 mes la valoración (lo estirado que está el precio ahora) cede algo de peso al ciclo, que se mueve en meses y
+# años y es lo que mejor anticipa el año siguiente (−0,51). Sin pasarse: el ciclo tiene más riesgo de sobreajuste.
 TIMEFRAME_WEIGHTS = {
     "1h": {"tecnico": 40, "sentimiento": 23, "valoracion": 20, "ciclo": 14, "liquidez": 3},
     "4h": {"tecnico": 30, "sentimiento": 20, "valoracion": 27, "ciclo": 19, "liquidez": 4},
     "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 30, "liquidez": 5},
-    "1w": {"tecnico": 8, "sentimiento": 12, "valoracion": 42, "ciclo": 33, "liquidez": 5},
+    "1w": {"tecnico": 6, "sentimiento": 12, "valoracion": 41, "ciclo": 33, "liquidez": 8},
     # A un mes vista el Fear & Greed (diario) y el funding (cada 8 h) apenas dicen nada; la liquidez, más.
     # El técnico sigue bajando con la temporalidad, como en el resto
-    "1M": {"tecnico": 6, "sentimiento": 5, "valoracion": 42, "ciclo": 37, "liquidez": 10},
+    "1M": {"tecnico": 4, "sentimiento": 5, "valoracion": 39, "ciclo": 38, "liquidez": 14},
 }
 
 # Ventana del percentil: un ciclo de halving. Con ventana expansiva los techos recientes nunca llegaban
