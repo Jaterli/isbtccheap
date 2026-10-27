@@ -43,4 +43,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/cycles/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/cycles/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/valoracion/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/valoracion/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/valuation/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/valuation/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/valuation/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/valoracion/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/valuation/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/valuation/" />
+  </url>
 </urlset>

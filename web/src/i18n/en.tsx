@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -44,6 +44,40 @@ export const en: Messages = {
     },
     note: "* Cycle in progress: largest drop so far. Historical data, not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price in each cycle, as a multiple of the price on the halving day",
+  },
+  valuation: {
+    title: "Bitcoin valuation bands",
+    rest: "BTC's price against its long-term levels: realized price, 200-week moving average and the power law trend.",
+    card: "Price and valuation levels",
+    info: [
+      "Realized price: the average price at which the bitcoins in circulation last moved, an approximation of what their owners paid on average (price / MVRV, from Coin Metrics). 200-week moving average: the average price over the last four years, roughly one cycle.",
+      "Power law: the straight line that best fits the price on a logarithmic scale against the days since the genesis block. The shaded corridor contains 95% of days since 2013. The scale is logarithmic and the last day uses the current price.",
+    ],
+    current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
+      <>
+        Current price: {price}, {vsRealized} versus the realized price and {vsWma} versus the 200-week moving average. Relative to
+        the power law trend it is at {vsTrend}, {zone}.
+      </>
+    ),
+    zones: {
+      below: "below its usual corridor",
+      nearLow: "near the floor of its usual corridor",
+      underTrend: "below the trend",
+      overTrend: "above the trend",
+      nearHigh: "near the ceiling of its usual corridor",
+      above: "above its usual corridor",
+    },
+    legend: { price: "Price", realized: "Realized", wma: "200W MA", trend: "Power law" } as Record<string, string>,
+    levels: {
+      realized: "Realized price",
+      wma: "200-week moving average",
+      trend: "Power law trend",
+      low: "Corridor floor",
+      high: "Corridor ceiling",
+    },
+    cols: { level: "Level", value: "Today", distance: "Price vs level" },
+    note: "Historical data, not a forecast or investment advice. The power law fit is recalculated daily using the full history.",
+    chartAria: "Chart of Bitcoin's price with the realized price, the 200-week moving average and the power law",
   },
   charts: {
     tfAria: "Candle size",

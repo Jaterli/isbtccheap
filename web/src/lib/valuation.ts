@@ -1,0 +1,44 @@
+import type { PriceSeries } from "./series";
+
+const DAY = 86_400_000;
+
+/** bands.json del pipeline (metrics.valuation_bands): series diarias desde `start` */
+export interface BandsJson {
+  start: string;
+  price: (number | null)[];
+  realized: (number | null)[];
+  wma200: (number | null)[];
+  power_law: { genesis: string; slope: number; intercept: number; low: number; high: number; since: string };
+}
+
+export interface ValuationSeries extends PriceSeries {
+  /** Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación */
+  realized: (number | null)[];
+  /** Media de 200 semanas */
+  wma200: (number | null)[];
+  /** Tendencia de la power law y los bordes de su corredor */
+  trend: number[];
+  low: number[];
+  high: number[];
+}
+
+/** Series de la página con el precio actual como último día, si bands.json aún no lo tiene (los niveles se repiten). */
+export function valuationSeries(b: BandsJson, live: number | null): ValuationSeries {
+  const start = Date.parse(`${b.start}T00:00:00Z`);
+  const s: ValuationSeries = { time: [], price: [], realized: [], wma200: [], trend: [], low: [], high: [] };
+  const push = (time: number, price: number, realized: number | null, wma: number | null) => {
+    const { genesis, slope, intercept, low, high } = b.power_law;
+    const trend = 10 ** (intercept + slope * Math.log10((time - Date.parse(`${genesis}T00:00:00Z`)) / DAY));
+    s.time.push(time);
+    s.price.push(price);
+    s.realized.push(realized);
+    s.wma200.push(wma);
+    s.trend.push(trend);
+    s.low.push(trend * low);
+    s.high.push(trend * high);
+  };
+  b.price.forEach((p, i) => p !== null && push(start + i * DAY, p, b.realized[i], b.wma200[i]));
+  const today = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+  if (live !== null && s.time.length && s.time.at(-1)! < today) push(today, live, s.realized.at(-1)!, s.wma200.at(-1)!);
+  return s;
+}

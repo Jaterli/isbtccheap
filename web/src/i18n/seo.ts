@@ -175,3 +175,53 @@ export const SEO_CYCLES: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+/** Página de bandas de valoración: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Bandas de valoración de Bitcoin",
+    intro:
+      "Gráfico del precio de Bitcoin frente a sus niveles de valoración de largo plazo: el precio realizado, la media de 200 semanas y la tendencia de la power law con su corredor, desde 2010.",
+    sections: [
+      {
+        h: "¿Qué es el precio realizado de Bitcoin?",
+        p: "Es el precio medio al que se movieron por última vez todos los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños. Cuando el precio cae por debajo, el holder medio está en pérdidas, algo que solo ha ocurrido cerca de los suelos de cada ciclo: en 2015, 2018-2019, marzo de 2020 y 2022, cuando el precio llegó a estar entre un 12 % y un 44 % por debajo. En los techos, en cambio, el precio llegó a multiplicarlo por entre 2,3 y 4,7.",
+      },
+      {
+        h: "¿Por qué importa la media de 200 semanas?",
+        p: "Es la media del precio de unos cuatro años, aproximadamente un ciclo completo de halving. Ha funcionado como gran soporte de largo plazo: los suelos de 2015, 2018 y 2020 se formaron muy cerca de ella, y solo en 2022 el precio cayó claramente por debajo (un 34 %).",
+      },
+      {
+        h: "¿Qué es la power law de Bitcoin?",
+        p: "Es la recta que mejor se ajusta al precio de Bitcoin cuando se dibujan en escala logarítmica tanto el precio como los días transcurridos desde el bloque génesis. Describe un crecimiento que se va frenando con el tiempo. El corredor sombreado contiene el 95 % de los días desde 2013: los suelos de ciclo han quedado cerca de su borde inferior, a entre ×0,45 y ×0,6 de la tendencia, mientras que cada techo ha quedado más cerca de ella que el anterior.",
+      },
+      {
+        h: "¿Cómo usarlas?",
+        p: "Ninguna de estas referencias predice el precio, pero juntas ayudan a situar si Bitcoin está caro o barato frente a su propia historia. El índice de Is BTC Cheap? usa el MVRV (la relación entre el precio y el precio realizado), la distancia a la media de 200 semanas y la desviación de la power law, junto con otras métricas.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin valuation bands",
+    intro:
+      "Chart of Bitcoin's price against its long-term valuation levels: the realized price, the 200-week moving average and the power law trend with its corridor, since 2010.",
+    sections: [
+      {
+        h: "What is Bitcoin's realized price?",
+        p: "It is the average price at which all bitcoins in circulation last moved, an approximation of what their owners paid on average. When the price falls below it, the average holder is at a loss, something that has only happened near the bottom of each cycle: in 2015, 2018-2019, March 2020 and 2022, when the price was between 12% and 44% below it. At the tops, by contrast, the price reached 2.3 to 4.7 times the realized price.",
+      },
+      {
+        h: "Why does the 200-week moving average matter?",
+        p: "It is the average price over about four years, roughly one full halving cycle. It has acted as major long-term support: the bottoms of 2015, 2018 and 2020 formed very close to it, and only in 2022 did the price fall clearly below it (by 34%).",
+      },
+      {
+        h: "What is the Bitcoin power law?",
+        p: "It is the straight line that best fits Bitcoin's price when both the price and the days since the genesis block are drawn on a logarithmic scale. It describes growth that slows down over time. The shaded corridor contains 95% of days since 2013: cycle bottoms have landed near its lower edge, at ×0.45 to ×0.6 of the trend, while each top has come closer to it than the one before.",
+      },
+      {
+        h: "How should you use them?",
+        p: "None of these references predicts the price, but together they help gauge whether Bitcoin is expensive or cheap relative to its own history. The Is BTC Cheap? index uses MVRV (the ratio between price and realized price), the distance to the 200-week moving average and the power law deviation, along with other metrics.",
+      },
+    ],
+  },
+};

@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json y web/public/data/history.json.
+Genera web/public/data/latest.json, history.json y bands.json.
 """
 
 import json
@@ -103,6 +103,9 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
+    # Para la página de bandas de valoración (web/valoracion)
+    bands = metrics_mod.valuation_bands(cm)
+    (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")
 
 

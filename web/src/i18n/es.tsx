@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -51,6 +51,40 @@ export const es = {
     },
     note: "* Ciclo en curso: caída máxima hasta hoy. Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin en cada ciclo, como múltiplo del precio del día del halving",
+  },
+  valuation: {
+    title: "Bandas de valoración de Bitcoin",
+    rest: "El precio de BTC frente a sus niveles de largo plazo: precio realizado, media de 200 semanas y la tendencia de la power law.",
+    card: "Precio y niveles de valoración",
+    info: [
+      "Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). Media de 200 semanas: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
+      "Power law: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
+    ],
+    current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
+      <>
+        Precio actual: {price}, un {vsRealized} frente al precio realizado y un {vsWma} frente a la media de 200 semanas. Respecto a
+        la tendencia de la power law está a {vsTrend}, {zone}.
+      </>
+    ),
+    zones: {
+      below: "por debajo de su corredor habitual",
+      nearLow: "cerca del suelo de su corredor habitual",
+      underTrend: "por debajo de la tendencia",
+      overTrend: "por encima de la tendencia",
+      nearHigh: "cerca del techo de su corredor habitual",
+      above: "por encima de su corredor habitual",
+    },
+    legend: { price: "Precio", realized: "Realizado", wma: "MA 200 sem", trend: "Power law" } as Record<string, string>,
+    levels: {
+      realized: "Precio realizado",
+      wma: "Media de 200 semanas",
+      trend: "Tendencia power law",
+      low: "Suelo del corredor",
+      high: "Techo del corredor",
+    },
+    cols: { level: "Nivel", value: "Hoy", distance: "Precio frente al nivel" },
+    note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
+    chartAria: "Gráfico del precio de Bitcoin con el precio realizado, la media de 200 semanas y la power law",
   },
   charts: {
     tfAria: "Tamaño de vela",

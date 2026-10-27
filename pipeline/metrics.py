@@ -19,16 +19,61 @@ def rsi(price: pd.Series, period: int = 14) -> pd.Series:
     return 100 - 100 / (1 + gain / loss)
 
 
-def power_law_deviation(price: pd.Series) -> pd.Series:
-    """Residuo log10(precio) frente a la regresión log-log sobre días desde el bloque génesis.
+def power_law_fit(price: pd.Series) -> tuple[float, float]:
+    """Pendiente y ordenada de la regresión log10(precio) ~ log10(días desde el bloque génesis).
     Nota: el ajuste usa todo el histórico, así que en el backtest hay algo de lookahead."""
     p = price[price > 0]
     days = (p.index - GENESIS).days.values.astype(float)
-    x, y = np.log10(days), np.log10(p.values)
-    slope, intercept = np.polyfit(x, y, 1)
+    slope, intercept = np.polyfit(np.log10(days), np.log10(p.values), 1)
+    return float(slope), float(intercept)
+
+
+def power_law_deviation(price: pd.Series) -> pd.Series:
+    """Residuo log10(precio) frente a la tendencia de la power law."""
+    slope, intercept = power_law_fit(price)
     all_days = (price.index - GENESIS).days.values.astype(float)
     fit = intercept + slope * np.log10(all_days)
     return pd.Series(np.log10(price.values) - fit, index=price.index)
+
+
+# Corredor de la power law: percentiles del residuo desde 2013 (los primeros años, con muy poca liquidez, lo
+# ensancharían). Entre ellos ha estado el 95 % de los días
+PL_BAND_SINCE = "2013-01-01"
+PL_BAND_PCT = (2.5, 97.5)
+
+
+def valuation_bands(cm: pd.DataFrame) -> dict:
+    """Niveles de referencia del precio para la página de bandas de valoración (bands.json): precio realizado,
+    media de 200 semanas y la tendencia de la power law con su corredor (como parámetros: la web dibuja la recta)."""
+    price = cm["PriceUSD"].dropna()
+    idx = pd.date_range(price.index[0], price.index[-1], freq="D")
+    price = price.reindex(idx)
+    # Precio realizado = capitalización realizada / oferta = precio / MVRV. Se rellena el retraso de Coin Metrics
+    realized = (price / cm["CapMVRVCur"].reindex(idx)).ffill(limit=CM_LAG_FILL_DAYS) if "CapMVRVCur" in cm else None
+    wma200 = price.rolling(1400).mean()
+    slope, intercept = power_law_fit(price.dropna())
+    resid = power_law_deviation(price.dropna())[PL_BAND_SINCE:]
+    lo, hi = np.percentile(resid, PL_BAND_PCT)
+
+    def arr(s):
+        # 5 cifras significativas: de sobra para la gráfica y el JSON pesa la mitad
+        return [None if s is None or pd.isna(v) else float(f"{v:.5g}") for v in (s if s is not None else [])]
+
+    return {
+        "start": idx[0].strftime("%Y-%m-%d"),
+        "price": arr(price),
+        "realized": arr(realized),
+        "wma200": arr(wma200),
+        "power_law": {
+            "genesis": GENESIS.strftime("%Y-%m-%d"),
+            "slope": round(slope, 6),
+            "intercept": round(intercept, 6),
+            # Múltiplos de la tendencia que delimitan el corredor
+            "low": round(float(10**lo), 4),
+            "high": round(float(10**hi), 4),
+            "since": PL_BAND_SINCE,
+        },
+    }
 
 
 def halving_phase_score(index: pd.DatetimeIndex) -> pd.Series:

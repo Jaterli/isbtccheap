@@ -17,21 +17,22 @@ export function niceTicks(lo: number, hi: number, count: number) {
   return out;
 }
 
-/** Fecha del eje (corta) o de la lectura (larga): con hora en 1 h y 4 h, sin ella en 1 día y 1 semana. */
+/** Fecha del eje (corta) o de la lectura (larga): con hora en 1 h y 4 h, sin ella en 1 día y 1 semana (en el eje, mes y
+ * año completo: "jul 10" se leería como un día). */
 export function fmtTime(ms: number, tf: CandleTf, long: boolean) {
   const intraday = isIntraday(tf);
   const opts: Intl.DateTimeFormatOptions = long
     ? { day: "numeric", month: "short", year: "numeric", ...(intraday && { hour: "2-digit", minute: "2-digit" }) }
     : intraday
       ? { day: "numeric", month: "short" }
-      : { month: "short", year: "2-digit" };
+      : { month: "short", year: "numeric" };
   return new Date(ms).toLocaleString(locale, opts);
 }
 
 /**
  * Escala logarítmica de precio para un panel que empieza en `top` y mide `height`, con un margen del 6 %.
- * Marcas: si el rango abarca más de ×2, potencias de 10 y sus ×2 y ×5; si es estrecho (1 h, 4 h) ahí no cae ninguna
- * y se usan marcas lineales.
+ * Marcas: si el rango abarca más de ×2, potencias de 10 y sus ×2 y ×5 (con muchas décadas, solo las potencias de 10);
+ * si es estrecho (1 h, 4 h) ahí no cae ninguna y se usan marcas lineales.
  */
 export function logPriceScale(values: number[], top: number, height: number) {
   const logs = values.filter((v) => v > 0).map(Math.log10);
@@ -46,8 +47,10 @@ export function logPriceScale(values: number[], top: number, height: number) {
         const v = m * 10 ** e;
         if (Math.log10(v) >= lo - pad && Math.log10(v) <= hi + pad) ticks.push(v);
       }
+    if (ticks.length > 7) ticks = ticks.filter((v) => Math.round(v / 10 ** Math.floor(Math.log10(v) + 1e-9)) !== 2);
+    if (ticks.length > 7) ticks = ticks.filter((v) => Math.round(v / 10 ** Math.floor(Math.log10(v) + 1e-9)) === 1);
   } else ticks = niceTicks(10 ** lo, 10 ** hi, 4);
-  return { y, ticks: ticks.slice(-6) };
+  return { y, ticks };
 }
 
 /** Línea SVG que salta los huecos (valores null, p. ej. antes de tener velas suficientes para el indicador). */

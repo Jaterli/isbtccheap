@@ -18,6 +18,7 @@ const SITE = "https://isbtccheap.com";
 const INDEX = { URL_ES: `${SITE}/`, URL_EN: `${SITE}/en/` };
 const VOLATILITY = { URL_ES: `${SITE}/volatilidad/`, URL_EN: `${SITE}/en/volatility/` };
 const CYCLES = { URL_ES: `${SITE}/ciclos/`, URL_EN: `${SITE}/en/cycles/` };
+const VALUATION = { URL_ES: `${SITE}/valoracion/`, URL_EN: `${SITE}/en/valuation/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -83,5 +84,25 @@ const CYCLES_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
-/** Por página: la principal (index.html), volatilidad (volatilidad/index.html) y ciclos (ciclos/index.html) */
-export const META = { index: INDEX_META, volatility: VOLATILITY_META, cycles: CYCLES_META };
+const VALUATION_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...VALUATION,
+    URL: VALUATION.URL_ES,
+    TITLE: "Precio realizado, media de 200 semanas y power law de Bitcoin | Is BTC Cheap?",
+    DESCRIPTION:
+      "El precio de Bitcoin frente a sus niveles de valoración de largo plazo: precio realizado, media de 200 semanas y la tendencia de la power law con su corredor.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...VALUATION,
+    URL: VALUATION.URL_EN,
+    TITLE: "Bitcoin realized price, 200-week moving average and power law | Is BTC Cheap?",
+    DESCRIPTION:
+      "Bitcoin's price against its long-term valuation levels: realized price, 200-week moving average and the power law trend with its corridor.",
+  },
+};
+
+/** Por página: la principal (index.html), volatilidad (volatilidad/index.html), ciclos (ciclos/index.html) y
+ * valoración (valoracion/index.html) */
+export const META = { index: INDEX_META, volatility: VOLATILITY_META, cycles: CYCLES_META, valuation: VALUATION_META };
