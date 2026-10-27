@@ -11,6 +11,9 @@
   --band-3: #c9b84a;
   --band-4: #f08a4b;
   --band-5: #d73027;
+  --cycle-2012: #8e6bc4;
+  --cycle-2016: #1f9aa0;
+  --cycle-2020: var(--price);
   --gutter: 16px;
   color-scheme: light;
 }
@@ -23,6 +26,8 @@
     --muted: #9aa1ad;
     --border: #2a2f38;
     --price: #6f9cff;
+    --cycle-2012: #b39ae6;
+    --cycle-2016: #4cc3c9;
     color-scheme: dark;
   }
 }
@@ -34,6 +39,8 @@
   --muted: #9aa1ad;
   --border: #2a2f38;
   --price: #6f9cff;
+  --cycle-2012: #b39ae6;
+  --cycle-2016: #4cc3c9;
   color-scheme: dark;
 }
 
@@ -356,6 +363,19 @@ header {position: relative;}
 .bb-edge { fill: none; stroke: var(--price); stroke-width: 1; opacity: 0.45; }
 .bb-mid { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
 .bb-ref { stroke-dasharray: 3 3; }
+/* Ciclos de halving: una línea por ciclo, el actual más gruesa y encima */
+.cycle-2012 { --c: var(--cycle-2012); }
+.cycle-2016 { --c: var(--cycle-2016); }
+.cycle-2020 { --c: var(--cycle-2020); }
+.cycle-2024 { --c: var(--accent); }
+.legend[class*="cycle-"]::before { background: var(--c); }
+.cycle-line { fill: none; stroke: var(--c); stroke-width: 1.4; opacity: 0.8; }
+.cycle-line.current { stroke-width: 2.4; opacity: 1; }
+.cycle-peak { fill: var(--c); stroke: var(--surface); stroke-width: 1.5; }
+.cycle-dot { fill: var(--c); }
+.cycle-today { stroke: var(--accent); stroke-dasharray: 2 3; opacity: 0.7; }
+.segmented button[aria-pressed="false"] .legend { opacity: 0.45; }
+.cycles-table { margin-top: 14px; }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
 
 /* Preguntas frecuentes */

@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", bollinger: "Bollinger %B" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", bollinger: "Bollinger %B", cycles: "Ciclos" },
   bb: {
     title: "Bollinger %B de Bitcoin",
     rest: "Dónde está el precio de BTC dentro de sus bandas de Bollinger, según el tamaño de vela.",
@@ -40,6 +40,42 @@ export const es = {
     priceLegend: "Precio",
     bandsLegend: "Bandas",
     chartAria: "Gráfico del precio de Bitcoin con sus bandas de Bollinger y del %B",
+  },
+  cycles: {
+    title: "Ciclos de Bitcoin desde cada halving",
+    rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
+    card: "Precio desde cada halving",
+    info: [
+      "Cada línea es un ciclo: el precio de Bitcoin dividido por su precio el día del halving, frente a los días transcurridos desde entonces. ×1 es el precio del halving; ×2, el doble. La escala es logarítmica para poder comparar ciclos con subidas muy distintas.",
+      "El punto de cada línea marca el techo del ciclo, buscado en los dos primeros años tras el halving. Pulsa en los años para mostrar u ocultar cada ciclo. Se usa el histórico diario desde 2011 más el precio actual.",
+    ],
+    toggleAria: "Ciclos mostrados",
+    current: (day: ReactNode, phase: ReactNode, mult: ReactNode, others: string) => (
+      <>
+        Hoy es el día {day} del ciclo actual ({phase} del camino hasta el próximo halving) y BTC cotiza a {mult} el precio del
+        halving. A estas alturas, los ciclos anteriores iban {others}.
+      </>
+    ),
+    sincePeak: (date: ReactNode, day: number, fall: ReactNode) => (
+      <>
+        El máximo de este ciclo llegó el {date} (día {day}) y hoy el precio está un {fall} por debajo.
+      </>
+    ),
+    dayN: (d: number) => `Día ${d} tras el halving`,
+    yearN: (y: number) => (y === 0 ? "Halving" : y === 1 ? "1 año" : `${y} años`),
+    today: "Hoy",
+    peakTitle: (year: number, day: number, mult: string) => `Techo del ciclo ${year}: día ${day}, ${mult}`,
+    cols: {
+      cycle: "Ciclo",
+      halvingPrice: "Precio en el halving",
+      peak: "Techo",
+      peakDay: "Día del techo",
+      peakMult: "× en el techo",
+      drawdown: "Caída tras el techo",
+      atToday: (d: number) => `Día ${d}`,
+    },
+    note: "* Ciclo en curso: caída máxima hasta hoy. Datos históricos, no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin en cada ciclo, como múltiplo del precio del día del halving",
   },
   charts: {
     tfAria: "Tamaño de vela",

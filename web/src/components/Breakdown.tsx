@@ -1,4 +1,5 @@
 import { locale, t } from "../i18n";
+import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
 import type { Category, CategoryId } from "../types";
 import { InfoTip } from "./InfoTip";
 
@@ -11,10 +12,6 @@ interface Props {
 
 // Categorías que se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
 const LIVE: CategoryId[] = ["tecnico", "sentimiento"];
-
-// Mismas fechas que HALVINGS en pipeline/config.py: el último halving y la estimación del siguiente
-const LAST_HALVING = Date.UTC(2024, 3, 20);
-const NEXT_HALVING = Date.UTC(2028, 3, 15);
 
 const ORDER: CategoryId[] = ["valoracion", "ciclo", "liquidez", "sentimiento", "tecnico"];
 // Puntuación a partir de la que una métrica está en zona extrema: el 10 % más bajo o más alto de su historia reciente

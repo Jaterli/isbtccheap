@@ -43,4 +43,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/bollinger/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/bollinger/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/ciclos/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/ciclos/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/cycles/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/cycles/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/cycles/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/ciclos/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/cycles/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/cycles/" />
+  </url>
 </urlset>

@@ -175,3 +175,45 @@ export const SEO: Record<"es" | "en", SeoText> = {
     ],
   },
 };
+
+/** Página de ciclos de halving: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_CYCLES: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Ciclos de Bitcoin desde cada halving",
+    intro:
+      "Comparativa de los ciclos de Bitcoin: el precio desde cada halving (2012, 2016, 2020 y 2024) superpuesto, con el techo de cada ciclo y la caída posterior.",
+    sections: [
+      {
+        h: "¿Qué muestra la comparativa de ciclos?",
+        p: "Cada cuatro años aproximadamente, el halving reduce a la mitad los bitcoins nuevos que se emiten. La gráfica alinea los ciclos en el día de su halving y mide el precio como múltiplo del de ese día, así que se puede ver si el ciclo actual va adelantado o retrasado respecto a los anteriores y cuánto ha subido en comparación.",
+      },
+      {
+        h: "¿Qué enseñan los ciclos anteriores?",
+        p: "En los tres ciclos completos el techo llegó entre 12 y 18 meses después del halving (en los días 371, 525 y 546), y después el precio cayó entre un 77 % y un 85 % hasta tocar fondo unos dos años y medio después del halving. Cada ciclo ha multiplicado menos el precio que el anterior: ×92 en 2012, ×30 en 2016 y ×7,9 en 2020. En el ciclo actual el máximo llegó en octubre de 2025, en el día 534, a ×1,9.",
+      },
+      {
+        h: "¿Se repetirá el patrón?",
+        p: "No hay garantía. Solo hay tres ciclos completos, y el mercado ha cambiado mucho: ahora hay ETF, grandes inversores institucionales y una relación más estrecha con la liquidez global. La comparativa sirve como referencia para situar el momento del ciclo, no como predicción. Por eso el índice de Is BTC Cheap? combina el ciclo con la valoración, la liquidez, el sentimiento y el análisis técnico.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin cycles since each halving",
+    intro:
+      "Comparison of Bitcoin's cycles: the price since each halving (2012, 2016, 2020 and 2024) overlaid, with each cycle's top and the drop that followed.",
+    sections: [
+      {
+        h: "What does the cycle comparison show?",
+        p: "Roughly every four years, the halving cuts in half the number of new bitcoins issued. The chart lines up the cycles on their halving day and measures the price as a multiple of that day's price, so you can see whether the current cycle is ahead of or behind previous ones and how much it has risen by comparison.",
+      },
+      {
+        h: "What do previous cycles show?",
+        p: "In the three complete cycles the top came 12 to 18 months after the halving (on days 371, 525 and 546), after which the price fell 77% to 85%, bottoming out about two and a half years after the halving. Each cycle has multiplied the price less than the one before: ×92 in 2012, ×30 in 2016 and ×7.9 in 2020. In the current cycle the high came in October 2025, on day 534, at ×1.9.",
+      },
+      {
+        h: "Will the pattern repeat?",
+        p: "There is no guarantee. There are only three complete cycles, and the market has changed a lot: there are now ETFs, large institutional investors and a closer link to global liquidity. The comparison is a reference for placing the current moment in the cycle, not a forecast. That is why the Is BTC Cheap? index combines the cycle with valuation, liquidity, sentiment and technical analysis.",
+      },
+    ],
+  },
+};

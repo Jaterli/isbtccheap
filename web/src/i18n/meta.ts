@@ -18,6 +18,7 @@ const SITE = "https://isbtccheap.com";
 const INDEX = { URL_ES: `${SITE}/`, URL_EN: `${SITE}/en/` };
 const VOLATILITY = { URL_ES: `${SITE}/volatilidad/`, URL_EN: `${SITE}/en/volatility/` };
 const BOLLINGER = { URL_ES: `${SITE}/bollinger/`, URL_EN: `${SITE}/en/bollinger/` };
+const CYCLES = { URL_ES: `${SITE}/ciclos/`, URL_EN: `${SITE}/en/cycles/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -83,5 +84,25 @@ const BOLLINGER_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
-/** Por página: la principal (index.html), volatilidad (volatilidad/index.html) y Bollinger (bollinger/index.html) */
-export const META = { index: INDEX_META, volatility: VOLATILITY_META, bollinger: BOLLINGER_META };
+const CYCLES_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...CYCLES,
+    URL: CYCLES.URL_ES,
+    TITLE: "Ciclos de Bitcoin: comparativa desde cada halving | Is BTC Cheap?",
+    DESCRIPTION:
+      "Compara el ciclo actual de Bitcoin con los de 2012, 2016 y 2020: precio desde cada halving, cuándo llegó el techo y cuánto cayó después.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...CYCLES,
+    URL: CYCLES.URL_EN,
+    TITLE: "Bitcoin cycles: comparison since each halving | Is BTC Cheap?",
+    DESCRIPTION:
+      "Compare Bitcoin's current cycle with those of 2012, 2016 and 2020: price since each halving, when the top came and how far it fell afterwards.",
+  },
+};
+
+/** Por página: la principal (index.html), volatilidad (volatilidad/index.html), Bollinger (bollinger/index.html) y
+ * ciclos (ciclos/index.html) */
+export const META = { index: INDEX_META, volatility: VOLATILITY_META, bollinger: BOLLINGER_META, cycles: CYCLES_META };

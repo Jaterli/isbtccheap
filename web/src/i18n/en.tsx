@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", bollinger: "Bollinger %B" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", bollinger: "Bollinger %B", cycles: "Cycles" },
   bb: {
     title: "Bitcoin Bollinger %B",
     rest: "Where the BTC price sits within its Bollinger Bands, by candle size.",
@@ -33,6 +33,42 @@ export const en: Messages = {
     priceLegend: "Price",
     bandsLegend: "Bands",
     chartAria: "Chart of Bitcoin's price with its Bollinger Bands and of %B",
+  },
+  cycles: {
+    title: "Bitcoin cycles since each halving",
+    rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
+    card: "Price since each halving",
+    info: [
+      "Each line is a cycle: Bitcoin's price divided by its price on the halving day, against the days elapsed since then. ×1 is the halving price; ×2, double. The scale is logarithmic so that cycles with very different rallies can be compared.",
+      "The dot on each line marks the cycle top, searched for in the first two years after the halving. Tap the years to show or hide each cycle. It uses the daily price history since 2011 plus the current price.",
+    ],
+    toggleAria: "Cycles shown",
+    current: (day: ReactNode, phase: ReactNode, mult: ReactNode, others: string) => (
+      <>
+        Today is day {day} of the current cycle ({phase} of the way to the next halving) and BTC trades at {mult} the halving
+        price. At this point, previous cycles were at {others}.
+      </>
+    ),
+    sincePeak: (date: ReactNode, day: number, fall: ReactNode) => (
+      <>
+        This cycle's high came on {date} (day {day}) and the price is now {fall} below it.
+      </>
+    ),
+    dayN: (d: number) => `Day ${d} after the halving`,
+    yearN: (y: number) => (y === 0 ? "Halving" : y === 1 ? "1 year" : `${y} years`),
+    today: "Today",
+    peakTitle: (year: number, day: number, mult: string) => `${year} cycle top: day ${day}, ${mult}`,
+    cols: {
+      cycle: "Cycle",
+      halvingPrice: "Halving price",
+      peak: "Top",
+      peakDay: "Top day",
+      peakMult: "× at top",
+      drawdown: "Drop after top",
+      atToday: (d: number) => `Day ${d}`,
+    },
+    note: "* Cycle in progress: largest drop so far. Historical data, not a forecast or investment advice.",
+    chartAria: "Chart of Bitcoin's price in each cycle, as a multiple of the price on the halving day",
   },
   charts: {
     tfAria: "Candle size",
