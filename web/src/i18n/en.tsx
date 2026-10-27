@@ -84,12 +84,8 @@ export const en: Messages = {
   },
   weight: (w: string) => `weight ${w}%`,
   scoreColumns:
-    "Each line shows the metric's current value and its score from 0 (cheap) to 100 (expensive), calculated as a percentile against the last 4 years (one halving cycle) unless stated otherwise. If any is in an extreme zone (10 or below, or 90 or above), a note appears at the bottom of the card.",
-  extreme: {
-    cheap: "very cheap zone",
-    expensive: "very expensive zone",
-    item: (name: string, zone: string, score: number) => `${name} in ${zone} (${score})`,
-  },
+    "Each line shows the metric's current value and its score from 0 (cheap) to 100 (expensive), calculated as a percentile against the last 4 years (one halving cycle) unless stated otherwise. A green dot next to the score marks the very cheap zone (10 or below) and a red one, the very expensive zone (90 or above).",
+  extreme: { cheap: "Very cheap zone", expensive: "Very expensive zone" },
 
   metrics: {
     mvrv: {

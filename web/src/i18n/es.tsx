@@ -93,12 +93,8 @@ export const es = {
   } satisfies Record<CategoryId, Description & { name: string }>,
   weight: (w: string) => `peso ${w} %`,
   scoreColumns:
-    "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa. Si alguna está en zona extrema (10 o menos, o 90 o más), se avisa al pie de la tarjeta.",
-  extreme: {
-    cheap: "zona muy barata",
-    expensive: "zona muy cara",
-    item: (name: string, zone: string, score: number) => `${name} en ${zone} (${score})`,
-  },
+    "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa. Un punto verde junto a la puntuación marca la zona muy barata (10 o menos) y uno rojo, la muy cara (90 o más).",
+  extreme: { cheap: "Zona muy barata", expensive: "Zona muy cara" },
 
   metrics: {
     mvrv: {

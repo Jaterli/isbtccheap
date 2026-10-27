@@ -9,7 +9,7 @@ interface Props {
   live: boolean;
 }
 
-// Categorías que se recalculan en vivo: hasta tenerlas, su aviso de zona extrema aparecería y desaparecería
+// Categorías que se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
 const LIVE: CategoryId[] = ["tecnico", "sentimiento"];
 
 // Mismas fechas que HALVINGS en pipeline/config.py: el último halving y la estimación del siguiente
@@ -66,29 +66,19 @@ function Bar({ score }: { score: number | null }) {
   );
 }
 
-/** Aviso al pie de la tarjeta con las métricas en zona extrema (muy barata o muy cara); nada si no hay ninguna. */
-function ExtremeNote({ metrics }: { metrics: Category["metrics"] }) {
-  // Con la puntuación redondeada, la misma que se ve en la fila (un 10,4 se muestra como 10 y debe avisar)
-  const extreme = metrics
-    .filter((m) => m.score !== null)
-    .map((m) => ({ ...m, score: Math.round(m.score!) }))
-    .filter((m) => m.score <= EXTREME || m.score >= 100 - EXTREME);
-  if (!extreme.length) return null;
+/** Puntuación de la métrica; en zona extrema, con un punto que late: verde (muy barata) o rojo (muy cara).
+ * Se decide con el número redondeado, el mismo que se ve (un 10,4 se muestra como 10 y debe marcarse). */
+function MetricScore({ score, mark }: { score: number | null; mark: boolean }) {
+  if (score === null) return <span className="num">—</span>;
+  const s = Math.round(score);
+  const zone = !mark ? null : s <= EXTREME ? "cheap" : s >= 100 - EXTREME ? "expensive" : null;
   return (
-    <p className="extreme-note small">
-      <span className="extreme-icon" aria-hidden="true">⚠</span>
-      <span>
-        {extreme.map((m, i) => {
-          const cheap = m.score <= EXTREME;
-          return (
-            <span key={m.id} className={cheap ? "extreme-cheap" : "extreme-expensive"}>
-              {i > 0 && " · "}
-              {t.extreme.item(t.metrics[m.id]?.name ?? m.name, cheap ? t.extreme.cheap : t.extreme.expensive, m.score)}
-            </span>
-          );
-        })}
-      </span>
-    </p>
+    <span className="num">
+      <b className="metric-score">
+        {zone && <i className={`pulse ${zone}`} title={t.extreme[zone]} role="img" aria-label={t.extreme[zone]} />}
+        {s}
+      </b>
+    </span>
   );
 }
 
@@ -136,12 +126,11 @@ export function Breakdown({ categories, weights, live }: Props) {
                       )}
                     </span>
                     <span className="muted num">{fmt(m.value, m.id)}</span>
-                    <span className="num">{m.score === null ? "—" : Math.round(m.score)}</span>
+                    <MetricScore score={m.score} mark={live || !LIVE.includes(id)} />
                   </li>
                 );
               })}
             </ul>
-            {(live || !LIVE.includes(id)) && <ExtremeNote metrics={c.metrics} />}
           </article>
         );
       })}
