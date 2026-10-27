@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ddPct, DrawdownChart } from "./components/DrawdownChart";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
+import { Moves } from "./components/Moves";
 import { useRange } from "./components/RangeSelect";
 import { lang, locale, t } from "./i18n";
 import { SEO_DRAWDOWN } from "./i18n/seo";
@@ -11,6 +12,7 @@ import { getJson } from "./lib/data";
 import { daysBetween, drawdownSeries, episodes } from "./lib/drawdown";
 import { lastDays } from "./lib/series";
 import { bandsPrice, type BandsJson } from "./lib/valuation";
+import type { History } from "./types";
 
 // Grandes mercados bajistas: los de más de esta caída se usan para comparar con el actual
 const BEAR = -0.7;
@@ -21,12 +23,15 @@ const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "num
 export function DrawdownApp() {
   const [bands, setBands] = useState<BandsJson | null>(null);
   const [live, setLive] = useState<number | null>(null);
+  const [history, setHistory] = useState<History | null>(null);
   const [error, setError] = useState(false);
   const range = useRange("isbtccheap:drawdown-range");
 
   // El precio diario desde 2010 está en bands.json (history.json empieza en julio de 2011, tras el máximo de junio)
   useEffect(() => {
     getJson("bands.json").then(setBands, () => setError(true));
+    // Para la tarjeta de caídas y subidas por tamaño: el mismo histórico que la portada (sus periodos empiezan en 2011)
+    getJson("history.json").then(setHistory, () => {});
     fetchCandles("1d", 1).then((c) => setLive(c.at(-1)?.close ?? null), () => {});
   }, []);
 
@@ -116,6 +121,8 @@ export function DrawdownApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
+
+      {history && <Moves history={history} livePrice={live} />}
 
       {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">

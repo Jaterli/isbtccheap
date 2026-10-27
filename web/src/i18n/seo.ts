@@ -229,9 +229,9 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
 /** Página de caída desde máximos: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
   es: {
-    title: "Caída de Bitcoin desde máximos",
+    title: "Caídas y subidas de Bitcoin",
     intro:
-      "Gráfico de la caída de Bitcoin desde su máximo histórico (drawdown) desde 2010, con la tabla de las grandes caídas: cuánto cayó el precio, cuánto tardó en tocar fondo y cuánto en recuperar el máximo.",
+      "Gráfico de la caída de Bitcoin desde su máximo histórico (drawdown) desde 2010, con la tabla de las grandes caídas, y los días que lleva el precio sin caer o subir un 5 %, 10 %, 20 % o 30 % comparados con lo habitual.",
     sections: [
       {
         h: "¿Qué es el drawdown de Bitcoin?",
@@ -242,15 +242,19 @@ export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
         p: "Bitcoin ha sufrido cinco caídas de más del 70 % desde 2011: la de 2011 (93 %), la de 2013 (71 %) y las que siguieron a los techos de los ciclos de 2013, 2017 y 2021 (85 %, 84 % y 77 %). En estas tres últimas el precio tardó alrededor de un año en tocar fondo y entre dos años y medio y algo más de tres años en recuperar el máximo anterior.",
       },
       {
+        h: "¿Cuánto suele tardar Bitcoin en caer o subir un 10 %?",
+        p: "La tabla de caídas y subidas cuenta los días desde la última caída y la última subida de cada tamaño y los compara con lo habitual en el periodo elegido. Los tamaños que llevan más tiempo sin producirse que en el 90 % de los días del periodo se resaltan, para ver de un vistazo si el mercado está más tranquilo o más agitado de lo habitual.",
+      },
+      {
         h: "¿Qué indica la caída actual?",
         p: "Cada gran mercado bajista ha sido algo menos profundo que el anterior, en línea con un mercado más grande y con más inversores institucionales. Las correcciones del 20 % al 35 % son habituales incluso en plena tendencia alcista. Nada garantiza que la historia se repita: el índice de Is BTC Cheap? combina el precio con la valoración on-chain, el ciclo, la liquidez y el sentimiento para estimar si Bitcoin está barato o caro.",
       },
     ],
   },
   en: {
-    title: "Bitcoin drawdown from its all-time high",
+    title: "Bitcoin drops and rallies",
     intro:
-      "Chart of Bitcoin's drawdown from its all-time high since 2010, with a table of the major drops: how far the price fell, how long it took to bottom and how long to recover the high.",
+      "Chart of Bitcoin's drawdown from its all-time high since 2010, with a table of the major drops, and the days the price has gone without a 5%, 10%, 20% or 30% drop or rally compared with what is usual.",
     sections: [
       {
         h: "What is Bitcoin's drawdown?",
@@ -259,6 +263,10 @@ export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
       {
         h: "How long have the major drops lasted?",
         p: "Bitcoin has suffered five drops of more than 70% since 2011: the 2011 crash (93%), the 2013 drop (71%) and those that followed the tops of the 2013, 2017 and 2021 cycles (85%, 84% and 77%). In the last three, the price took about a year to bottom and between two and a half and just over three years to recover the previous high.",
+      },
+      {
+        h: "How long does Bitcoin usually take to drop or rally 10%?",
+        p: "The drops and rallies table counts the days since the last drop and the last rally of each size and compares them with what is usual in the chosen period. Sizes that have gone longer without happening than on 90% of days in the period are highlighted, so you can see at a glance whether the market is calmer or more agitated than usual.",
       },
       {
         h: "What does the current drop indicate?",

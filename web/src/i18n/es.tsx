@@ -86,9 +86,10 @@ export const es = {
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado, la media de 200 semanas y la power law",
   },
+  movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
   drawdown: {
-    title: "Caída de Bitcoin desde máximos",
-    rest: "Cuánto está el precio de BTC por debajo de su máximo histórico, comparado con las grandes caídas anteriores.",
+    title: "Caídas y subidas de Bitcoin",
+    rest: "Cuánto está BTC por debajo de su máximo histórico, cómo se compara con las grandes caídas anteriores y cuánto lleva sin caer o subir un 5 %, un 10 % o más.",
     card: "Precio y caída desde el máximo histórico",
     info: [
       "La caída (drawdown) es la distancia entre el precio de cada día y el máximo histórico alcanzado hasta entonces: 0 % en máximos, -50 % si el precio vale la mitad.",

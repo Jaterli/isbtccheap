@@ -14,12 +14,11 @@ import {
   withMonthlyHistory,
   type ScoreResult,
 } from "./lib/score";
-import { labelAt, locale, t } from "./i18n";
+import { labelAt, lang, locale, PAGE_PATH, t } from "./i18n";
 import { Header } from "./components/Header";
 import { getJson } from "./lib/data";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
-import { Moves } from "./components/Moves";
 import { Faq } from "./components/Faq";
 import { News } from "./components/News";
 import { Calendar } from "./components/Calendar";
@@ -232,7 +231,11 @@ export function App() {
 
       {history && <Outlook history={history} labels={latest.labels} />}
 
-      {history && <Moves history={history} livePrice={price} />}
+      {/* Las caídas y subidas por tamaño están en la página de caídas, junto a la caída desde máximos */}
+      <a className="card page-link" href={PAGE_PATH.drawdown[lang]}>
+        <span>{t.movesLink.text}</span>
+        <strong>{t.movesLink.cta} →</strong>
+      </a>
 
       <Faq />
 

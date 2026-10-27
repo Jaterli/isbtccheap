@@ -110,17 +110,17 @@ const DRAWDOWN_META: Record<"es" | "en", PageMeta> = {
     ...INDEX_META.es,
     ...DRAWDOWN,
     URL: DRAWDOWN.URL_ES,
-    TITLE: "Caída de Bitcoin desde máximos: drawdown histórico | Is BTC Cheap?",
+    TITLE: "Caídas y subidas de Bitcoin: caída desde máximos y drawdown | Is BTC Cheap?",
     DESCRIPTION:
-      "Cuánto está Bitcoin por debajo de su máximo histórico hoy, comparado con las grandes caídas de 2011, 2014, 2018 y 2022: profundidad, duración y tiempo de recuperación.",
+      "Cuánto está Bitcoin por debajo de su máximo histórico, comparado con las grandes caídas de 2011, 2014, 2018 y 2022, y cuántos días lleva sin caer o subir un 5 %, 10 %, 20 % o 30 %.",
   },
   en: {
     ...INDEX_META.en,
     ...DRAWDOWN,
     URL: DRAWDOWN.URL_EN,
-    TITLE: "Bitcoin drawdown from all-time high: historical chart | Is BTC Cheap?",
+    TITLE: "Bitcoin drops and rallies: drawdown from all-time high | Is BTC Cheap?",
     DESCRIPTION:
-      "How far Bitcoin is below its all-time high today, compared with the major drops of 2011, 2014, 2018 and 2022: depth, duration and recovery time.",
+      "How far Bitcoin is below its all-time high, compared with the major drops of 2011, 2014, 2018 and 2022, and how many days it has gone without a 5%, 10%, 20% or 30% drop or rally.",
   },
 };
 

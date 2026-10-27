@@ -79,9 +79,10 @@ export const en: Messages = {
     note: "Historical data, not a forecast or investment advice. The power law fit is recalculated daily using the full history.",
     chartAria: "Chart of Bitcoin's price with the realized price, the 200-week moving average and the power law",
   },
+  movesLink: { text: "How long has BTC gone without a 10% drop or a 20% rally? Compare it with what is usual.", cta: "Drops and rallies" },
   drawdown: {
-    title: "Bitcoin drawdown from its all-time high",
-    rest: "How far the BTC price is below its all-time high, compared with previous major drops.",
+    title: "Bitcoin drops and rallies",
+    rest: "How far BTC is below its all-time high, how that compares with previous major drops and how long it has gone without a 5%, 10% or larger drop or rally.",
     card: "Price and drawdown from the all-time high",
     info: [
       "The drawdown is the distance between each day's price and the all-time high reached up to then: 0% at highs, -50% if the price is worth half.",
