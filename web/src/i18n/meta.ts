@@ -17,6 +17,7 @@ export interface PageMeta {
 const SITE = "https://isbtccheap.com";
 const INDEX = { URL_ES: `${SITE}/`, URL_EN: `${SITE}/en/` };
 const VOLATILITY = { URL_ES: `${SITE}/volatilidad/`, URL_EN: `${SITE}/en/volatility/` };
+const BOLLINGER = { URL_ES: `${SITE}/bollinger/`, URL_EN: `${SITE}/en/bollinger/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -63,5 +64,24 @@ const VOLATILITY_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
-/** Por página: la principal (index.html) y la de volatilidad (volatilidad/index.html) */
-export const META = { index: INDEX_META, volatility: VOLATILITY_META };
+const BOLLINGER_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...BOLLINGER,
+    URL: BOLLINGER.URL_ES,
+    TITLE: "Bollinger %B de Bitcoin hoy: bandas de Bollinger por temporalidad | Is BTC Cheap?",
+    DESCRIPTION:
+      "Bandas de Bollinger y %B de Bitcoin en velas de 1 hora, 4 horas, 1 día y 1 semana: dónde está el precio de BTC respecto a sus bandas, con el histórico desde 2011.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...BOLLINGER,
+    URL: BOLLINGER.URL_EN,
+    TITLE: "Bitcoin Bollinger %B today: Bollinger Bands by timeframe | Is BTC Cheap?",
+    DESCRIPTION:
+      "Bitcoin's Bollinger Bands and %B on 1-hour, 4-hour, 1-day and 1-week candles: where the BTC price sits relative to its bands, with history since 2011.",
+  },
+};
+
+/** Por página: la principal (index.html), volatilidad (volatilidad/index.html) y Bollinger (bollinger/index.html) */
+export const META = { index: INDEX_META, volatility: VOLATILITY_META, bollinger: BOLLINGER_META };

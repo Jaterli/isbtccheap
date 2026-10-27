@@ -59,6 +59,48 @@ export const SEO_VOL: Record<"es" | "en", VolSeoText> = {
   },
 };
 
+/** Página de Bollinger %B: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_BB: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Bollinger %B de Bitcoin",
+    intro:
+      "Gráfico de las bandas de Bollinger y del %B de Bitcoin en velas de 1 hora, 4 horas, 1 día y 1 semana, con el histórico desde 2011.",
+    sections: [
+      {
+        h: "¿Qué es el Bollinger %B?",
+        p: "Las bandas de Bollinger rodean el precio a 2 desviaciones típicas de su media de 20 velas, así que se ensanchan cuando el mercado se agita y se estrechan cuando se calma. El %B resume dónde está el precio entre ellas en un solo número: 0 en la banda inferior, 50 en la media y 100 en la superior.",
+      },
+      {
+        h: "¿Cómo se interpreta?",
+        p: "Un %B por encima de 100 indica que el precio ha subido más deprisa de lo habitual (estirado al alza) y por debajo de 0, que ha caído más deprisa (estirado a la baja). En tendencias fuertes el precio puede recorrer una banda durante semanas, así que un valor extremo no basta por sí solo para anticipar un giro. Las bandas muy estrechas, en cambio, suelen preceder a movimientos fuertes.",
+      },
+      {
+        h: "¿Qué tamaño de vela elegir?",
+        p: "En 1 hora y 4 horas el %B muestra los excesos de los últimos días; en 1 día y 1 semana, los de semanas y meses. Comparar varias temporalidades ayuda a distinguir un exceso puntual de una tendencia de fondo.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin Bollinger %B",
+    intro:
+      "Chart of Bitcoin's Bollinger Bands and %B on 1-hour, 4-hour, 1-day and 1-week candles, with history since 2011.",
+    sections: [
+      {
+        h: "What is Bollinger %B?",
+        p: "Bollinger Bands surround the price 2 standard deviations away from its 20-candle average, so they widen when the market gets turbulent and narrow when it calms down. %B sums up where the price sits between them in a single number: 0 at the lower band, 50 at the average and 100 at the upper band.",
+      },
+      {
+        h: "How do you read it?",
+        p: "A %B above 100 means the price has risen faster than usual (stretched up) and below 0, that it has fallen faster (stretched down). In strong trends the price can ride a band for weeks, so an extreme value alone is not enough to anticipate a reversal. Very narrow bands, on the other hand, tend to precede strong moves.",
+      },
+      {
+        h: "Which candle size should I choose?",
+        p: "On 1 hour and 4 hours, %B shows the excesses of the last few days; on 1 day and 1 week, those of weeks and months. Comparing several timeframes helps tell a short-lived excess from an underlying trend.",
+      },
+    ],
+  },
+};
+
 export const SEO: Record<"es" | "en", SeoText> = {
   es: {
     title: "¿Está Bitcoin barato o caro?",

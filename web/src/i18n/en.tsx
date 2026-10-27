@@ -8,7 +8,39 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", bollinger: "Bollinger %B" },
+  bb: {
+    title: "Bitcoin Bollinger %B",
+    rest: "Where the BTC price sits within its Bollinger Bands, by candle size.",
+    card: "Bollinger Bands and %B",
+    info: [
+      "Bollinger Bands are the average of the last 20 candles ± 2 standard deviations. %B shows where the close sits between them: 0 is the lower band, 50 the average and 100 the upper band. It can go outside 0-100 when the price breaks a band.",
+      "1h and 4h use Binance candles; 1 day and 1 week, the price history since 2011 plus the current price. The daily %B is the same one used by the index's technical category.",
+    ],
+    zones: {
+      above: "above the upper band",
+      nearUpper: "near the upper band",
+      inside: "within the bands",
+      nearLower: "near the lower band",
+      below: "below the lower band",
+    },
+    current: (b: ReactNode, zone: string, width: ReactNode, wPct: ReactNode) => (
+      <>
+        Current %B: {b}, the price is {zone}. Band width: {width} of the average, percentile {wPct} of the period shown.
+      </>
+    ),
+    squeeze: " Very narrow bands: they tend to precede a strong move, but say nothing about its direction.",
+    priceLegend: "Price",
+    bandsLegend: "Bands",
+    chartAria: "Chart of Bitcoin's price with its Bollinger Bands and of %B",
+  },
+  charts: {
+    tfAria: "Candle size",
+    rangeAria: "Period shown",
+    ranges: { "1y": "1Y", "4y": "4Y", all: "All" },
+    error: "Could not load data for this timeframe.",
+    note: "Historical data, not a prediction or investment advice.",
+  },
   vol: {
     title: "Bitcoin volatility",
     rest: "How much the BTC price moves by candle size, with the price overlaid to see how they relate.",
@@ -17,9 +49,6 @@ export const en: Messages = {
       "Realized volatility measures how much the price has changed from one candle to the next over the latest candles, annualized so timeframes can be compared.",
       "Calculation window: 24 candles on 1h (one day), 42 on 4h (one week), 30 on 1 day (one month) and 26 on 1 week (half a year). 1h and 4h use Binance candles; 1 day and 1 week, the price history since 2011 plus the current price.",
     ],
-    tfAria: "Candle size",
-    rangeAria: "Period shown",
-    ranges: { "1y": "1Y", "4y": "4Y", all: "All" },
     current: (vol: ReactNode, pct: ReactNode, mean: ReactNode) => (
       <>
         Current volatility: {vol} annualized, percentile {pct} of the period shown (average {mean}).
@@ -28,8 +57,6 @@ export const en: Messages = {
     volLegend: "Volatility",
     priceLegend: "Price",
     chartAria: "Chart of Bitcoin's realized volatility and price",
-    error: "Could not load data for this timeframe.",
-    note: "Historical data, not a prediction or investment advice.",
   },
   periods: { "2y": "2 years", "4y": "4 years", "8y": "8 years", all: "Since 2011" },
   periodAria: "Sample period",

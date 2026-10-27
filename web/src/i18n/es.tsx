@@ -15,7 +15,39 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", bollinger: "Bollinger %B" },
+  bb: {
+    title: "Bollinger %B de Bitcoin",
+    rest: "Dónde está el precio de BTC dentro de sus bandas de Bollinger, según el tamaño de vela.",
+    card: "Bandas de Bollinger y %B",
+    info: [
+      "Las bandas de Bollinger son la media de las últimas 20 velas ± 2 desviaciones típicas. El %B indica dónde está el cierre entre ellas: 0 es la banda inferior, 50 la media y 100 la superior. Puede salirse de 0-100 cuando el precio rompe una banda.",
+      "En 1 h y 4 h se usan las velas de Binance; en 1 día y 1 semana, el histórico desde 2011 más el precio actual. El %B diario es el mismo que usa el técnico del índice.",
+    ],
+    zones: {
+      above: "por encima de la banda superior",
+      nearUpper: "cerca de la banda superior",
+      inside: "dentro de las bandas",
+      nearLower: "cerca de la banda inferior",
+      below: "por debajo de la banda inferior",
+    },
+    current: (b: ReactNode, zone: string, width: ReactNode, wPct: ReactNode) => (
+      <>
+        %B actual: {b}, el precio está {zone}. Ancho de las bandas: {width} de la media, percentil {wPct} del periodo mostrado.
+      </>
+    ),
+    squeeze: " Bandas muy estrechas: suelen preceder a un movimiento fuerte, pero no indican su dirección.",
+    priceLegend: "Precio",
+    bandsLegend: "Bandas",
+    chartAria: "Gráfico del precio de Bitcoin con sus bandas de Bollinger y del %B",
+  },
+  charts: {
+    tfAria: "Tamaño de vela",
+    rangeAria: "Periodo mostrado",
+    ranges: { "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    error: "No se pudieron cargar los datos de esta temporalidad.",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+  },
   vol: {
     title: "Volatilidad de Bitcoin",
     rest: "Cuánto se mueve el precio de BTC según el tamaño de vela, con el precio superpuesto para ver cómo se relacionan.",
@@ -24,9 +56,6 @@ export const es = {
       "La volatilidad realizada mide cuánto ha variado el precio de una vela a otra en las últimas velas, expresada en términos anuales para poder comparar temporalidades.",
       "Ventana de cálculo: 24 velas en 1 h (un día), 42 en 4 h (una semana), 30 en 1 día (un mes) y 26 en 1 semana (medio año). En 1 h y 4 h se usan las velas de Binance; en 1 día y 1 semana, el histórico desde 2011 más el precio actual.",
     ],
-    tfAria: "Tamaño de vela",
-    rangeAria: "Periodo mostrado",
-    ranges: { "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     current: (vol: ReactNode, pct: ReactNode, mean: ReactNode) => (
       <>
         Volatilidad actual: {vol} anualizada, percentil {pct} del periodo mostrado (media {mean}).
@@ -35,8 +64,6 @@ export const es = {
     volLegend: "Volatilidad",
     priceLegend: "Precio",
     chartAria: "Gráfico de la volatilidad realizada de Bitcoin y de su precio",
-    error: "No se pudieron cargar los datos de esta temporalidad.",
-    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
   /** Periodo de la muestra de las tarjetas de estadística histórica */
   periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,

@@ -2,13 +2,14 @@ import { en } from "./en";
 import { es, type Messages } from "./es";
 
 export type Lang = "es" | "en";
-export type Page = "index" | "volatility";
+export type Page = "index" | "volatility" | "bollinger";
 
 /** Ruta de cada página en cada idioma: el español en la raíz y el inglés bajo /en/ (cada una con su index.html, ver
  * vite.config.ts) */
 export const PAGE_PATH: Record<Page, Record<Lang, string>> = {
   index: { es: "/", en: "/en/" },
   volatility: { es: "/volatilidad/", en: "/en/volatility/" },
+  bollinger: { es: "/bollinger/", en: "/en/bollinger/" },
 };
 const PREF_KEY = "isbtccheap:lang";
 
@@ -16,7 +17,8 @@ const PREF_KEY = "isbtccheap:lang";
 export const lang: Lang = /^\/en(\/|$)/.test(window.location.pathname) ? "en" : "es";
 export const t: Messages = lang === "en" ? en : es;
 export const locale = lang === "en" ? "en-US" : "es-ES";
-export const page: Page = /\/(volatilidad|volatility)\/?$/.test(window.location.pathname) ? "volatility" : "index";
+const path = window.location.pathname.replace(/\/?$/, "/");
+export const page: Page = (Object.keys(PAGE_PATH) as Page[]).find((p) => p !== "index" && Object.values(PAGE_PATH[p]).includes(path)) ?? "index";
 
 /** Etiqueta traducida de la escala por su posición (mismo orden que LABELS del pipeline) */
 export const labelAt = (index: number, fallback: string) => t.labels[index] ?? fallback;
