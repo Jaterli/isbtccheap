@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -78,6 +78,33 @@ export const en: Messages = {
     cols: { level: "Level", value: "Today", distance: "Price vs level" },
     note: "Historical data, not a forecast or investment advice. The power law fit is recalculated daily using the full history.",
     chartAria: "Chart of Bitcoin's price with the realized price, the 200-week moving average and the power law",
+  },
+  drawdown: {
+    title: "Bitcoin drawdown from its all-time high",
+    rest: "How far the BTC price is below its all-time high, compared with previous major drops.",
+    card: "Price and drawdown from the all-time high",
+    info: [
+      "The drawdown is the distance between each day's price and the all-time high reached up to then: 0% at highs, -50% if the price is worth half.",
+      "It uses the daily price since 2010 plus the current price. The table lists the drops of more than 50% since 2011 (before that the market was tiny) and the current one.",
+    ],
+    current: (dd: ReactNode, ath: ReactNode, athDate: ReactNode, days: ReactNode, maxDd: ReactNode, lowDate: ReactNode) => (
+      <>
+        BTC is {dd} below its all-time high ({ath}, on {athDate}), reached {days} days ago. The largest drop since then has been{" "}
+        {maxDd} ({lowDate}).
+      </>
+    ),
+    atAth: (ath: ReactNode) => <>BTC is at an all-time high: {ath}.</>,
+    bears: (n: number, min: ReactNode, max: ReactNode) => (
+      <>
+        In the {n} previous major bear markets, the drop ranged from {min} to {max}.
+      </>
+    ),
+    legend: { price: "Price", ath: "High", dd: "Drawdown" },
+    tableTitle: "Major drops from the high",
+    cols: { ath: "High", low: "Low", dd: "Drop", toLow: "Days to low", toRecover: "Days to recover" },
+    ongoing: "Ongoing",
+    note: "Historical data, not a forecast or investment advice.",
+    chartAria: "Chart of Bitcoin's price with its all-time high and of the drawdown from that high",
   },
   charts: {
     tfAria: "Candle size",

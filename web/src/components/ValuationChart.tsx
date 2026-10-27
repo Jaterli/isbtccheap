@@ -1,14 +1,12 @@
 import { useMemo, useState, type PointerEvent } from "react";
-import { locale, t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, useWidth } from "../lib/chart";
+import { t } from "../i18n";
+import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { ValuationSeries } from "../lib/valuation";
 
 const PAD_L = 8;
 const PAD_R = 56; // eje de precio, a la derecha
 const PAD_T = 10;
 const AXIS_H = 22; // fechas
-
-export const usd = (p: number) => p.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: p < 100 ? 2 : 0 });
 
 /**
  * El precio de BTC (escala logarítmica) con sus niveles de referencia: precio realizado, media de 200 semanas y la

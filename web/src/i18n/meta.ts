@@ -19,6 +19,7 @@ const INDEX = { URL_ES: `${SITE}/`, URL_EN: `${SITE}/en/` };
 const VOLATILITY = { URL_ES: `${SITE}/volatilidad/`, URL_EN: `${SITE}/en/volatility/` };
 const CYCLES = { URL_ES: `${SITE}/ciclos/`, URL_EN: `${SITE}/en/cycles/` };
 const VALUATION = { URL_ES: `${SITE}/valoracion/`, URL_EN: `${SITE}/en/valuation/` };
+const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -103,6 +104,31 @@ const VALUATION_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
-/** Por página: la principal (index.html), volatilidad (volatilidad/index.html), ciclos (ciclos/index.html) y
- * valoración (valoracion/index.html) */
-export const META = { index: INDEX_META, volatility: VOLATILITY_META, cycles: CYCLES_META, valuation: VALUATION_META };
+const DRAWDOWN_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...DRAWDOWN,
+    URL: DRAWDOWN.URL_ES,
+    TITLE: "Caída de Bitcoin desde máximos: drawdown histórico | Is BTC Cheap?",
+    DESCRIPTION:
+      "Cuánto está Bitcoin por debajo de su máximo histórico hoy, comparado con las grandes caídas de 2011, 2014, 2018 y 2022: profundidad, duración y tiempo de recuperación.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...DRAWDOWN,
+    URL: DRAWDOWN.URL_EN,
+    TITLE: "Bitcoin drawdown from all-time high: historical chart | Is BTC Cheap?",
+    DESCRIPTION:
+      "How far Bitcoin is below its all-time high today, compared with the major drops of 2011, 2014, 2018 and 2022: depth, duration and recovery time.",
+  },
+};
+
+/** Por página: la principal (index.html) y las de gráficas, cada una en su carpeta (volatilidad/, ciclos/,
+ * valoracion/, caidas/) */
+export const META = {
+  index: INDEX_META,
+  volatility: VOLATILITY_META,
+  cycles: CYCLES_META,
+  valuation: VALUATION_META,
+  drawdown: DRAWDOWN_META,
+};

@@ -99,6 +99,14 @@ header {position: relative;}
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .lang-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Móvil: con cinco páginas el menú no cabe encima del logo; va en su propia fila y, si aun así no cabe, se desplaza */
+@media (max-width: 639px) {
+  .top-nav { position: static; justify-content: space-between; gap: 8px; font-size: 0.8rem; }
+  .page-nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .page-nav::-webkit-scrollbar { display: none; }
+  .page-nav a, .lang-switch a { padding: 3px 6px; white-space: nowrap; }
+  .top { margin-top: 12px; }
+}
 
 /* ---------- Panel principal: medidor + categorías + noticias ----------
    móvil: 1 columna · tablet: medidor arriba, categorías en 2 columnas y noticias debajo ·
@@ -386,6 +394,16 @@ header {position: relative;}
 .val-trend { stroke-dasharray: 4 3; }
 .val-table { margin-top: 14px; }
 .val-table tbody th { white-space: normal; }
+/* Caídas: máximo histórico y caída desde él */
+.dd-ath { --c: var(--muted); }
+.dd-fall { --c: var(--band-5); }
+.legend.dd-ath::before, .legend.dd-fall::before { background: var(--c); }
+.dd-ath-line { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.dd-area { fill: var(--band-5); opacity: 0.15; }
+.dd-line { fill: none; stroke: var(--band-5); stroke-width: 1.3; }
+.dd-dot { fill: var(--band-5); }
+.dd-table-title { margin: 18px 0 0; font-size: 0.95rem; }
+.dd-table tbody tr.current th, .dd-table tbody tr.current td { color: var(--accent); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
 
 /* Preguntas frecuentes */

@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -85,6 +85,33 @@ export const es = {
     cols: { level: "Nivel", value: "Hoy", distance: "Precio frente al nivel" },
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado, la media de 200 semanas y la power law",
+  },
+  drawdown: {
+    title: "Caída de Bitcoin desde máximos",
+    rest: "Cuánto está el precio de BTC por debajo de su máximo histórico, comparado con las grandes caídas anteriores.",
+    card: "Precio y caída desde el máximo histórico",
+    info: [
+      "La caída (drawdown) es la distancia entre el precio de cada día y el máximo histórico alcanzado hasta entonces: 0 % en máximos, -50 % si el precio vale la mitad.",
+      "Se usa el precio diario desde 2010 más el precio actual. La tabla recoge las caídas de más del 50 % desde 2011 (antes el mercado era minúsculo) y la actual.",
+    ],
+    current: (dd: ReactNode, ath: ReactNode, athDate: ReactNode, days: ReactNode, maxDd: ReactNode, lowDate: ReactNode) => (
+      <>
+        BTC está un {dd} por debajo de su máximo histórico ({ath}, el {athDate}), alcanzado hace {days} días. La mayor caída
+        desde entonces ha sido del {maxDd} ({lowDate}).
+      </>
+    ),
+    atAth: (ath: ReactNode) => <>BTC está en máximos históricos: {ath}.</>,
+    bears: (n: number, min: ReactNode, max: ReactNode) => (
+      <>
+        En los {n} grandes mercados bajistas anteriores, la caída fue de entre el {min} y el {max}.
+      </>
+    ),
+    legend: { price: "Precio", ath: "Máximo", dd: "Caída" },
+    tableTitle: "Grandes caídas desde el máximo",
+    cols: { ath: "Máximo", low: "Mínimo", dd: "Caída", toLow: "Días hasta el mínimo", toRecover: "Días hasta recuperarlo" },
+    ongoing: "En curso",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin con su máximo histórico y de la caída desde ese máximo",
   },
   charts: {
     tfAria: "Tamaño de vela",

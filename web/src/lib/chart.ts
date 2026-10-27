@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { locale } from "../i18n";
 import { isIntraday, type CandleTf } from "./series";
 
-/** Utilidades comunes de las gráficas de las páginas de volatilidad y ciclos */
+/** Utilidades comunes de las gráficas de las páginas de volatilidad, ciclos, valoración y caídas */
 
 export const shortUsd = (p: number) =>
   p >= 1000 ? `$${(p / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`;
+
+/** Precio en dólares: con céntimos por debajo de 100 $ (los primeros años de Bitcoin) */
+export const usd = (p: number) => p.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: p < 100 ? 2 : 0 });
 
 /** Marcas "bonitas" para un eje lineal entre lo y hi. */
 export function niceTicks(lo: number, hi: number, count: number) {

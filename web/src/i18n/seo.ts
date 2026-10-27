@@ -225,3 +225,45 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+/** Página de caída desde máximos: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Caída de Bitcoin desde máximos",
+    intro:
+      "Gráfico de la caída de Bitcoin desde su máximo histórico (drawdown) desde 2010, con la tabla de las grandes caídas: cuánto cayó el precio, cuánto tardó en tocar fondo y cuánto en recuperar el máximo.",
+    sections: [
+      {
+        h: "¿Qué es el drawdown de Bitcoin?",
+        p: "Es cuánto está el precio por debajo del máximo histórico alcanzado hasta ese día. Un drawdown del 50 % significa que Bitcoin vale la mitad que en su máximo. Es la forma más directa de poner en contexto una caída: si es una corrección normal dentro de una tendencia alcista o un mercado bajista de los que marcan el final de un ciclo.",
+      },
+      {
+        h: "¿Cuánto han durado las grandes caídas?",
+        p: "Bitcoin ha sufrido cinco caídas de más del 70 % desde 2011: la de 2011 (93 %), la de 2013 (71 %) y las que siguieron a los techos de los ciclos de 2013, 2017 y 2021 (85 %, 84 % y 77 %). En estas tres últimas el precio tardó alrededor de un año en tocar fondo y entre dos años y medio y algo más de tres años en recuperar el máximo anterior.",
+      },
+      {
+        h: "¿Qué indica la caída actual?",
+        p: "Cada gran mercado bajista ha sido algo menos profundo que el anterior, en línea con un mercado más grande y con más inversores institucionales. Las correcciones del 20 % al 35 % son habituales incluso en plena tendencia alcista. Nada garantiza que la historia se repita: el índice de Is BTC Cheap? combina el precio con la valoración on-chain, el ciclo, la liquidez y el sentimiento para estimar si Bitcoin está barato o caro.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin drawdown from its all-time high",
+    intro:
+      "Chart of Bitcoin's drawdown from its all-time high since 2010, with a table of the major drops: how far the price fell, how long it took to bottom and how long to recover the high.",
+    sections: [
+      {
+        h: "What is Bitcoin's drawdown?",
+        p: "It is how far the price is below the all-time high reached up to that day. A 50% drawdown means Bitcoin is worth half of its peak. It is the most direct way to put a drop in context: whether it is a normal correction within an uptrend or a bear market of the kind that ends a cycle.",
+      },
+      {
+        h: "How long have the major drops lasted?",
+        p: "Bitcoin has suffered five drops of more than 70% since 2011: the 2011 crash (93%), the 2013 drop (71%) and those that followed the tops of the 2013, 2017 and 2021 cycles (85%, 84% and 77%). In the last three, the price took about a year to bottom and between two and a half and just over three years to recover the previous high.",
+      },
+      {
+        h: "What does the current drop indicate?",
+        p: "Each major bear market has been somewhat shallower than the one before, in line with a larger market with more institutional investors. Corrections of 20% to 35% are common even in a full uptrend. Nothing guarantees that history will repeat: the Is BTC Cheap? index combines price with on-chain valuation, the cycle, liquidity and sentiment to estimate whether Bitcoin is cheap or expensive.",
+      },
+    ],
+  },
+};

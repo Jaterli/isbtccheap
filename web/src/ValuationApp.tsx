@@ -1,34 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
-import { usd, ValuationChart } from "./components/ValuationChart";
+import { useRange } from "./components/RangeSelect";
+import { ValuationChart } from "./components/ValuationChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_VALUATION } from "./i18n/seo";
 import { fetchCandles } from "./lib/binance";
+import { usd } from "./lib/chart";
 import { getJson } from "./lib/data";
 import { lastDays } from "./lib/series";
 import { valuationSeries, type BandsJson } from "./lib/valuation";
 
-const RANGES = [
-  { id: "1y", days: 365 },
-  { id: "4y", days: 1461 },
-  { id: "all", days: Infinity },
-];
-const RANGE_KEY = "isbtccheap:valuation-range";
 // Margen para decir que el precio está "cerca" del suelo o del techo del corredor (en múltiplo)
 const NEAR = 1.25;
 
 const pct = (f: number) => `${f > 0 ? "+" : ""}${t.percent(Math.round(f * 100).toLocaleString(locale))}`;
 const mult = (m: number) => `×${m.toLocaleString(locale, { maximumFractionDigits: 2 })}`;
-
-function loadRange() {
-  try {
-    const v = localStorage.getItem(RANGE_KEY);
-    return RANGES.some((r) => r.id === v) ? v! : "all";
-  } catch {
-    return "all";
-  }
-}
 
 /** Posición del precio en el corredor de la power law, como múltiplo de la tendencia */
 function corridorZone(m: number, low: number, high: number) {
@@ -41,7 +28,7 @@ export function ValuationApp() {
   const [bands, setBands] = useState<BandsJson | null>(null);
   const [live, setLive] = useState<number | null>(null);
   const [error, setError] = useState(false);
-  const [range, setRangeState] = useState(loadRange);
+  const range = useRange("isbtccheap:valuation-range");
 
   useEffect(() => {
     getJson("bands.json").then(setBands, () => setError(true));
@@ -49,16 +36,7 @@ export function ValuationApp() {
   }, []);
 
   const full = useMemo(() => (bands ? valuationSeries(bands, live) : null), [bands, live]);
-  const series = useMemo(() => (full ? lastDays(full, RANGES.find((r) => r.id === range)!.days) : null), [full, range]);
-
-  const setRange = (r: string) => {
-    setRangeState(r);
-    try {
-      localStorage.setItem(RANGE_KEY, r);
-    } catch {
-      /* almacenamiento no disponible: no pasa nada */
-    }
-  };
+  const series = useMemo(() => (full ? lastDays(full, range.days) : null), [full, range.days]);
 
   const tx = t.valuation;
   const seo = SEO_VALUATION[lang];
@@ -92,15 +70,7 @@ export function ValuationApp() {
               ))}
             </InfoTip>
           </h2>
-          <div className="chart-controls">
-            <div className="segmented small" role="group" aria-label={t.charts.rangeAria}>
-              {RANGES.map((r) => (
-                <button key={r.id} className={r.id === range ? "active" : ""} onClick={() => setRange(r.id)}>
-                  {t.charts.ranges[r.id]}
-                </button>
-              ))}
-            </div>
-          </div>
+          {range.control}
         </header>
 
         {now && bands && (
