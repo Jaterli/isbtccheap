@@ -45,8 +45,11 @@ METRICS = [
 # El técnico baja en esos plazos: a un año vista funciona al revés (momentum: correlación +0,27).
 # En 1 mes la valoración (lo estirado que está el precio ahora) cede algo de peso al ciclo, que se mueve en meses y
 # años y es lo que mejor anticipa el año siguiente (−0,51). Sin pasarse: el ciclo tiene más riesgo de sobreajuste.
+# En 1 hora el ciclo es casi constante (sus métricas cambian en meses): solo desplaza el score. Pesa menos que en 4 horas
+# y cede ese peso al sentimiento, que en 1 h y 4 h usa derivados en vivo y sí cambia hora a hora. Sin backtest posible:
+# Binance da ~41 días de velas de 1 h y ~30 de derivados.
 TIMEFRAME_WEIGHTS = {
-    "1h": {"tecnico": 40, "sentimiento": 23, "valoracion": 20, "ciclo": 14, "liquidez": 3},
+    "1h": {"tecnico": 40, "sentimiento": 27, "valoracion": 20, "ciclo": 10, "liquidez": 3},
     "4h": {"tecnico": 30, "sentimiento": 20, "valoracion": 27, "ciclo": 19, "liquidez": 4},
     "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 30, "liquidez": 5},
     "1w": {"tecnico": 6, "sentimiento": 12, "valoracion": 41, "ciclo": 33, "liquidez": 8},
