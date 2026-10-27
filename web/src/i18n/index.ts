@@ -2,15 +2,21 @@ import { en } from "./en";
 import { es, type Messages } from "./es";
 
 export type Lang = "es" | "en";
+export type Page = "index" | "volatility";
 
-/** Ruta de cada idioma: el español en la raíz y el inglés en /en/ (cada uno con su index.html, ver vite.config.ts) */
-export const LANG_PATH: Record<Lang, string> = { es: "/", en: "/en/" };
+/** Ruta de cada página en cada idioma: el español en la raíz y el inglés bajo /en/ (cada una con su index.html, ver
+ * vite.config.ts) */
+export const PAGE_PATH: Record<Page, Record<Lang, string>> = {
+  index: { es: "/", en: "/en/" },
+  volatility: { es: "/volatilidad/", en: "/en/volatility/" },
+};
 const PREF_KEY = "isbtccheap:lang";
 
 // El idioma lo fija la URL: cambiar de idioma es navegar a la otra ruta, así que basta con leerlo al cargar
 export const lang: Lang = /^\/en(\/|$)/.test(window.location.pathname) ? "en" : "es";
 export const t: Messages = lang === "en" ? en : es;
 export const locale = lang === "en" ? "en-US" : "es-ES";
+export const page: Page = /\/(volatilidad|volatility)\/?$/.test(window.location.pathname) ? "volatility" : "index";
 
 /** Etiqueta traducida de la escala por su posición (mismo orden que LABELS del pipeline) */
 export const labelAt = (index: number, fallback: string) => t.labels[index] ?? fallback;
@@ -24,9 +30,9 @@ export function savePref(l: Lang) {
 }
 
 /**
- * En la raíz, la primera vez, lleva a /en/ a quien no tiene el navegador en español; si ya eligió idioma con el
- * selector, respeta su elección. Devuelve true si redirige (no hace falta pintar la página).
- * /en/ nunca redirige: un enlace a la versión en inglés siempre abre en inglés.
+ * En una página en español, la primera vez, lleva a su versión en inglés a quien no tiene el navegador en español; si
+ * ya eligió idioma con el selector, respeta su elección. Devuelve true si redirige (no hace falta pintar la página).
+ * Las páginas en inglés nunca redirigen: un enlace a la versión en inglés siempre abre en inglés.
  */
 export function redirectToPreferredLang(): boolean {
   if (lang !== "es") return false;
@@ -41,6 +47,6 @@ export function redirectToPreferredLang(): boolean {
   const browserEs = (navigator.languages?.length ? navigator.languages : [navigator.language]).some((l) => l.toLowerCase().startsWith("es"));
   const target = pref === "en" || (!pref && !bot && !browserEs) ? "en" : null;
   if (!target) return false;
-  window.location.replace(LANG_PATH[target] + window.location.search + window.location.hash);
+  window.location.replace(PAGE_PATH[page][target] + window.location.search + window.location.hash);
   return true;
 }

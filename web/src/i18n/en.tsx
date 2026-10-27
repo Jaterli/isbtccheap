@@ -8,6 +8,29 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility" },
+  vol: {
+    title: "Bitcoin volatility",
+    rest: "How much the BTC price moves by candle size, with the price overlaid to see how they relate.",
+    card: "Realized volatility and price",
+    info: [
+      "Realized volatility measures how much the price has changed from one candle to the next over the latest candles, annualized so timeframes can be compared.",
+      "Calculation window: 24 candles on 1h (one day), 42 on 4h (one week), 30 on 1 day (one month) and 26 on 1 week (half a year). 1h and 4h use Binance candles; 1 day and 1 week, the price history since 2011 plus the current price.",
+    ],
+    tfAria: "Candle size",
+    rangeAria: "Period shown",
+    ranges: { "1y": "1Y", "4y": "4Y", all: "All" },
+    current: (vol: ReactNode, pct: ReactNode, mean: ReactNode) => (
+      <>
+        Current volatility: {vol} annualized, percentile {pct} of the period shown (average {mean}).
+      </>
+    ),
+    volLegend: "Volatility",
+    priceLegend: "Price",
+    chartAria: "Chart of Bitcoin's realized volatility and price",
+    error: "Could not load data for this timeframe.",
+    note: "Historical data, not a prediction or investment advice.",
+  },
   periods: { "2y": "2 years", "4y": "4 years", "8y": "8 years", all: "Since 2011" },
   periodAria: "Sample period",
 

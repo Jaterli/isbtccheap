@@ -15,6 +15,29 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad" },
+  vol: {
+    title: "Volatilidad de Bitcoin",
+    rest: "Cuánto se mueve el precio de BTC según el tamaño de vela, con el precio superpuesto para ver cómo se relacionan.",
+    card: "Volatilidad realizada y precio",
+    info: [
+      "La volatilidad realizada mide cuánto ha variado el precio de una vela a otra en las últimas velas, expresada en términos anuales para poder comparar temporalidades.",
+      "Ventana de cálculo: 24 velas en 1 h (un día), 42 en 4 h (una semana), 30 en 1 día (un mes) y 26 en 1 semana (medio año). En 1 h y 4 h se usan las velas de Binance; en 1 día y 1 semana, el histórico desde 2011 más el precio actual.",
+    ],
+    tfAria: "Tamaño de vela",
+    rangeAria: "Periodo mostrado",
+    ranges: { "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    current: (vol: ReactNode, pct: ReactNode, mean: ReactNode) => (
+      <>
+        Volatilidad actual: {vol} anualizada, percentil {pct} del periodo mostrado (media {mean}).
+      </>
+    ),
+    volLegend: "Volatilidad",
+    priceLegend: "Precio",
+    chartAria: "Gráfico de la volatilidad realizada de Bitcoin y de su precio",
+    error: "No se pudieron cargar los datos de esta temporalidad.",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+  },
   /** Periodo de la muestra de las tarjetas de estadística histórica */
   periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,
   periodAria: "Periodo de la muestra",

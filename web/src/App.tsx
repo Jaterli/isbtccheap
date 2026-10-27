@@ -14,7 +14,9 @@ import {
   withMonthlyHistory,
   type ScoreResult,
 } from "./lib/score";
-import { LANG_PATH, labelAt, lang, locale, savePref, t, type Lang } from "./i18n";
+import { labelAt, locale, t } from "./i18n";
+import { Header } from "./components/Header";
+import { getJson } from "./lib/data";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
@@ -26,7 +28,6 @@ import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, 
 
 const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : ms < 3_600_000 ? `${ms / 60_000} min` : `${ms / 3_600_000} h`);
 
-const DATA = import.meta.env.VITE_DATA_URL ?? `${import.meta.env.BASE_URL}data`;
 const TF_KEY = "isbtccheap:tf";
 // Cada cuánto se refrescan las velas según la temporalidad
 const REFRESH_MS: Record<Timeframe, number> = { "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000, "1M": 3_600_000 };
@@ -52,7 +53,6 @@ function loadTf(): Timeframe {
   }
 }
 
-const getJson = (path: string) => fetch(`${DATA}/${path}`, { cache: "no-cache" }).then((r) => r.json());
 
 export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
@@ -165,25 +165,7 @@ export function App() {
 
   return (
     <main className="container">
-      <header>
-        <nav className="lang-switch" aria-label={t.language}>
-          {(["es", "en"] as Lang[]).map((l) => (
-            <a key={l} href={LANG_PATH[l]} hrefLang={l} lang={l} aria-current={l === lang ? "true" : undefined} onClick={() => savePref(l)}>
-              {l.toUpperCase()}
-            </a>
-          ))}
-        </nav>
-        <div className="top">
-        <div className="brand">
-          <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
-        </div>
-        {/* El <h1> es la pregunta que buscan los usuarios (antes era solo la imagen del logo) */}
-        <div className="intro">
-          <h1>{t.taglineTitle}</h1>
-          <p className="muted">{t.taglineRest}</p>
-        </div>
-        </div>
-      </header>
+      <Header title={t.taglineTitle} rest={t.taglineRest} />
 
       <section className="dashboard">
         <article className="hero card">

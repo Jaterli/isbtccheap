@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { META } from "./src/i18n/meta";
-import { SEO } from "./src/i18n/seo";
+import { SEO, SEO_VOL } from "./src/i18n/seo";
 
 // En WSL, node_modules es un enlace simbólico al disco de Linux (mucho más rápido que /mnt/e):
 // hay que permitir a Vite servir ficheros desde su ubicación real
@@ -23,12 +23,26 @@ function seoHtml(lang: "es" | "en") {
   return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
 }
 
-const pageMeta = (lang: "es" | "en") => ({ ...META[lang], SEO: seoHtml(lang) });
+/** Lo mismo para la página de volatilidad: título, introducción y secciones explicativas */
+function volSeoHtml(lang: "es" | "en") {
+  const s = SEO_VOL[lang];
+  const secs = s.sections.map((x) => `<h2>${esc(x.h)}</h2><p>${esc(x.p)}</p>`).join("");
+  return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p>${secs}</main>`;
+}
 
-/** Un index.html por idioma: el español en la raíz y el inglés en en/index.html, con sus metadatos para buscadores
- * y redes sociales. La app es la misma; el idioma lo decide la ruta (src/i18n). */
+type Page = keyof typeof META;
+// Cada página: su HTML de entrada (español) y dónde se escribe la versión en inglés
+const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") => string }> = {
+  index: { input: "index.html", en: "en/index.html", seo: seoHtml },
+  volatility: { input: "volatilidad/index.html", en: "en/volatility/index.html", seo: volSeoHtml },
+};
+
+const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
+
+/** Un index.html por página e idioma: el español en la ruta de la página y el inglés bajo en/, con sus metadatos para
+ * buscadores y redes sociales. Cada página es su propia app; el idioma lo decide la ruta (src/i18n). */
 function i18nPages(): Plugin {
-  let template = "";
+  const templates = new Map<Page, string>();
   let outDir = "";
   return {
     name: "isbtccheap:i18n-pages",
@@ -38,14 +52,18 @@ function i18nPages(): Plugin {
     // "post": el HTML ya lleva los <script> y <link> de la compilación, que comparten las dos versiones
     transformIndexHtml: {
       order: "post",
-      handler(html) {
-        template = html;
-        return fillMeta(html, pageMeta("es"));
+      handler(html, ctx) {
+        const page: Page = ctx.path.replace(/^\//, "").startsWith("volatilidad") ? "volatility" : "index";
+        templates.set(page, html);
+        return fillMeta(html, pageMeta(page, "es"));
       },
     },
     writeBundle() {
-      mkdirSync(resolve(outDir, "en"), { recursive: true });
-      writeFileSync(resolve(outDir, "en/index.html"), fillMeta(template, pageMeta("en")));
+      for (const [page, html] of templates) {
+        const file = resolve(outDir, PAGES[page].en);
+        mkdirSync(resolve(file, ".."), { recursive: true });
+        writeFileSync(file, fillMeta(html, pageMeta(page, "en")));
+      }
     },
   };
 }
@@ -58,6 +76,11 @@ function devNews(): Plugin {
     name: "isbtccheap:dev-news",
     apply: "serve",
     configureServer(server) {
+      // Las páginas en inglés no tienen HTML propio en desarrollo: /en/volatility/ usa el de volatilidad/
+      server.middlewares.use((req, _res, next) => {
+        if (req.url?.startsWith("/en/volatility")) req.url = "/volatilidad/";
+        next();
+      });
       server.middlewares.use("/news", (req, res) => {
         const name = (req.url ?? "").split("?")[0].replace(/^\//, "");
         const file = dir + name;
@@ -74,6 +97,10 @@ function devNews(): Plugin {
 
 export default defineConfig({
   plugins: [react(), i18nPages(), devNews()],
+  build: {
+    // Dos páginas: la principal y la de volatilidad (sus versiones en inglés las escribe i18nPages)
+    rollupOptions: { input: Object.fromEntries(Object.entries(PAGES).map(([k, v]) => [k, resolve(__dirname, v.input)])) },
+  },
   server: {
     watch: {
       // Nada de esto es código de la web; vigilarlo solo ralentiza (un .venv son miles de ficheros)

@@ -11,6 +11,54 @@ export interface SeoText {
   faq: { q: string; a: string }[];
 }
 
+/** Página de volatilidad: texto visible bajo la gráfica y en el HTML inicial */
+export interface VolSeoText {
+  title: string;
+  intro: string;
+  sections: { h: string; p: string }[];
+}
+
+export const SEO_VOL: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Volatilidad de Bitcoin",
+    intro:
+      "Gráfico de la volatilidad realizada de Bitcoin en velas de 1 hora, 4 horas, 1 día y 1 semana, con el precio de BTC superpuesto.",
+    sections: [
+      {
+        h: "¿Qué es la volatilidad realizada?",
+        p: "Es la desviación típica de las variaciones del precio en las últimas velas, expresada en términos anuales. Un 50 % significa que, al ritmo actual, el precio suele moverse alrededor de un 50 % arriba o abajo en un año. Bitcoin ha bajado su volatilidad con los años: en sus primeros ciclos superaba a menudo el 100 %; en los últimos años se mueve entre el 25 % y el 80 %.",
+      },
+      {
+        h: "¿Para qué sirve?",
+        p: "La volatilidad tiende a volver a su nivel normal: los periodos de calma, con volatilidad muy baja, suelen terminar en movimientos fuertes, y los picos de volatilidad suelen coincidir con caídas bruscas o subidas verticales. Lo que la volatilidad no indica es la dirección del próximo movimiento.",
+      },
+      {
+        h: "¿Qué tamaño de vela elegir?",
+        p: "Las velas de 1 hora y 4 horas muestran la agitación del mercado en días o semanas, útil para el corto plazo. Las de 1 día y 1 semana muestran los regímenes de volatilidad de meses y años, y permiten compararlos con los de ciclos anteriores.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin volatility",
+    intro:
+      "Chart of Bitcoin's realized volatility on 1-hour, 4-hour, 1-day and 1-week candles, with the BTC price overlaid.",
+    sections: [
+      {
+        h: "What is realized volatility?",
+        p: "It is the standard deviation of price changes over the latest candles, annualized. 50% means that, at the current pace, the price typically moves around 50% up or down over a year. Bitcoin's volatility has fallen over the years: in its early cycles it often exceeded 100%; in recent years it has ranged between 25% and 80%.",
+      },
+      {
+        h: "What is it useful for?",
+        p: "Volatility tends to return to its normal level: calm periods with very low volatility tend to end in strong moves, and volatility spikes tend to coincide with sharp drops or vertical rallies. What volatility does not tell you is the direction of the next move.",
+      },
+      {
+        h: "Which candle size should I choose?",
+        p: "1-hour and 4-hour candles show market turbulence over days or weeks, useful for the short term. 1-day and 1-week candles show volatility regimes over months and years, and let you compare them with previous cycles.",
+      },
+    ],
+  },
+};
+
 export const SEO: Record<"es" | "en", SeoText> = {
   es: {
     title: "¿Está Bitcoin barato o caro?",
