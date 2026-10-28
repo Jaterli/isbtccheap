@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json y bands.json.
+Genera web/public/data/latest.json, history.json, categories.json, bands.json y etf.json.
 """
 
 import json
@@ -32,16 +32,32 @@ ATTRIBUTION = [
 log = logging.getLogger("isbtccheap")
 
 
-def etf_attribution(extra: dict) -> list[dict]:
+def etf_credit(etf) -> str:
     """Cita que exige la licencia CC BY 4.0 de los flujos de ETF, con la fecha de los últimos datos."""
+    return f"The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through {etf.index[-1]:%Y-%m-%d}"
+
+
+def etf_attribution(extra: dict) -> list[dict]:
     if "etf_flows" not in extra:
         return []
-    through = extra["etf_flows"].index[-1].strftime("%Y-%m-%d")
-    return [{
-        "name": f"The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through {through}",
-        "url": "https://www.tftc.io/bitcoin-etf-flows",
-        "license": "CC BY 4.0",
-    }]
+    return [{"name": etf_credit(extra["etf_flows"]), "url": "https://www.tftc.io/bitcoin-etf-flows", "license": "CC BY 4.0"}]
+
+
+def etf_json(etf) -> dict:
+    """Para la página de ETF (web/etf): flujo neto y precio de cada sesión, y por fondo el flujo de la última sesión,
+    de las últimas 20 y el acumulado desde el lanzamiento (USD)."""
+    per = pd.DataFrame(list(etf["per_fund"]), index=etf.index).fillna(0)
+    funds = [
+        {"ticker": t, "last": round(per[t].iloc[-1]), "d20": round(per[t].iloc[-20:].sum()), "total": round(per[t].sum())}
+        for t in per.sum().sort_values(ascending=False).index
+    ]
+    return {
+        "credit": etf_credit(etf),
+        "dates": [d.strftime("%Y-%m-%d") for d in etf.index],
+        "flow": [round(float(v)) for v in etf["flow_usd"]],
+        "price": [round(float(v)) for v in etf["price"]],
+        "funds": funds,
+    }
 
 
 def _clean(x):
@@ -136,6 +152,9 @@ def main() -> None:
     # Para la página de bandas de valoración (web/valoracion)
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
+    # Para la página de ETF (web/etf); si la fuente falló, se deja el de la última ejecución
+    if "etf_flows" in extra:
+        (OUT_DIR / "etf.json").write_text(json.dumps(etf_json(extra["etf_flows"]), separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")
 
 

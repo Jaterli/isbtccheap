@@ -13,7 +13,7 @@ interface Props {
 // Categorías que se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
 const LIVE: CategoryId[] = ["tecnico", "sentimiento"];
 
-const ORDER: CategoryId[] = ["valoracion", "ciclo", "liquidez", "sentimiento", "tecnico"];
+const ORDER: CategoryId[] = ["sentimiento", "valoracion", "ciclo", "liquidez", "tecnico"];
 // Puntuación a partir de la que una métrica está en zona extrema: el 10 % más bajo o más alto de su historia reciente
 const EXTREME = 10;
 

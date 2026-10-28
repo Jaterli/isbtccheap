@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -137,10 +137,35 @@ export const en: Messages = {
     note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price and heatmap of the score and its five categories since 2011",
   },
+  etf: {
+    title: "Bitcoin ETF flows",
+    rest: "How much money flows into or out of US spot bitcoin ETFs each day, against the BTC price.",
+    card: "Daily net flow and price",
+    info: [
+      "Each bar is a session's net flow: inflows minus outflows across all US spot bitcoin ETFs (IBIT, FBTC, GBTC…), in dollars. Green, inflows; red, outflows. The x axis is trading sessions, without weekends or holidays.",
+      "The index uses the sum of the last 20 sessions in BTC as a sentiment metric: strong inflows, typical of tops, add; outflows, typical of lows, subtract. The data is updated once a day.",
+    ],
+    money: (v: number) =>
+      v >= 1e9
+        ? `$${(v / 1e9).toLocaleString("en-US", { maximumFractionDigits: 1 })}B`
+        : `$${(v / 1e6).toLocaleString("en-US", { maximumFractionDigits: v < 1e7 ? 1 : 0 })}M`,
+    current: (day: ReactNode, last: ReactNode, n: number, sum: ReactNode, sumBtc: ReactNode, pct: ReactNode, total: ReactNode) => (
+      <>
+        Last session ({day}): {last}. Over the last {n} sessions: {sum} ({sumBtc}), percentile {pct} since launch. Cumulative since January
+        2024: {total}.
+      </>
+    ),
+    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative" },
+    tableTitle: "By fund",
+    cols: { fund: "Fund", last: (d: string) => `${d} session`, d20: (n: number) => `Last ${n} sessions`, total: "Since launch" },
+    source: "Source:",
+    note: "Historical data, not a forecast or investment advice.",
+    chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
+  },
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "3m": "3M", "1y": "1Y", "4y": "4Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },

@@ -2,7 +2,7 @@ import { en } from "./en";
 import { es, type Messages } from "./es";
 
 export type Lang = "es" | "en";
-export type Page = "index" | "volatility" | "cycles" | "valuation" | "drawdown" | "categories";
+export type Page = "index" | "volatility" | "cycles" | "valuation" | "drawdown" | "categories" | "etf";
 
 /** Ruta de cada página en cada idioma: el español en la raíz y el inglés bajo /en/ (cada una con su index.html, ver
  * vite.config.ts) */
@@ -13,6 +13,7 @@ export const PAGE_PATH: Record<Page, Record<Lang, string>> = {
   valuation: { es: "/valoracion/", en: "/en/valuation/" },
   drawdown: { es: "/caidas/", en: "/en/drawdown/" },
   categories: { es: "/categorias/", en: "/en/categories/" },
+  etf: { es: "/etf/", en: "/en/etf/" },
 };
 const PREF_KEY = "isbtccheap:lang";
 

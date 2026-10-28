@@ -93,11 +93,19 @@ def bitview(series: str) -> pd.Series:
     return s.where(s > 0).sort_index()
 
 
-def etf_flows() -> pd.Series:
-    """Flujo neto diario de los ETF de bitcoin al contado de EE. UU., en BTC (flujo en USD / precio de referencia del
-    día), una fila por sesión desde el lanzamiento (2024-01-11). The Commoner Bitcoin ETF Tracker de TFTC, CC BY 4.0:
-    exige citar la fuente y la fecha de los datos (ver ATTRIBUTION en build.py)."""
+def etf_flows() -> pd.DataFrame:
+    """Flujos de los ETF de bitcoin al contado de EE. UU., una fila por sesión desde el lanzamiento (2024-01-11): flujo
+    neto en USD (flow_usd), precio de referencia del día (price), activos totales (aum, a veces vacío) y el desglose
+    por fondo (per_fund, dict ticker → USD). The Commoner Bitcoin ETF Tracker de TFTC, CC BY 4.0: exige citar la fuente
+    y la fecha de los datos (ver etf_attribution en build.py)."""
     days = _get("https://www.tftc.io/bitcoin-etf-flows/data.json").json()["days"]
-    df = pd.DataFrame(days)
-    s = pd.Series((df["netFlowUsd"] / df["btcCloseUsd"]).values, index=pd.to_datetime(df["date"]), name="etf_flows")
-    return s.dropna().sort_index()
+    df = pd.DataFrame(
+        {
+            "flow_usd": [d["netFlowUsd"] for d in days],
+            "price": [d["btcCloseUsd"] for d in days],
+            "aum": [d.get("totalNetAssetsUsd") for d in days],
+            "per_fund": [d.get("perEtfUsd") or {} for d in days],
+        },
+        index=pd.to_datetime([d["date"] for d in days]),
+    )
+    return df.dropna(subset=["flow_usd", "price"]).sort_index()

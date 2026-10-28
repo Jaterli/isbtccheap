@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18n";
 
-const PAGES: Page[] = ["index", "volatility", "cycles", "valuation", "drawdown", "categories"];
+const PAGES: Page[] = ["index", "volatility", "cycles", "valuation", "drawdown", "categories", "etf"];
 
 /** Cabecera común: navegación entre páginas, selector de idioma (a la misma página en el otro idioma), logo y título. */
 export function Header({ title, rest }: { title: string; rest: string }) {

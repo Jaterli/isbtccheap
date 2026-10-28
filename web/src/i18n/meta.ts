@@ -21,6 +21,7 @@ const CYCLES = { URL_ES: `${SITE}/ciclos/`, URL_EN: `${SITE}/en/cycles/` };
 const VALUATION = { URL_ES: `${SITE}/valoracion/`, URL_EN: `${SITE}/en/valuation/` };
 const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
+const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -143,8 +144,27 @@ const CATEGORIES_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const ETF_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...ETF,
+    URL: ETF.URL_ES,
+    TITLE: "Flujos de los ETF de Bitcoin hoy: entradas y salidas diarias | Is BTC Cheap?",
+    DESCRIPTION:
+      "Entradas y salidas diarias de los ETF de bitcoin al contado de EE. UU. frente al precio de BTC, con el acumulado desde 2024 y el desglose por fondo: IBIT, FBTC, GBTC y el resto.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...ETF,
+    URL: ETF.URL_EN,
+    TITLE: "Bitcoin ETF flows today: daily inflows and outflows | Is BTC Cheap?",
+    DESCRIPTION:
+      "Daily inflows and outflows of US spot bitcoin ETFs against the BTC price, with cumulative flows since 2024 and a per-fund breakdown: IBIT, FBTC, GBTC and the rest.",
+  },
+};
+
 /** Por página: la principal (index.html) y las de gráficas, cada una en su carpeta (volatilidad/, ciclos/,
- * valoracion/, caidas/, categorias/) */
+ * valoracion/, caidas/, categorias/, etf/) */
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -152,4 +172,5 @@ export const META = {
   valuation: VALUATION_META,
   drawdown: DRAWDOWN_META,
   categories: CATEGORIES_META,
+  etf: ETF_META,
 };

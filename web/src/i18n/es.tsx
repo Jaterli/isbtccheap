@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -144,10 +144,35 @@ export const es = {
     note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y mapa de calor del score y de sus cinco categorías desde 2011",
   },
+  etf: {
+    title: "Flujos de los ETF de Bitcoin",
+    rest: "Cuánto dinero entra o sale cada día de los ETF de bitcoin al contado de EE. UU., frente al precio de BTC.",
+    card: "Flujo neto diario y precio",
+    info: [
+      "Cada barra es el flujo neto de una sesión: lo que entró menos lo que salió del conjunto de ETF de bitcoin al contado de EE. UU. (IBIT, FBTC, GBTC…), en dólares. Verde, entradas; rojo, salidas. El eje x son sesiones de mercado, sin fines de semana ni festivos.",
+      "El índice usa la suma de las últimas 20 sesiones en BTC como métrica de sentimiento: entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Los datos se actualizan una vez al día.",
+    ],
+    money: (v: number) =>
+      v >= 1e9
+        ? `${(v / 1e9).toLocaleString("es-ES", { maximumFractionDigits: 1 })} mil M$`
+        : `${(v / 1e6).toLocaleString("es-ES", { maximumFractionDigits: v < 1e7 ? 1 : 0 })} M$`,
+    current: (day: ReactNode, last: ReactNode, n: number, sum: ReactNode, sumBtc: ReactNode, pct: ReactNode, total: ReactNode) => (
+      <>
+        Última sesión ({day}): {last}. En las últimas {n} sesiones: {sum} ({sumBtc}), percentil {pct} desde el lanzamiento. Acumulado desde
+        enero de 2024: {total}.
+      </>
+    ),
+    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado" },
+    tableTitle: "Por fondo",
+    cols: { fund: "Fondo", last: (d: string) => `Sesión del ${d}`, d20: (n: number) => `Últimas ${n} sesiones`, total: "Desde el lanzamiento" },
+    source: "Fuente:",
+    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
+  },
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
@@ -311,7 +336,7 @@ export const es = {
       read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
     },
     etf_flows: {
-      name: "Flujos de ETF al contado (20 sesiones)",
+      name: "Flujos de ETF al contado (20 ses.)",
       what: "Entradas menos salidas de los ETF de bitcoin al contado de EE. UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
       read: "Percentil frente a su historia. Entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Con menos de tres años de datos, es una señal todavía poco contrastada.",
     },

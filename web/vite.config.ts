@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { META } from "./src/i18n/meta";
-import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_VALUATION, SEO_VOL } from "./src/i18n/seo";
+import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_VALUATION, SEO_VOL } from "./src/i18n/seo";
 
 // En WSL, node_modules es un enlace simbólico al disco de Linux (mucho más rápido que /mnt/e):
 // hay que permitir a Vite servir ficheros desde su ubicación real
@@ -23,7 +23,7 @@ function seoHtml(lang: "es" | "en") {
   return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
 }
 
-/** Lo mismo para las páginas de gráficas (volatilidad, ciclos, valoración, caídas, categorías): título, introducción y secciones explicativas */
+/** Lo mismo para las páginas de gráficas (volatilidad, ciclos, valoración, caídas, categorías, ETF): título, introducción y secciones explicativas */
 function chartSeoHtml(texts: typeof SEO_VOL, lang: "es" | "en") {
   const s = texts[lang];
   const secs = s.sections.map((x) => `<h2>${esc(x.h)}</h2><p>${esc(x.p)}</p>`).join("");
@@ -39,6 +39,7 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
   valuation: { input: "valoracion/index.html", en: "en/valuation/index.html", seo: (l) => chartSeoHtml(SEO_VALUATION, l) },
   drawdown: { input: "caidas/index.html", en: "en/drawdown/index.html", seo: (l) => chartSeoHtml(SEO_DRAWDOWN, l) },
   categories: { input: "categorias/index.html", en: "en/categories/index.html", seo: (l) => chartSeoHtml(SEO_CATEGORIES, l) },
+  etf: { input: "etf/index.html", en: "en/etf/index.html", seo: (l) => chartSeoHtml(SEO_ETF, l) },
 };
 
 const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
@@ -88,6 +89,7 @@ function devNews(): Plugin {
         else if (req.url?.startsWith("/en/valuation")) req.url = "/valoracion/";
         else if (req.url?.startsWith("/en/drawdown")) req.url = "/caidas/";
         else if (req.url?.startsWith("/en/categories")) req.url = "/categorias/";
+        else if (req.url?.startsWith("/en/etf")) req.url = "/etf/";
         next();
       });
       server.middlewares.use("/news", (req, res) => {

@@ -85,4 +85,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/categories/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/categories/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/etf/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/etf/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/etf/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/etf/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/etf/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/etf/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/etf/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/etf/" />
+  </url>
 </urlset>

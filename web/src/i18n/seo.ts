@@ -325,3 +325,45 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+/** Página de flujos de ETF: texto visible bajo la gráfica y en el HTML inicial */
+export const SEO_ETF: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Flujos de los ETF de Bitcoin",
+    intro:
+      "Gráfico de las entradas y salidas diarias de los ETF de bitcoin al contado de EE. UU. frente al precio de BTC desde su lanzamiento en enero de 2024, con el acumulado y el desglose por fondo.",
+    sections: [
+      {
+        h: "¿Qué son los flujos de los ETF de bitcoin?",
+        p: "Los ETF al contado compran bitcoin real cuando reciben dinero de sus inversores y lo venden cuando se lo retiran. El flujo neto de cada sesión es la diferencia entre entradas y salidas del conjunto de fondos, y muestra si los inversores tradicionales están comprando o vendiendo exposición a Bitcoin.",
+      },
+      {
+        h: "¿Cuánto han captado desde su lanzamiento?",
+        p: "Desde enero de 2024 los ETF de bitcoin al contado de EE. UU. acumulan unas entradas netas de unos 57.000 millones de dólares: 35.000 millones en 2024 y 21.000 millones en 2025. IBIT, de BlackRock, ha captado unos 66.000 millones, mientras que GBTC, de Grayscale, ha perdido unos 28.000 millones al pasar de fondo cerrado a ETF con comisiones más altas que sus rivales.",
+      },
+      {
+        h: "¿Cómo se interpretan?",
+        p: "Las entradas fuertes y sostenidas han acompañado a las subidas y a los techos, y las salidas, a las caídas y a los mínimos: es un reflejo del sentimiento de los inversores más que una predicción. Por eso el índice de Is BTC Cheap? usa la suma de las últimas 20 sesiones como una métrica más de sentimiento. Con menos de tres años de historia, conviene tomarla con prudencia.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin ETF flows",
+    intro:
+      "Chart of daily inflows and outflows of US spot bitcoin ETFs against the BTC price since their launch in January 2024, with cumulative flows and a per-fund breakdown.",
+    sections: [
+      {
+        h: "What are bitcoin ETF flows?",
+        p: "Spot ETFs buy actual bitcoin when they receive money from their investors and sell it when investors withdraw. Each session's net flow is the difference between inflows and outflows across all funds, and shows whether traditional investors are buying or selling Bitcoin exposure.",
+      },
+      {
+        h: "How much have they taken in since launch?",
+        p: "Since January 2024, US spot bitcoin ETFs have accumulated about $57 billion in net inflows: $35 billion in 2024 and $21 billion in 2025. BlackRock's IBIT has taken in about $66 billion, while Grayscale's GBTC has lost about $28 billion after converting from a closed-end fund to an ETF with higher fees than its rivals.",
+      },
+      {
+        h: "How should you read them?",
+        p: "Strong, sustained inflows have accompanied rallies and tops, and outflows have accompanied drops and lows: they reflect investor sentiment rather than predict it. That is why the Is BTC Cheap? index uses the sum of the last 20 sessions as one more sentiment metric. With less than three years of history, it is worth treating with caution.",
+      },
+    ],
+  },
+};
