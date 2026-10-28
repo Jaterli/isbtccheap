@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -161,6 +161,30 @@ export const en: Messages = {
     source: "Source:",
     note: "Historical data, not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
+  },
+  liquidity: {
+    title: "Fed net liquidity and Bitcoin",
+    rest: "The change in Federal Reserve liquidity against the BTC price 13 weeks later: does liquidity lead the price?",
+    card: "Net liquidity (13-week change) and BTC price 13 weeks later",
+    info: [
+      "Net liquidity = Federal Reserve balance sheet (WALCL) − Treasury General Account (WTREGEN) − reverse repos (RRPONTSYD), from FRED. It is the money the Fed leaves in the financial system. The orange line is its change over the last 13 weeks, with weekly data up to the latest release.",
+      "The blue line is the BTC price shifted 13 weeks back: each date shows the price 13 weeks later. If liquidity leads the price, both lines rise and fall together. The shaded stretch at the end is liquidity already released whose price has not arrived yet.",
+    ],
+    money: (bn: number) => `$${(bn / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} trillion`,
+    current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
+      <>
+        Fed net liquidity as of {day}: {net}, {roc} over 13 weeks.
+      </>
+    ),
+    correlation: (c: ReactNode) => <>Over the period shown, its correlation with BTC's return over the following 13 weeks is {c}.</>,
+    legend: {
+      roc: "Liquidity (13w)",
+      lead: (d: string) => `BTC on ${d}`,
+      pending: "not yet",
+    },
+    today: "BTC today",
+    note: "Weekly data from FRED (Federal Reserve Bank of St. Louis). Correlation is not causation; not a forecast or investment advice.",
+    chartAria: "Chart of the 13-week change in Fed net liquidity and the Bitcoin price 13 weeks later",
   },
   charts: {
     tfAria: "Candle size",

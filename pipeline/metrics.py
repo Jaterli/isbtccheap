@@ -73,6 +73,30 @@ def valuation_bands(cm: pd.DataFrame, sth_realized: pd.Series | None = None) -> 
     }
 
 
+def net_liquidity(extra: dict, index: pd.DatetimeIndex) -> pd.Series:
+    """Balance de la Fed − cuenta del Tesoro − repos inversos, en millones de USD (RRPONTSYD viene en miles de millones)."""
+    return _daily(extra["WALCL"], index) - _daily(extra["WTREGEN"], index) - _daily(extra["RRPONTSYD"], index).fillna(0) * 1000
+
+
+def liquidity_json(extra: dict, price: pd.Series) -> dict:
+    """liquidity.json, semanal (miércoles, el día de corte del balance de la Fed): liquidez neta en miles de millones y su
+    variación en 13 semanas hasta el último dato publicado de las tres series, y el precio de BTC hasta hoy."""
+    through = min(extra[k].dropna().index[-1] for k in ("WALCL", "WTREGEN", "RRPONTSYD"))
+    daily = pd.date_range("2010-01-01", through, freq="D")
+    net = net_liquidity(extra, daily)
+    roc = net.pct_change(91, fill_method=None)
+    weeks = pd.date_range("2011-01-05", max(through, price.index[-1]), freq="W-WED")
+    p = price.reindex(price.index.union(weeks)).ffill().reindex(weeks).where(weeks <= price.index[-1])
+    num = lambda s, nd: [None if pd.isna(v) else round(float(v), nd) for v in s.reindex(weeks)]
+    return {
+        "through": through.strftime("%Y-%m-%d"),
+        "dates": [d.strftime("%Y-%m-%d") for d in weeks],
+        "net": num(net / 1000, 1),
+        "roc": num(roc, 4),
+        "price": num(p, 0),
+    }
+
+
 def halving_phase_score(index: pd.DatetimeIndex) -> pd.Series:
     bounds = [GENESIS] + [pd.Timestamp(h) for h in HALVINGS]
     xs, ys = zip(*HALVING_PHASE_CURVE)
@@ -110,9 +134,7 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     m["wma200_ratio"] = price / price.rolling(1400).mean()
 
     if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD")):
-        # WALCL y WTREGEN en millones de USD, RRPONTSYD en miles de millones
-        net = _daily(extra["WALCL"], idx) - _daily(extra["WTREGEN"], idx) - _daily(extra["RRPONTSYD"], idx).fillna(0) * 1000
-        m["net_liquidity_roc"] = net.pct_change(91, fill_method=None)
+        m["net_liquidity_roc"] = net_liquidity(extra, idx).pct_change(91, fill_method=None)
     if "M2SL" in extra:
         m["m2_yoy"] = _daily(extra["M2SL"], idx).pct_change(365, fill_method=None)
     if "DTWEXBGS" in extra:

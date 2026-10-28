@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n} %`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -168,6 +168,32 @@ export const es = {
     source: "Fuente:",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
+  },
+  liquidity: {
+    title: "Liquidez neta de la Fed y Bitcoin",
+    rest: "La variación de la liquidez de la Reserva Federal frente al precio de BTC 13 semanas después: ¿se adelanta la liquidez al precio?",
+    card: "Liquidez neta (var. 13 sem.) y precio de BTC 13 semanas después",
+    info: [
+      "Liquidez neta = balance de la Reserva Federal (WALCL) − cuenta general del Tesoro (WTREGEN) − repos inversos (RRPONTSYD), de FRED. Es el dinero que la Fed deja en el sistema financiero. La línea naranja es su variación en las últimas 13 semanas, con datos semanales hasta el último publicado.",
+      "La línea azul es el precio de BTC desplazado 13 semanas hacia atrás: en cada fecha se ve el precio que tuvo 13 semanas después. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado del final es liquidez ya publicada cuyo precio aún no ha llegado.",
+    ],
+    money: (bn: number) => `${(bn / 1000).toLocaleString("es-ES", { maximumFractionDigits: 2 })} billones de $`,
+    current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
+      <>
+        Liquidez neta de la Fed a {day}: {net}, {roc} en 13 semanas.
+      </>
+    ),
+    correlation: (c: ReactNode) => (
+      <>En el periodo mostrado, su correlación con la rentabilidad de BTC en las 13 semanas siguientes es {c}.</>
+    ),
+    legend: {
+      roc: "Liquidez (13 sem.)",
+      lead: (d: string) => `BTC el ${d}`,
+      pending: "aún no",
+    },
+    today: "BTC hoy",
+    note: "Datos de FRED (Reserva Federal de St. Louis), semanales. Correlación no implica causalidad; no es una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico de la variación en 13 semanas de la liquidez neta de la Fed y del precio de Bitcoin 13 semanas después",
   },
   charts: {
     tfAria: "Tamaño de vela",

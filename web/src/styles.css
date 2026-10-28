@@ -441,6 +441,15 @@ header {position: relative;}
 .etf-table td.up, .vol-stats .up { color: var(--band-1); }
 .etf-table td.down, .vol-stats .down { color: var(--band-5); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
+/* Liquidez */
+.liq-roc { --c: var(--accent); }
+.legend.liq-roc::before { background: var(--c); }
+.liq-line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.liq-dot { fill: var(--accent); }
+.liq-zero { stroke: var(--muted); stroke-dasharray: 3 3; }
+.liq-ahead { fill: var(--accent); opacity: 0.06; }
+.liq-today { fill: var(--price); font-weight: 600; }
+
 /* Enlace de la portada a otra página */
 .page-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 18px; text-decoration: none; }
 .page-link span { color: var(--muted); }

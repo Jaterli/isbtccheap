@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json, bands.json y etf.json.
+Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json y liquidity.json.
 """
 
 import json
@@ -151,6 +151,9 @@ def main() -> None:
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución
+    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD")):
+        liquidity = metrics_mod.liquidity_json(extra, cm["PriceUSD"].dropna())
+        (OUT_DIR / "liquidity.json").write_text(json.dumps(liquidity, separators=(",", ":")), encoding="utf-8")
     if "etf_flows" in extra:
         (OUT_DIR / "etf.json").write_text(json.dumps(etf_json(extra["etf_flows"]), separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")

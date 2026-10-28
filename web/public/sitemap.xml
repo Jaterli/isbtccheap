@@ -99,4 +99,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/etf/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/etf/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/liquidez/</loc>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/liquidez/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/liquidity/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/liquidity/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/liquidity/</loc>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/liquidez/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/liquidity/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/liquidity/" />
+  </url>
 </urlset>

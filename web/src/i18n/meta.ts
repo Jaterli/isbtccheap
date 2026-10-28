@@ -21,6 +21,7 @@ const VALUATION = { URL_ES: `${SITE}/valoracion/`, URL_EN: `${SITE}/en/valuation
 const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
 const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
+const LIQUIDITY = { URL_ES: `${SITE}/liquidez/`, URL_EN: `${SITE}/en/liquidity/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -162,6 +163,25 @@ const ETF_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const LIQUIDITY_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...LIQUIDITY,
+    URL: LIQUIDITY.URL_ES,
+    TITLE: "Liquidez neta de la Fed y Bitcoin: ¿anticipa el precio? | Is BTC Cheap?",
+    DESCRIPTION:
+      "Variación en 13 semanas de la liquidez neta de la Reserva Federal (balance menos cuenta del Tesoro y repos inversos) frente al precio de Bitcoin 13 semanas después, desde 2011.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...LIQUIDITY,
+    URL: LIQUIDITY.URL_EN,
+    TITLE: "Fed net liquidity and Bitcoin: does it lead the price? | Is BTC Cheap?",
+    DESCRIPTION:
+      "13-week change in Federal Reserve net liquidity (balance sheet minus Treasury account and reverse repos) against the Bitcoin price 13 weeks later, since 2011.",
+  },
+};
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -170,4 +190,5 @@ export const META = {
   drawdown: DRAWDOWN_META,
   categories: CATEGORIES_META,
   etf: ETF_META,
+  liquidity: LIQUIDITY_META,
 };

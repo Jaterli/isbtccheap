@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="__LANG__">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Copia de la cabecera de index.html: los cambios de allí van también aquí -->
+    <meta name="description" content="__DESCRIPTION__" />
+    <link rel="canonical" href="__URL__" />
+    <link rel="alternate" hreflang="es" href="__URL_ES__" />
+    <link rel="alternate" hreflang="en" href="__URL_EN__" />
+    <link rel="alternate" hreflang="x-default" href="__URL_EN__" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="__OG_LOCALE__" />
+    <meta property="og:url" content="__URL__" />
+    <meta property="og:title" content="__TITLE__" />
+    <meta property="og:description" content="__DESCRIPTION__" />
+    <meta property="og:image" content="__OG_IMAGE__" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="__OG_IMAGE_ALT__" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="__OG_IMAGE__" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.jpg" />
+    <link rel="preload" as="image" href="/logo.jpg" />
+    <meta name="theme-color" content="#0f1217" />
+    <title>__TITLE__</title>
+    <!-- Con JavaScript, el texto para buscadores de #root no se muestra mientras React monta la página (evita el destello);
+         sin JavaScript se ve. Si React no lo sustituye en 4 s, reaparece -->
+    <script>document.documentElement.classList.add("js")</script>
+    <style>
+      .js .seo-prerender { visibility: hidden; animation: seo-reveal 0s 4s forwards; }
+      @keyframes seo-reveal { to { visibility: visible; } }
+    </style>
+    <!-- Datos estructurados: una página de la web Is BTC Cheap? -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "__TITLE__",
+        "url": "__URL__",
+        "description": "__DESCRIPTION__",
+        "inLanguage": "__LANG__",
+        "isPartOf": { "@type": "WebSite", "name": "Is BTC Cheap?", "url": "https://isbtccheap.com/" },
+        "author": { "@type": "Person", "name": "Jaterli", "url": "https://jaterli.com" }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root">__SEO__</div>
+    <script type="module" src="/src/liquidity-main.tsx"></script>
+  </body>
+</html>
