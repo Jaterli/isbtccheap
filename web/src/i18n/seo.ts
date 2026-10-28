@@ -69,7 +69,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez neta de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -105,7 +105,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: Federal Reserve net liquidity, M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -294,7 +294,7 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Por qué la liquidez va a contracorriente?",
-        p: "En los suelos de 2015, 2018 y 2022 la liquidez estaba en zona cara (entre 83 y 90): esos mercados bajistas coincidieron con un endurecimiento de la liquidez global, con subidas de tipos, retirada de estímulos o un dólar fuerte. La liquidez no señala bien los extremos, pero sí ayuda a anticipar el año siguiente; por eso pesa poco en las temporalidades cortas y más en la mensual.",
+        p: "En los suelos de 2015, 2018 y 2022 la liquidez estaba en zona cara (entre 85 y 93): esos mercados bajistas coincidieron con un endurecimiento de la liquidez global, con subidas de tipos, retirada de estímulos o un dólar fuerte. La liquidez no señala bien los extremos, pero sí ayuda a anticipar el año siguiente; por eso pesa poco en las temporalidades cortas y más en la mensual.",
       },
     ],
   },
@@ -313,7 +313,7 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "Why does liquidity run against the grain?",
-        p: "At the 2015, 2018 and 2022 bottoms, liquidity was in expensive territory (between 83 and 90): those bear markets coincided with tightening global liquidity, with rate hikes, withdrawal of stimulus or a strong dollar. Liquidity does not mark the extremes well, but it does help anticipate the following year; that is why it weighs little on short timeframes and more on the monthly one.",
+        p: "At the 2015, 2018 and 2022 bottoms, liquidity was in expensive territory (between 85 and 93): those bear markets coincided with tightening global liquidity, with rate hikes, withdrawal of stimulus or a strong dollar. Liquidity does not mark the extremes well, but it does help anticipate the following year; that is why it weighs little on short timeframes and more on the monthly one.",
       },
     ],
   },
@@ -364,7 +364,7 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Liquidez global y Bitcoin",
     intro:
-      "Gráfico del precio de Bitcoin frente a la variación en 13 semanas de la liquidez global (Reserva Federal, BCE y Banco de Japón) y de la liquidez neta de la Fed, adelantadas 13 semanas, con datos semanales de FRED desde 2011.",
+      "Gráfico del precio de Bitcoin frente a la variación en 13 semanas de la liquidez global (Reserva Federal, BCE y Banco de Japón), adelantada 13 semanas, con datos semanales de FRED desde 2011.",
     sections: [
       {
         h: "¿Qué es la liquidez global?",
@@ -376,14 +376,14 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Cómo la usa el índice?",
-        p: "La liquidez neta de la Fed es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la masa monetaria M2, la fuerza del dólar y la oferta de stablecoins. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
+        p: "La liquidez global es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la masa monetaria M2, la fuerza del dólar y la oferta de stablecoins. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
       },
     ],
   },
   en: {
     title: "Global liquidity and Bitcoin",
     intro:
-      "Chart of the Bitcoin price against the 13-week change in global liquidity (Federal Reserve, ECB and Bank of Japan) and Fed net liquidity, shifted 13 weeks forward, with weekly FRED data since 2011.",
+      "Chart of the Bitcoin price against the 13-week change in global liquidity (Federal Reserve, ECB and Bank of Japan), shifted 13 weeks forward, with weekly FRED data since 2011.",
     sections: [
       {
         h: "What is global liquidity?",
@@ -395,7 +395,7 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "How does the index use it?",
-        p: "Fed net liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with M2 money supply, dollar strength and stablecoin supply. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
+        p: "Global liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with M2 money supply, dollar strength and stablecoin supply. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
       },
     ],
   },

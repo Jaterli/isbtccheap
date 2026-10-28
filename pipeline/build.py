@@ -18,8 +18,7 @@ import sources
 from config import CATEGORIES, LABELS, METRICS, SCORE_STRETCH, TIMEFRAME_WEIGHTS
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
-# Las cuatro últimas, solo para la liquidez global de la página de liquidez: balances del BCE y del Banco de Japón y
-# los tipos de cambio para pasarlos a dólares
+# Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
 FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS"]
 
 ATTRIBUTION = [
@@ -153,7 +152,7 @@ def main() -> None:
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución
-    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD")):
+    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *metrics_mod.GLOBAL_SERIES)):
         liquidity = metrics_mod.liquidity_json(extra, cm["PriceUSD"].dropna())
         (OUT_DIR / "liquidity.json").write_text(json.dumps(liquidity, separators=(",", ":")), encoding="utf-8")
     if "etf_flows" in extra:

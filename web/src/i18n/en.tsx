@@ -169,7 +169,6 @@ export const en: Messages = {
     info: [
       "Global liquidity = Fed net liquidity (balance sheet − Treasury account − reverse repos) + the ECB and Bank of Japan balance sheets, in dollars. Weekly FRED data up to the latest Fed release; the Bank of Japan's is monthly and its latest value is carried forward. The orange line is its 13-week change.",
       "The orange line is shifted 13 weeks forward: each date shows the liquidity change from 13 weeks earlier, next to that day's BTC price (blue). If liquidity leads the price, both lines rise and fall together. The shaded stretch is the next 13 weeks: what the liquidity already released anticipates.",
-      "The “Fed” button adds Fed net liquidity on its own, for comparison.",
     ],
     money: (bn: number) => `$${(bn / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} trillion`,
     current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
@@ -177,17 +176,10 @@ export const en: Messages = {
         Global liquidity as of {day}: {net}, {roc} over 13 weeks.
       </>
     ),
-    fed: (net: ReactNode, roc: ReactNode) => (
-      <>
-        Fed only: {net}, {roc}.
-      </>
-    ),
     correlation: (c: ReactNode) => <>Over the period shown, its correlation with BTC's return over the following 13 weeks is {c}.</>,
-    fedToggle: "Fed",
     legend: {
       price: "BTC",
       roc: (d: string) => `Global liquidity (13w) as of ${d}`,
-      fed: "Fed",
       pending: "not yet",
     },
     today: "Today",
@@ -198,7 +190,7 @@ export const en: Messages = {
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "3m": "3M", "1y": "1Y", "4y": "4Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },
@@ -327,10 +319,10 @@ export const en: Messages = {
       what: "How far the price is above or below its 200-week moving average (about 4 years, a full cycle).",
       read: "That average has acted as a floor in every cycle: near 0% (price at the average) is a very cheap zone; far above it, euphoria.",
     },
-    net_liquidity_roc: {
-      name: "Fed net liquidity (13-week change)",
-      what: "13-week change in the Fed's net liquidity: the Federal Reserve balance sheet minus the Treasury account and reverse repos.",
-      read: "If it rises, liquidity flows into markets and lowers the score; if it falls, it raises it.",
+    global_liquidity_roc: {
+      name: "Global liquidity (13-week change)",
+      what: "13-week change in major central bank liquidity in dollars: Fed net liquidity (balance sheet minus Treasury account and reverse repos) plus the ECB and Bank of Japan balance sheets.",
+      read: "If it rises, liquidity flows into markets and lowers the score; if it falls, it raises it. It anticipates BTC returns considerably better than Fed liquidity alone.",
     },
     m2_yoy: {
       name: "US M2 (year-over-year)",

@@ -81,34 +81,39 @@ def net_liquidity(extra: dict, index: pd.DatetimeIndex) -> pd.Series:
 GLOBAL_SERIES = ("ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS")
 
 
+# Días que tardan en publicarse: el balance del BCE (viernes) sale el martes siguiente y el del Banco de Japón (mensual),
+# unas 5 semanas después del mes. Sin este retraso, el histórico usaría datos que aún no se conocían
+PUBLICATION_LAG = {"ECBASSETSW": 4, "JPNASSETS": 35}
+
+
 def global_liquidity(extra: dict, index: pd.DatetimeIndex) -> pd.Series:
-    """Liquidez neta de la Fed + balances del BCE y del Banco de Japón en dólares, en millones de USD. En el backtest
-    anticipa la rentabilidad de BTC a 13 semanas mejor que la de la Fed sola (correlación por rangos desde 2015: 0,44
-    frente a 0,23). ECBASSETSW: millones de EUR; JPNASSETS: cientos de millones de JPY, mensual (se repite el último)."""
-    ecb = _daily(extra["ECBASSETSW"], index) * _daily(extra["DEXUSEU"], index)
-    boj = _daily(extra["JPNASSETS"], index) * 100 / _daily(extra["DEXJPUS"], index)
+    """Liquidez neta de la Fed + balances del BCE y del Banco de Japón en dólares, en millones de USD. Anticipa la
+    rentabilidad de BTC mejor que la de la Fed sola (correlación por rangos desde 2015: 0,44 frente a 0,23 a 13 semanas;
+    0,23 frente a 0,11 a un año). ECBASSETSW: millones de EUR; JPNASSETS: cientos de millones de JPY, mensual."""
+    pub = {k: extra[k].set_axis(extra[k].index + pd.Timedelta(days=d)) for k, d in PUBLICATION_LAG.items()}
+    ecb = _daily(pub["ECBASSETSW"], index) * _daily(extra["DEXUSEU"], index)
+    boj = _daily(pub["JPNASSETS"], index) * 100 / _daily(extra["DEXJPUS"], index)
     return net_liquidity(extra, index) + ecb + boj
 
 
 def liquidity_json(extra: dict, price: pd.Series) -> dict:
-    """liquidity.json, semanal (miércoles, el día de corte del balance de la Fed): liquidez neta de la Fed y global en
-    miles de millones y su variación en 13 semanas hasta el último dato de la Fed, y el precio de BTC hasta hoy."""
+    """liquidity.json: liquidez global semanal (miércoles, el día de corte del balance de la Fed) en miles de millones y
+    su variación en 13 semanas hasta el último dato de la Fed; precio de BTC semanal y diario hasta hoy."""
     through = min(extra[k].dropna().index[-1] for k in ("WALCL", "WTREGEN", "RRPONTSYD"))
-    daily = pd.date_range("2010-01-01", through, freq="D")
-    net = net_liquidity(extra, daily)
-    roc = net.pct_change(91, fill_method=None)
-    glob = global_liquidity(extra, daily) if all(k in extra for k in GLOBAL_SERIES) else pd.Series(np.nan, index=daily)
+    glob = global_liquidity(extra, pd.date_range("2010-01-01", through, freq="D"))
     weeks = pd.date_range("2011-01-05", max(through, price.index[-1]), freq="W-WED")
     p = price.reindex(price.index.union(weeks)).ffill().reindex(weeks).where(weeks <= price.index[-1])
-    num = lambda s, nd: [None if pd.isna(v) else round(float(v), nd) for v in s.reindex(weeks)]
+    days = price["2011-01-01":]
+    # 5 cifras significativas: los precios de 2011 son de céntimos
+    sig = lambda v: None if pd.isna(v) else float(f"{v:.5g}")
     return {
         "through": through.strftime("%Y-%m-%d"),
         "dates": [d.strftime("%Y-%m-%d") for d in weeks],
-        "net": num(net / 1000, 1),
-        "roc": num(roc, 4),
-        "global_net": num(glob / 1000, 1),
-        "global_roc": num(glob.pct_change(91, fill_method=None), 4),
-        "price": num(p, 0),
+        "net": [sig(v) for v in (glob / 1000).reindex(weeks)],
+        "roc": [None if pd.isna(v) else round(float(v), 4) for v in glob.pct_change(91, fill_method=None).reindex(weeks)],
+        "price": [sig(v) for v in p],
+        "daily_start": days.index[0].strftime("%Y-%m-%d"),
+        "daily_price": [sig(v) for v in days.reindex(pd.date_range(days.index[0], days.index[-1], freq="D"))],
     }
 
 
@@ -148,8 +153,8 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     m["power_law"] = power_law_deviation(price)
     m["wma200_ratio"] = price / price.rolling(1400).mean()
 
-    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD")):
-        m["net_liquidity_roc"] = net_liquidity(extra, idx).pct_change(91, fill_method=None)
+    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *GLOBAL_SERIES)):
+        m["global_liquidity_roc"] = global_liquidity(extra, idx).pct_change(91, fill_method=None)
     if "M2SL" in extra:
         m["m2_yoy"] = _daily(extra["M2SL"], idx).pct_change(365, fill_method=None)
     if "DTWEXBGS" in extra:

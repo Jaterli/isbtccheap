@@ -22,7 +22,8 @@ METRICS = [
     {"id": "halving_phase", "name": "Fase del ciclo de halving", "category": "ciclo", "method": "raw"},
     {"id": "power_law", "name": "Desviación de la power law", "category": "ciclo", "method": "percentile"},
     {"id": "wma200_ratio", "name": "Precio / MA200 semanas", "category": "ciclo", "method": "percentile"},
-    {"id": "net_liquidity_roc", "name": "Liquidez neta Fed (var. 13 sem.)", "category": "liquidez", "method": "percentile", "invert": True},
+    # Fed + BCE + Banco de Japón en dólares: anticipa el año siguiente el doble que la liquidez de la Fed sola
+    {"id": "global_liquidity_roc", "name": "Liquidez global (var. 13 sem.)", "category": "liquidez", "method": "percentile", "invert": True},
     {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True},
     {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile"},
     {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True},

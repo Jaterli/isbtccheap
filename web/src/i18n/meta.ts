@@ -170,7 +170,7 @@ const LIQUIDITY_META: Record<"es" | "en", PageMeta> = {
     URL: LIQUIDITY.URL_ES,
     TITLE: "Liquidez global y Bitcoin: ¿anticipa el precio? | Is BTC Cheap?",
     DESCRIPTION:
-      "Variación en 13 semanas de la liquidez global (Fed, BCE y Banco de Japón) y de la liquidez neta de la Fed, adelantadas 13 semanas, frente al precio de Bitcoin, desde 2011.",
+      "Variación en 13 semanas de la liquidez global (Fed, BCE y Banco de Japón), adelantada 13 semanas, frente al precio de Bitcoin, desde 2011.",
   },
   en: {
     ...INDEX_META.en,
@@ -178,7 +178,7 @@ const LIQUIDITY_META: Record<"es" | "en", PageMeta> = {
     URL: LIQUIDITY.URL_EN,
     TITLE: "Global liquidity and Bitcoin: does it lead the price? | Is BTC Cheap?",
     DESCRIPTION:
-      "13-week change in global liquidity (Fed, ECB and Bank of Japan) and Fed net liquidity, shifted 13 weeks forward, against the Bitcoin price, since 2011.",
+      "13-week change in global liquidity (Fed, ECB and Bank of Japan), shifted 13 weeks forward, against the Bitcoin price, since 2011.",
   },
 };
 

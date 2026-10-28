@@ -449,12 +449,6 @@ header {position: relative;}
 .liq-zero { stroke: var(--muted); stroke-dasharray: 3 3; }
 .liq-ahead { fill: var(--accent); opacity: 0.06; }
 .liq-today { fill: var(--price); font-weight: 600; }
-.liq-fed { --c: var(--cycle-2012); }
-.legend.liq-fed::before { background: var(--c); }
-.liq-fed-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.2; stroke-dasharray: 4 3; }
-.btn.small { padding: 3px 9px; font-size: 0.85rem; }
-.btn.active { border-color: var(--accent); }
-.btn[aria-pressed="false"] .legend { opacity: 0.6; }
 
 /* Enlace de la portada a otra página */
 .page-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 18px; text-decoration: none; }

@@ -19,7 +19,7 @@ const EXTREME = 10;
 
 // Métricas que se leen mejor como porcentaje: valor del pipeline → fracción a mostrar
 const AS_PERCENT: Record<string, (v: number) => number> = {
-  net_liquidity_roc: (v) => v,
+  global_liquidity_roc: (v) => v,
   m2_yoy: (v) => v,
   dxy_roc: (v) => v,
   stablecoin_roc: (v) => v,

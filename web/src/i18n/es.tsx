@@ -176,7 +176,6 @@ export const es = {
     info: [
       "Liquidez global = liquidez neta de la Fed (balance − cuenta del Tesoro − repos inversos) + balances del BCE y del Banco de Japón, en dólares. Datos semanales de FRED hasta el último de la Fed; el del Banco de Japón es mensual y se repite su último dato. La línea naranja es su variación en 13 semanas.",
       "La línea naranja está adelantada 13 semanas: en cada fecha se ve la variación de la liquidez de 13 semanas antes, junto al precio de BTC (azul) de ese día. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado son las próximas 13 semanas: lo que anticipa la liquidez ya publicada.",
-      "Con el botón «Fed» se añade la liquidez neta de la Fed sola, para compararla.",
     ],
     money: (bn: number) => `${(bn / 1000).toLocaleString("es-ES", { maximumFractionDigits: 2 })} billones de $`,
     current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
@@ -184,19 +183,12 @@ export const es = {
         Liquidez global a {day}: {net}, {roc} en 13 semanas.
       </>
     ),
-    fed: (net: ReactNode, roc: ReactNode) => (
-      <>
-        Solo la Fed: {net}, {roc}.
-      </>
-    ),
     correlation: (c: ReactNode) => (
       <>En el periodo mostrado, su correlación con la rentabilidad de BTC en las 13 semanas siguientes es {c}.</>
     ),
-    fedToggle: "Fed",
     legend: {
       price: "BTC",
       roc: (d: string) => `Liquidez global (13 sem.) a ${d}`,
-      fed: "Fed",
       pending: "aún no",
     },
     today: "Hoy",
@@ -207,7 +199,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3 meses", "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
@@ -337,10 +329,10 @@ export const es = {
       what: "Cuánto está el precio por encima o por debajo de su media móvil de 200 semanas (unos 4 años, un ciclo completo).",
       read: "Esa media ha actuado como suelo en todos los ciclos: cerca del 0 % (el precio en la media) es zona muy barata; muy por encima, zona de euforia.",
     },
-    net_liquidity_roc: {
-      name: "Liquidez neta Fed (var. 13 sem.)",
-      what: "Variación en 13 semanas de la liquidez neta de la Fed: balance de la Reserva Federal menos la cuenta del Tesoro y los repos inversos.",
-      read: "Si sube, entra liquidez en los mercados y resta al score; si baja, suma.",
+    global_liquidity_roc: {
+      name: "Liquidez global (var. 13 sem.)",
+      what: "Variación en 13 semanas de la liquidez de los grandes bancos centrales en dólares: liquidez neta de la Fed (balance menos cuenta del Tesoro y repos inversos) más los balances del BCE y del Banco de Japón.",
+      read: "Si sube, entra liquidez en los mercados y resta al score; si baja, suma. Anticipa la rentabilidad de BTC bastante mejor que la liquidez de la Fed sola.",
     },
     m2_yoy: {
       name: "M2 EE. UU. (var. interanual)",
