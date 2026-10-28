@@ -6,8 +6,7 @@ Cada ejecución (cron cada 15 min en el droplet):
      categoría e impacto de 0 a 10.
   3. Con las candidatas a publicarse, una segunda llamada agrupa las que cuentan el mismo hecho y deja una por grupo.
   4. Traduce al español solo las MAX_ITEMS que se publican y escribe news.json, que la web lee de su mismo dominio.
-Cada tarea va en su propia llamada: más fiable con modelos abiertos (gpt-oss-120b dejaba sin traducir tandas enteras)
-y la traducción, la parte de salida más larga, solo se paga para lo que se publica.
+Cada tarea va en su propia llamada: es más fiable con modelos abiertos y la traducción solo se paga para lo publicado.
 
 Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, NEWS_OUT_DIR, NEWS_STATE_DIR.
 Uso: python build_news.py [--dry-run]   (--dry-run no llama al modelo: sirve para probar feeds y salida)
@@ -43,17 +42,15 @@ FEEDS = [
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "banco central"),
 ]
 
-# Modelo abierto disponible en todos los niveles de DigitalOcean (los de Anthropic y OpenAI exigen el nivel 3).
-# Elegido frente a Gemma 4, DeepSeek V4 Flash y gpt-oss-120b: el que mejor puntúa el impacto y traduce bien
+# Modelo abierto: disponible en todos los niveles de DigitalOcean (los de Anthropic y OpenAI exigen el nivel 3)
 MODEL = "glm-5.3-flash"
 API_URL = "https://inference.do-ai.run/v1/chat/completions"
 WINDOW_HOURS = 48  # antigüedad máxima de una noticia publicada
-SEEN_DAYS = 7  # cuánto se recuerda un titular ya clasificado (para no volver a pagar por él)
+SEEN_DAYS = 7  # cuánto se recuerda un titular ya clasificado, para no volver a pagar por él
 BATCH = 40  # titulares nuevos por llamada
 MAX_ITEMS = 10
 FILL_IMPACT = 3  # impacto mínimo para publicarse
-# Prioridad = impacto - horas de antigüedad / DECAY_HOURS: el efecto de una noticia en los mercados se diluye pronto,
-# así que una reciente de menos impacto gana a una de ayer más relevante
+# Prioridad = impacto - horas de antigüedad / DECAY_HOURS: el efecto de una noticia en los mercados se diluye pronto
 DECAY_HOURS = 6
 DEDUPE_POOL = 40  # candidatas que se revisan en busca de duplicados
 
@@ -279,8 +276,8 @@ def dedupe(seen: dict, now: datetime) -> None:
 
 
 def translate(items: list[dict]) -> None:
-    """Pone title_es a las noticias que aún no lo tienen. Si el modelo devuelve el original, se deja sin traducir
-    y se reintenta en la próxima ejecución (mientras, la tarjeta muestra el original)."""
+    """Pone title_es a las noticias que aún no lo tienen. Si el modelo devuelve el original, se reintenta en la próxima
+    ejecución."""
     todo = [v for v in items if not v.get("title_es")]
     if not todo:
         return
@@ -301,8 +298,7 @@ def priority(v: dict, now: datetime) -> float:
 
 
 def select(seen: dict, now: datetime) -> list[dict]:
-    """Las MAX_ITEMS noticias de más prioridad (impacto que pierde un punto cada DECAY_HOURS horas). En la tarjeta
-    van de la más reciente a la más antigua."""
+    """Las MAX_ITEMS de más prioridad, ordenadas de la más reciente a la más antigua."""
     chosen = sorted(candidates(seen, now), key=lambda v: priority(v, now), reverse=True)[:MAX_ITEMS]
     return sorted(chosen, key=lambda v: v["published"], reverse=True)
 

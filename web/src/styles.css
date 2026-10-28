@@ -54,7 +54,6 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Reparto homogéneo de líneas: sin palabras sueltas en la última línea */
 h1, h3, .top p, footer p { text-wrap: balance; }
 p, li { text-wrap: pretty; }
 
@@ -70,7 +69,7 @@ header {position: relative;}
   display: grid;
   gap: var(--gutter);
 }
-/* Ningún hijo de la rejilla puede ensancharla: el menú de páginas, más ancho que un móvil, se desplaza dentro de su fila */
+/* Ningún hijo de la rejilla puede ensancharla */
 .container > * { min-width: 0; }
 .muted { color: var(--muted); }
 .small { font-size: 0.85rem; }
@@ -78,7 +77,7 @@ header {position: relative;}
 .notice { margin: 0; padding: 10px 14px; border: 1px solid var(--band-4); border-radius: 8px; font-size: 0.9rem; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
-/* Cabecera: el logo ya incluye el nombre de la app, así que sustituye al título de texto */
+/* Cabecera: el logo ya incluye el nombre de la app */
 .top { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); }
 .intro { max-width: 52ch; font-size: clamp(0.92rem, 0.85rem + 0.4vw, 1.08rem); }
 .intro h1 { margin: 0 0 2px; font-size: 1.15em; font-weight: 600; letter-spacing: normal; }
@@ -87,9 +86,8 @@ header {position: relative;}
 .brand img {
   display: block; width: clamp(108px, 18vw, 160px); height: auto;
 }
-/* Selector de idioma: arriba a la derecha de la cabecera */
 .top { position: relative; margin-top: 30px; }
-/* Arriba a la derecha: navegación entre páginas e idioma */
+/* Navegación entre páginas e idioma, arriba a la derecha */
 .top-nav { position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: 14px; font-size: 0.85rem; }
 .page-nav { position: relative; }
 .page-links { display: flex; gap: 2px; }
@@ -103,8 +101,7 @@ header {position: relative;}
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .lang-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Pantallas pequeñas y tabletas: los enlaces no caben junto al logo. El menú va en su propia fila, encima del logo, y
-   un botón con la página actual abre los enlaces en un desplegable */
+/* Por debajo de 900 px los enlaces no caben junto al logo: van en un desplegable, en una fila propia */
 @media (max-width: 899px) {
   .top-nav { position: static; justify-content: space-between; gap: 8px; }
   .nav-toggle {
@@ -127,18 +124,16 @@ header {position: relative;}
   .top { margin-top: 12px; }
 }
 
-/* ---------- Panel principal: medidor + categorías + noticias ----------
-   móvil: 1 columna · tablet: medidor arriba, categorías en 2 columnas y noticias debajo ·
-   escritorio: medidor y categorías en 2 columnas × 3 filas, noticias en la 3.ª columna ocupando las 3 filas */
+/* Panel principal. Móvil: 1 columna · tablet: categorías en 2 columnas · escritorio: medidor y categorías en
+   2 columnas × 3 filas, y noticias y agenda en la 3.ª */
 .dashboard { display: grid; gap: var(--gutter); grid-template-columns: 1fr; }
 
 @media (min-width: 640px) {
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard .hero, .dashboard .side { grid-column: 1 / -1; }
-  /* La 5.ª categoría queda sola en su fila: ocupa el ancho (las noticias son un <section>, no cuentan) */
+  /* La 5.ª categoría queda sola en su fila: ocupa el ancho */
   .dashboard article.category:last-of-type { grid-column: 1 / -1; }
 }
-/* Con el menú en línea (desde 900 px) va en la misma franja que el logo, sin fila propia */
 @media (min-width: 900px) {
   .top { margin-top: 0; }
 }
@@ -146,7 +141,6 @@ header {position: relative;}
 @media (min-width: 1024px) {
   .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dashboard .hero, .dashboard article.category:last-of-type { grid-column: auto; }
-  /* Las demás tarjetas se colocan solas en las columnas 1 y 2 */
   .dashboard .side { grid-column: 3; grid-row: 1 / span 3; }
 }
 
@@ -161,9 +155,8 @@ header {position: relative;}
 .segmented button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .segmented.small button { padding: 4px 10px; font-size: 0.85rem; }
 
-/* Selector de temporalidad: 5 columnas iguales que ocupan todo el ancho */
+/* Selector de temporalidad */
 .timeframes { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; max-width: 420px; }
-/* Mismo alto y letra que el selector del histórico (.small); solo cambia el relleno lateral para que quepan las 5 */
 .segmented.timeframes button { padding-inline: 4px; }
 
 .gauge { margin: 2px 0 0; width: min(280px, 100%); display: grid; justify-items: center; }
@@ -207,7 +200,14 @@ header {position: relative;}
 .swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
 
 /* Actualización */
-.refresh { font-size: 0.82rem; }
+.refresh { gap: 4px; font-size: 0.82rem; cursor: default; }
+.refresh svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.refresh svg.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .refresh svg.spin { animation: none; } }
+.price-change { margin-left: 0.45em; font-size: 0.88em; font-weight: 600; }
+.price-change.up { color: var(--band-1); }
+.price-change.down { color: var(--band-5); }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 10px; border: 1px solid var(--border); border-radius: 8px;
@@ -222,13 +222,12 @@ header {position: relative;}
 .card header strong { font-size: 1.4rem; }
 .bar { height: 6px; border-radius: 3px; background: var(--border); margin: 10px 0 12px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-/* Filas de métrica de las categorías (nombre · valor · puntuación). Solo en .category: aplicadas a toda .card,
-   pisaban las columnas de otras listas, como la agenda, en pantallas pequeñas */
+/* Filas de métrica (nombre · valor · puntuación); solo en .category, para no pisar otras listas */
 .category ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.88rem; }
 .category li { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; gap: 10px; align-items: baseline; }
 .category li span:first-child { text-wrap: balance; }
 .category li span:last-child { text-align: right; font-weight: 600; }
-/* Métrica en zona extrema: punto que late junto a la puntuación, en el hueco entre columnas (no mueve la fila) */
+/* Zona extrema: punto que late en el hueco entre columnas, sin mover la fila */
 .metric-score { position: relative; font-weight: inherit; }
 .pulse { position: absolute; left: -11px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: var(--c); }
 .pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--c); animation: pulse 1.8s ease-out infinite; }
@@ -281,7 +280,6 @@ header {position: relative;}
 .outlook header { flex-wrap: wrap; row-gap: 10px; }
 .outlook header h3 { flex: 1 1 260px; }
 .outlook-lead { margin: 12px 0; display: grid; gap: 6px; }
-/* Líneas de longitud pareja: sin una palabra suelta en la última */
 .outlook-lead p, .outlook-vol { letter-spacing: 0.01em;  }
 .outlook-lead p { margin: 0; }
 .outlook-sample { margin: 0 0 4px; font-size: 0.85rem; }
@@ -323,9 +321,8 @@ header {position: relative;}
 .moves-bar { position: relative; height: 6px; border-radius: 3px; background: var(--border); }
 .moves-bar span { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--muted); }
 .mv.over .moves-bar span { background: var(--accent); }
-/* Marca de lo habitual, en el centro de la barra */
 .moves-bar i { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--fg); border-radius: 1px; }
-/* Pantallas pequeñas: letra algo menor y sin iconos, para que la tabla respire */
+/* Pantallas pequeñas: letra menor y sin iconos */
 @media (max-width: 480px) {
   .moves-table { font-size: 0.8rem; }
   .moves-table th, .moves-table td { padding-left: 12px; }
@@ -337,23 +334,21 @@ header {position: relative;}
 }
 .moves-note { margin: 10px 0 0; }
 
-/* Noticias */
-/* Columna de contexto (agenda + noticias) */
+/* Noticias y agenda */
 .side { display: flex; flex-direction: column; gap: var(--gutter); min-width: 0; }
 .side:empty { display: none; }
 .news { display: flex; flex-direction: column; min-width: 0; }
-/* Desplazamiento dentro de la tarjeta: los titulares no alargan la página */
+/* Desplazamiento dentro de la tarjeta: no alarga la página */
 .news-list {
   list-style: none; margin: 10px 0 0; padding: 0 6px 0 0; display: grid; gap: 0 32px; align-content: start;
   max-height: 520px; overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain;
 }
 @media (min-width: 900px) and (max-width: 1023px) { .news-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) {
-  /* contain: size → la columna no aporta altura a la rejilla: mide lo que las 3 filas de métricas. La agenda ocupa
-     lo que necesita y las noticias, el resto, con desplazamiento */
+  /* contain: size → la columna no aporta altura a la rejilla: mide lo que las 3 filas de categorías */
   .dashboard .side { contain: size; }
   .side .news { flex: 1; min-height: 0; }
-  /* La agenda cede sitio a las noticias: como mucho el 40 % de la columna, y desplaza lo que no quepa */
+  /* La agenda ocupa como mucho el 40 % de la columna */
   .side .calendar { flex: 0 1 auto; max-height: 40%; min-height: 0; display: flex; flex-direction: column; }
   .side .cal-list { flex: 1; min-height: 0; max-height: none; }
   .news-list { flex: 1; min-height: 0; max-height: none; }
@@ -388,9 +383,9 @@ header {position: relative;}
 .vol-chart svg { display: block; touch-action: pan-y; }
 .vol-area { fill: var(--accent); opacity: 0.12; }
 .vol-note { margin: 8px 0 0; }
-/* Línea de referencia discontinua (×1 en la gráfica de ciclos) */
+/* Línea de referencia discontinua */
 .grid-ref { stroke-dasharray: 3 3; }
-/* Ciclos de halving: una línea por ciclo, el actual más gruesa y encima */
+/* Ciclos de halving */
 .cycle-2012 { --c: var(--cycle-2012); }
 .cycle-2016 { --c: var(--cycle-2016); }
 .cycle-2020 { --c: var(--cycle-2020); }
@@ -403,7 +398,7 @@ header {position: relative;}
 .cycle-today { stroke: var(--accent); stroke-dasharray: 2 3; opacity: 0.7; }
 .segmented button[aria-pressed="false"] .legend { opacity: 0.45; }
 .cycles-table { margin-top: 14px; }
-/* Bandas de valoración: corredor de la power law sombreado y una línea por nivel */
+/* Bandas de valoración */
 .val-price { --c: var(--price); }
 .val-realized { --c: var(--band-1); }
 .val-wma { --c: var(--cycle-2012); }
@@ -417,7 +412,7 @@ header {position: relative;}
 .val-trend { stroke-dasharray: 4 3; }
 .val-table { margin-top: 14px; }
 .val-table tbody th { white-space: normal; }
-/* Caídas: máximo histórico y caída desde él */
+/* Caídas */
 .dd-ath { --c: var(--muted); }
 .dd-fall { --c: var(--band-5); }
 .legend.dd-ath::before, .legend.dd-fall::before { background: var(--c); }
@@ -427,7 +422,7 @@ header {position: relative;}
 .dd-dot { fill: var(--band-5); }
 .dd-table-title { margin: 18px 0 0; font-size: 0.95rem; }
 .dd-table tbody tr.current th, .dd-table tbody tr.current td { color: var(--accent); }
-/* Histórico de categorías: mapa de calor, marcas de techos y suelos, y puntuaciones con el color de su tramo */
+/* Histórico de categorías */
 .cat-empty { fill: var(--border); opacity: 0.4; }
 .cat-label.score { font-weight: 700; fill: var(--fg); }
 .cat-mark { stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
@@ -438,7 +433,7 @@ header {position: relative;}
 .cat-table td { text-align: center; }
 .cat-table td.num { text-align: right; }
 .cat-table tbody tr.ev-today th { color: var(--accent); }
-/* ETF: entradas en verde y salidas en rojo, como barato y caro */
+/* ETF */
 .etf-bar.in { fill: var(--band-1); }
 .etf-bar.out { fill: var(--band-5); }
 .legend.etf-in::before { background: var(--band-1); }
@@ -446,7 +441,7 @@ header {position: relative;}
 .etf-table td.up, .vol-stats .up { color: var(--band-1); }
 .etf-table td.down, .vol-stats .down { color: var(--band-5); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
-/* Enlace de la portada a otra página, con el aspecto de una tarjeta estrecha */
+/* Enlace de la portada a otra página */
 .page-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 18px; text-decoration: none; }
 .page-link span { color: var(--muted); }
 .page-link strong { color: var(--accent); white-space: nowrap; }

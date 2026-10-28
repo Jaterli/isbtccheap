@@ -24,7 +24,6 @@ function loadHidden(): number[] {
   }
 }
 
-/** Página de ciclos de halving: el precio de cada ciclo desde su halving, superpuestos para compararlos. */
 export function CyclesApp() {
   const [history, setHistory] = useState<History | null>(null);
   const [live, setLive] = useState<number | null>(null);
@@ -149,7 +148,6 @@ export function CyclesApp() {
         <p className="muted small vol-note">{tx.note}</p>
       </section>
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

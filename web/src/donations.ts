@@ -1,6 +1,6 @@
 /** Datos de donación. Deja una cadena vacía para ocultar ese método; si todos están vacíos no se muestra la sección. */
 
-/** Enlace de PayPal.me, p. ej. "https://paypal.me/tu_usuario" */
+/** p. ej. "https://paypal.me/tu_usuario" */
 export const PAYPAL_URL = "https://paypal.me/Jaterli";
 
 export interface CryptoMethod {
@@ -11,7 +11,6 @@ export interface CryptoMethod {
   /** Enlace que abre la app de wallet del usuario */
   uri: (address: string) => string;
 }
-// La explicación de cada método está en i18n (t.donate.hints, por id)
 
 export const CRYPTO: CryptoMethod[] = [
   {

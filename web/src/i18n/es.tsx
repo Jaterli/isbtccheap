@@ -228,16 +228,14 @@ export const es = {
     label: "el precio",
     title: "Precio",
     body: "Último precio de BTC/USDT en Binance, tomado del cierre de la vela más reciente. Si Binance no está disponible, se muestra el precio diario de Coin Metrics.",
+    changeInfo:
+      "El porcentaje es la variación desde el cierre de la vela anterior de la temporalidad elegida: en 1 hora, desde el inicio de la hora; en 1 día, desde las 00:00 UTC; en 1 mes, en lo que va de mes.",
+    change: (tf: string) => `Variación de la vela actual de ${tf}`,
   },
 
   refresh: {
     updating: "Actualizando…",
     next: (countdown: string) => `Se actualiza en ${countdown}`,
-    infoLabel: "la actualización",
-    infoTitle: "Actualización",
-    info1: (interval: string) =>
-      `El técnico y el funding se actualizan solos cada ${interval} en esta temporalidad. Al cambiar de temporalidad se reutilizan los datos ya descargados mientras sigan vigentes.`,
-    info2: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día.",
   },
   liveError: "Sin conexión con Binance: se usan los datos técnicos diarios.",
 

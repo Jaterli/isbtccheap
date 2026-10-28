@@ -25,26 +25,25 @@ import { Calendar } from "./components/Calendar";
 import { Outlook } from "./components/Outlook";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type MetricScore, type Timeframe } from "./types";
 
-const fmtInterval = (ms: number) => (ms < 60_000 ? `${ms / 1000} s` : ms < 3_600_000 ? `${ms / 60_000} min` : `${ms / 3_600_000} h`);
 
 const TF_KEY = "isbtccheap:tf";
-// Cada cuánto se refrescan las velas según la temporalidad
 const REFRESH_MS: Record<Timeframe, number> = { "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000, "1M": 3_600_000 };
-// El funding de Binance solo cambia cada 8 h: basta con pedirlo cada 5 min
+// El funding solo cambia cada 8 h
 const FUNDING_MS = 300_000;
 
 interface LiveEntry {
   technical: Category;
-  /** Sentimiento de derivados (solo en DERIVATIVES_TFS) */
   derivatives: MetricScore[] | null;
   price: number | null;
+  /** Cierre de la vela anterior: la variación se mide desde ahí */
+  prevClose: number | null;
   at: number;
 }
 
 function loadTf(): Timeframe {
   try {
     const saved = localStorage.getItem(TF_KEY);
-    // 15 min se quitó: quien la tenía guardada pasa a la más cercana
+    // Temporalidad retirada que pudiera estar guardada: pasa a la más cercana
     if (saved === "15m") return "1h";
     return TIMEFRAMES.includes(saved as Timeframe) ? (saved as Timeframe) : "1d";
   } catch {
@@ -57,9 +56,10 @@ export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
-  // Datos en vivo y la temporalidad a la que pertenecen (null: Binance no respondió y se usa lo diario del pipeline)
+  // null: Binance no respondió y se usa lo diario del pipeline
   const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
+  const [prevClose, setPrevClose] = useState<number | null>(null);
   const [funding, setFunding] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +75,7 @@ export function App() {
       .catch(() => setError(t.dataError));
   }, []);
 
-  // Caché por temporalidad: al volver a una temporalidad ya cargada no se llama a la API
-  // hasta que caduca su intervalo de refresco
+  // Caché por temporalidad: no se vuelve a llamar a la API hasta que caduca su intervalo de refresco
   const cache = useRef(new Map<Timeframe, LiveEntry>());
   const fundingCache = useRef<{ value: number; at: number } | null>(null);
 
@@ -100,12 +99,15 @@ export function App() {
       if (cached && Date.now() - cached.at < ms) {
         setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
         setPrice(cached.price);
+        setPrevClose(cached.prevClose);
         setLiveError(false);
         schedule(cached.at);
         return;
       }
-      // Caché caducada: mientras se refresca se muestra la de esta temporalidad, no la de otra
+      // Mientras se refresca se muestra la caché de esta temporalidad, no la de otra
       if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
+      // Hasta tener velas de esta temporalidad no se muestra la variación de otra
+      else setPrevClose(null);
       setLoading(true);
       const f = fundingCache.current;
       const needFunding = !f || Date.now() - f.at > FUNDING_MS;
@@ -118,10 +120,17 @@ export function App() {
       const now = Date.now();
       const derivatives = derivs.status === "fulfilled" ? derivs.value : (cached?.derivatives ?? null);
       if (candles.status === "fulfilled") {
-        const entry = { technical: technicalFromCandles(candles.value, tf), derivatives, price: candles.value.at(-1)?.close ?? null, at: now };
+        const entry = {
+          technical: technicalFromCandles(candles.value, tf),
+          derivatives,
+          price: candles.value.at(-1)?.close ?? null,
+          prevClose: candles.value.at(-2)?.close ?? null,
+          at: now,
+        };
         cache.current.set(tf, entry);
         setLive({ tf, technical: entry.technical, derivatives });
         setPrice(entry.price);
+        setPrevClose(entry.prevClose);
       } else {
         setLive({ tf, technical: cached?.technical ?? null, derivatives });
       }
@@ -139,7 +148,6 @@ export function App() {
       cancelled = true;
       clearTimeout(timer);
     };
-    // En mensual el técnico usa también el histórico diario: se recalcula cuando llega
   }, [tf, tf === "1M" ? history : null]);
 
   const ready = live?.tf === tf;
@@ -147,8 +155,8 @@ export function App() {
     () => (latest ? computeScore(latest, tf, ready ? live.technical : null, funding, ready ? live.derivatives : null) : null),
     [latest, tf, live, ready, funding],
   );
-  // Hasta tener el técnico de la nueva temporalidad se mantiene el último score: si no, saltaría a un valor
-  // calculado con el técnico de otra temporalidad o con el diario. En la primera carga no hay anterior: "—"
+  // Hasta tener el técnico de la nueva temporalidad se mantiene el último score: si no, saltaría a uno calculado con
+  // el de otra
   const lastReady = useRef<ScoreResult | null>(null);
   if (ready && computed) lastReady.current = computed;
   const shown = ready ? computed : lastReady.current;
@@ -161,6 +169,7 @@ export function App() {
   const li = score === null ? -1 : labelIndex(score, latest.labels);
   const label = !shown ? t.loading : li === -1 ? t.noData : labelAt(li, latest.labels[li].label);
   const shownPrice = price ?? latest.price;
+  const change = price !== null && prevClose ? price / prevClose - 1 : null;
 
   return (
     <main className="container">
@@ -196,31 +205,28 @@ export function App() {
               </InfoTip>
             }
           />
-          {/* Precio y próxima actualización en una sola línea (en pantallas estrechas pasa a dos) */}
           <div className="hero-meta">
             <span className="price num">
               BTC {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              {change !== null && (
+                <span className={change > 0 ? "price-change up" : change < 0 ? "price-change down" : "price-change"} title={t.priceInfo.change(t.timeframes[tf].label)}>
+                  {change > 0 ? "+" : change < 0 ? "−" : ""}
+                  {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
+                </span>
+              )}
               <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
                 <p>{t.priceInfo.body}</p>
+                <p>{t.priceInfo.changeInfo}</p>
               </InfoTip>
             </span>
-            <RefreshStatus
-              nextAt={nextAt}
-              loading={loading}
-              info={
-                <InfoTip label={t.refresh.infoLabel} title={t.refresh.infoTitle}>
-                  <p>{t.refresh.info1(fmtInterval(REFRESH_MS[tf]))}</p>
-                  <p>{t.refresh.info2}</p>
-                </InfoTip>
-              }
-            />
+            <RefreshStatus nextAt={nextAt} loading={loading} />
           </div>
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 
         <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 
-        {/* Columna de contexto: agenda y noticias. Si ninguna tiene datos queda vacía y no ocupa sitio (:empty) */}
+        {/* Si ni noticias ni agenda tienen datos queda vacía y no ocupa sitio (:empty) */}
         <div className="side">
           <News />
           <Calendar />
@@ -231,7 +237,6 @@ export function App() {
 
       {history && <Outlook history={history} labels={latest.labels} />}
 
-      {/* Las caídas y subidas por tamaño están en la página de caídas, junto a la caída desde máximos */}
       <a className="card page-link" href={PAGE_PATH.drawdown[lang]}>
         <span>{t.movesLink.text}</span>
         <strong>{t.movesLink.cta} →</strong>

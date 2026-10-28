@@ -1,7 +1,6 @@
 name: Limpiar ejecuciones antiguas
 
-# El workflow diario deja una ejecución cada día en la pestaña Actions: una vez a la semana se borran las
-# terminadas hace más de RETENTION_DAYS días (de todos los workflows del repositorio, también este)
+# Una vez a la semana borra las ejecuciones de workflows terminadas hace más de RETENTION_DAYS días
 on:
   schedule:
     - cron: "0 3 * * 0" # domingos a las 03:00 UTC

@@ -1,8 +1,6 @@
 #!/bin/bash
-# Prepara el proyecto para trabajar desde WSL estando en un disco de Windows (/mnt/...).
-#
-# Leer miles de ficheros a través de /mnt es muy lento, así que las dependencias viven en el disco
-# de Linux (~/isbtccheap_deps) y en el proyecto solo hay enlaces simbólicos:
+# Prepara el proyecto para WSL en un disco de Windows (/mnt/...): leer miles de ficheros a través de /mnt es muy lento,
+# así que las dependencias viven en el disco de Linux (~/isbtccheap_deps) y aquí solo hay enlaces simbólicos:
 #   web/node_modules -> ~/isbtccheap_deps/web/node_modules
 #   .venv            -> ~/isbtccheap_deps/venv
 #

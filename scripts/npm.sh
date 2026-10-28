@@ -1,15 +1,13 @@
 #!/bin/bash
-# npm para instalar/quitar paquetes cuando el proyecto está en un disco de Windows y se usa desde WSL.
-#
-# npm no admite que web/node_modules sea un enlace simbólico (lo borra y reinstala en /mnt, que es muy
-# lento). Este script ejecuta npm en una réplica de web/ en el disco de Linux y copia de vuelta
-# package.json y package-lock.json, de modo que el repositorio queda igual que con un npm normal.
+# npm install/uninstall desde WSL con el proyecto en un disco de Windows. npm no admite que web/node_modules sea un
+# enlace simbólico: se ejecuta en una réplica de web/ en el disco de Linux y se copian de vuelta package.json y
+# package-lock.json.
 #
 # Uso (desde cualquier carpeta del proyecto):
 #   bash scripts/npm.sh install            # instalar todo
 #   bash scripts/npm.sh install paquete    # añadir un paquete
 #   bash scripts/npm.sh uninstall paquete
-# Para lo demás (npm run dev, npm run build…) usa npm normal dentro de web/.
+# Para lo demás (npm run dev, npm run build…), npm normal dentro de web/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

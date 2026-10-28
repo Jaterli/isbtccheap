@@ -220,16 +220,14 @@ export const en: Messages = {
     label: "the price",
     title: "Price",
     body: "Latest BTC/USDT price on Binance, taken from the close of the most recent candle. If Binance is unavailable, the daily Coin Metrics price is shown.",
+    changeInfo:
+      "The percentage is the change since the previous candle's close in the selected timeframe: on 1 hour, since the start of the hour; on 1 day, since 00:00 UTC; on 1 month, month to date.",
+    change: (tf: string) => `Change in the current ${tf} candle`,
   },
 
   refresh: {
     updating: "Updating…",
     next: (countdown: string) => `Updates in ${countdown}`,
-    infoLabel: "updates",
-    infoTitle: "Updates",
-    info1: (interval: string) =>
-      `Technicals and funding update automatically every ${interval} in this timeframe. When you switch timeframes, data already downloaded is reused while it is still fresh.`,
-    info2: "On-chain, cycle and liquidity metrics are recalculated once a day.",
   },
   liveError: "No connection to Binance: using the daily technical data.",
 

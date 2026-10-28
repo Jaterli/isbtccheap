@@ -17,7 +17,6 @@ const CATS = ROWS.filter((r): r is CategoryId => r !== "score");
 
 const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-/** Puntuación con el color de su tramo (el mismo que el medidor) */
 function Chip({ v }: { v: number | null }) {
   if (v === null) return <span className="muted">—</span>;
   return (
@@ -27,7 +26,6 @@ function Chip({ v }: { v: number | null }) {
   );
 }
 
-/** Página del histórico de las categorías: qué empujaba el score en cada momento, y en los techos y suelos de ciclo. */
 export function CategoriesApp() {
   const [history, setHistory] = useState<History | null>(null);
   const [cats, setCats] = useState<CategoriesJson | null>(null);
@@ -42,7 +40,7 @@ export function CategoriesApp() {
   const full = useMemo(() => (history && cats ? categoriesSeries(history, cats) : null), [history, cats]);
   const series = useMemo(() => (full ? lastDays(full, range.days) : null), [full, range.days]);
 
-  // Techos de ciclo (y el suelo que siguió a cada uno) a partir de las caídas desde máximos del precio diario
+  // Techos de ciclo y el suelo que siguió a cada uno
   const events = useMemo(() => {
     if (!full) return [];
     const tops = cycleTops(episodes(drawdownSeries(full)));
@@ -134,7 +132,6 @@ export function CategoriesApp() {
         <p className="muted small vol-note">{tx.note}</p>
       </section>
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

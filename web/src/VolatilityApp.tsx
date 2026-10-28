@@ -10,7 +10,6 @@ import { volSeries } from "./lib/volatility";
 
 const pct = (v: number) => t.percent(Math.round(v * 100).toLocaleString(locale));
 
-/** Página de volatilidad: volatilidad realizada por tamaño de vela, con el precio de BTC superpuesto. */
 export function VolatilityApp() {
   const cs = useCandleSeries("isbtccheap:vol");
   const { tf, base, days } = cs;
@@ -64,7 +63,6 @@ export function VolatilityApp() {
         <p className="muted small vol-note">{t.charts.note}</p>
       </section>
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

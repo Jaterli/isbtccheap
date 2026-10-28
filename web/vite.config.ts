@@ -6,8 +6,7 @@ import react from "@vitejs/plugin-react";
 import { META } from "./src/i18n/meta";
 import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_VALUATION, SEO_VOL } from "./src/i18n/seo";
 
-// En WSL, node_modules es un enlace simbólico al disco de Linux (mucho más rápido que /mnt/e):
-// hay que permitir a Vite servir ficheros desde su ubicación real
+// En WSL node_modules es un enlace simbólico al disco de Linux: Vite debe poder servir desde su ubicación real
 const nodeModules = realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url)));
 
 const fillMeta = (html: string, meta: Record<string, string>) =>
@@ -15,15 +14,14 @@ const fillMeta = (html: string, meta: Record<string, string>) =>
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** Presentación y preguntas frecuentes en el HTML inicial (dentro de #root: React lo sustituye al cargar). Es lo que
- * leen los rastreadores que no ejecutan JavaScript; Google indexa la sección visible de components/Faq.tsx */
+/** Texto de la página en el HTML inicial (dentro de #root; React lo sustituye), para los rastreadores sin JavaScript */
 function seoHtml(lang: "es" | "en") {
   const s = SEO[lang];
   const faq = s.faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
   return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
 }
 
-/** Lo mismo para las páginas de gráficas (volatilidad, ciclos, valoración, caídas, categorías, ETF): título, introducción y secciones explicativas */
+/** Lo mismo para las páginas de gráficas */
 function chartSeoHtml(texts: typeof SEO_VOL, lang: "es" | "en") {
   const s = texts[lang];
   const secs = s.sections.map((x) => `<h2>${esc(x.h)}</h2><p>${esc(x.p)}</p>`).join("");
@@ -44,8 +42,7 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
 
 const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
 
-/** Un index.html por página e idioma: el español en la ruta de la página y el inglés bajo en/, con sus metadatos para
- * buscadores y redes sociales. Cada página es su propia app; el idioma lo decide la ruta (src/i18n). */
+/** Escribe la versión en inglés de cada página bajo en/, con sus metadatos. */
 function i18nPages(): Plugin {
   const templates = new Map<Page, string>();
   let outDir = "";
@@ -54,7 +51,7 @@ function i18nPages(): Plugin {
     configResolved(config) {
       outDir = resolve(config.root, config.build.outDir);
     },
-    // "post": el HTML ya lleva los <script> y <link> de la compilación, que comparten las dos versiones
+    // "post": el HTML ya lleva los <script> y <link> de la compilación
     transformIndexHtml: {
       order: "post",
       handler(html, ctx) {
@@ -74,8 +71,7 @@ function i18nPages(): Plugin {
   };
 }
 
-/** En desarrollo sirve /news/*.json (noticias y agenda) desde news/out, donde los dejan los scripts de news/.
- * En producción los sirve nginx desde la carpeta en la que escriben los scripts del droplet. */
+/** En desarrollo sirve /news/*.json desde news/out (en producción, nginx). */
 function devNews(): Plugin {
   const dir = fileURLToPath(new URL("../news/out/", import.meta.url));
   return {
@@ -109,15 +105,12 @@ function devNews(): Plugin {
 export default defineConfig({
   plugins: [react(), i18nPages(), devNews()],
   build: {
-    // Una entrada por página (sus versiones en inglés las escribe i18nPages)
     rollupOptions: { input: Object.fromEntries(Object.entries(PAGES).map(([k, v]) => [k, resolve(__dirname, v.input)])) },
   },
   server: {
     watch: {
-      // Nada de esto es código de la web; vigilarlo solo ralentiza (un .venv son miles de ficheros)
       ignored: ["**/.venv/**", "**/dist/**", "**/*.tsbuildinfo"],
-      // En WSL sobre un disco de Windows (/mnt/...) no llegan los eventos de cambio de ficheros: hay que sondear.
-      // followSymlinks: false evita que el sondeo entre en node_modules (enlace simbólico al disco de Linux)
+      // En WSL sobre /mnt/... no llegan los eventos de cambio: hay que sondear, sin entrar en node_modules
       ...(process.env.WSL_DISTRO_NAME && { usePolling: true, interval: 300, followSymlinks: false }),
     },
     fs: { allow: [searchForWorkspaceRoot(process.cwd()), nodeModules] },

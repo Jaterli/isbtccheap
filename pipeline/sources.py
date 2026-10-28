@@ -83,21 +83,18 @@ def stablecoin_supply() -> pd.Series:
 
 
 def bitview(series: str) -> pd.Series:
-    """Serie diaria de Bitview (bitview.space), la instancia pública y gratuita de Bitcoin Research Kit: métricas
-    on-chain calculadas desde un nodo de Bitcoin, sin clave. El índice diario empieza el 2009-01-01; el último día
-    está aún en curso."""
+    """Bitview (bitview.space), instancia pública de Bitcoin Research Kit, sin clave. Su índice diario empieza el
+    2009-01-01 y el último día está aún en curso."""
     d = _get(f"https://bitview.space/api/series/{series}/day1", {"start": 0}).json()
     start = pd.Timestamp("2009-01-01") + pd.Timedelta(days=d["start"])
     s = pd.Series(d["data"], index=pd.date_range(start, periods=len(d["data"]), freq="D"), name=series, dtype=float)
-    # Sin dato (o 0, que Bitview devuelve cuando la cohorte está vacía): ausente
+    # Bitview devuelve 0 cuando no hay dato
     return s.where(s > 0).sort_index()
 
 
 def etf_flows() -> pd.DataFrame:
-    """Flujos de los ETF de bitcoin al contado de EE. UU., una fila por sesión desde el lanzamiento (2024-01-11): flujo
-    neto en USD (flow_usd), precio de referencia del día (price), activos totales (aum, a veces vacío) y el desglose
-    por fondo (per_fund, dict ticker → USD). The Commoner Bitcoin ETF Tracker de TFTC, CC BY 4.0: exige citar la fuente
-    y la fecha de los datos (ver etf_attribution en build.py)."""
+    """ETF de bitcoin al contado de EE. UU., una fila por sesión desde 2024-01-11. The Commoner Bitcoin ETF Tracker
+    (TFTC), CC BY 4.0: hay que citar la fuente y la fecha de los datos (etf_credit en build.py)."""
     days = _get("https://www.tftc.io/bitcoin-etf-flows/data.json").json()["days"]
     df = pd.DataFrame(
         {

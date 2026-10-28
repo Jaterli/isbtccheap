@@ -1,6 +1,5 @@
 export type Timeframe = "1h" | "4h" | "1d" | "1w" | "1M";
 
-/** Orden del selector; los nombres están en i18n (t.timeframes) */
 export const TIMEFRAMES: Timeframe[] = ["1h", "4h", "1d", "1w", "1M"];
 
 export type CategoryId = "valoracion" | "ciclo" | "liquidez" | "sentimiento" | "tecnico";
@@ -26,7 +25,7 @@ export interface Latest {
   score_1d: number | null;
   categories: Record<CategoryId, Category>;
   weights: Record<Timeframe, Record<CategoryId, number>>;
-  /** Factor k del estirado final (ver pipeline/config.py → SCORE_STRETCH) */
+  /** SCORE_STRETCH de pipeline/config.py */
   stretch?: number;
   labels: { max: number; label: string }[];
   missing_sources: string[];

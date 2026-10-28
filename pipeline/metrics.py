@@ -7,8 +7,7 @@ import pandas as pd
 from config import HALVING_PHASE_CURVE, HALVINGS
 
 GENESIS = pd.Timestamp("2009-01-03")
-# Coin Metrics publica algunas series (MVRV, emisión) un día más tarde que el precio. Sin rellenar, el último día
-# se quedaría sin ellas y la valoración se calcularía solo con el Mayer Multiple
+# Coin Metrics publica MVRV y emisión un día después que el precio: sin rellenar, el último día se quedaría sin ellas
 CM_LAG_FILL_DAYS = 3
 
 
@@ -20,8 +19,7 @@ def rsi(price: pd.Series, period: int = 14) -> pd.Series:
 
 
 def power_law_fit(price: pd.Series) -> tuple[float, float]:
-    """Pendiente y ordenada de la regresión log10(precio) ~ log10(días desde el bloque génesis).
-    Nota: el ajuste usa todo el histórico, así que en el backtest hay algo de lookahead."""
+    """Regresión log10(precio) ~ log10(días desde el génesis). Usa todo el histórico: hay algo de lookahead."""
     p = price[price > 0]
     days = (p.index - GENESIS).days.values.astype(float)
     slope, intercept = np.polyfit(np.log10(days), np.log10(p.values), 1)
@@ -36,20 +34,18 @@ def power_law_deviation(price: pd.Series) -> pd.Series:
     return pd.Series(np.log10(price.values) - fit, index=price.index)
 
 
-# Corredor de la power law: percentiles del residuo desde 2013 (los primeros años, con muy poca liquidez, lo
-# ensancharían). Entre ellos ha estado el 95 % de los días
+# Corredor de la power law: el 95 % central del residuo desde 2013 (los primeros años, muy ilíquidos, lo ensancharían)
 PL_BAND_SINCE = "2013-01-01"
 PL_BAND_PCT = (2.5, 97.5)
 
 
 def valuation_bands(cm: pd.DataFrame, sth_realized: pd.Series | None = None) -> dict:
-    """Niveles de referencia del precio para la página de bandas de valoración (bands.json): precio realizado (total y
-    de los holders de corto plazo, de Bitview), media de 200 semanas y la tendencia de la power law con su corredor
-    (como parámetros: la web dibuja la recta)."""
+    """bands.json: precio, precios realizados, media de 200 semanas y los parámetros de la power law (la web dibuja la
+    recta y su corredor)."""
     price = cm["PriceUSD"].dropna()
     idx = pd.date_range(price.index[0], price.index[-1], freq="D")
     price = price.reindex(idx)
-    # Precio realizado = capitalización realizada / oferta = precio / MVRV. Se rellena el retraso de Coin Metrics
+    # Precio realizado = precio / MVRV
     realized = (price / cm["CapMVRVCur"].reindex(idx)).ffill(limit=CM_LAG_FILL_DAYS) if "CapMVRVCur" in cm else None
     sth = sth_realized.reindex(idx).ffill(limit=CM_LAG_FILL_DAYS) if sth_realized is not None else None
     wma200 = price.rolling(1400).mean()
@@ -58,7 +54,6 @@ def valuation_bands(cm: pd.DataFrame, sth_realized: pd.Series | None = None) -> 
     lo, hi = np.percentile(resid, PL_BAND_PCT)
 
     def arr(s):
-        # 5 cifras significativas: de sobra para la gráfica y el JSON pesa la mitad
         return [None if s is None or pd.isna(v) else float(f"{v:.5g}") for v in (s if s is not None else [])]
 
     return {
@@ -71,7 +66,6 @@ def valuation_bands(cm: pd.DataFrame, sth_realized: pd.Series | None = None) -> 
             "genesis": GENESIS.strftime("%Y-%m-%d"),
             "slope": round(slope, 6),
             "intercept": round(intercept, 6),
-            # Múltiplos de la tendencia que delimitan el corredor
             "low": round(float(10**lo), 4),
             "high": round(float(10**hi), 4),
             "since": PL_BAND_SINCE,
@@ -98,13 +92,12 @@ def _daily(s: pd.Series, index: pd.DatetimeIndex) -> pd.Series:
 
 
 def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
-    """cm: DataFrame de Coin Metrics. extra: series opcionales (fear_greed, FRED, stablecoins, Bitview)."""
+    """cm: Coin Metrics. extra: el resto de fuentes; las que fallaron no están."""
     price = cm["PriceUSD"].dropna()
     idx = price.index
     m = pd.DataFrame(index=idx)
     m["price"] = price
 
-    # Valoración
     if "CapMVRVCur" in cm:
         m["mvrv"] = cm["CapMVRVCur"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
     if "IssTotUSD" in cm:
@@ -112,12 +105,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         m["puell"] = iss / iss.rolling(365).mean()
     m["mayer"] = price / price.rolling(200).mean()
 
-    # Ciclo
     m["halving_phase"] = halving_phase_score(idx)
     m["power_law"] = power_law_deviation(price)
     m["wma200_ratio"] = price / price.rolling(1400).mean()
 
-    # Liquidez
     if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD")):
         # WALCL y WTREGEN en millones de USD, RRPONTSYD en miles de millones
         net = _daily(extra["WALCL"], idx) - _daily(extra["WTREGEN"], idx) - _daily(extra["RRPONTSYD"], idx).fillna(0) * 1000
@@ -129,10 +120,8 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     if "stablecoins" in extra:
         m["stablecoin_roc"] = _daily(extra["stablecoins"], idx).pct_change(90, fill_method=None)
 
-    # Sentimiento
     if "etf_flows" in extra:
-        # En BTC (para que la subida del precio no infle los flujos recientes), suma de 20 sesiones llevada a diario:
-        # fines de semana y festivos repiten la última sesión
+        # En BTC, para que la subida del precio no infle los flujos recientes; fines de semana y festivos repiten
         etf = extra["etf_flows"]
         roll = (etf["flow_usd"] / etf["price"]).rolling(20).sum().dropna()
         m["etf_flows"] = roll.reindex(roll.index.union(idx)).ffill(limit=5).reindex(idx)
@@ -141,12 +130,11 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     if "fear_greed" in extra:
         fg = extra["fear_greed"]
         m["fear_greed"] = fg.reindex(idx)
-        # Coin Metrics va un día por detrás y Alternative.me publica el de hoy a las 00:00 UTC: el último día usa
-        # el índice más reciente, que es el que se ve en su web. Al día siguiente esa fila recupera el suyo.
+        # El último día usa el índice más reciente (Alternative.me publica el de hoy; Coin Metrics va un día por detrás)
         if fg.index[-1] > idx[-1]:
             m.loc[idx[-1], "fear_greed"] = fg.iloc[-1]
 
-    # Técnico (mismas métricas que calcula el frontend con las velas)
+    # Mismo técnico que calcula el frontend con las velas
     m["rsi_14"] = rsi(price)
     ma20, sd20 = price.rolling(20).mean(), price.rolling(20).std(ddof=0)
     m["bollinger"] = (price - (ma20 - 2 * sd20)) / (4 * sd20) * 100

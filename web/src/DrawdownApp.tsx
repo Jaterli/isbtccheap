@@ -14,12 +14,11 @@ import { lastDays } from "./lib/series";
 import { bandsPrice, type BandsJson } from "./lib/valuation";
 import type { History } from "./types";
 
-// Grandes mercados bajistas: los de más de esta caída se usan para comparar con el actual
+// Grandes mercados bajistas, para comparar con el actual
 const BEAR = -0.7;
 
 const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-/** Página de caída desde máximos: cuánto está BTC por debajo de su máximo histórico, y las grandes caídas anteriores. */
 export function DrawdownApp() {
   const [bands, setBands] = useState<BandsJson | null>(null);
   const [live, setLive] = useState<number | null>(null);
@@ -27,10 +26,10 @@ export function DrawdownApp() {
   const [error, setError] = useState(false);
   const range = useRange("isbtccheap:drawdown-range");
 
-  // El precio diario desde 2010 está en bands.json (history.json empieza en julio de 2011, tras el máximo de junio)
+  // bands.json empieza en 2010; history.json, en julio de 2011, después del máximo de junio
   useEffect(() => {
     getJson("bands.json").then(setBands, () => setError(true));
-    // Para la tarjeta de caídas y subidas por tamaño: el mismo histórico que la portada (sus periodos empiezan en 2011)
+    // Caídas y subidas por tamaño: mismo histórico que usaba en la portada
     getJson("history.json").then(setHistory, () => {});
     fetchCandles("1d", 1).then((c) => setLive(c.at(-1)?.close ?? null), () => {});
   }, []);
@@ -124,7 +123,6 @@ export function DrawdownApp() {
 
       {history && <Moves history={history} livePrice={live} />}
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

@@ -11,19 +11,17 @@ import { getJson } from "./lib/data";
 import { lastDays } from "./lib/series";
 import { valuationSeries, type BandsJson } from "./lib/valuation";
 
-// Margen para decir que el precio está "cerca" del suelo o del techo del corredor (en múltiplo)
+// Margen (en múltiplo) para decir que el precio está "cerca" del suelo o del techo del corredor
 const NEAR = 1.25;
 
 const pct = (f: number) => `${f > 0 ? "+" : ""}${t.percent(Math.round(f * 100).toLocaleString(locale))}`;
 const mult = (m: number) => `×${m.toLocaleString(locale, { maximumFractionDigits: 2 })}`;
 
-/** Posición del precio en el corredor de la power law, como múltiplo de la tendencia */
 function corridorZone(m: number, low: number, high: number) {
   const z = t.valuation.zones;
   return m < low ? z.below : m < low * NEAR ? z.nearLow : m > high ? z.above : m > high / NEAR ? z.nearHigh : m < 1 ? z.underTrend : z.overTrend;
 }
 
-/** Página de bandas de valoración: el precio frente a sus niveles de referencia de largo plazo. */
 export function ValuationApp() {
   const [bands, setBands] = useState<BandsJson | null>(null);
   const [live, setLive] = useState<number | null>(null);
@@ -122,7 +120,6 @@ export function ValuationApp() {
         <p className="muted small vol-note">{tx.note}</p>
       </section>
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

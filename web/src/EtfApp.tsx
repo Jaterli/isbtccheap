@@ -12,7 +12,6 @@ import { lastDays } from "./lib/series";
 const date = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const flowClass = (v: number) => (v > 0 ? "num up" : v < 0 ? "num down" : "num");
 
-/** Página de flujos de los ETF de bitcoin al contado: flujo diario frente al precio, resumen y tabla por fondo. */
 export function EtfApp() {
   const [etf, setEtf] = useState<EtfJson | null>(null);
   const [error, setError] = useState(false);
@@ -88,7 +87,7 @@ export function EtfApp() {
             </div>
           </>
         )}
-        {/* La licencia CC BY 4.0 de los datos exige citar la fuente y la fecha, visible junto a ellos */}
+        {/* La licencia CC BY 4.0 exige citar la fuente y la fecha junto a los datos */}
         {etf && (
           <p className="muted small vol-note">
             {tx.source}{" "}
@@ -104,7 +103,6 @@ export function EtfApp() {
         )}
       </section>
 
-      {/* Explicación visible: ayuda a quien llega desde un buscador y es el texto que Google indexa */}
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
         {seo.sections.map((s, i) => (

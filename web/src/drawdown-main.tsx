@@ -4,7 +4,6 @@ import { DrawdownApp } from "./DrawdownApp";
 import { redirectToPreferredLang } from "./i18n";
 import "./styles.css";
 
-// Entrada de la página de caída desde máximos (caidas/index.html); la principal es main.tsx
 if (!redirectToPreferredLang()) {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
