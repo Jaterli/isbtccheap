@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-10-28T15:35:08+00:00",
+  "updated_at": "2026-10-28T15:47:35+00:00",
   "as_of": "2026-10-27",
   "price": 80800.5374,
-  "score_1d": 39.1314,
+  "score_1d": 38.6963,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -54,13 +54,13 @@
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 52.9945,
+      "score": 46.0815,
       "metrics": [
         {
-          "id": "net_liquidity_roc",
-          "name": "Liquidez neta Fed (var. 13 sem.)",
-          "value": -0.0195,
-          "score": 73.5113
+          "id": "global_liquidity_roc",
+          "name": "Liquidez global (var. 13 sem.)",
+          "value": -0.0102,
+          "score": 45.859
         },
         {
           "id": "m2_yoy",
