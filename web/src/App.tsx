@@ -12,7 +12,6 @@ import {
   labelIndex,
   technicalFromCandles,
   withMonthlyHistory,
-  type ScoreResult,
 } from "./lib/score";
 import { labelAt, lang, locale, PAGE_PATH, t } from "./i18n";
 import { Header } from "./components/Header";
@@ -150,16 +149,16 @@ export function App() {
     };
   }, [tf, tf === "1M" ? history : null]);
 
-  const ready = live?.tf === tf;
+  // Datos en vivo de esta temporalidad: los ya aplicados o, recién seleccionada, los de la caché. Sin ninguno, el score
+  // muestra "—" hasta que lleguen (con los de otra temporalidad o los diarios daría un valor que luego salta)
+  const cachedTf = cache.current.get(tf);
+  const liveTf = live?.tf === tf ? live : cachedTf ?? null;
+  const ready = liveTf !== null;
   const computed = useMemo(
-    () => (latest ? computeScore(latest, tf, ready ? live.technical : null, funding, ready ? live.derivatives : null) : null),
-    [latest, tf, live, ready, funding],
+    () => (latest ? computeScore(latest, tf, liveTf?.technical ?? null, funding, liveTf?.derivatives ?? null) : null),
+    [latest, tf, liveTf, funding],
   );
-  // Hasta tener el técnico de la nueva temporalidad se mantiene el último score: si no, saltaría a uno calculado con
-  // el de otra
-  const lastReady = useRef<ScoreResult | null>(null);
-  if (ready && computed) lastReady.current = computed;
-  const shown = ready ? computed : lastReady.current;
+  const shown = ready ? computed : null;
 
   if (error) return <main className="container"><p className="notice">{error}</p></main>;
   if (!latest || !computed) return <main className="container"><p className="muted">{t.loading}</p></main>;
