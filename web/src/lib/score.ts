@@ -2,8 +2,7 @@ import type { Candle, Category, CategoryId, History, Latest, MetricScore, Timefr
 import type { Derivatives } from "./binance";
 import { bollingerPctB, clamp, percentileOfLast, rsi, sma } from "./indicators";
 
-// Media del precio frente a la que se mide la distancia. En mensual, 200 velas serían 16 años: se usan 48
-// (4 años, un ciclo de halving, como la media de 200 semanas)
+// En mensual, 200 velas serían 16 años: se usan 48 (un ciclo de halving)
 const MA_PERIOD: Partial<Record<Timeframe, { period: number; id: string }>> = { "1M": { period: 48, id: "ma48_ratio" } };
 
 /** Categoría "técnico" recalculada con las velas de la temporalidad elegida. */
@@ -18,7 +17,7 @@ export function technicalFromCandles(candles: Candle[], tf: Timeframe): Category
   const p = percentileOfLast(ratios);
 
   const metrics: MetricScore[] = [
-    // RSI 30 → 0, 70 → 100: usado en bruto apenas salía de 30-70 y aplanaba el score
+    // RSI 30 → 0, 70 → 100: en bruto apenas sale de 30-70
     { id: "rsi_14", name: "RSI 14", value: r, score: r === null ? null : clamp(((r - 30) / 40) * 100) },
     { id: "bollinger", name: "Bollinger %B (20, 2)", value: b, score: b === null ? null : clamp(b) },
     { id, name: `Precio frente a MA${period} (percentil)`, value: ratios.at(-1) ?? null, score: p },
@@ -26,10 +25,7 @@ export function technicalFromCandles(candles: Candle[], tf: Timeframe): Category
   return { name: "Técnico", score: mean(metrics.map((m) => m.score)), metrics };
 }
 
-/**
- * Velas mensuales de Binance (desde 2017) completadas con las del histórico diario (desde 2011) para los meses
- * anteriores: con solo las de Binance habría pocas para la media de 48 y su percentil.
- */
+/** Velas mensuales de Binance (desde 2017) completadas con el histórico diario (desde 2011) para la media de 48. */
 export function withMonthlyHistory(binance: Candle[], history: History | null): Candle[] {
   if (!history || !binance.length) return binance;
   const first = binance[0].time;
@@ -49,23 +45,18 @@ export function withMonthlyHistory(binance: Candle[], history: History | null): 
   return [...[...months.values()].filter((c) => c.time < first), ...binance];
 }
 
-/**
- * Temporalidades en las que el sentimiento sale de los derivados: el Fear & Greed es diario y en 1 h o 4 h
- * apenas cambia, mientras que el apalancamiento y el flujo de órdenes sí se mueven a ese ritmo
- */
+/** En 1 h y 4 h el sentimiento sale de los derivados: las métricas diarias apenas cambian a ese ritmo */
 export const DERIVATIVES_TFS: Timeframe[] = ["1h", "4h"];
 
 /**
- * Sentimiento de los derivados: cada serie se puntúa por el percentil de su último valor frente a los últimos
- * 30 días. Alto = más apalancamiento, más cuentas en largo o más compras agresivas que de costumbre (mercado
- * recalentado, suma al score); bajo = desapalancamiento y pesimismo (resta).
+ * Percentil del último valor de cada serie frente a los últimos 30 días. Alto = más apalancamiento, más largos o más
+ * compras agresivas que de costumbre (mercado recalentado, suma al score).
  */
 export function derivativesMetrics(d: Derivatives): MetricScore[] {
-  // Los ratios (largos / cortos, compras / ventas) se muestran como parte del total, con el 50 % como equilibrio:
-  // r / (1 + r). Es la misma ordenación, así que el percentil no cambia
+  // Ratios como parte del total (50 % = equilibrio): misma ordenación, el percentil no cambia
   const share = (r: number) => r / (1 + r);
   const longs = d.longShort.map(share);
-  // El ratio de compras/ventas de una sola vela es muy ruidoso: se usa la media de las 3 últimas
+  // Una sola vela es muy ruidosa: media de las 3 últimas
   const buys = d.takerRatio
     .map((_, i, xs) => (i < 2 ? null : share((xs[i] + xs[i - 1] + xs[i - 2]) / 3)))
     .filter((x): x is number => x !== null);
@@ -92,7 +83,7 @@ export function computeScore(
   tf: Timeframe,
   technical: Category | null,
   funding: number | null,
-  /** Métricas de derivados en 1 h y 4 h; null en el resto o si Binance no respondió (se usa el Fear & Greed) */
+  /** Solo en 1 h y 4 h; null si Binance no respondió (se quedan las métricas diarias) */
   derivatives: MetricScore[] | null = null,
 ): ScoreResult {
   const categories = { ...latest.categories };
@@ -107,7 +98,6 @@ export function computeScore(
     categories.sentimiento = { ...sent, metrics, score: mean(metrics.map((m) => m.score)) };
   }
 
-  // Hasta que el pipeline publique los pesos de una temporalidad nueva, se usan los de 1 semana
   const weights = latest.weights[tf] ?? latest.weights["1w"];
   let total = 0;
   let acc = 0;
@@ -120,7 +110,7 @@ export function computeScore(
   return { score: total ? 1 + stretch(acc / total, latest.stretch ?? 0) * 0.99 : null, categories, weights };
 }
 
-/** Igual que scoring.stretch del pipeline: contrarresta la compresión hacia 50 de la media. */
+/** Igual que scoring.stretch del pipeline. */
 function stretch(x: number, k: number): number {
   return k ? 50 + (50 * Math.tanh((k * (x - 50)) / 50)) / Math.tanh(k) : x;
 }

@@ -2,31 +2,29 @@ import type { PriceSeries } from "./series";
 
 const DAY = 86_400_000;
 
-/** bands.json del pipeline (metrics.valuation_bands): series diarias desde `start` */
+/** bands.json del pipeline: series diarias desde `start` */
 export interface BandsJson {
   start: string;
   price: (number | null)[];
   realized: (number | null)[];
-  /** Precio realizado de los holders de corto plazo (Bitview); vacío si la fuente falló */
+  /** Vacío si la fuente falló */
   sth_realized?: (number | null)[];
   wma200: (number | null)[];
   power_law: { genesis: string; slope: number; intercept: number; low: number; high: number; since: string };
 }
 
 export interface ValuationSeries extends PriceSeries {
-  /** Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación */
   realized: (number | null)[];
-  /** Precio realizado de las monedas de menos de 150 días: el coste medio de los compradores recientes */
+  /** Precio realizado de las monedas de menos de 150 días */
   sth: (number | null)[];
-  /** Media de 200 semanas */
   wma200: (number | null)[];
-  /** Tendencia de la power law y los bordes de su corredor */
+  /** Tendencia de la power law y bordes de su corredor */
   trend: number[];
   low: number[];
   high: number[];
 }
 
-/** Cierres diarios de bands.json (desde 2010) con el precio actual como último día, si aún no lo tiene. */
+/** Cierres diarios desde 2010 con el precio actual como último día, si aún no lo tiene. */
 export function bandsPrice(b: BandsJson, live: number | null): PriceSeries {
   const start = Date.parse(`${b.start}T00:00:00Z`);
   const s: PriceSeries = { time: [], price: [] };
@@ -36,7 +34,7 @@ export function bandsPrice(b: BandsJson, live: number | null): PriceSeries {
   return s;
 }
 
-/** Series de la página con el precio actual como último día, si bands.json aún no lo tiene (los niveles se repiten). */
+/** Con el precio actual como último día, si aún no lo tiene (los niveles se repiten). */
 export function valuationSeries(b: BandsJson, live: number | null): ValuationSeries {
   const start = Date.parse(`${b.start}T00:00:00Z`);
   const s: ValuationSeries = { time: [], price: [], realized: [], sth: [], wma200: [], trend: [], low: [], high: [] };

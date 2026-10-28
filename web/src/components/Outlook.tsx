@@ -24,7 +24,6 @@ interface Props {
   labels: Latest["labels"];
 }
 
-/** Qué hizo el precio después de los días en que el score diario estaba en la misma zona que hoy. */
 export function Outlook({ history, labels }: Props) {
   const { period, days, select } = usePeriod("isbtccheap:outlook-period");
   const o = useMemo(

@@ -4,14 +4,10 @@ import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWi
 import type { ValuationSeries } from "../lib/valuation";
 
 const PAD_L = 8;
-const PAD_R = 56; // eje de precio, a la derecha
+const PAD_R = 56;
 const PAD_T = 10;
-const AXIS_H = 22; // fechas
+const AXIS_H = 22;
 
-/**
- * El precio de BTC (escala logarítmica) con sus niveles de referencia: precio realizado, media de 200 semanas y la
- * tendencia de la power law con su corredor sombreado.
- */
 export function ValuationChart({ data }: { data: ValuationSeries }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -23,8 +19,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
   const chart = useMemo(() => {
-    // La escala se ajusta al precio y los niveles cercanos; lo que se sale se recorta: el techo del corredor, muy arriba,
-    // y los precios realizados de 2010, de céntimos (el de corto plazo va tan pegado al precio que no hace falta)
+    // Sin el techo del corredor ni los precios realizados (de céntimos en 2010), que estirarían la escala: se recortan
     const values = [...data.price, ...data.wma200, ...data.trend, ...data.low].filter((v): v is number => v !== null);
     const { y, ticks } = logPriceScale(values, PAD_T, plotH);
     const pt = (i: number, v: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;

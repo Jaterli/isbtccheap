@@ -10,21 +10,20 @@ interface Props {
   live: boolean;
 }
 
-// Categorías que se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
+// Se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
 const LIVE: CategoryId[] = ["tecnico", "sentimiento"];
 
-const ORDER: CategoryId[] = ["sentimiento", "valoracion", "ciclo", "liquidez", "tecnico"];
-// Puntuación a partir de la que una métrica está en zona extrema: el 10 % más bajo o más alto de su historia reciente
+const ORDER: CategoryId[] = ["sentimiento", "tecnico", "valoracion", "ciclo", "liquidez"];
+// Zona extrema: el 10 % más bajo o más alto de su historia reciente
 const EXTREME = 10;
 
-// Métricas que se leen mejor como porcentaje: el valor del pipeline → fracción a mostrar
+// Métricas que se leen mejor como porcentaje: valor del pipeline → fracción a mostrar
 const AS_PERCENT: Record<string, (v: number) => number> = {
-  // Variaciones: 0,0491 es un +4,91 %
   net_liquidity_roc: (v) => v,
   m2_yoy: (v) => v,
   dxy_roc: (v) => v,
   stablecoin_roc: (v) => v,
-  // Residuo en log10 frente a la tendencia: 10^v − 1 es cuánto está el precio por encima o por debajo
+  // Residuo en log10 frente a la tendencia
   power_law: (v) => 10 ** v - 1,
   // Cocientes frente a una media: 1,1 es un +10 % por encima de ella
   mayer: (v) => v - 1,
@@ -32,23 +31,22 @@ const AS_PERCENT: Record<string, (v: number) => number> = {
   ma200_ratio: (v) => v - 1,
   ma48_ratio: (v) => v - 1,
   puell: (v) => v - 1,
-  // SOPR: 1,007 es que los holders de corto plazo vendieron de media con un +0,7 % de beneficio
+  // SOPR 1,007 = vendieron de media con un +0,7 % de beneficio
   sth_sopr: (v) => v - 1,
 };
 
 function fmt(v: number | null, id: string) {
-  // El pipeline guarda la fase ya convertida en puntuación; se muestra la parte del ciclo transcurrida, que se entiende
+  // El pipeline guarda la fase ya convertida en puntuación: se muestra la parte del ciclo transcurrida
   if (id === "halving_phase") {
     const phase = (Date.now() - LAST_HALVING) / (NEXT_HALVING - LAST_HALVING);
     return t.percent(Math.round(Math.min(Math.max(phase, 0), 1) * 100).toLocaleString(locale));
   }
   if (v === null) return "—";
-  // El funding se publica como porcentaje cada 8 h (0,01 % es neutro); como fracción, 0,0000267 redondeaba a 0
+  // Con 4 decimales: 0,0000267 redondearía a 0
   if (id === "funding") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 4 }));
-  // Partes del total (50 % = equilibrio entre largos y cortos, o entre compras y ventas): sin signo
+  // Partes del total (50 % = equilibrio): sin signo
   if (id === "long_short" || id === "taker_ratio") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 1 }));
   if (id === "open_interest") return `${Math.round(v).toLocaleString(locale)} BTC`;
-  // Flujo neto: entradas (+) o salidas (−) de los ETF en las últimas 20 sesiones
   if (id === "etf_flows") return `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString(locale)} BTC`;
   if (AS_PERCENT[id]) {
     const p = AS_PERCENT[id](v) * 100;
@@ -67,8 +65,7 @@ function Bar({ score }: { score: number | null }) {
   );
 }
 
-/** Puntuación de la métrica; en zona extrema, con un punto que late: verde (muy barata) o rojo (muy cara).
- * Se decide con el número redondeado, el mismo que se ve (un 10,4 se muestra como 10 y debe marcarse). */
+/** En zona extrema, con un punto que late. Se decide con el número redondeado, el que se ve. */
 function MetricScore({ score, mark }: { score: number | null; mark: boolean }) {
   if (score === null) return <span className="num">—</span>;
   const s = Math.round(score);

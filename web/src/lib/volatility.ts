@@ -6,11 +6,10 @@ export const VOL_WINDOW: Record<CandleTf, number> = { "1h": 24, "4h": 42, "1d": 
 const PER_YEAR: Record<CandleTf, number> = { "1h": 24 * 365, "4h": 6 * 365, "1d": 365, "1w": 365 / 7 };
 
 export interface VolSeries extends PriceSeries {
-  /** Volatilidad realizada anualizada (fracción: 0,5 = 50 %); null mientras no hay velas suficientes */
+  /** Anualizada (0,5 = 50 %); null mientras no hay velas suficientes */
   vol: (number | null)[];
 }
 
-/** Desviación típica de los rendimientos logarítmicos de las últimas `window` velas, anualizada. */
 function realizedVol(price: number[], window: number, perYear: number): (number | null)[] {
   const ret = price.map((p, i) => (i === 0 ? 0 : Math.log(p / price[i - 1])));
   return price.map((_, i) => {

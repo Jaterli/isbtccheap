@@ -193,7 +193,6 @@ export const es = {
     priceLegend: "Precio",
     chartAria: "Gráfico de la volatilidad realizada de Bitcoin y de su precio",
   },
-  /** Periodo de la muestra de las tarjetas de estadística histórica */
   periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,
   periodAria: "Periodo de la muestra",
 

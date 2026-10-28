@@ -3,15 +3,12 @@ import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18
 
 const PAGES: Page[] = ["index", "volatility", "cycles", "valuation", "drawdown", "categories", "etf"];
 
-/** Cabecera común: navegación entre páginas, selector de idioma (a la misma página en el otro idioma), logo y título. */
 export function Header({ title, rest }: { title: string; rest: string }) {
-  // En pantallas pequeñas los enlaces no caben en una fila: un botón con la página actual los abre en un desplegable
-  // (en las grandes el botón está oculto y los enlaces siempre a la vista, ver styles.css)
+  // Por debajo de 900 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
   const [open, setOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
 
-  // Se cierra al pulsar fuera o con Escape (devolviendo el foco al botón)
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => !nav.current?.contains(e.target as Node) && setOpen(false);
@@ -58,7 +55,6 @@ export function Header({ title, rest }: { title: string; rest: string }) {
         <a className="brand" href={PAGE_PATH.index[lang]}>
           <img src={`${import.meta.env.BASE_URL}logo.jpg`} alt="Is BTC Cheap?" width="320" height="320" />
         </a>
-        {/* El <h1> es la pregunta o el tema de la página, el texto que buscan los usuarios */}
         <div className="intro">
           <h1>{title}</h1>
           <p className="muted">{rest}</p>

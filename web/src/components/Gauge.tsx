@@ -5,7 +5,6 @@ const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)"
 const CX = 120;
 const CY = 120;
 const R = 100;
-// Círculo con el score sobre el eje de la aguja
 const HUB_R = 25;
 
 // 0 -> izquierda (barato), 100 -> derecha (caro)
@@ -14,7 +13,7 @@ function point(score: number, r = R) {
   return [CX + r * Math.cos(a), CY - r * Math.sin(a)];
 }
 
-/** Color del tramo del medidor en el que cae el score (mismos cortes que las etiquetas: ≤20, ≤40…) */
+/** Mismos cortes que las etiquetas: ≤20, ≤40… */
 export function bandColor(score: number) {
   return BANDS[Math.min(4, Math.max(0, Math.ceil(score / 20) - 1))];
 }
@@ -28,7 +27,6 @@ function arc(from: number, to: number) {
 interface Props {
   score: number | null;
   label: string;
-  /** Icono de información junto a la etiqueta */
   info?: ReactNode;
 }
 
@@ -42,7 +40,6 @@ export function Gauge({ score, label, info }: Props) {
           <path key={i} d={arc(i * 20 + 0.8, (i + 1) * 20 - 0.8)} stroke={c} strokeWidth="18" fill="none" />
         ))}
         {score !== null && <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="var(--fg)" strokeWidth="3" strokeLinecap="round" />}
-        {/* El círculo tapa el arranque de la aguja: parece que sale de él */}
         <circle cx={CX} cy={CY} r={HUB_R} className="gauge-hub" style={{ stroke: color }} />
         <text x={CX} y={CY} className="gauge-value" style={{ fill: color }} textAnchor="middle" dominantBaseline="central">
           {score === null ? "—" : Math.round(score)}

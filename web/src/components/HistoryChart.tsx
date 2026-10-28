@@ -3,7 +3,6 @@ import { locale, t } from "../i18n";
 import type { History } from "../types";
 import { InfoTip } from "./InfoTip";
 
-// Los nombres están en i18n (t.history.ranges)
 const RANGES = [
   { id: "1m", days: 30 },
   { id: "1y", days: 365 },
@@ -11,16 +10,16 @@ const RANGES = [
   { id: "all", days: Infinity },
 ];
 
-const GAP = 18; // separador entre paneles (es también la barra para cambiar el alto)
-const AXIS_H = 20; // fechas bajo el panel del score
-const HANDLE_H = 14; // barra inferior para cambiar el alto del score
+const GAP = 18; // es también la barra para cambiar el alto
+const AXIS_H = 20;
+const HANDLE_H = 14;
 const PAD_L = 8;
 const PAD_R = 52;
-const MIN_SPAN = 14; // días mínimos visibles al hacer zoom
+const MIN_SPAN = 14; // días
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
 const HEIGHTS_KEY = "isbtccheap:chart-heights";
 
-/** Ventana visible: índices (fraccionarios) del primer y último día. */
+/** Ventana visible: índices fraccionarios del primer y último día. */
 interface View {
   start: number;
   end: number;
@@ -57,7 +56,7 @@ function loadHeights(): Heights | null {
 
 const shortUsd = (p: number) => (p >= 1000 ? `$${(p / 1000).toFixed(p < 10_000 ? 1 : 0)}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`);
 
-/** Marcas del eje de fechas en límites naturales (años, meses o días) según el zoom. */
+/** Marcas en límites naturales (años, meses o días) según el zoom. */
 function dateTicks(dates: string[], v0: number, v1: number, maxTicks: number) {
   const span = v1 - v0;
   const unit = span > 1100 ? "y" : span > 75 ? "m" : "d";
@@ -96,7 +95,6 @@ export function HistoryChart({ history }: { history: History }) {
     return () => ro.disconnect();
   }, []);
 
-  // Alto por defecto según el ancho; el usuario puede cambiarlo arrastrando las barras
   const auto: Heights = { price: width < 520 ? 140 : width < 900 ? 170 : 220, score: width < 520 ? 80 : 100 };
   const heights = custom ?? auto;
   const plotW = Math.max(50, width - PAD_L - PAD_R);
@@ -140,7 +138,7 @@ export function HistoryChart({ history }: { history: History }) {
 
   const ticks = useMemo(() => dateTicks(history.dates, v0, v1, Math.max(2, Math.floor(plotW / 90))), [history, v0, v1, plotW]);
 
-  // ---------- Zoom con Ctrl + rueda / pellizco del trackpad, desplazamiento con scroll horizontal ----------
+  // Zoom con Ctrl + rueda o pellizco del trackpad; desplazamiento con scroll horizontal
   const plotWRef = useRef(plotW);
   plotWRef.current = plotW;
   useEffect(() => {
@@ -163,7 +161,7 @@ export function HistoryChart({ history }: { history: History }) {
     return () => el.removeEventListener("wheel", onWheel);
   }, [N]);
 
-  // ---------- Arrastrar para desplazar (1 dedo / ratón) y pellizcar para zoom (2 dedos) ----------
+  // Arrastrar para desplazar (1 dedo o ratón) y pellizcar para zoom (2 dedos)
   const pointers = useRef(new Map<number, number>());
   const gesture = useRef<{ view: View; anchor: number; dist: number; x0: number; moved: boolean } | null>(null);
   const relX = (clientX: number) => (clientX - svgRef.current!.getBoundingClientRect().left - PAD_L) / plotW;
@@ -212,7 +210,6 @@ export function HistoryChart({ history }: { history: History }) {
     baseline();
   };
 
-  // ---------- Cambiar el alto de cada panel ----------
   const saveHeights = (h: Heights | null) => {
     setCustom(h);
     try {
@@ -268,7 +265,6 @@ export function HistoryChart({ history }: { history: History }) {
     </div>
   );
 
-  // ---------- Botones ----------
   const selectRange = (r: (typeof RANGES)[number]) => {
     setRange(r.id);
     setView(viewForRange(r.days, N));
@@ -294,7 +290,6 @@ export function HistoryChart({ history }: { history: History }) {
       <g key={kind} className={`extreme extreme-${kind}`}>
         <line x1={cx} x2={cx} y1={4} y2={scoreBottom} className="extreme-guide" />
         <circle cx={cx} cy={py} r="4" />
-        {/* Precio de BTC ese día, junto a su punto en el gráfico de precio (dentro del panel) */}
         <text x={tx} y={clamp(py + 4, 14, heights.price - 4)} textAnchor={anchor}>
           {`$${Math.round(history.price[i]).toLocaleString(locale)}`}
         </text>
@@ -363,7 +358,6 @@ export function HistoryChart({ history }: { history: History }) {
             </clipPath>
           </defs>
 
-          {/* Panel del precio (escala logarítmica) */}
           {chart.priceTicks.map((p, k) => (
             <g key={k}>
               <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.yPrice(p)} y2={chart.yPrice(p)} className="grid" />
@@ -372,7 +366,6 @@ export function HistoryChart({ history }: { history: History }) {
           ))}
           <path d={chart.pricePath} className="line-price" clipPath={`url(#${uid}p)`} />
 
-          {/* Panel del score */}
           {[20, 40, 60, 80].map((t) => (
             <g key={t}>
               <line x1={PAD_L} x2={PAD_L + plotW} y1={yScore(t)} y2={yScore(t)} className="grid" />
@@ -383,7 +376,6 @@ export function HistoryChart({ history }: { history: History }) {
           <rect x={PAD_L} width={plotW} y={yScore(20)} height={yScore(0) - yScore(20)} className="zone-cold" />
           <path d={chart.scorePath} className="line-score" clipPath={`url(#${uid}s)`} />
 
-          {/* Eje de fechas */}
           {ticks.map((t) => (
             <text key={t.i} x={x(t.i)} y={scoreBottom + 15} className="axis" textAnchor="middle">{t.label}</text>
           ))}

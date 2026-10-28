@@ -4,21 +4,18 @@ import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd,
 import type { EtfSeries } from "../lib/etf";
 
 const PAD_L = 8;
-const PAD_R = 56; // ejes de precio y de flujo, a la derecha
+const PAD_R = 56;
 const PAD_T = 10;
-const GAP = 18; // entre el panel del precio y el de los flujos
-const AXIS_H = 22; // fechas
+const GAP = 18;
+const AXIS_H = 22;
 
-/** Millones o miles de millones de dólares con signo: +527 M$, −1,2 mil M$ (en inglés, $527M, $1.2B) */
+/** +527 M$, −1,2 mil M$ ($527M, $1.2B en inglés) */
 export const flowUsd = (v: number, signed = true) => {
   const sign = v > 0 && signed ? "+" : v < 0 ? "−" : "";
   return `${sign}${t.etf.money(Math.abs(v))}`;
 };
 
-/**
- * Arriba, el precio de BTC del día de cada sesión; abajo, el flujo neto diario de los ETF en barras, verdes las
- * entradas y rojas las salidas. El eje x son sesiones (días de mercado), sin huecos en fines de semana.
- */
+/** El eje x son sesiones de mercado, sin huecos en fines de semana. */
 export function EtfChart({ data }: { data: EtfSeries }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -35,7 +32,7 @@ export function EtfChart({ data }: { data: EtfSeries }) {
 
   const chart = useMemo(() => {
     const { y, ticks } = logPriceScale(data.price, PAD_T, priceH);
-    // Eje de flujos simétrico alrededor de 0, para comparar entradas y salidas a simple vista
+    // Simétrico alrededor de 0, para comparar entradas y salidas
     const max = Math.max(...data.flow.map(Math.abs), 1);
     const yFlow = (v: number) => flowTop + flowH / 2 - (v / max) * (flowH / 2 - 4);
     const flowTicks = niceTicks(0, max, 2).filter((v) => v > 0);
@@ -69,7 +66,6 @@ export function EtfChart({ data }: { data: EtfSeries }) {
         </span>
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        {/* Precio */}
         {chart.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
@@ -78,7 +74,6 @@ export function EtfChart({ data }: { data: EtfSeries }) {
         ))}
         <path d={chart.price} className="line-price" />
 
-        {/* Flujos: 0 en el centro y una referencia por arriba y por abajo */}
         {[0, ...chart.flowTicks, ...chart.flowTicks.map((v) => -v)].map((v) => (
           <g key={v}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.yFlow(v)} y2={chart.yFlow(v)} className={v === 0 ? "grid" : "grid grid-ref"} />

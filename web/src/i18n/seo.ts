@@ -1,8 +1,6 @@
 /**
- * Texto de presentación y preguntas frecuentes de cada idioma. Lo usan:
- *  - components/Faq.tsx: la sección visible de la página (Google indexa la página ya pintada por React).
- *  - vite.config.ts: el mismo texto en el HTML inicial, para los rastreadores que no ejecutan JavaScript.
- * Texto plano, sin JSX: vite.config.ts lo convierte a HTML al compilar.
+ * Textos explicativos de cada página: visibles en la página y, en el HTML inicial, para los rastreadores que no ejecutan
+ * JavaScript. Texto plano: vite.config.ts lo convierte a HTML.
  */
 export interface SeoText {
   title: string;
@@ -11,7 +9,6 @@ export interface SeoText {
   faq: { q: string; a: string }[];
 }
 
-/** Página de volatilidad: texto visible bajo la gráfica y en el HTML inicial */
 export interface VolSeoText {
   title: string;
   intro: string;
@@ -134,7 +131,6 @@ export const SEO: Record<"es" | "en", SeoText> = {
   },
 };
 
-/** Página de ciclos de halving: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_CYCLES: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Ciclos de Bitcoin desde cada halving",
@@ -176,7 +172,6 @@ export const SEO_CYCLES: Record<"es" | "en", VolSeoText> = {
   },
 };
 
-/** Página de bandas de valoración: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Bandas de valoración de Bitcoin",
@@ -234,7 +229,6 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
   },
 };
 
-/** Página de caída desde máximos: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Caídas y subidas de Bitcoin",
@@ -284,7 +278,6 @@ export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
   },
 };
 
-/** Página del histórico de categorías: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Histórico del índice por categorías",
@@ -326,7 +319,6 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
   },
 };
 
-/** Página de flujos de ETF: texto visible bajo la gráfica y en el HTML inicial */
 export const SEO_ETF: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Flujos de los ETF de Bitcoin",

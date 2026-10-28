@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { t } from "../i18n";
 
-// Periodo mostrado en las gráficas de histórico diario (valoración, caídas, categorías)
 export const RANGES = [
   { id: "1y", days: 365 },
   { id: "4y", days: 1461 },
   { id: "all", days: Infinity },
 ];
-// Para series cortas, como los flujos de ETF (desde 2024)
+// Para series cortas (flujos de ETF, desde 2024)
 export const SHORT_RANGES = [
   { id: "3m", days: 91 },
   { id: "1y", days: 365 },
   { id: "all", days: Infinity },
 ];
 
-/** Periodo elegido, recordado con `key`. Devuelve sus días (Infinity en "Todo") y el selector. */
+/** Periodo elegido, recordado con `key`: sus días (Infinity en "Todo") y el selector. */
 export function useRange(key: string, fallback = "all", ranges = RANGES) {
   const [range, setRange] = useState(() => {
     try {

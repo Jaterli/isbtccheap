@@ -1,9 +1,9 @@
 import type { Candle, Timeframe } from "../types";
 
-// data-api.binance.vision es el dominio público de solo datos de mercado (sin clave, con CORS).
+// Dominio público de solo datos de mercado: sin clave y con CORS
 const SPOT = "https://data-api.binance.vision/api/v3";
 const FUTURES = "https://fapi.binance.com/fapi/v1";
-// Sin límite, una petición colgada dejaría el score en "Cargando…" hasta que el navegador la abandone
+// Sin límite, una petición colgada dejaría el score en "Cargando…"
 const TIMEOUT_MS = 10_000;
 
 export async function fetchCandles(tf: Timeframe, limit = 1000): Promise<Candle[]> {
@@ -27,16 +27,15 @@ export async function fetchFundingRate(): Promise<number> {
   return Number(data.lastFundingRate);
 }
 
-// Estadísticas de los futuros de Binance (sin clave, con CORS). Solo guardan los últimos 30 días
+// Estadísticas de los futuros: solo guardan los últimos 30 días
 const FUTURES_DATA = "https://fapi.binance.com/futures/data";
 
-/** Series de los derivados de BTCUSDT, de la más antigua a la más reciente. */
 export interface Derivatives {
-  /** Open interest en BTC: cuánto apalancamiento hay abierto */
+  /** En BTC */
   openInterest: number[];
-  /** Cuentas con posición larga / cuentas con posición corta (la web lo muestra como % de cuentas en largo) */
+  /** Cuentas en largo / en corto */
   longShort: number[];
-  /** Volumen comprador / vendedor de las órdenes a mercado (la web lo muestra como % de compras) */
+  /** Volumen comprador / vendedor de las órdenes a mercado */
   takerRatio: number[];
 }
 

@@ -1,16 +1,12 @@
 import type { History, Latest } from "../types";
 
-/** Plazos en días; sus nombres están en i18n (t.outlook.horizons) */
 export const HORIZONS = [30, 90, 180, 365];
 
-// Muestra de las rentabilidades: días con un score diario a menos de esto del de hoy. Un rango centrado
-// compara situaciones parecidas; una zona fija mezclaría, con un score de 39, días de 22 y dejaría fuera los de 42
+// Muestra: días con un score a menos de esto del de hoy (un rango centrado; una zona fija mezclaría días muy distintos)
 const SIMILAR = 7.5;
-// Para contar episodios independientes, los días de la muestra separados por menos de esto son el mismo episodio:
-// se parecen mucho entre sí y no aportan información nueva
+// Días de la muestra separados por menos de esto son el mismo episodio: no aportan información independiente
 const EPISODE_GAP = 30;
-// La duración en una zona se mide con la media de 30 días: el score diario es demasiado ruidoso (en semanas
-// puede ir de 17 a 58) y sus rachas en una zona de 20 puntos serían de pocos días
+// La racha en una zona se mide con la media de 30 días: el score diario es demasiado ruidoso
 const SMOOTH = 30;
 const RECENT = 90;
 const VOL_WINDOW = 30;
@@ -23,7 +19,6 @@ export interface ForwardStats {
   /** Episodios distintos a los que pertenecen esos días: es el tamaño real de la muestra */
   episodes: number;
   median: number | null;
-  /** Fracción de días en que el precio era mayor al cabo del horizonte */
   positive: number | null;
   min: number | null;
   max: number | null;
@@ -58,7 +53,6 @@ export interface Outlook {
   vol: { current: number; percentile: number } | null;
 }
 
-/** Tramos de la escala con los mismos cortes que las etiquetas (score ≤ max). */
 function bandOf(score: number, labels: Latest["labels"]): Band {
   const found = labels.findIndex((l) => score <= l.max);
   const i = found === -1 ? labels.length - 1 : found;
@@ -109,8 +103,8 @@ function volatility(price: number[]): Outlook["vol"] {
 }
 
 /**
- * Qué hizo el precio después de los días con un score diario parecido al de hoy, y cuánto lleva en su zona.
- * fromIndex limita la muestra a los días desde ese índice (el precio posterior sí puede salir de él).
+ * Qué hizo el precio después de los días con un score parecido al de hoy, y cuánto lleva en su zona. fromIndex limita
+ * la muestra (el precio posterior sí puede salir de ella).
  */
 export function computeOutlook(history: History, labels: Latest["labels"], fromIndex = 0): Outlook | null {
   const { dates, price, score } = history;

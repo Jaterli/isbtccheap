@@ -11,7 +11,6 @@ const fmtDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(loca
 const OVER_PERCENTILE = 90;
 const over = (m: MoveStats) => m.percentile !== null && m.percentile >= OVER_PERCENTILE;
 
-/** Une ["−10 %", "−15 %", "−20 %"] en "−10 %, −15 % y −20 %" (o "and" en inglés) */
 const list = (items: string[]) => new Intl.ListFormat(locale, { type: "conjunction" }).format(items);
 
 function TrendIcon({ down }: { down: boolean }) {
@@ -22,7 +21,6 @@ function TrendIcon({ down }: { down: boolean }) {
   );
 }
 
-/** Celda de un tamaño: días desde la última vez, lo habitual y la barra del percentil */
 function MoveCell({ m }: { m: MoveStats }) {
   const tx = t.moves;
   const title = [m.last && fmtDate(m.last), m.percentile !== null && tx.percentile(Math.round(m.percentile)), tx.count(m.count)]
@@ -34,7 +32,7 @@ function MoveCell({ m }: { m: MoveStats }) {
       <div className="mv-in">
         <strong>{m.daysSince === null ? tx.none : tx.days(m.daysSince)}</strong>
         {m.percentile !== null && (
-          // La barra es el percentil; la marca central, lo habitual (percentil 50)
+          // La barra es el percentil; la marca central, lo habitual
           <div className="moves-bar" aria-hidden="true">
             <span style={{ width: `${m.percentile}%` }} />
             <i />
@@ -46,7 +44,6 @@ function MoveCell({ m }: { m: MoveStats }) {
   );
 }
 
-/** Caídas y subidas en la misma tabla, una fila por tamaño: la mitad de alto que dos tablas apiladas */
 function MoveTable({ drops, rallies }: { drops: MoveStats[]; rallies: MoveStats[] }) {
   const tx = t.moves;
   const head = (down: boolean) => (
@@ -83,7 +80,6 @@ function MoveTable({ drops, rallies }: { drops: MoveStats[]; rallies: MoveStats[
   );
 }
 
-/** Días que lleva BTC sin una caída (desde máximo) o subida (desde mínimo) de cada tamaño, frente a la media. */
 export function Moves({ history, livePrice }: { history: History; livePrice: number | null }) {
   const { period, days, select } = usePeriod("isbtccheap:moves-period");
   const m = useMemo(() => {

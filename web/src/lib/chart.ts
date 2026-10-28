@@ -2,15 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { locale } from "../i18n";
 import { isIntraday, type CandleTf } from "./series";
 
-/** Utilidades comunes de las gráficas de las páginas de volatilidad, ciclos, valoración y caídas */
 
 export const shortUsd = (p: number) =>
   p >= 1000 ? `$${(p / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`;
 
-/** Precio en dólares: con céntimos por debajo de 100 $ (los primeros años de Bitcoin) */
 export const usd = (p: number) => p.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: p < 100 ? 2 : 0 });
 
-/** Marcas "bonitas" para un eje lineal entre lo y hi. */
 export function niceTicks(lo: number, hi: number, count: number) {
   const step0 = (hi - lo) / count;
   const mag = 10 ** Math.floor(Math.log10(step0));
@@ -20,8 +17,7 @@ export function niceTicks(lo: number, hi: number, count: number) {
   return out;
 }
 
-/** Fecha del eje (corta) o de la lectura (larga): con hora en 1 h y 4 h, sin ella en 1 día y 1 semana (en el eje, mes y
- * año completo: "jul 10" se leería como un día). */
+/** Fecha del eje (corta) o de la lectura (larga). En el eje, año completo: "jul 10" se leería como un día. */
 export function fmtTime(ms: number, tf: CandleTf, long: boolean) {
   const intraday = isIntraday(tf);
   const opts: Intl.DateTimeFormatOptions = long
@@ -33,9 +29,8 @@ export function fmtTime(ms: number, tf: CandleTf, long: boolean) {
 }
 
 /**
- * Escala logarítmica de precio para un panel que empieza en `top` y mide `height`, con un margen del 6 %.
- * Marcas: si el rango abarca más de ×2, potencias de 10 y sus ×2 y ×5 (con muchas décadas, solo las potencias de 10);
- * si es estrecho (1 h, 4 h) ahí no cae ninguna y se usan marcas lineales.
+ * Escala logarítmica con un margen del 6 %. Marcas en 1, 2 y 5 de cada potencia de 10 (solo potencias si hay muchas);
+ * en rangos estrechos (1 h, 4 h) no cae ninguna y se usan lineales.
  */
 export function logPriceScale(values: number[], top: number, height: number) {
   const logs = values.filter((v) => v > 0).map(Math.log10);
@@ -56,7 +51,7 @@ export function logPriceScale(values: number[], top: number, height: number) {
   return { y, ticks };
 }
 
-/** Línea SVG que salta los huecos (valores null, p. ej. antes de tener velas suficientes para el indicador). */
+/** Línea SVG que salta los huecos (valores null). */
 export function linePath(values: (number | null)[], x: (i: number) => number, y: (v: number) => number) {
   let d = "";
   let pen = false;
@@ -68,7 +63,6 @@ export function linePath(values: (number | null)[], x: (i: number) => number, y:
   return d;
 }
 
-/** Ancho disponible del contenedor, para que la gráfica ocupe la tarjeta. */
 export function useWidth(min = 280) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
@@ -82,7 +76,6 @@ export function useWidth(min = 280) {
   return { ref, width };
 }
 
-/** Marcas de fecha repartidas a lo ancho: una cada ~110 px. */
 export const dateTickIndexes = (n: number, plotW: number) => {
   const count = Math.max(2, Math.floor(plotW / 110));
   return Array.from({ length: count }, (_, k) => Math.round((k / (count - 1)) * (n - 1)));

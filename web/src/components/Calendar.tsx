@@ -8,22 +8,20 @@ interface CalendarEvent {
   title: string;
   title_es: string;
   country: string;
-  /** ISO con zona horaria (la de Nueva York en origen); se muestra en la del visitante */
+  /** ISO con zona horaria; se muestra en la del visitante */
   date: string;
   forecast: string | null;
   previous: string | null;
 }
 
-// Lo genera el script del droplet cada hora; nginx lo sirve en la misma web (en desarrollo, vite.config.ts)
 const CALENDAR_URL = `${import.meta.env.BASE_URL}news/calendar.json`;
 const REFRESH_MS = 30 * 60_000;
 
-/** Las cifras de origen vienen en formato inglés ("4.00%"): en español, "4,00 %" */
+/** Las cifras vienen en formato inglés ("4.00%") */
 const num = (v: string) => (lang === "es" ? v.replace(/(\d)\.(\d)/g, "$1,$2").replace(/(\d)%/g, "$1 %") : v);
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
-/** Agenda económica de la semana: los datos y decisiones que más pueden mover el mercado. */
 export function Calendar() {
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -39,7 +37,6 @@ export function Calendar() {
         });
     load();
     const data = setInterval(load, REFRESH_MS);
-    // Reloj para atenuar lo que ya ha pasado y resaltar el siguiente
     const clock = setInterval(() => setNow(Date.now()), 60_000);
     return () => {
       clearInterval(data);
@@ -47,14 +44,13 @@ export function Calendar() {
     };
   }, []);
 
-  // Desde hoy en adelante (lo de días anteriores ya no sirve como agenda)
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   const shown = (events ?? []).filter((e) => new Date(e.date) >= today);
   if (!shown.length) return null;
 
   const tx = t.calendar;
-  // Un evento "pasa" una hora después de su hora: el dato y la reacción del mercado siguen siendo noticia un rato
+  // Un evento "pasa" una hora después: la reacción del mercado sigue siendo noticia un rato
   const isPast = (d: Date) => d.getTime() + 3_600_000 < now;
   const next = shown.find((e) => !isPast(new Date(e.date)));
   const days = new Map<string, CalendarEvent[]>();

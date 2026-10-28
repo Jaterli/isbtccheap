@@ -1,6 +1,5 @@
 import type { Candle, History } from "../types";
 
-/** Tamaños de vela de las páginas de gráficas (volatilidad) */
 export type CandleTf = "1h" | "4h" | "1d" | "1w";
 export const CANDLE_TFS: CandleTf[] = ["1h", "4h", "1d", "1w"];
 export const isIntraday = (tf: CandleTf) => tf === "1h" || tf === "4h";
@@ -8,7 +7,6 @@ export const isIntraday = (tf: CandleTf) => tf === "1h" || tf === "4h";
 export interface PriceSeries {
   /** Inicio de cada vela, en ms */
   time: number[];
-  /** Cierre de cada vela */
   price: number[];
 }
 
@@ -24,7 +22,7 @@ function dailyFromHistory(history: History, live: number | null): PriceSeries {
   return { time, price };
 }
 
-/** Velas semanales (de lunes a domingo, en UTC) a partir de las diarias: el cierre es el último día de la semana. */
+/** Velas semanales (de lunes a domingo, UTC) a partir de las diarias. */
 function weekly(daily: PriceSeries): PriceSeries {
   const time: number[] = [];
   const price: number[] = [];
@@ -39,7 +37,7 @@ function weekly(daily: PriceSeries): PriceSeries {
   return { time, price };
 }
 
-/** Cierres de la temporalidad: velas de Binance en 1 h y 4 h; el histórico (diario o semanal) en 1 día y 1 semana. */
+/** Velas de Binance en 1 h y 4 h; el histórico en 1 día y 1 semana. */
 export function priceSeries(tf: CandleTf, source: { candles?: Candle[]; history?: History; live?: number | null }): PriceSeries {
   if (isIntraday(tf)) {
     const c = source.candles ?? [];
@@ -49,7 +47,7 @@ export function priceSeries(tf: CandleTf, source: { candles?: Candle[]; history?
   return tf === "1d" ? daily : weekly(daily);
 }
 
-/** Recorta a los últimos `days` días todas las series de `s` (los indicadores ya se calcularon con las velas previas). */
+/** Recorta todas las series a los últimos `days` días (los indicadores ya se calcularon con las velas previas). */
 export function lastDays<T extends PriceSeries>(s: T, days: number): T {
   if (!Number.isFinite(days) || !s.time.length) return s;
   const from = s.time.at(-1)! - days * 86_400_000;

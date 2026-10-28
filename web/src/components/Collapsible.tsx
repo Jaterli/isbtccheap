@@ -15,15 +15,13 @@ function useSmallScreen() {
 }
 
 export interface MobileCollapse {
-  /** true en móvil, donde la tarjeta se puede plegar */
   collapsible: boolean;
-  /** El contenido se muestra: siempre en pantallas grandes; en móvil, solo si se ha desplegado */
   open: boolean;
   toggle: () => void;
   bodyId: string;
 }
 
-/** Tarjeta plegada por defecto en móvil (como "Apoya el proyecto") y siempre desplegada en pantallas mayores. */
+/** Plegada por defecto en móvil y siempre desplegada en pantallas mayores. */
 export function useMobileCollapse(): MobileCollapse {
   const small = useSmallScreen();
   const [open, setOpen] = useState(false);
@@ -31,7 +29,6 @@ export function useMobileCollapse(): MobileCollapse {
   return { collapsible: small, open: !small || open, toggle: () => setOpen((o) => !o), bodyId };
 }
 
-/** Título de la tarjeta: en móvil es el botón que la pliega y despliega. */
 export function CollapseTitle({ state, children }: { state: MobileCollapse; children: ReactNode }) {
   if (!state.collapsible) return <>{children}</>;
   return (

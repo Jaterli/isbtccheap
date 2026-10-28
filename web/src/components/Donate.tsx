@@ -47,7 +47,6 @@ export const OPEN_DONATE_EVENT = "isbtccheap:open-donate";
 export function Donate() {
   const methods = CRYPTO.filter((m) => m.address);
   const [active, setActive] = useState(methods[0]?.id);
-  // Plegado por defecto: solo se ve el título hasta que se pulsa
   const [open, setOpen] = useState(() => window.location.hash === "#donar");
 
   useEffect(() => {

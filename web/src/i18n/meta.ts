@@ -1,5 +1,4 @@
-/** Metadatos del index.html de cada página e idioma. Los usa vite.config.ts al compilar (rellena los __CLAVE__ del
- * HTML). Sin dependencias del navegador: se importa desde vite.config.ts */
+/** Metadatos de cada index.html, que vite.config.ts rellena al compilar (__CLAVE__). Sin dependencias del navegador. */
 export interface PageMeta {
   LANG: string;
   OG_LOCALE: string;
@@ -163,8 +162,6 @@ const ETF_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
-/** Por página: la principal (index.html) y las de gráficas, cada una en su carpeta (volatilidad/, ciclos/,
- * valoracion/, caidas/, categorias/, etf/) */
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,

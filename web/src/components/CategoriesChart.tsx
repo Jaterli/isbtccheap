@@ -7,20 +7,17 @@ import { bandColor } from "./Gauge";
 
 const PAD_L = 8;
 const PAD_T = 10;
-const GAP = 14; // entre el precio y el mapa de calor
-const AXIS_H = 22; // fechas
-const CELL_W = 3; // ancho mínimo de cada columna del mapa: con muchos días, cada una agrupa varios (su media)
+const GAP = 14;
+const AXIS_H = 22;
+const CELL_W = 3; // ancho mínimo de columna: con muchos días, cada una es la media de varios
 
-/**
- * Arriba, el precio (escala logarítmica) con los techos y suelos de ciclo marcados; debajo, un mapa de calor con el score
- * diario y la puntuación de cada categoría, del verde (barato) al rojo (caro), con los mismos tramos que el medidor.
- */
+/** Mapa de calor con los mismos tramos de color que el medidor. */
 export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks: { time: number; top: boolean }[] }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
 
   const small = width < 600;
-  const PAD_R = small ? 74 : 84; // eje de precio y nombres de las filas, a la derecha
+  const PAD_R = small ? 74 : 84; // eje de precio y nombres de las filas
   const priceH = small ? 150 : 200;
   const rowH = small ? 18 : 22;
   const plotW = width - PAD_L - PAD_R;
@@ -31,7 +28,7 @@ export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks
 
   const chart = useMemo(() => {
     const { y, ticks } = logPriceScale(data.price, PAD_T, priceH);
-    // Columnas del mapa: media de los días de cada una, y tramos seguidos del mismo color unidos en un solo rectángulo
+    // Los tramos seguidos del mismo color se unen en un solo rectángulo
     const cols = Math.max(1, Math.min(N, Math.floor(plotW / CELL_W)));
     const colW = plotW / cols;
     const cells = ROWS.map((row) => {
@@ -83,7 +80,6 @@ export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks
         })}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        {/* Precio */}
         {chart.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
@@ -98,7 +94,6 @@ export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks
           </g>
         ))}
 
-        {/* Mapa de calor: una fila por serie */}
         {ROWS.map((row, r) => (
           <g key={row}>
             <rect x={PAD_L} y={heatTop + r * rowH} width={plotW} height={rowH - 2} className="cat-empty" />

@@ -1,7 +1,6 @@
 import { lang } from "../i18n";
 import { SEO } from "../i18n/seo";
 
-/** Preguntas frecuentes: ayudan a quien llega por primera vez y dan a los buscadores texto que indexar. */
 export function Faq() {
   const s = SEO[lang];
   return (

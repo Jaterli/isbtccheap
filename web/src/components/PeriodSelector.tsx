@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { t } from "../i18n";
 
-// Periodo de la muestra de las tarjetas de estadística histórica. Los nombres están en i18n (t.periods)
+// Periodo de la muestra de las tarjetas de estadística histórica
 const PERIODS = [
   { id: "2y", days: 730 },
   { id: "4y", days: 1461 },
@@ -10,7 +10,6 @@ const PERIODS = [
 ];
 const DEFAULT_PERIOD = "8y";
 
-/** Periodo elegido (recordado en `storageKey`) y su duración en días. */
 export function usePeriod(storageKey: string) {
   const [period, setPeriod] = useState(() => {
     try {
@@ -31,7 +30,6 @@ export function usePeriod(storageKey: string) {
   return { period, days, select };
 }
 
-/** Primer índice del histórico dentro del periodo. */
 export const periodStart = (length: number, days: number) => Math.max(0, length - days);
 
 export function PeriodSelector({ value, onChange }: { value: string; onChange: (id: string) => void }) {

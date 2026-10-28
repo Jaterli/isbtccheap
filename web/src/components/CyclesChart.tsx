@@ -4,20 +4,16 @@ import { linePath, useWidth } from "../lib/chart";
 import { CYCLE_DAYS, multAt, type Cycle } from "../lib/cycles";
 
 const PAD_L = 8;
-const PAD_R = 44; // eje del múltiplo, a la derecha
+const PAD_R = 44;
 const PAD_T = 10;
-const AXIS_H = 22; // años desde el halving
+const AXIS_H = 22;
 
-// Marcas del eje: múltiplos del precio del halving
 const TICKS = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500];
 
-/** Múltiplo legible: ×1,23 · ×13,4 · ×92 */
+/** ×1,23 · ×13,4 · ×92 */
 export const fmtMult = (m: number) => `×${m.toLocaleString(locale, { maximumSignificantDigits: 3 })}`;
 
-/**
- * Un ciclo por línea: el precio como múltiplo del precio del día de su halving (escala logarítmica) frente a los días
- * transcurridos desde él, con el techo de cada ciclo marcado y el día de hoy en el ciclo actual.
- */
+/** Un ciclo por línea: múltiplo del precio del día de su halving frente a los días transcurridos desde él. */
 export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -29,7 +25,7 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
 
   const chart = useMemo(() => {
     const logs = cycles.flatMap((c) => c.mult).map(Math.log10);
-    const lo = Math.min(0, ...logs); // ×1 siempre a la vista: es el precio del halving
+    const lo = Math.min(0, ...logs); // ×1 (el precio del halving) siempre a la vista
     const hi = Math.max(...logs);
     const pad = (hi - lo || 0.1) * 0.05;
     const y = (m: number) => PAD_T + plotH - ((Math.log10(m) - (lo - pad)) / (hi - lo + 2 * pad)) * plotH;
@@ -80,7 +76,6 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
         <line x1={x(today)} x2={x(today)} y1={PAD_T} y2={PAD_T + plotH} className="cycle-today" />
         <text x={x(today) + 4} y={PAD_T + 10} className="axis">{tx.today}</text>
 
-        {/* Los ciclos anteriores debajo y el actual encima */}
         {cycles.map((c, i) => (
           <path key={c.year} d={chart.lines[i]} className={`cycle-line cycle-${c.year}${c.current ? " current" : ""}`} />
         ))}

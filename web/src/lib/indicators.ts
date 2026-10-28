@@ -11,7 +11,7 @@ export function sma(values: number[], period: number): (number | null)[] {
   return out;
 }
 
-/** RSI de Wilder; devuelve el último valor. */
+/** RSI de Wilder del último cierre. */
 export function rsi(values: number[], period = 14): number | null {
   if (values.length <= period) return null;
   let gain = 0;
@@ -42,7 +42,6 @@ export function bollingerPctB(values: number[], period = 20, k = 2): number | nu
   return ((last - (mean - k * sd)) / (2 * k * sd)) * 100;
 }
 
-/** Percentil (0-100) del último valor dentro de la serie. */
 export function percentileOfLast(series: number[]): number | null {
   if (series.length < 50) return null;
   const last = series[series.length - 1];

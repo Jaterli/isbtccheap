@@ -5,13 +5,12 @@ import { getJson } from "../lib/data";
 import { CANDLE_TFS, isIntraday, priceSeries, type CandleTf, type PriceSeries } from "../lib/series";
 import type { Candle, History } from "../types";
 
-// Periodo mostrado en 1 día y 1 semana (en 1 h y 4 h se muestran todas las velas: las 1000 últimas de Binance)
+// En 1 h y 4 h se muestran todas las velas (las 1000 últimas de Binance)
 const RANGES = [
   { id: "1y", days: 365 },
   { id: "4y", days: 1461 },
   { id: "all", days: Infinity },
 ];
-// En 1 h y 4 h, cada cuánto se vuelven a pedir las velas
 const REFRESH_MS = 5 * 60_000;
 
 function load(key: string, valid: string[], fallback: string) {
@@ -37,14 +36,13 @@ export interface CandleSeriesState {
   range: string;
   setRange: (r: string) => void;
   intraday: boolean;
-  /** Cierres de la temporalidad completos (los indicadores necesitan las velas previas al periodo mostrado) */
+  /** Completos: los indicadores necesitan las velas previas al periodo mostrado */
   base: PriceSeries | null;
-  /** Días que se muestran: Infinity en 1 h y 4 h */
   days: number;
   error: boolean;
 }
 
-/** Velas de las páginas de gráficas: tamaño y periodo elegidos (recordados con `key`), histórico y Binance. */
+/** Tamaño de vela y periodo elegidos (recordados con `key`) y sus cierres, del histórico o de Binance. */
 export function useCandleSeries(key: string): CandleSeriesState {
   const [tf, setTfState] = useState(() => load(`${key}-tf`, CANDLE_TFS, "1d") as CandleTf);
   const [range, setRangeState] = useState(() => load(`${key}-range`, RANGES.map((r) => r.id), "4y"));
@@ -54,13 +52,11 @@ export function useCandleSeries(key: string): CandleSeriesState {
   const [error, setError] = useState(false);
   const intraday = isIntraday(tf);
 
-  // Histórico diario (1 día y 1 semana) y precio actual, una vez
   useEffect(() => {
     getJson("history.json").then(setHistory, () => setError(true));
     fetchCandles("1d", 1).then((c) => setLive(c.at(-1)?.close ?? null), () => {});
   }, []);
 
-  // Velas de Binance en 1 h y 4 h, renovadas cada pocos minutos
   useEffect(() => {
     if (!intraday) return;
     let cancelled = false;
@@ -94,7 +90,6 @@ export function useCandleSeries(key: string): CandleSeriesState {
   };
 }
 
-/** Selectores de tamaño de vela y, en 1 día y 1 semana, de periodo mostrado. */
 export function CandleSeriesControls({ state }: { state: CandleSeriesState }) {
   const tx = t.charts;
   return (

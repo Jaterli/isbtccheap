@@ -4,19 +4,14 @@ import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWi
 import type { DrawdownSeries } from "../lib/drawdown";
 
 const PAD_L = 8;
-const PAD_R = 56; // ejes de precio y de caída, a la derecha
+const PAD_R = 56;
 const PAD_T = 10;
-const GAP = 18; // entre el panel del precio y el de la caída
-const AXIS_H = 22; // fechas
-// Referencias del panel de caída: corrección, mercado bajista y suelo de los grandes bajistas
+const GAP = 18;
+const AXIS_H = 22;
 const DD_REFS = [0, -0.2, -0.5, -0.8, -1];
 
 export const ddPct = (f: number) => t.percent(Math.round(f * 100).toLocaleString(locale));
 
-/**
- * Arriba, el precio (escala logarítmica) con su máximo histórico; abajo, la caída desde ese máximo, de 0 % a -100 %,
- * sombreada.
- */
 export function DrawdownChart({ data }: { data: DrawdownSeries }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -69,7 +64,6 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
         </span>
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        {/* Panel del precio */}
         {chart.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
@@ -79,7 +73,6 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
         <path d={chart.ath} className="dd-ath-line" />
         <path d={chart.price} className="line-price" />
 
-        {/* Panel de la caída */}
         {DD_REFS.map((f) => (
           <g key={f}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={yDd(f)} y2={yDd(f)} className={f === 0 || f === -1 ? "grid" : "grid grid-ref"} />

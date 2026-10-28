@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { t } from "../i18n";
 
 interface Props {
-  /** Qué explica, para lectores de pantalla: "Información sobre {label}" (t.infoAbout) */
+  /** Para lectores de pantalla */
   label: string;
   title?: string;
   children: ReactNode;
@@ -16,12 +16,12 @@ interface Pos {
   top: number;
   left: number;
   width: number;
-  /** Solo si no cabe entero ni debajo ni encima: alto disponible, con desplazamiento dentro */
+  /** Solo si no cabe ni debajo ni encima */
   maxHeight?: number;
 }
 
-/** Icono (i) con una explicación. Se abre al pasar el ratón o al enfocarlo; con clic/toque queda fija.
- * El panel se pinta en <body> con posición fija para que nunca lo recorte una tarjeta ni se salga de la pantalla. */
+/** Se abre al pasar el ratón o al enfocarlo; con clic queda fija. Se pinta en <body> con posición fija para que no lo
+ * recorte una tarjeta. */
 export function InfoTip({ label, title, children }: Props) {
   const id = useId();
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -36,14 +36,12 @@ export function InfoTip({ label, title, children }: Props) {
     setHovered(false);
   };
 
-  // Colocación: debajo del icono si cabe, si no encima; si no cabe en ningún lado, en el que tenga más espacio y
-  // con el alto limitado a ese espacio. Siempre dentro del ancho de la pantalla
+  // Debajo si cabe, si no encima; si no cabe en ninguno, en el de más espacio con el alto limitado
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return setPos(null);
     const r = btnRef.current.getBoundingClientRect();
     const width = Math.min(MAX_WIDTH, window.innerWidth - MARGIN * 2);
     const left = Math.min(Math.max(MARGIN, r.left + r.width / 2 - width / 2), window.innerWidth - MARGIN - width);
-    // scrollHeight: alto del contenido completo, aunque ahora esté limitado
     const h = popRef.current?.scrollHeight ?? 0;
     const below = r.bottom + 8;
     const spaceBelow = window.innerHeight - MARGIN - below;

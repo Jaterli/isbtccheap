@@ -11,8 +11,7 @@ function fmtCountdown(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** Contador hasta la próxima actualización.
- * Lleva su propio reloj para no re-renderizar toda la app cada segundo. */
+/** Lleva su propio reloj para no repintar toda la app cada segundo. */
 export function RefreshStatus({ nextAt, loading, info }: Props) {
   const [now, setNow] = useState(Date.now());
 

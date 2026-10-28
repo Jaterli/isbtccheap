@@ -4,14 +4,13 @@ import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd,
 import type { CandleTf } from "../lib/series";
 import type { VolSeries } from "../lib/volatility";
 
-const PAD_L = 44; // eje de la volatilidad (%)
-const PAD_R = 56; // eje del precio ($)
+const PAD_L = 44; // eje de la volatilidad
+const PAD_R = 56; // eje del precio
 const PAD_T = 10;
-const AXIS_H = 22; // fechas
+const AXIS_H = 22;
 
 const pct = (v: number, digits = 0) => t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: digits }));
 
-/** Volatilidad realizada (área naranja, eje izquierdo en %) y precio (línea azul, eje derecho logarítmico en $). */
 export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
   const { ref: wrapRef, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
