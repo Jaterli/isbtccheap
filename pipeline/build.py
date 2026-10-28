@@ -18,7 +18,9 @@ import sources
 from config import CATEGORIES, LABELS, METRICS, SCORE_STRETCH, TIMEFRAME_WEIGHTS
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
-FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS"]
+# Las cuatro últimas, solo para la liquidez global de la página de liquidez: balances del BCE y del Banco de Japón y
+# los tipos de cambio para pasarlos a dólares
+FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS"]
 
 ATTRIBUTION = [
     {"name": "Coin Metrics Community", "url": "https://coinmetrics.io/community-network-data/", "license": "CC BY-NC 4.0"},

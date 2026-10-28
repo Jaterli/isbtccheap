@@ -1,5 +1,3 @@
-import type { PriceSeries } from "./series";
-
 /** liquidity.json del pipeline: semanal (miércoles); la liquidez llega hasta `through` y el precio, hasta hoy */
 export interface LiquidityJson {
   through: string;
@@ -8,43 +6,52 @@ export interface LiquidityJson {
   net: (number | null)[];
   /** Variación en 13 semanas (0,02 = +2 %) */
   roc: (number | null)[];
+  /** Fed + BCE + Banco de Japón en dólares; ausente en ficheros anteriores */
+  global_net?: (number | null)[];
+  global_roc?: (number | null)[];
   price: (number | null)[];
 }
 
-// Semanas que se adelanta el precio: las mismas de la variación de la liquidez
+// Semanas que se adelanta la liquidez: las mismas de su variación
 export const LEAD_WEEKS = 13;
+const WEEK = 7 * 86_400_000;
 
-export interface LiquiditySeries extends PriceSeries {
-  net: (number | null)[];
+export interface LiquiditySeries {
+  /** Fechas reales del precio; las 13 últimas semanas, futuras */
+  time: number[];
+  btc: (number | null)[];
+  /** Liquidez global y de la Fed de 13 semanas antes de cada fecha, y esa fecha */
   roc: (number | null)[];
-  /** Precio de BTC 13 semanas después de cada fecha, y esa fecha */
-  lead: (number | null)[];
-  leadTime: number[];
+  fedRoc: (number | null)[];
+  liqTime: number[];
 }
 
-/** Hasta el último dato de liquidez; el precio, desplazado 13 semanas hacia atrás. */
+/** El precio en sus fechas y la liquidez adelantada 13 semanas, hasta 13 semanas después de su último dato. */
 export function liquiditySeries(l: LiquidityJson): LiquiditySeries {
-  const n = l.dates.findIndex((d) => d > l.through);
-  const end = n < 0 ? l.dates.length : n;
-  const time = l.dates.map((d) => Date.parse(`${d}T00:00:00Z`));
+  const dates = l.dates.map((d) => Date.parse(`${d}T00:00:00Z`));
+  const through = Date.parse(`${l.through}T00:00:00Z`);
+  const last = dates.findIndex((t) => t > through);
+  const liqEnd = last < 0 ? dates.length : last;
+  const n = liqEnd + LEAD_WEEKS;
+  const time = Array.from({ length: n }, (_, i) => (i < dates.length ? dates[i] : dates.at(-1)! + (i - dates.length + 1) * WEEK));
+  const shift = (v: (number | null)[]) => time.map((_, i) => (i >= LEAD_WEEKS && i - LEAD_WEEKS < liqEnd ? (v[i - LEAD_WEEKS] ?? null) : null));
   return {
-    time: time.slice(0, end),
-    price: l.price.slice(0, end).map((p) => p ?? NaN),
-    net: l.net.slice(0, end),
-    roc: l.roc.slice(0, end),
-    lead: time.slice(0, end).map((_, i) => l.price[i + LEAD_WEEKS] ?? null),
-    leadTime: time.slice(0, end).map((t) => t + LEAD_WEEKS * 7 * 86_400_000),
+    time,
+    btc: time.map((_, i) => l.price[i] ?? null),
+    roc: shift(l.global_roc ?? l.roc),
+    fedRoc: shift(l.roc),
+    liqTime: time.map((t) => t - LEAD_WEEKS * WEEK),
   };
 }
 
-/** Correlación entre la variación de la liquidez y la rentabilidad de BTC en las 13 semanas siguientes. */
+/** Correlación entre la variación de la liquidez global y la rentabilidad de BTC en las 13 semanas siguientes. */
 export function leadCorrelation(s: LiquiditySeries): number | null {
   const xs: number[] = [];
   const ys: number[] = [];
   s.roc.forEach((r, i) => {
-    const p = s.price[i];
-    const q = s.lead[i];
-    if (r !== null && q !== null && p > 0) (xs.push(r), ys.push(q / p - 1));
+    const p = s.btc[i - LEAD_WEEKS];
+    const q = s.btc[i];
+    if (r !== null && p != null && q !== null && p > 0) (xs.push(r), ys.push(q / p - 1));
   });
   if (xs.length < 20) return null;
   const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;

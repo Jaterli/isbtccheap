@@ -163,33 +163,42 @@ export const en: Messages = {
     chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
   },
   liquidity: {
-    title: "Fed net liquidity and Bitcoin",
-    rest: "The change in Federal Reserve liquidity against the BTC price 13 weeks later: does liquidity lead the price?",
-    card: "Net liquidity (13-week change) and BTC price 13 weeks later",
+    title: "Global liquidity and Bitcoin",
+    rest: "The change in major central bank liquidity, shifted 13 weeks forward, against the BTC price: does liquidity lead the price?",
+    card: "BTC price and global liquidity 13 weeks earlier",
     info: [
-      "Net liquidity = Federal Reserve balance sheet (WALCL) − Treasury General Account (WTREGEN) − reverse repos (RRPONTSYD), from FRED. It is the money the Fed leaves in the financial system. The orange line is its change over the last 13 weeks, with weekly data up to the latest release.",
-      "The blue line is the BTC price shifted 13 weeks back: each date shows the price 13 weeks later. If liquidity leads the price, both lines rise and fall together. The shaded stretch at the end is liquidity already released whose price has not arrived yet.",
+      "Global liquidity = Fed net liquidity (balance sheet − Treasury account − reverse repos) + the ECB and Bank of Japan balance sheets, in dollars. Weekly FRED data up to the latest Fed release; the Bank of Japan's is monthly and its latest value is carried forward. The orange line is its 13-week change.",
+      "The orange line is shifted 13 weeks forward: each date shows the liquidity change from 13 weeks earlier, next to that day's BTC price (blue). If liquidity leads the price, both lines rise and fall together. The shaded stretch is the next 13 weeks: what the liquidity already released anticipates.",
+      "The “Fed” button adds Fed net liquidity on its own, for comparison.",
     ],
     money: (bn: number) => `$${(bn / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} trillion`,
     current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
       <>
-        Fed net liquidity as of {day}: {net}, {roc} over 13 weeks.
+        Global liquidity as of {day}: {net}, {roc} over 13 weeks.
+      </>
+    ),
+    fed: (net: ReactNode, roc: ReactNode) => (
+      <>
+        Fed only: {net}, {roc}.
       </>
     ),
     correlation: (c: ReactNode) => <>Over the period shown, its correlation with BTC's return over the following 13 weeks is {c}.</>,
+    fedToggle: "Fed",
     legend: {
-      roc: "Liquidity (13w)",
-      lead: (d: string) => `BTC on ${d}`,
+      price: "BTC",
+      roc: (d: string) => `Global liquidity (13w) as of ${d}`,
+      fed: "Fed",
       pending: "not yet",
     },
-    today: "BTC today",
-    note: "Weekly data from FRED (Federal Reserve Bank of St. Louis). Correlation is not causation; not a forecast or investment advice.",
-    chartAria: "Chart of the 13-week change in Fed net liquidity and the Bitcoin price 13 weeks later",
+    today: "Today",
+    ahead: "Next 13 weeks",
+    note: "Data from FRED (Federal Reserve Bank of St. Louis). Correlation is not causation; not a forecast or investment advice.",
+    chartAria: "Chart of the Bitcoin price and the 13-week change in global liquidity, shifted 13 weeks forward",
   },
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "3m": "3M", "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },

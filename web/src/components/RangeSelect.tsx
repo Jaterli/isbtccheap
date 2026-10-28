@@ -6,6 +6,7 @@ export const RANGES = [
   { id: "4y", days: 1461 },
   { id: "all", days: Infinity },
 ];
+export const LIQUIDITY_RANGES = [{ id: "6m", days: 182 }, ...RANGES];
 // Para series cortas (flujos de ETF, desde 2024)
 export const SHORT_RANGES = [
   { id: "3m", days: 91 },

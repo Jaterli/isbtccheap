@@ -13,7 +13,7 @@ export const es = {
   noData: "Sin datos",
   dataError: "No se pudieron cargar los datos diarios. Ejecuta el pipeline (python pipeline/build.py).",
   infoAbout: (label: string) => `Información sobre ${label}`,
-  percent: (n: string) => `${n} %`,
+  percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
   nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez" },
   cycles: {
@@ -170,35 +170,44 @@ export const es = {
     chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
   },
   liquidity: {
-    title: "Liquidez neta de la Fed y Bitcoin",
-    rest: "La variación de la liquidez de la Reserva Federal frente al precio de BTC 13 semanas después: ¿se adelanta la liquidez al precio?",
-    card: "Liquidez neta (var. 13 sem.) y precio de BTC 13 semanas después",
+    title: "Liquidez global y Bitcoin",
+    rest: "La variación de la liquidez de los grandes bancos centrales, adelantada 13 semanas, frente al precio de BTC: ¿se anticipa la liquidez al precio?",
+    card: "Precio de BTC y liquidez global 13 semanas antes",
     info: [
-      "Liquidez neta = balance de la Reserva Federal (WALCL) − cuenta general del Tesoro (WTREGEN) − repos inversos (RRPONTSYD), de FRED. Es el dinero que la Fed deja en el sistema financiero. La línea naranja es su variación en las últimas 13 semanas, con datos semanales hasta el último publicado.",
-      "La línea azul es el precio de BTC desplazado 13 semanas hacia atrás: en cada fecha se ve el precio que tuvo 13 semanas después. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado del final es liquidez ya publicada cuyo precio aún no ha llegado.",
+      "Liquidez global = liquidez neta de la Fed (balance − cuenta del Tesoro − repos inversos) + balances del BCE y del Banco de Japón, en dólares. Datos semanales de FRED hasta el último de la Fed; el del Banco de Japón es mensual y se repite su último dato. La línea naranja es su variación en 13 semanas.",
+      "La línea naranja está adelantada 13 semanas: en cada fecha se ve la variación de la liquidez de 13 semanas antes, junto al precio de BTC (azul) de ese día. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado son las próximas 13 semanas: lo que anticipa la liquidez ya publicada.",
+      "Con el botón «Fed» se añade la liquidez neta de la Fed sola, para compararla.",
     ],
     money: (bn: number) => `${(bn / 1000).toLocaleString("es-ES", { maximumFractionDigits: 2 })} billones de $`,
     current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
       <>
-        Liquidez neta de la Fed a {day}: {net}, {roc} en 13 semanas.
+        Liquidez global a {day}: {net}, {roc} en 13 semanas.
+      </>
+    ),
+    fed: (net: ReactNode, roc: ReactNode) => (
+      <>
+        Solo la Fed: {net}, {roc}.
       </>
     ),
     correlation: (c: ReactNode) => (
       <>En el periodo mostrado, su correlación con la rentabilidad de BTC en las 13 semanas siguientes es {c}.</>
     ),
+    fedToggle: "Fed",
     legend: {
-      roc: "Liquidez (13 sem.)",
-      lead: (d: string) => `BTC el ${d}`,
+      price: "BTC",
+      roc: (d: string) => `Liquidez global (13 sem.) a ${d}`,
+      fed: "Fed",
       pending: "aún no",
     },
-    today: "BTC hoy",
-    note: "Datos de FRED (Reserva Federal de St. Louis), semanales. Correlación no implica causalidad; no es una predicción ni una recomendación de inversión.",
-    chartAria: "Gráfico de la variación en 13 semanas de la liquidez neta de la Fed y del precio de Bitcoin 13 semanas después",
+    today: "Hoy",
+    ahead: "Próximas 13 semanas",
+    note: "Datos de FRED (Reserva Federal de St. Louis). Correlación no implica causalidad; no es una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin y de la variación en 13 semanas de la liquidez global, adelantada 13 semanas",
   },
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3 meses", "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },

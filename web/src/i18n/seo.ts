@@ -362,40 +362,40 @@ export const SEO_ETF: Record<"es" | "en", VolSeoText> = {
 
 export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
   es: {
-    title: "Liquidez neta de la Fed y Bitcoin",
+    title: "Liquidez global y Bitcoin",
     intro:
-      "Gráfico de la variación en 13 semanas de la liquidez neta de la Reserva Federal frente al precio de Bitcoin 13 semanas después, con datos semanales de FRED desde 2011.",
+      "Gráfico del precio de Bitcoin frente a la variación en 13 semanas de la liquidez global (Reserva Federal, BCE y Banco de Japón) y de la liquidez neta de la Fed, adelantadas 13 semanas, con datos semanales de FRED desde 2011.",
     sections: [
       {
-        h: "¿Qué es la liquidez neta de la Fed?",
-        p: "Es el balance de la Reserva Federal menos el dinero que el Tesoro tiene aparcado en su cuenta en la Fed y el que los bancos y fondos dejan en repos inversos. Lo que queda es la liquidez que realmente circula por el sistema financiero. Sube cuando la Fed compra activos (como en 2020) o el Tesoro gasta su colchón, y baja con la retirada de estímulos (como desde 2022).",
+        h: "¿Qué es la liquidez global?",
+        p: "Es el dinero que los grandes bancos centrales inyectan en el sistema financiero, medido en dólares. Aquí se suma la liquidez neta de la Reserva Federal (su balance menos el dinero que el Tesoro tiene aparcado en su cuenta y el que los bancos dejan en repos inversos) a los balances del Banco Central Europeo y del Banco de Japón. Sube cuando los bancos centrales compran activos o cuando el dólar se debilita, y baja con la retirada de estímulos.",
       },
       {
         h: "¿Anticipa la liquidez el precio de Bitcoin?",
-        p: "En parte. Desde 2011, la variación de la liquidez neta en 13 semanas y la rentabilidad de Bitcoin en las 13 semanas siguientes tienen una correlación positiva pero moderada, de entre +0,1 y +0,2 según el periodo: cuando la liquidez crece, a Bitcoin le suele ir algo mejor después, pero hay muchos otros factores. Por eso la gráfica desplaza el precio 13 semanas: para ver si sus giros llegan después de los de la liquidez.",
+        p: "En parte. Desde 2015, la variación de la liquidez global en 13 semanas y la rentabilidad de Bitcoin en las 13 semanas siguientes tienen una correlación de alrededor de +0,44, casi el doble que la de la liquidez de la Fed sola (+0,23). Es una relación moderada y no se cumple siempre: en 2012-2013 y en 2018-2019 apenas funcionó. Por eso la gráfica adelanta la liquidez 13 semanas: para ver si los giros del precio llegan después de los suyos.",
       },
       {
         h: "¿Cómo la usa el índice?",
-        p: "La liquidez neta es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la masa monetaria M2, la fuerza del dólar y la oferta de stablecoins. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
+        p: "La liquidez neta de la Fed es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la masa monetaria M2, la fuerza del dólar y la oferta de stablecoins. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
       },
     ],
   },
   en: {
-    title: "Fed net liquidity and Bitcoin",
+    title: "Global liquidity and Bitcoin",
     intro:
-      "Chart of the 13-week change in Federal Reserve net liquidity against the Bitcoin price 13 weeks later, with weekly FRED data since 2011.",
+      "Chart of the Bitcoin price against the 13-week change in global liquidity (Federal Reserve, ECB and Bank of Japan) and Fed net liquidity, shifted 13 weeks forward, with weekly FRED data since 2011.",
     sections: [
       {
-        h: "What is Fed net liquidity?",
-        p: "It is the Federal Reserve's balance sheet minus the money the Treasury keeps parked in its account at the Fed and what banks and funds leave in reverse repos. What remains is the liquidity actually circulating in the financial system. It rises when the Fed buys assets (as in 2020) or the Treasury spends its cushion, and falls when stimulus is withdrawn (as since 2022).",
+        h: "What is global liquidity?",
+        p: "It is the money the major central banks inject into the financial system, measured in dollars. Here, Federal Reserve net liquidity (its balance sheet minus the money the Treasury keeps parked in its account and what banks leave in reverse repos) is added to the balance sheets of the European Central Bank and the Bank of Japan. It rises when central banks buy assets or the dollar weakens, and falls when stimulus is withdrawn.",
       },
       {
         h: "Does liquidity lead the Bitcoin price?",
-        p: "Partly. Since 2011, the 13-week change in net liquidity and Bitcoin's return over the following 13 weeks have a positive but moderate correlation, between +0.1 and +0.2 depending on the period: when liquidity grows, Bitcoin tends to do somewhat better afterwards, but many other factors matter. That is why the chart shifts the price by 13 weeks: to see whether its turns come after liquidity's.",
+        p: "Partly. Since 2015, the 13-week change in global liquidity and Bitcoin's return over the following 13 weeks have a correlation of about +0.44, almost double that of Fed liquidity alone (+0.23). It is a moderate relationship and does not always hold: in 2012-2013 and 2018-2019 it barely worked. That is why the chart shifts liquidity 13 weeks forward: to see whether the price's turns come after its own.",
       },
       {
         h: "How does the index use it?",
-        p: "Net liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with M2 money supply, dollar strength and stablecoin supply. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
+        p: "Fed net liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with M2 money supply, dollar strength and stablecoin supply. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
       },
     ],
   },

@@ -13,8 +13,8 @@ export const rocPct = (r: number, digits = 2) =>
 
 const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-/** Variación de la liquidez (eje izquierdo) y precio de BTC 13 semanas después (eje derecho, logarítmico). */
-export function LiquidityChart({ data }: { data: LiquiditySeries }) {
+/** Precio de BTC (eje derecho, logarítmico) y variación de la liquidez de 13 semanas antes (eje izquierdo). */
+export function LiquidityChart({ data, showFed }: { data: LiquiditySeries; showFed: boolean }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
 
@@ -25,18 +25,27 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
   const chart = useMemo(() => {
-    const rocs = data.roc.filter((v): v is number => v !== null);
+    const rocs = [...data.roc, ...(showFed ? data.fedRoc : [])].filter((v): v is number => v !== null);
     const lo = Math.min(0, ...rocs);
     const hi = Math.max(0, ...rocs);
     const pad = (hi - lo || 0.01) * 0.06;
     const yRoc = (v: number) => PAD_T + plotH - ((v - (lo - pad)) / (hi - lo + 2 * pad)) * plotH;
     const rocTicks = niceTicks(lo, hi, 4);
-    const leads = data.lead.filter((v): v is number => v !== null);
-    const { y: yPrice, ticks: priceTicks } = logPriceScale(leads.length ? leads : [1, 2], PAD_T, plotH);
-    let lastLead = data.lead.length - 1;
-    while (lastLead >= 0 && data.lead[lastLead] === null) lastLead--;
-    return { yRoc, rocTicks, yPrice, priceTicks, lastLead, roc: linePath(data.roc, x, yRoc), lead: linePath(data.lead, x, yPrice) };
-  }, [data, plotW, plotH]);
+    const prices = data.btc.filter((v): v is number => v !== null);
+    const { y: yPrice, ticks: priceTicks } = logPriceScale(prices.length ? prices : [1, 2], PAD_T, plotH);
+    let lastPrice = data.btc.length - 1;
+    while (lastPrice >= 0 && data.btc[lastPrice] === null) lastPrice--;
+    return {
+      yRoc,
+      rocTicks,
+      yPrice,
+      priceTicks,
+      lastPrice,
+      roc: linePath(data.roc, x, yRoc),
+      fed: showFed ? linePath(data.fedRoc, x, yRoc) : "",
+      btc: linePath(data.btc, x, yPrice),
+    };
+  }, [data, plotW, plotH, showFed]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
 
@@ -48,18 +57,24 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
   const h = hover ?? N - 1;
   const tx = t.liquidity;
   const roc = data.roc[h];
-  const lead = data.lead[h];
+  const fed = data.fedRoc[h];
+  const btc = data.btc[h];
 
   return (
     <div className="vol-chart" ref={ref}>
       <p className="chart-readout">
         <span className="muted num">{fmtTime(data.time[h], "1d", true)}</span>
-        <span className="legend liq-roc num">
-          {tx.legend.roc} <strong>{roc === null ? "—" : rocPct(roc)}</strong>
-        </span>
         <span className="legend legend-price num">
-          {tx.legend.lead(date(data.leadTime[h]))} <strong>{lead === null ? tx.legend.pending : usd(lead)}</strong>
+          {tx.legend.price} <strong>{btc === null ? tx.legend.pending : usd(btc)}</strong>
         </span>
+        <span className="legend liq-roc num">
+          {tx.legend.roc(date(data.liqTime[h]))} <strong>{roc === null ? "—" : rocPct(roc)}</strong>
+        </span>
+        {showFed && (
+          <span className="legend liq-fed num">
+            {tx.legend.fed} <strong>{fed === null ? "—" : rocPct(fed)}</strong>
+          </span>
+        )}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {chart.rocTicks.map((v) => (
@@ -75,28 +90,38 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
             {shortUsd(p)}
           </text>
         ))}
-        {/* Tramo final: la liquidez ya publicada cuyo precio "13 semanas después" aún no ha llegado */}
-        {chart.lastLead >= 0 && chart.lastLead < N - 1 && (
-          <rect x={x(chart.lastLead)} y={PAD_T} width={x(N - 1) - x(chart.lastLead)} height={plotH} className="liq-ahead" />
+        {/* Próximas semanas: la liquidez ya publicada anticipa un precio que aún no ha llegado */}
+        {chart.lastPrice >= 0 && chart.lastPrice < N - 1 && (
+          <>
+            <rect x={x(chart.lastPrice)} y={PAD_T} width={x(N - 1) - x(chart.lastPrice)} height={plotH} className="liq-ahead" />
+            {/* Solo si cabe en el tramo (en periodos largos es estrecho) */}
+            {x(N - 1) - x(chart.lastPrice) > 130 && (
+              <text x={x(chart.lastPrice) + 6} y={PAD_T + 14} className="axis">
+                {tx.ahead}
+              </text>
+            )}
+          </>
         )}
-        <path d={chart.lead} className="line-price" />
+        <path d={chart.btc} className="line-price" />
+        {showFed && <path d={chart.fed} className="liq-fed-line" />}
         <path d={chart.roc} className="liq-line" />
-        {chart.lastLead >= 0 && (
-          <text x={x(chart.lastLead) - 4} y={chart.yPrice(data.lead[chart.lastLead]!) - 8} className="axis liq-today" textAnchor="end">
+        {chart.lastPrice >= 0 && (
+          <text x={x(chart.lastPrice) - 4} y={chart.yPrice(data.btc[chart.lastPrice]!) - 8} className="axis liq-today" textAnchor="end">
             {tx.today}
           </text>
         )}
 
         {dateTicks.map((i, k) => (
           <text key={i} x={x(i)} y={H - 6} className="axis" textAnchor={k === 0 ? "start" : k === dateTicks.length - 1 ? "end" : "middle"}>
-            {fmtTime(data.time[i], "1d", false)}
+            {/* En periodos cortos, con día: si no, se repetiría el mes */}
+            {fmtTime(data.time[i], N < 60 ? "1h" : "1d", false)}
           </text>
         ))}
         {hover !== null && (
           <>
             <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
             {roc !== null && <circle cx={x(h)} cy={chart.yRoc(roc)} r="3.5" className="liq-dot" />}
-            {lead !== null && <circle cx={x(h)} cy={chart.yPrice(lead)} r="3.5" className="dot-price" />}
+            {btc !== null && <circle cx={x(h)} cy={chart.yPrice(btc)} r="3.5" className="dot-price" />}
           </>
         )}
       </svg>

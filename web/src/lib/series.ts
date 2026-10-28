@@ -48,7 +48,7 @@ export function priceSeries(tf: CandleTf, source: { candles?: Candle[]; history?
 }
 
 /** Recorta todas las series a los últimos `days` días (los indicadores ya se calcularon con las velas previas). */
-export function lastDays<T extends PriceSeries>(s: T, days: number): T {
+export function lastDays<T extends { time: number[] }>(s: T, days: number): T {
   if (!Number.isFinite(days) || !s.time.length) return s;
   const from = s.time.at(-1)! - days * 86_400_000;
   const i = Math.max(0, s.time.findIndex((x) => x >= from));
