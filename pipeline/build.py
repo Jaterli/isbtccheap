@@ -32,6 +32,18 @@ ATTRIBUTION = [
 log = logging.getLogger("isbtccheap")
 
 
+def etf_attribution(extra: dict) -> list[dict]:
+    """Cita que exige la licencia CC BY 4.0 de los flujos de ETF, con la fecha de los últimos datos."""
+    if "etf_flows" not in extra:
+        return []
+    through = extra["etf_flows"].index[-1].strftime("%Y-%m-%d")
+    return [{
+        "name": f"The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through {through}",
+        "url": "https://www.tftc.io/bitcoin-etf-flows",
+        "license": "CC BY 4.0",
+    }]
+
+
 def _clean(x):
     if x is None or (isinstance(x, float) and math.isnan(x)):
         return None
@@ -46,6 +58,7 @@ def fetch_all() -> tuple:
         "stablecoins": sources.stablecoin_supply,
         "sth_sopr": lambda: sources.bitview("sth_sopr_1w"),
         "sth_realized_price": lambda: sources.bitview("sth_realized_price"),
+        "etf_flows": sources.etf_flows,
     }
     tasks.update({sid: (lambda sid=sid: sources.fred(sid)) for sid in FRED_SERIES})
     for name, fn in tasks.items():
@@ -98,7 +111,7 @@ def main() -> None:
         "stretch": SCORE_STRETCH,
         "labels": [{"max": mx, "label": lb} for mx, lb in LABELS],
         "missing_sources": missing,
-        "attribution": ATTRIBUTION,
+        "attribution": ATTRIBUTION + etf_attribution(extra),
     }
 
     hist = score_1d.dropna()

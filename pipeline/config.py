@@ -37,6 +37,10 @@ METRICS = [
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum):
     # solo se muestra en la página de valoración (bands.json)
     {"id": "sth_sopr", "name": "SOPR de corto plazo (7 d)", "category": "sentimiento", "method": "percentile"},
+    # Flujos netos de los ETF al contado en BTC, suma de 20 sesiones: entradas fuertes en los techos, salidas en los
+    # mínimos. Con 20 sesiones es la única ventana que anticipa algo al revés (a 3 meses); con 5 o 10 es momentum.
+    # Solo hay datos desde enero de 2024: puntúa a partir de un año de historia y es una métrica más del sentimiento
+    {"id": "etf_flows", "name": "Flujos de ETF al contado (20 sesiones)", "category": "sentimiento", "method": "percentile"},
     # Técnico diario (el frontend lo recalcula igual para cada temporalidad)
     {"id": "rsi_14", "name": "RSI 14", "category": "tecnico", "method": "band", "lo": 30, "hi": 70},
     {"id": "bollinger", "name": "Bollinger %B (20, 2)", "category": "tecnico", "method": "raw"},

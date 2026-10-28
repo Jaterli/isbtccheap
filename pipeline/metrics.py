@@ -130,6 +130,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         m["stablecoin_roc"] = _daily(extra["stablecoins"], idx).pct_change(90, fill_method=None)
 
     # Sentimiento
+    if "etf_flows" in extra:
+        # Suma de 20 sesiones llevada a diario: fines de semana y festivos repiten la última sesión
+        roll = extra["etf_flows"].rolling(20).sum().dropna()
+        m["etf_flows"] = roll.reindex(roll.index.union(idx)).ffill(limit=5).reindex(idx)
     if "sth_sopr" in extra:
         m["sth_sopr"] = extra["sth_sopr"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
     if "fear_greed" in extra:

@@ -91,3 +91,13 @@ def bitview(series: str) -> pd.Series:
     s = pd.Series(d["data"], index=pd.date_range(start, periods=len(d["data"]), freq="D"), name=series, dtype=float)
     # Sin dato (o 0, que Bitview devuelve cuando la cohorte está vacía): ausente
     return s.where(s > 0).sort_index()
+
+
+def etf_flows() -> pd.Series:
+    """Flujo neto diario de los ETF de bitcoin al contado de EE. UU., en BTC (flujo en USD / precio de referencia del
+    día), una fila por sesión desde el lanzamiento (2024-01-11). The Commoner Bitcoin ETF Tracker de TFTC, CC BY 4.0:
+    exige citar la fuente y la fecha de los datos (ver ATTRIBUTION en build.py)."""
+    days = _get("https://www.tftc.io/bitcoin-etf-flows/data.json").json()["days"]
+    df = pd.DataFrame(days)
+    s = pd.Series((df["netFlowUsd"] / df["btcCloseUsd"]).values, index=pd.to_datetime(df["date"]), name="etf_flows")
+    return s.dropna().sort_index()

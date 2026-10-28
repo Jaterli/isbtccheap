@@ -13,7 +13,8 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 ```
 ┌──────────────── Diario (GitHub Actions, gratis) ────────────────┐
 │ pipeline/build.py                                                │
-│  Coin Metrics · Alternative.me · FRED · DefiLlama · Bitview      │
+│  Coin Metrics · Alternative.me · FRED · DefiLlama · Bitview ·    │
+│  TFTC (flujos de ETF)                                            │
 │  → métricas → percentiles → web/public/data/latest.json          │
 │                             web/public/data/history.json         │
 └──────────────────────────────────────────────────────────────────┘
@@ -145,6 +146,8 @@ web/
   (anuncios, suscripciones), sustituye esa fuente o pide una licencia. Alternative.me y CoinGecko piden
   atribución; ya aparece en el pie de la web. Bitview (SOPR y precio realizado de corto plazo) es gratuito y sin
   clave; su código es MIT, pero no publica condiciones explícitas sobre el uso de los datos: se cita en el pie.
+  Los flujos de ETF (The Commoner Bitcoin ETF Tracker, TFTC) son CC BY 4.0: hay que citar la fuente y la fecha de
+  los datos, y el pipeline la añade a la atribución del pie.
 - **Binance** bloquea algunas regiones, como EE. UU. Si falla, la web usa el técnico diario del pipeline.
 - La regresión power law se ajusta con todo el histórico, así que tiene algo de lookahead en el backtest.
 - Bitcoin solo tiene unos 4 ciclos completos. Evita sobreajustar los pesos.

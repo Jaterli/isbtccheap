@@ -121,7 +121,7 @@ export const es = {
     card: "Score y categorías en el tiempo",
     info: [
       "Cada fila es la puntuación diaria (cierre del día) de una categoría, de 0 (barato, verde) a 100 (caro, rojo), con los mismos tramos de color que el medidor. La primera fila es el score de 1 día, que las combina con sus pesos. Con periodos largos, cada columna es la media de varios días.",
-      "Las líneas verticales marcan los techos de ciclo (rojo) y los suelos que los siguieron (verde). El sentimiento usa el SOPR de corto plazo desde 2011 y suma el Fear & Greed Index desde 2018.",
+      "Las líneas verticales marcan los techos de ciclo (rojo) y los suelos que los siguieron (verde). El sentimiento usa el SOPR de corto plazo desde 2011, y suma el Fear & Greed Index desde 2018 y los flujos de los ETF desde 2025.",
     ],
     current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
       <>
@@ -235,7 +235,7 @@ export const es = {
     },
     sentimiento: {
       name: "Sentimiento",
-      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios) y el funding.",
+      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios), los flujos de los ETF al contado y el funding.",
       read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
     },
     tecnico: {
@@ -309,6 +309,11 @@ export const es = {
       name: "SOPR de corto plazo (7 d)",
       what: "Spent Output Profit Ratio de los holders de corto plazo (monedas de menos de 150 días), media de 7 días: precio de venta entre precio de compra de las monedas que se movieron. +1 % es que vendieron de media con un 1 % de beneficio. Datos on-chain de Bitview.",
       read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
+    },
+    etf_flows: {
+      name: "Flujos de ETF al contado (20 sesiones)",
+      what: "Entradas menos salidas de los ETF de bitcoin al contado de EE. UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
+      read: "Percentil frente a su historia. Entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Con menos de tres años de datos, es una señal todavía poco contrastada.",
     },
     funding: {
       name: "Funding rate perpetuos (Binance)",

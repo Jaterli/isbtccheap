@@ -48,6 +48,8 @@ function fmt(v: number | null, id: string) {
   // Partes del total (50 % = equilibrio entre largos y cortos, o entre compras y ventas): sin signo
   if (id === "long_short" || id === "taker_ratio") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 1 }));
   if (id === "open_interest") return `${Math.round(v).toLocaleString(locale)} BTC`;
+  // Flujo neto: entradas (+) o salidas (−) de los ETF en las últimas 20 sesiones
+  if (id === "etf_flows") return `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString(locale)} BTC`;
   if (AS_PERCENT[id]) {
     const p = AS_PERCENT[id](v) * 100;
     const s = p.toLocaleString(locale, { maximumFractionDigits: Math.abs(p) >= 10 ? 1 : 2 });

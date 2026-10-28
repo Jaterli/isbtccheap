@@ -72,7 +72,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez neta de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez neta de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -88,7 +88,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿De dónde salen los datos?",
-        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), DefiLlama, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC y BBC.",
+        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker de TFTC, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC y BBC.",
       },
       {
         q: "¿Es una recomendación de inversión?",
@@ -108,7 +108,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: Federal Reserve net liquidity, M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: Federal Reserve net liquidity, M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -124,7 +124,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Where does the data come from?",
-        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), DefiLlama, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC and BBC.",
+        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker by TFTC, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC and BBC.",
       },
       {
         q: "Is this investment advice?",

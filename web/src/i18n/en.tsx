@@ -114,7 +114,7 @@ export const en: Messages = {
     card: "Score and categories over time",
     info: [
       "Each row is the daily score (daily close) of a category, from 0 (cheap, green) to 100 (expensive, red), with the same color bands as the gauge. The first row is the 1-day score, which combines them with their weights. With long periods, each column is the average of several days.",
-      "The vertical lines mark cycle tops (red) and the bottoms that followed them (green). Sentiment uses short-term SOPR since 2011 and adds the Fear & Greed Index from 2018.",
+      "The vertical lines mark cycle tops (red) and the bottoms that followed them (green). Sentiment uses short-term SOPR since 2011, and adds the Fear & Greed Index from 2018 and spot ETF flows from 2025.",
     ],
     current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
       <>
@@ -226,7 +226,7 @@ export const en: Messages = {
     },
     sentimiento: {
       name: "Sentiment",
-      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data) and funding.",
+      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data), spot ETF flows and funding.",
       read: "Extreme greed tends to coincide with tops and extreme fear with bottoms, so greed raises the score.",
     },
     tecnico: {
@@ -300,6 +300,11 @@ export const en: Messages = {
       name: "Short-term SOPR (7d)",
       what: "Spent Output Profit Ratio of short-term holders (coins younger than 150 days), 7-day average: selling price divided by purchase price of the coins that moved. +1% means they sold at a 1% profit on average. On-chain data from Bitview.",
       read: "Percentile versus the last 4 years. High: recent buyers are taking profits, typical of euphoric markets (adds). Low: they sell at a loss, the capitulation typical of bottoms (subtracts).",
+    },
+    etf_flows: {
+      name: "Spot ETF flows (20 sessions)",
+      what: "Inflows minus outflows of US spot bitcoin ETFs over the last 20 sessions (about a month), in BTC. Data from The Commoner Bitcoin ETF Tracker (TFTC), since January 2024.",
+      read: "Percentile versus its history. Strong inflows, typical of tops, add; outflows, typical of lows, subtract. With less than three years of data, it is still a lightly tested signal.",
     },
     funding: {
       name: "Perpetual funding rate (Binance)",
