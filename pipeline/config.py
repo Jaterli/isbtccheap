@@ -32,6 +32,11 @@ METRICS = [
     {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True},
     # Sentimiento (el funding rate se añade en vivo en el frontend)
     {"id": "fear_greed", "name": "Fear & Greed Index", "category": "sentimiento", "method": "raw"},
+    # SOPR de los holders de corto plazo: si los compradores recientes venden con beneficio (euforia) o con pérdida
+    # (capitulación). Da al sentimiento historia desde 2011 (el Fear & Greed empieza en 2018) y marca bien los suelos.
+    # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum):
+    # solo se muestra en la página de valoración (bands.json)
+    {"id": "sth_sopr", "name": "SOPR de corto plazo (7 d)", "category": "sentimiento", "method": "percentile"},
     # Técnico diario (el frontend lo recalcula igual para cada temporalidad)
     {"id": "rsi_14", "name": "RSI 14", "category": "tecnico", "method": "band", "lo": 30, "hi": 70},
     {"id": "bollinger", "name": "Bollinger %B (20, 2)", "category": "tecnico", "method": "raw"},

@@ -43,18 +43,24 @@ export function ValuationApp() {
   const now = full && {
     price: full.price.at(-1)!,
     realized: full.realized.at(-1)!,
+    sth: full.sth.at(-1) ?? null,
     wma: full.wma200.at(-1)!,
     trend: full.trend.at(-1)!,
     low: full.low.at(-1)!,
     high: full.high.at(-1)!,
   };
-  const levels = now && ([
-    ["realized", now.realized],
-    ["wma", now.wma],
-    ["trend", now.trend],
-    ["low", now.low],
-    ["high", now.high],
-  ] as const);
+  const levels =
+    now &&
+    (
+      [
+        ["realized", now.realized],
+        ["sth", now.sth],
+        ["wma", now.wma],
+        ["trend", now.trend],
+        ["low", now.low],
+        ["high", now.high],
+      ] as const
+    ).filter((l): l is [typeof l[0], number] => l[1] !== null);
 
   return (
     <main className="container">

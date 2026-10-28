@@ -32,6 +32,8 @@ const AS_PERCENT: Record<string, (v: number) => number> = {
   ma200_ratio: (v) => v - 1,
   ma48_ratio: (v) => v - 1,
   puell: (v) => v - 1,
+  // SOPR: 1,007 es que los holders de corto plazo vendieron de media con un +0,7 % de beneficio
+  sth_sopr: (v) => v - 1,
 };
 
 function fmt(v: number | null, id: string) {

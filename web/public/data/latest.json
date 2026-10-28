@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-10-27T22:46:39+00:00",
+  "updated_at": "2026-10-28T00:02:31+00:00",
   "as_of": "2026-10-26",
   "price": 79949.9343,
-  "score_1d": 35.5879,
+  "score_1d": 39.1006,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -84,13 +84,19 @@
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 48.0,
+      "score": 66.7902,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 48.0,
-          "score": 48.0
+          "value": 51.0,
+          "score": 51.0
+        },
+        {
+          "id": "sth_sopr",
+          "name": "SOPR de corto plazo (7 d)",
+          "value": 1.0072,
+          "score": 82.5804
         }
       ]
     },
@@ -122,9 +128,9 @@
   "weights": {
     "1h": {
       "tecnico": 40,
-      "sentimiento": 23,
+      "sentimiento": 27,
       "valoracion": 20,
-      "ciclo": 14,
+      "ciclo": 10,
       "liquidez": 3
     },
     "4h": {
@@ -197,6 +203,10 @@
     {
       "name": "DefiLlama",
       "url": "https://defillama.com/stablecoins"
+    },
+    {
+      "name": "Bitview (Bitcoin Research Kit)",
+      "url": "https://bitview.space"
     },
     {
       "name": "Binance (precio y funding en vivo)",

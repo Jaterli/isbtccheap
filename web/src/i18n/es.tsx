@@ -57,7 +57,7 @@ export const es = {
     rest: "El precio de BTC frente a sus niveles de largo plazo: precio realizado, media de 200 semanas y la tendencia de la power law.",
     card: "Precio y niveles de valoración",
     info: [
-      "Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). Media de 200 semanas: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
+      "Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). Precio realizado de corto plazo: lo mismo solo para las monedas de menos de 150 días, el coste medio de los compradores recientes (de Bitview). Media de 200 semanas: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
       "Power law: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
     ],
     current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
@@ -74,9 +74,10 @@ export const es = {
       nearHigh: "cerca del techo de su corredor habitual",
       above: "por encima de su corredor habitual",
     },
-    legend: { price: "Precio", realized: "Realizado", wma: "MA 200 sem", trend: "Power law" } as Record<string, string>,
+    legend: { price: "Precio", realized: "Realizado", sth: "Realizado CP", wma: "MA 200 sem", trend: "Power law" } as Record<string, string>,
     levels: {
       realized: "Precio realizado",
+      sth: "Precio realizado de corto plazo",
       wma: "Media de 200 semanas",
       trend: "Tendencia power law",
       low: "Suelo del corredor",
@@ -84,7 +85,7 @@ export const es = {
     },
     cols: { level: "Nivel", value: "Hoy", distance: "Precio frente al nivel" },
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
-    chartAria: "Gráfico del precio de Bitcoin con el precio realizado, la media de 200 semanas y la power law",
+    chartAria: "Gráfico del precio de Bitcoin con el precio realizado total y de corto plazo, la media de 200 semanas y la power law",
   },
   movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
   drawdown: {
@@ -120,7 +121,7 @@ export const es = {
     card: "Score y categorías en el tiempo",
     info: [
       "Cada fila es la puntuación diaria (cierre del día) de una categoría, de 0 (barato, verde) a 100 (caro, rojo), con los mismos tramos de color que el medidor. La primera fila es el score de 1 día, que las combina con sus pesos. Con periodos largos, cada columna es la media de varios días.",
-      "Las líneas verticales marcan los techos de ciclo (rojo) y los suelos que los siguieron (verde). El sentimiento empieza en 2018, cuando se publica el Fear & Greed Index.",
+      "Las líneas verticales marcan los techos de ciclo (rojo) y los suelos que los siguieron (verde). El sentimiento usa el SOPR de corto plazo desde 2011 y suma el Fear & Greed Index desde 2018.",
     ],
     current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
       <>
@@ -234,7 +235,7 @@ export const es = {
     },
     sentimiento: {
       name: "Sentimiento",
-      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, que es diario, y el funding.",
+      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios) y el funding.",
       read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
     },
     tecnico: {
@@ -303,6 +304,11 @@ export const es = {
       name: "Fear & Greed Index",
       what: "Crypto Fear & Greed Index de Alternative.me: combina volatilidad, volumen, redes sociales, dominancia y búsquedas. Va de 0 (miedo extremo) a 100 (codicia extrema).",
       read: "Se usa directamente como puntuación.",
+    },
+    sth_sopr: {
+      name: "SOPR de corto plazo (7 d)",
+      what: "Spent Output Profit Ratio de los holders de corto plazo (monedas de menos de 150 días), media de 7 días: precio de venta entre precio de compra de las monedas que se movieron. +1 % es que vendieron de media con un 1 % de beneficio. Datos on-chain de Bitview.",
+      read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
     },
     funding: {
       name: "Funding rate perpetuos (Binance)",

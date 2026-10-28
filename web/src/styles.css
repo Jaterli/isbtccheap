@@ -404,6 +404,7 @@ header {position: relative;}
 .val-price { --c: var(--price); }
 .val-realized { --c: var(--band-1); }
 .val-wma { --c: var(--cycle-2012); }
+.val-sth { --c: var(--cycle-2016); }
 .val-trend { --c: var(--muted); }
 .val-low, .val-high { --c: var(--accent); }
 .legend[class*="val-"]::before { background: var(--c); }

@@ -50,7 +50,7 @@ export const en: Messages = {
     rest: "BTC's price against its long-term levels: realized price, 200-week moving average and the power law trend.",
     card: "Price and valuation levels",
     info: [
-      "Realized price: the average price at which the bitcoins in circulation last moved, an approximation of what their owners paid on average (price / MVRV, from Coin Metrics). 200-week moving average: the average price over the last four years, roughly one cycle.",
+      "Realized price: the average price at which the bitcoins in circulation last moved, an approximation of what their owners paid on average (price / MVRV, from Coin Metrics). Short-term holder realized price: the same for coins younger than 150 days only, the average cost of recent buyers (from Bitview). 200-week moving average: the average price over the last four years, roughly one cycle.",
       "Power law: the straight line that best fits the price on a logarithmic scale against the days since the genesis block. The shaded corridor contains 95% of days since 2013. The scale is logarithmic and the last day uses the current price.",
     ],
     current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
@@ -67,9 +67,10 @@ export const en: Messages = {
       nearHigh: "near the ceiling of its usual corridor",
       above: "above its usual corridor",
     },
-    legend: { price: "Price", realized: "Realized", wma: "200W MA", trend: "Power law" } as Record<string, string>,
+    legend: { price: "Price", realized: "Realized", sth: "STH realized", wma: "200W MA", trend: "Power law" } as Record<string, string>,
     levels: {
       realized: "Realized price",
+      sth: "Short-term holder realized price",
       wma: "200-week moving average",
       trend: "Power law trend",
       low: "Corridor floor",
@@ -77,7 +78,7 @@ export const en: Messages = {
     },
     cols: { level: "Level", value: "Today", distance: "Price vs level" },
     note: "Historical data, not a forecast or investment advice. The power law fit is recalculated daily using the full history.",
-    chartAria: "Chart of Bitcoin's price with the realized price, the 200-week moving average and the power law",
+    chartAria: "Chart of Bitcoin's price with the total and short-term holder realized price, the 200-week moving average and the power law",
   },
   movesLink: { text: "How long has BTC gone without a 10% drop or a 20% rally? Compare it with what is usual.", cta: "Drops and rallies" },
   drawdown: {
@@ -113,7 +114,7 @@ export const en: Messages = {
     card: "Score and categories over time",
     info: [
       "Each row is the daily score (daily close) of a category, from 0 (cheap, green) to 100 (expensive, red), with the same color bands as the gauge. The first row is the 1-day score, which combines them with their weights. With long periods, each column is the average of several days.",
-      "The vertical lines mark cycle tops (red) and the bottoms that followed them (green). Sentiment starts in 2018, when the Fear & Greed Index begins.",
+      "The vertical lines mark cycle tops (red) and the bottoms that followed them (green). Sentiment uses short-term SOPR since 2011 and adds the Fear & Greed Index from 2018.",
     ],
     current: (day: ReactNode, score: ReactNode, cheapest: string, cheapV: ReactNode, dearest: string, dearV: ReactNode) => (
       <>
@@ -225,7 +226,7 @@ export const en: Messages = {
     },
     sentimiento: {
       name: "Sentiment",
-      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, which is daily, and funding.",
+      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data) and funding.",
       read: "Extreme greed tends to coincide with tops and extreme fear with bottoms, so greed raises the score.",
     },
     tecnico: {
@@ -294,6 +295,11 @@ export const en: Messages = {
       name: "Fear & Greed Index",
       what: "Alternative.me's Crypto Fear & Greed Index: combines volatility, volume, social media, dominance and search trends. Ranges from 0 (extreme fear) to 100 (extreme greed).",
       read: "It is used directly as the score.",
+    },
+    sth_sopr: {
+      name: "Short-term SOPR (7d)",
+      what: "Spent Output Profit Ratio of short-term holders (coins younger than 150 days), 7-day average: selling price divided by purchase price of the coins that moved. +1% means they sold at a 1% profit on average. On-chain data from Bitview.",
+      read: "Percentile versus the last 4 years. High: recent buyers are taking profits, typical of euphoric markets (adds). Low: they sell at a loss, the capitulation typical of bottoms (subtracts).",
     },
     funding: {
       name: "Perpetual funding rate (Binance)",

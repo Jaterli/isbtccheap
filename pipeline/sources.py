@@ -80,3 +80,14 @@ def stablecoin_supply() -> pd.Series:
         name="stablecoins",
     )
     return s.sort_index()
+
+
+def bitview(series: str) -> pd.Series:
+    """Serie diaria de Bitview (bitview.space), la instancia pública y gratuita de Bitcoin Research Kit: métricas
+    on-chain calculadas desde un nodo de Bitcoin, sin clave. El índice diario empieza el 2009-01-01; el último día
+    está aún en curso."""
+    d = _get(f"https://bitview.space/api/series/{series}/day1", {"start": 0}).json()
+    start = pd.Timestamp("2009-01-01") + pd.Timedelta(days=d["start"])
+    s = pd.Series(d["data"], index=pd.date_range(start, periods=len(d["data"]), freq="D"), name=series, dtype=float)
+    # Sin dato (o 0, que Bitview devuelve cuando la cohorte está vacía): ausente
+    return s.where(s > 0).sort_index()

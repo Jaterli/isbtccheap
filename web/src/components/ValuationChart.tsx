@@ -24,7 +24,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
 
   const chart = useMemo(() => {
     // La escala se ajusta al precio y los niveles cercanos; lo que se sale se recorta: el techo del corredor, muy arriba,
-    // y el precio realizado de 2010, de céntimos
+    // y los precios realizados de 2010, de céntimos (el de corto plazo va tan pegado al precio que no hace falta)
     const values = [...data.price, ...data.wma200, ...data.trend, ...data.low].filter((v): v is number => v !== null);
     const { y, ticks } = logPriceScale(values, PAD_T, plotH);
     const pt = (i: number, v: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
@@ -40,6 +40,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
       trend: linePath(data.trend, x, y),
       wma: linePath(data.wma200, x, y),
       realized: linePath(data.realized, x, y),
+      sth: linePath(data.sth, x, y),
       price: linePath(data.price, x, y),
     };
   }, [data, plotW, plotH]);
@@ -56,6 +57,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
   const readout: [string, number | null][] = [
     ["price", data.price[h]],
     ["realized", data.realized[h]],
+    ["sth", data.sth[h]],
     ["wma", data.wma200[h]],
     ["trend", data.trend[h]],
   ];
@@ -92,6 +94,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
           <path d={chart.trend} className="val-line val-trend" />
           <path d={chart.wma} className="val-line val-wma" />
           <path d={chart.realized} className="val-line val-realized" />
+          <path d={chart.sth} className="val-line val-sth" />
           <path d={chart.price} className="line-price" />
         </g>
 

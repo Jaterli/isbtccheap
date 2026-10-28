@@ -25,6 +25,7 @@ ATTRIBUTION = [
     {"name": "Alternative.me Fear & Greed", "url": "https://alternative.me/crypto/fear-and-greed-index/"},
     {"name": "FRED, Federal Reserve Bank of St. Louis", "url": "https://fred.stlouisfed.org/"},
     {"name": "DefiLlama", "url": "https://defillama.com/stablecoins"},
+    {"name": "Bitview (Bitcoin Research Kit)", "url": "https://bitview.space"},
     {"name": "Binance (precio y funding en vivo)", "url": "https://www.binance.com/"},
 ]
 
@@ -40,7 +41,12 @@ def _clean(x):
 def fetch_all() -> tuple:
     cm = sources.coinmetrics(["PriceUSD", "CapMVRVCur", "IssTotUSD"])
     extra, missing = {}, []
-    tasks = {"fear_greed": sources.fear_greed, "stablecoins": sources.stablecoin_supply}
+    tasks = {
+        "fear_greed": sources.fear_greed,
+        "stablecoins": sources.stablecoin_supply,
+        "sth_sopr": lambda: sources.bitview("sth_sopr_1w"),
+        "sth_realized_price": lambda: sources.bitview("sth_realized_price"),
+    }
     tasks.update({sid: (lambda sid=sid: sources.fred(sid)) for sid in FRED_SERIES})
     for name, fn in tasks.items():
         if name in FRED_SERIES and any(s in missing for s in FRED_SERIES):
@@ -115,7 +121,7 @@ def main() -> None:
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
     (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
     # Para la página de bandas de valoración (web/valoracion)
-    bands = metrics_mod.valuation_bands(cm)
+    bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")
 

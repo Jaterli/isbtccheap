@@ -13,7 +13,7 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 ```
 ┌──────────────── Diario (GitHub Actions, gratis) ────────────────┐
 │ pipeline/build.py                                                │
-│  Coin Metrics · Alternative.me · FRED · DefiLlama                │
+│  Coin Metrics · Alternative.me · FRED · DefiLlama · Bitview      │
 │  → métricas → percentiles → web/public/data/latest.json          │
 │                             web/public/data/history.json         │
 └──────────────────────────────────────────────────────────────────┘
@@ -22,7 +22,7 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 │ Velas de Binance de la temporalidad elegida → categoría técnica  │
 │ Funding rate de los perpetuos → se suma al sentimiento           │
 │ En 1 h y 4 h: open interest y ratios long/short y compra/venta   │
-│   → sustituyen al Fear & Greed (diario) en el sentimiento        │
+│   → sustituyen al Fear & Greed y al SOPR (diarios) en el sentim. │
 │ Pesos por temporalidad → score final 1-100                       │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -143,7 +143,8 @@ web/
 
 - **Licencias**: Coin Metrics Community es CC BY-NC 4.0, es decir, sin uso comercial. Si vas a monetizar la web
   (anuncios, suscripciones), sustituye esa fuente o pide una licencia. Alternative.me y CoinGecko piden
-  atribución; ya aparece en el pie de la web.
+  atribución; ya aparece en el pie de la web. Bitview (SOPR y precio realizado de corto plazo) es gratuito y sin
+  clave; su código es MIT, pero no publica condiciones explícitas sobre el uso de los datos: se cita en el pie.
 - **Binance** bloquea algunas regiones, como EE. UU. Si falla, la web usa el técnico diario del pipeline.
 - La regresión power law se ajusta con todo el histórico, así que tiene algo de lookahead en el backtest.
 - Bitcoin solo tiene unos 4 ciclos completos. Evita sobreajustar los pesos.

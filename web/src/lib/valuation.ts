@@ -7,6 +7,8 @@ export interface BandsJson {
   start: string;
   price: (number | null)[];
   realized: (number | null)[];
+  /** Precio realizado de los holders de corto plazo (Bitview); vacío si la fuente falló */
+  sth_realized?: (number | null)[];
   wma200: (number | null)[];
   power_law: { genesis: string; slope: number; intercept: number; low: number; high: number; since: string };
 }
@@ -14,6 +16,8 @@ export interface BandsJson {
 export interface ValuationSeries extends PriceSeries {
   /** Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación */
   realized: (number | null)[];
+  /** Precio realizado de las monedas de menos de 150 días: el coste medio de los compradores recientes */
+  sth: (number | null)[];
   /** Media de 200 semanas */
   wma200: (number | null)[];
   /** Tendencia de la power law y los bordes de su corredor */
@@ -35,20 +39,21 @@ export function bandsPrice(b: BandsJson, live: number | null): PriceSeries {
 /** Series de la página con el precio actual como último día, si bands.json aún no lo tiene (los niveles se repiten). */
 export function valuationSeries(b: BandsJson, live: number | null): ValuationSeries {
   const start = Date.parse(`${b.start}T00:00:00Z`);
-  const s: ValuationSeries = { time: [], price: [], realized: [], wma200: [], trend: [], low: [], high: [] };
-  const push = (time: number, price: number, realized: number | null, wma: number | null) => {
+  const s: ValuationSeries = { time: [], price: [], realized: [], sth: [], wma200: [], trend: [], low: [], high: [] };
+  const push = (time: number, price: number, realized: number | null, sth: number | null, wma: number | null) => {
     const { genesis, slope, intercept, low, high } = b.power_law;
     const trend = 10 ** (intercept + slope * Math.log10((time - Date.parse(`${genesis}T00:00:00Z`)) / DAY));
     s.time.push(time);
     s.price.push(price);
     s.realized.push(realized);
+    s.sth.push(sth);
     s.wma200.push(wma);
     s.trend.push(trend);
     s.low.push(trend * low);
     s.high.push(trend * high);
   };
-  b.price.forEach((p, i) => p !== null && push(start + i * DAY, p, b.realized[i], b.wma200[i]));
+  b.price.forEach((p, i) => p !== null && push(start + i * DAY, p, b.realized[i], b.sth_realized?.[i] ?? null, b.wma200[i]));
   const today = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
-  if (live !== null && s.time.length && s.time.at(-1)! < today) push(today, live, s.realized.at(-1)!, s.wma200.at(-1)!);
+  if (live !== null && s.time.length && s.time.at(-1)! < today) push(today, live, s.realized.at(-1)!, s.sth.at(-1)!, s.wma200.at(-1)!);
   return s;
 }

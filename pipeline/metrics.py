@@ -42,14 +42,16 @@ PL_BAND_SINCE = "2013-01-01"
 PL_BAND_PCT = (2.5, 97.5)
 
 
-def valuation_bands(cm: pd.DataFrame) -> dict:
-    """Niveles de referencia del precio para la página de bandas de valoración (bands.json): precio realizado,
-    media de 200 semanas y la tendencia de la power law con su corredor (como parámetros: la web dibuja la recta)."""
+def valuation_bands(cm: pd.DataFrame, sth_realized: pd.Series | None = None) -> dict:
+    """Niveles de referencia del precio para la página de bandas de valoración (bands.json): precio realizado (total y
+    de los holders de corto plazo, de Bitview), media de 200 semanas y la tendencia de la power law con su corredor
+    (como parámetros: la web dibuja la recta)."""
     price = cm["PriceUSD"].dropna()
     idx = pd.date_range(price.index[0], price.index[-1], freq="D")
     price = price.reindex(idx)
     # Precio realizado = capitalización realizada / oferta = precio / MVRV. Se rellena el retraso de Coin Metrics
     realized = (price / cm["CapMVRVCur"].reindex(idx)).ffill(limit=CM_LAG_FILL_DAYS) if "CapMVRVCur" in cm else None
+    sth = sth_realized.reindex(idx).ffill(limit=CM_LAG_FILL_DAYS) if sth_realized is not None else None
     wma200 = price.rolling(1400).mean()
     slope, intercept = power_law_fit(price.dropna())
     resid = power_law_deviation(price.dropna())[PL_BAND_SINCE:]
@@ -63,6 +65,7 @@ def valuation_bands(cm: pd.DataFrame) -> dict:
         "start": idx[0].strftime("%Y-%m-%d"),
         "price": arr(price),
         "realized": arr(realized),
+        "sth_realized": arr(sth),
         "wma200": arr(wma200),
         "power_law": {
             "genesis": GENESIS.strftime("%Y-%m-%d"),
@@ -95,7 +98,7 @@ def _daily(s: pd.Series, index: pd.DatetimeIndex) -> pd.Series:
 
 
 def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
-    """cm: DataFrame de Coin Metrics. extra: series opcionales (fear_greed, FRED, stablecoins)."""
+    """cm: DataFrame de Coin Metrics. extra: series opcionales (fear_greed, FRED, stablecoins, Bitview)."""
     price = cm["PriceUSD"].dropna()
     idx = price.index
     m = pd.DataFrame(index=idx)
@@ -127,6 +130,8 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         m["stablecoin_roc"] = _daily(extra["stablecoins"], idx).pct_change(90, fill_method=None)
 
     # Sentimiento
+    if "sth_sopr" in extra:
+        m["sth_sopr"] = extra["sth_sopr"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
     if "fear_greed" in extra:
         fg = extra["fear_greed"]
         m["fear_greed"] = fg.reindex(idx)

@@ -72,7 +72,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez neta de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez neta de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -80,7 +80,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Ha acertado en el pasado?",
-        a: "En el histórico, el índice marcó entre 7 y 9 en los suelos de 2015, 2018, 2020 y 2022, y entre 85 y 98 en los techos de 2013, 2017, 2021, 2024 y 2025. Bitcoin solo tiene unos pocos ciclos completos, así que estos resultados describen el pasado y no garantizan el futuro.",
+        a: "En el histórico, el índice marcó entre 7 y 9 en los suelos de 2015, 2018, 2020 y 2022, y entre 82 y 98 en los techos de 2013, 2017, 2021, 2024 y 2025. Bitcoin solo tiene unos pocos ciclos completos, así que estos resultados describen el pasado y no garantizan el futuro.",
       },
       {
         q: "¿Cada cuánto se actualiza?",
@@ -108,7 +108,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: Federal Reserve net liquidity, M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: Federal Reserve net liquidity, M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -116,7 +116,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Has it worked in the past?",
-        a: "Historically, the index read between 7 and 9 at the 2015, 2018, 2020 and 2022 bottoms, and between 85 and 98 at the 2013, 2017, 2021, 2024 and 2025 tops. Bitcoin has only had a few full cycles, so these results describe the past and do not guarantee the future.",
+        a: "Historically, the index read between 7 and 9 at the 2015, 2018, 2020 and 2022 bottoms, and between 82 and 98 at the 2013, 2017, 2021, 2024 and 2025 tops. Bitcoin has only had a few full cycles, so these results describe the past and do not guarantee the future.",
       },
       {
         q: "How often is it updated?",
@@ -188,6 +188,10 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
         p: "Es el precio medio al que se movieron por última vez todos los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños. Cuando el precio cae por debajo, el holder medio está en pérdidas, algo que solo ha ocurrido cerca de los suelos de cada ciclo: en 2015, 2018-2019, marzo de 2020 y 2022, cuando el precio llegó a estar entre un 12 % y un 44 % por debajo. En los techos, en cambio, el precio llegó a multiplicarlo por entre 2,3 y 4,7.",
       },
       {
+        h: "¿Qué es el precio realizado de corto plazo?",
+        p: "Es el mismo cálculo, pero solo con las monedas que se movieron en los últimos 150 días: el coste medio de los compradores recientes. Se mueve mucho más rápido que el precio realizado total. En los años alcistas, como 2016, 2017, 2020, 2023 y 2024, el precio estuvo por encima la mayor parte del tiempo (entre el 77 % y el 98 % de los días); en los suelos de 2015, 2018, 2020 y 2022 llegó a estar entre un 22 % y un 48 % por debajo, con los compradores recientes en pérdidas.",
+      },
+      {
         h: "¿Por qué importa la media de 200 semanas?",
         p: "Es la media del precio de unos cuatro años, aproximadamente un ciclo completo de halving. Ha funcionado como gran soporte de largo plazo: los suelos de 2015, 2018 y 2020 se formaron muy cerca de ella, y solo en 2022 el precio cayó claramente por debajo (un 34 %).",
       },
@@ -209,6 +213,10 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
       {
         h: "What is Bitcoin's realized price?",
         p: "It is the average price at which all bitcoins in circulation last moved, an approximation of what their owners paid on average. When the price falls below it, the average holder is at a loss, something that has only happened near the bottom of each cycle: in 2015, 2018-2019, March 2020 and 2022, when the price was between 12% and 44% below it. At the tops, by contrast, the price reached 2.3 to 4.7 times the realized price.",
+      },
+      {
+        h: "What is the short-term holder realized price?",
+        p: "It is the same calculation, but only for coins that moved in the last 150 days: the average cost of recent buyers. It moves much faster than the overall realized price. In bull years such as 2016, 2017, 2020, 2023 and 2024, the price stayed above it most of the time (77% to 98% of days); at the 2015, 2018, 2020 and 2022 bottoms it fell 22% to 48% below it, leaving recent buyers at a loss.",
       },
       {
         h: "Why does the 200-week moving average matter?",
@@ -289,7 +297,7 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué marcaban en los techos y suelos?",
-        p: "En los suelos de 2015, 2018 y 2022, la valoración on-chain estaba entre 1 y 7 y el técnico entre 0 y 5, y el score de 1 día rondaba 8-9. En los techos de 2013, 2017 y 2021 ocurría lo contrario: valoración entre 78 y 100, técnico entre 91 y 98 y ciclo por encima de 80, con el score entre 85 y 98. Son las categorías que mejor han marcado los extremos.",
+        p: "En los suelos de 2015, 2018 y 2022, la valoración on-chain estaba entre 1 y 7 y el técnico entre 0 y 5, y el score de 1 día rondaba 8-9. En los techos de 2013, 2017 y 2021 ocurría lo contrario: valoración entre 78 y 100, técnico entre 91 y 98 y ciclo por encima de 80, con el score entre 84 y 98. Son las categorías que mejor han marcado los extremos.",
       },
       {
         h: "¿Por qué la liquidez va a contracorriente?",
@@ -308,7 +316,7 @@ export const SEO_CATEGORIES: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "What did they show at tops and bottoms?",
-        p: "At the 2015, 2018 and 2022 bottoms, on-chain valuation was between 1 and 7 and technical between 0 and 5, with the 1-day score around 8-9. At the 2013, 2017 and 2021 tops it was the opposite: valuation between 78 and 100, technical between 91 and 98 and cycle above 80, with the score between 85 and 98. These are the categories that have best marked the extremes.",
+        p: "At the 2015, 2018 and 2022 bottoms, on-chain valuation was between 1 and 7 and technical between 0 and 5, with the 1-day score around 8-9. At the 2013, 2017 and 2021 tops it was the opposite: valuation between 78 and 100, technical between 91 and 98 and cycle above 80, with the score between 84 and 98. These are the categories that have best marked the extremes.",
       },
       {
         h: "Why does liquidity run against the grain?",
