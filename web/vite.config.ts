@@ -18,14 +18,14 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 function seoHtml(lang: "es" | "en") {
   const s = SEO[lang];
   const faq = s.faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
-  return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
+  return `<main class="container seo-prerender"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p><h2>${esc(s.faqTitle)}</h2>${faq}</main>`;
 }
 
 /** Lo mismo para las páginas de gráficas */
 function chartSeoHtml(texts: typeof SEO_VOL, lang: "es" | "en") {
   const s = texts[lang];
   const secs = s.sections.map((x) => `<h2>${esc(x.h)}</h2><p>${esc(x.p)}</p>`).join("");
-  return `<main class="container"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p>${secs}</main>`;
+  return `<main class="container seo-prerender"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p>${secs}</main>`;
 }
 
 type Page = keyof typeof META;
