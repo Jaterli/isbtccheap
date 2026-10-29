@@ -499,7 +499,7 @@ export const en: Messages = {
     previous: "Prev.",
     actual: "Actual",
     countries: { USD: "US", EUR: "Eurozone", JPY: "Japan", GBP: "UK", CNY: "China" },
-    note: "Source: Forex Factory.",
+    note: "Sources: Forex Factory and FRED.",
   },
 
   news: {

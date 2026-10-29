@@ -362,7 +362,7 @@ export const es = {
       read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
     },
     etf_flows: {
-      name: "Flujos de ETF al contado (20 ses.)",
+      name: "Flujos ETF al contado (20 ses.)",
       what: "Entradas menos salidas de los ETF de bitcoin al contado de EE. UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
       read: "Percentil frente a su historia. Entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Con menos de tres años de datos, es una señal todavía poco contrastada.",
     },
@@ -509,7 +509,7 @@ export const es = {
     previous: "Ant.",
     actual: "Real",
     countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
-    note: "Fuente: Forex Factory.",
+    note: "Fuentes: Forex Factory (eventos y previsiones) y FRED (datos reales).",
   },
 
   news: {
