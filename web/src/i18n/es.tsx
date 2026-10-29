@@ -509,7 +509,7 @@ export const es = {
     previous: "Ant.",
     actual: "Real",
     countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
-    note: "Fuentes: Forex Factory (eventos y previsiones) y FRED (datos reales).",
+    note: "Fuentes: Forex Factory y FRED.",
   },
 
   news: {
