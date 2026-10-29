@@ -202,7 +202,7 @@ export const es = {
     card: "Precio y fase del mercado",
     info: [
       "Tendencia: alcista cuando el precio está por encima del precio realizado de corto plazo (el coste medio de las monedas compradas en los últimos 150 días, de Bitview); bajista cuando está por debajo. Liquidez: al alza o a la baja según la variación en 13 semanas de la liquidez global (Fed, BCE y Banco de Japón).",
-      "Una fase solo cambia cuando la señal lleva 7 días seguidos en el nuevo sentido: sin esa confirmación, la mayoría de los cambios se deshacían en días. Estas señales no anticipan los giros: los confirman con retraso, pero separan bien las fases.",
+      "La tendencia se confirma con el score diario del índice: un giro alcista solo cuenta con el score en 60 o menos y uno bajista con el score en 40 o más, y se confirma en 3 días si el score lo respalda, en 14 si lo contradice y en 7 si es neutral. La liquidez se confirma siempre en 7 días. Estas señales no anticipan los giros: los confirman con retraso, pero separan bien las fases.",
     ],
     currentTrend: (phase: ReactNode, since: ReactNode, days: number, vsSth: ReactNode, sth: ReactNode) => (
       <>
@@ -243,11 +243,6 @@ export const es = {
     ongoing: (n: number) => `${n} días (en curso)`,
     note: "Rentabilidad mediana de BTC en los 90 días siguientes a cada día de la fase. Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin con las fases de tendencia y de liquidez desde 2012",
-    homeLine: (trend: ReactNode, liquidity: ReactNode) => (
-      <>
-        Tendencia {trend} · Liquidez {liquidity}
-      </>
-    ),
   },
   charts: {
     tfAria: "Tamaño de vela",

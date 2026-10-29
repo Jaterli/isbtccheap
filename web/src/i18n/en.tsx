@@ -193,7 +193,7 @@ export const en: Messages = {
     card: "Price and market phase",
     info: [
       "Trend: bullish when the price is above the short-term holder realized price (the average cost of coins bought in the last 150 days, from Bitview); bearish when below. Liquidity: rising or falling according to the 13-week change in global liquidity (Fed, ECB and Bank of Japan).",
-      "A phase only changes when the signal has spent 7 days in a row in the new direction: without that confirmation, most changes reversed within days. These signals do not anticipate turns: they confirm them late, but they separate phases well.",
+      "The trend is confirmed with the index's daily score: a bullish turn only counts with the score at 60 or below and a bearish one with the score at 40 or above, and it is confirmed in 3 days if the score supports it, 14 if it contradicts it and 7 if it is neutral. Liquidity is always confirmed in 7 days. These signals do not anticipate turns: they confirm them late, but they separate phases well.",
     ],
     currentTrend: (phase: ReactNode, since: ReactNode, days: number, vsSth: ReactNode, sth: ReactNode) => (
       <>
@@ -234,11 +234,6 @@ export const en: Messages = {
     ongoing: (n: number) => `${n} days (ongoing)`,
     note: "Median BTC return over the 90 days following each day of the phase. Historical data, not a forecast or investment advice.",
     chartAria: "Chart of the Bitcoin price with trend and liquidity phases since 2012",
-    homeLine: (trend: ReactNode, liquidity: ReactNode) => (
-      <>
-        Trend {trend} · Liquidity {liquidity}
-      </>
-    ),
   },
   charts: {
     tfAria: "Candle size",

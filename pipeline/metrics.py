@@ -137,6 +137,30 @@ def _confirm(signal: pd.Series, n: int) -> pd.Series:
     return pd.Series(out, index=signal.index)
 
 
+def _confirm_with_score(signal: pd.Series, score: pd.Series) -> pd.Series:
+    """Confirmación según el score diario: el cambio a alcista solo se acepta con score ≤ 60 y a bajista con score ≥ 40
+    (descarta los giros contra la valoración), y se confirma en 3 días si el score lo respalda (alcista con score ≤ 40,
+    bajista con ≥ 60), en 14 si lo contradice y en 7 si es neutral. Desde 2012, frente a 7 días fijos: falsas señales
+    del 16 % al 8 % y retraso medio en techos y suelos de 65 a 41 días."""
+    out, cur, run, last = [], np.nan, 0, np.nan
+    for v, s in zip(signal.values, score.values):
+        if np.isnan(v):
+            out.append(cur)
+            continue
+        run = run + 1 if v == last else 1
+        last = v
+        if np.isnan(s):
+            need, ok = PHASE_CONFIRM_DAYS, True
+        elif v == 1:
+            need, ok = (3 if s <= 40 else 14 if s >= 60 else 7), s <= 60
+        else:
+            need, ok = (3 if s >= 60 else 14 if s <= 40 else 7), s >= 40
+        if v != cur and run >= need and ok:
+            cur = v
+        out.append(cur)
+    return pd.Series(out, index=signal.index)
+
+
 def _changes(phase: pd.Series) -> list:
     """[[fecha, 1 o -1], ...]: cada cambio de fase."""
     p = phase.dropna()
@@ -144,18 +168,20 @@ def _changes(phase: pd.Series) -> list:
     return [[d.strftime("%Y-%m-%d"), int(v)] for d, v in ch.items()]
 
 
-def market_phase(cm: pd.DataFrame, extra: dict) -> dict | None:
-    """phase.json: fase de tendencia (precio frente al precio realizado de corto plazo) y de liquidez global (su
-    variación en 13 semanas), con PHASE_CONFIRM_DAYS de confirmación. No anticipan los giros: los confirman con retraso,
-    pero separan bien las fases (rentabilidad mediana a 90 días desde 2012: +17 % en tendencia alcista frente a +1 %
-    en bajista; +24 % frente a −8 % con la liquidez)."""
+def market_phase(cm: pd.DataFrame, extra: dict, score: pd.Series) -> dict | None:
+    """phase.json: fase de tendencia (precio frente al precio realizado de corto plazo, confirmada según el score diario)
+    y de liquidez global (su variación en 13 semanas, PHASE_CONFIRM_DAYS de confirmación). Confirman los giros con
+    retraso, pero separan bien las fases (rentabilidad mediana a 90 días desde 2012: +19 % en tendencia alcista frente
+    a −2 % en bajista; +24 % frente a −7 % con la liquidez)."""
     if "sth_realized_price" not in extra:
         return None
     price = cm["PriceUSD"].dropna()
     idx = pd.date_range(price.index[0], price.index[-1], freq="D")
     p = price.reindex(idx).ffill()
     sth = extra["sth_realized_price"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
-    trend = _confirm(np.sign(p - sth), PHASE_CONFIRM_DAYS)[PHASE_SINCE:]
+    # Score del día anterior, como en el backtest
+    prev_score = score.reindex(idx).ffill().shift(1)
+    trend = _confirm_with_score(np.sign(p - sth), prev_score)[PHASE_SINCE:]
     out = {"trend": _changes(trend), "liquidity": None, "liquidity_roc": None}
     if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *GLOBAL_SERIES)):
         # La liquidez semanal se publica un día después de su fecha
