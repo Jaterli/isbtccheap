@@ -375,6 +375,9 @@ header {position: relative;}
 .cal-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-weight: 500; line-height: 1.35; }
 .cal-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: 2px; }
 .cal-day li.past { opacity: 0.5; }
+/* El dato real se lee bien aunque el evento ya haya pasado */
+.cal-day li.past:has(.cal-actual) { opacity: 0.8; }
+.cal-actual strong { color: var(--fg); }
 .cal-day li.next time { color: var(--accent); font-weight: 600; }
 
 /* Página de volatilidad */

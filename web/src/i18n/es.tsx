@@ -503,10 +503,11 @@ export const es = {
     title: "Agenda económica de la semana",
     info: [
       "Los datos económicos y decisiones de bancos centrales de esta semana que más pueden mover los mercados y el precio de BTC: los de impacto alto de EE. UU. y las decisiones de tipos del BCE, el Banco de Japón, el Banco de Inglaterra y China.",
-      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio. Nombres de los eventos traducidos con IA.",
+      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio. El dato real de los eventos de EE. UU. sale de FRED en cuanto lo publica, normalmente el mismo día. Nombres de los eventos traducidos con IA.",
     ],
     forecast: "Prev.",
     previous: "Ant.",
+    actual: "Real",
     countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
     note: "Fuente: Forex Factory.",
   },

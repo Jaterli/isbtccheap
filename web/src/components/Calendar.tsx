@@ -12,6 +12,8 @@ interface CalendarEvent {
   date: string;
   forecast: string | null;
   previous: string | null;
+  /** Dato publicado (de FRED, solo en los eventos de EE. UU. que tienen serie); ausente hasta que sale */
+  actual?: string | null;
 }
 
 const CALENDAR_URL = `${import.meta.env.BASE_URL}news/calendar.json`;
@@ -91,8 +93,14 @@ export function Calendar() {
                             <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
                             {lang === "es" ? e.title_es : e.title}
                           </span>
-                          {(e.forecast || e.previous) && (
+                          {(e.forecast || e.previous || e.actual) && (
                             <span className="cal-meta muted small num">
+                              {e.actual && (
+                                <span className="cal-actual">
+                                  {tx.actual} <strong>{num(e.actual)}</strong>
+                                  {(e.forecast || e.previous) && " · "}
+                                </span>
+                              )}
                               {e.forecast && `${tx.forecast} ${num(e.forecast)}`}
                               {e.forecast && e.previous && " · "}
                               {e.previous && `${tx.previous} ${num(e.previous)}`}

@@ -493,10 +493,11 @@ export const en: Messages = {
     title: "This week's economic calendar",
     info: [
       "This week's economic data and central bank decisions most likely to move markets and the BTC price: high-impact US releases and the rate decisions of the ECB, the Bank of Japan, the Bank of England and China.",
-      "Times are in your time zone. Forecast is what the market expects; previous, the last published figure. The price moves most when the data misses the forecast.",
+      "Times are in your time zone. Forecast is what the market expects; previous, the last published figure. The price moves most when the data misses the forecast. The actual figure for US events comes from FRED as soon as it publishes it, usually the same day.",
     ],
     forecast: "Fcst.",
     previous: "Prev.",
+    actual: "Actual",
     countries: { USD: "US", EUR: "Eurozone", JPY: "Japan", GBP: "UK", CNY: "China" },
     note: "Source: Forex Factory.",
   },

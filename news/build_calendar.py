@@ -11,11 +11,14 @@ Uso: python build_calendar.py [--dry-run]   (--dry-run no llama al modelo: deja 
 """
 
 import argparse
+import csv
+import io
 import json
 import logging
 import re
 import sys
 import urllib.request
+from datetime import date, datetime, timedelta
 
 from build_news import OUT_DIR, STATE_DIR, _now, chat, write_json
 
@@ -51,6 +54,91 @@ TRANSLATE_SCHEMA = {
 }
 
 log = logging.getLogger("calendar")
+
+# Dato real de los eventos de EE. UU., de FRED: serie, cálculo y periodo al que se refiere la publicación.
+#   pct_mm: variación mensual del índice (FRED da el índice, no el porcentaje oficial: en casos límite puede diferir
+#           en una décima) · diff: diferencia mensual · level: el valor tal cual
+#   Periodo: prev_month (el mes anterior), two_months (dos meses antes), quarter (el trimestre anterior),
+#            week (la semana que acaba el sábado anterior) o next_day (tipos: vigentes desde el día siguiente)
+ACTUALS = {
+    "CPI m/m": ("CPIAUCSL", "pct_mm", "prev_month"),
+    "Core CPI m/m": ("CPILFESL", "pct_mm", "prev_month"),
+    "PPI m/m": ("PPIFIS", "pct_mm", "prev_month"),
+    "Core PCE Price Index m/m": ("PCEPILFE", "pct_mm", "prev_month"),
+    "Retail Sales m/m": ("RSAFS", "pct_mm", "prev_month"),
+    "Core Retail Sales m/m": ("RSFSXMV", "pct_mm", "prev_month"),
+    "Average Hourly Earnings m/m": ("CES0500000003", "pct_mm", "prev_month"),
+    "Non-Farm Employment Change": ("PAYEMS", "diff", "prev_month"),
+    "Unemployment Rate": ("UNRATE", "level", "prev_month"),
+    "JOLTS Job Openings": ("JTSJOL", "level", "two_months"),
+    "Advance GDP q/q": ("A191RL1Q225SBEA", "level", "quarter"),
+    "Prelim GDP q/q": ("A191RL1Q225SBEA", "level", "quarter"),
+    "Final GDP q/q": ("A191RL1Q225SBEA", "level", "quarter"),
+    "Unemployment Claims": ("ICSA", "level", "week"),
+    "Federal Funds Rate": ("DFEDTARU", "level", "next_day"),
+}
+# Unidad en que FRED da cada serie, frente a la de la agenda (K = miles, M = millones)
+FRED_UNIT = {"PAYEMS": 1e3, "JTSJOL": 1e3}
+
+
+def _fred(series: str, since: date) -> list[tuple[date, float]]:
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={since:%Y-%m-%d}"
+    # FRED deja colgadas las peticiones con algunos User-Agent (p. ej. "Mozilla/5.0"); con el del pipeline responde
+    req = urllib.request.Request(url, headers={"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"})
+    with urllib.request.urlopen(req, timeout=30) as res:
+        rows = list(csv.reader(io.StringIO(res.read().decode())))[1:]
+    return [(date.fromisoformat(d), float(v)) for d, v in rows if v not in ("", ".")]
+
+
+def _period(released: date, rule: str) -> date:
+    first = released.replace(day=1)
+    if rule == "prev_month":
+        return (first - timedelta(days=1)).replace(day=1)
+    if rule == "two_months":
+        return ((first - timedelta(days=1)).replace(day=1) - timedelta(days=1)).replace(day=1)
+    if rule == "quarter":
+        prev = date(released.year, 3 * ((released.month - 1) // 3) + 1, 1) - timedelta(days=1)  # fin del trimestre anterior
+        return date(prev.year, 3 * ((prev.month - 1) // 3) + 1, 1)
+    if rule == "week":
+        return released - timedelta(days=(released.weekday() - 5) % 7 or 7)
+    return released + timedelta(days=1)
+
+
+def _format(value: float, template: str) -> str:
+    """Con las mismas unidades y decimales que la previsión de la agenda ("0.3%", "4.00%", "225K", "7.20M")."""
+    m = re.fullmatch(r"<?-?[\d.]+([%KMB]?)", template)
+    suffix = m.group(1) if m else ""
+    decimals = len(template.split(".")[1].rstrip("%KMB")) if "." in template else 0
+    scaled = value / {"K": 1e3, "M": 1e6, "B": 1e9}.get(suffix, 1)
+    return f"{scaled:.{decimals}f}{suffix}"
+
+
+def actual(e: dict, cache: dict) -> str | None:
+    """Dato real de un evento ya publicado, o None si FRED aún no tiene el periodo que le corresponde."""
+    spec = ACTUALS.get(e["title"]) if e["country"] == "USD" else None
+    template = e.get("forecast") or e.get("previous")
+    if not spec or not template:
+        return None
+    series, kind, rule = spec
+    released = datetime.fromisoformat(e["date"]).date()
+    want = _period(released, rule)
+    if series not in cache:
+        cache[series] = _fred(series, want - timedelta(days=120))
+    obs = dict(cache[series])
+    if rule == "next_day":
+        later = [(d, v) for d, v in cache[series] if d >= want]
+        return _format(later[0][1], template) if later else None
+    if want not in obs:
+        return None
+    prev = [v for d, v in cache[series] if d < want]
+    value = obs[want] * FRED_UNIT.get(series, 1)
+    if kind == "pct_mm":
+        if not prev: return None
+        value = (obs[want] / prev[-1] - 1) * 100
+    elif kind == "diff":
+        if not prev: return None
+        value = (obs[want] - prev[-1]) * FRED_UNIT.get(series, 1)
+    return _format(value, template)
 
 
 def fetch() -> list[dict]:
@@ -105,9 +193,24 @@ def main() -> None:
         except Exception as e:  # sin traducción se publican los nombres originales
             log.error("No se pudieron traducir los eventos: %s", e)
 
+    # Dato real de los eventos ya publicados. Si FRED no responde, se conserva el de la ejecución anterior
+    try:
+        before = {(x["title"], x["date"]): x.get("actual") for x in json.loads((OUT_DIR / "calendar.json").read_text())["events"]}
+    except (FileNotFoundError, json.JSONDecodeError, KeyError):
+        before = {}
+    cache: dict = {}
+    now = _now()
+    for e in events:
+        e["actual"] = before.get((e["title"], e["date"]))
+        if datetime.fromisoformat(e["date"]) <= now and e["title"] in ACTUALS:
+            try:
+                e["actual"] = actual(e, cache) or e["actual"]
+            except Exception as err:
+                log.warning("Sin dato real de %s: %s", e["title"], err)
+
     out = [
         {"title": e["title"], "title_es": known.get(e["title"], e["title"]), "country": e["country"], "date": e["date"],
-         "forecast": e.get("forecast") or None, "previous": e.get("previous") or None}
+         "forecast": e.get("forecast") or None, "previous": e.get("previous") or None, "actual": e.get("actual")}
         for e in events
     ]
     write_json(OUT_DIR / "calendar.json", {"updated_at": _now().isoformat(timespec="seconds"), "events": out})
