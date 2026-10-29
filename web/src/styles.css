@@ -436,6 +436,9 @@ header {position: relative;}
 /* ETF */
 .etf-bar.in { fill: var(--band-1); }
 .etf-bar.out { fill: var(--band-5); }
+.etf-fg { --c: var(--cycle-2012); }
+.legend.etf-fg::before { background: var(--c); }
+.etf-fg-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.2; opacity: 0.85; }
 .legend.etf-in::before { background: var(--band-1); }
 .legend.etf-out::before { background: var(--band-5); }
 .etf-table td.up, .vol-stats .up { color: var(--band-1); }

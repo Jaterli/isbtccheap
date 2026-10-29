@@ -151,6 +151,7 @@ export const es = {
     info: [
       "Cada barra es el flujo neto de una sesión: lo que entró menos lo que salió del conjunto de ETF de bitcoin al contado de EE. UU. (IBIT, FBTC, GBTC…), en dólares. Verde, entradas; rojo, salidas. El eje x son sesiones de mercado, sin fines de semana ni festivos.",
       "El índice usa la suma de las últimas 20 sesiones en BTC como métrica de sentimiento: entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Los datos se actualizan una vez al día.",
+      "La línea lila es el Fear & Greed Index de Alternative.me (eje izquierdo, de 0 = miedo extremo a 100 = codicia extrema), para comparar los flujos con el sentimiento del mercado.",
     ],
     money: (v: number) =>
       v >= 1e9
@@ -162,10 +163,11 @@ export const es = {
         enero de 2024: {total}.
       </>
     ),
-    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado" },
+    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado", fearGreed: "Fear & Greed" },
     tableTitle: "Por fondo",
     cols: { fund: "Fondo", last: (d: string) => `Sesión del ${d}`, d20: (n: number) => `Últimas ${n} sesiones`, total: "Desde el lanzamiento" },
     source: "Fuente:",
+    fgSource: "Fear & Greed Index:",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
   },
@@ -199,7 +201,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3 meses", "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },

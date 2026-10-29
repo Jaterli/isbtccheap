@@ -98,7 +98,11 @@ export function EtfApp() {
             <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
               CC BY 4.0
             </a>
-            ). {tx.note}
+            ). {tx.fgSource}{" "}
+            <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noreferrer">
+              Alternative.me
+            </a>
+            . {tx.note}
           </p>
         )}
       </section>

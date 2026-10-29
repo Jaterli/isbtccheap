@@ -7,6 +7,8 @@ export interface EtfJson {
   dates: string[];
   flow: number[];
   price: number[];
+  /** Fear & Greed Index de Alternative.me del día de cada sesión; ausente en ficheros anteriores */
+  fear_greed?: (number | null)[] | null;
   funds: { ticker: string; last: number; d20: number; total: number }[];
 }
 
@@ -16,6 +18,7 @@ export const ETF_WINDOW = 20;
 export interface EtfSeries extends PriceSeries {
   flow: number[];
   cumulative: number[];
+  fearGreed: (number | null)[];
 }
 
 export function etfSeries(e: EtfJson): EtfSeries {
@@ -25,6 +28,7 @@ export function etfSeries(e: EtfJson): EtfSeries {
     price: e.price,
     flow: e.flow,
     cumulative: e.flow.map((f) => (acc += f)),
+    fearGreed: e.fear_greed ?? e.dates.map(() => null),
   };
 }
 

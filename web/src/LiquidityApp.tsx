@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
 import { LiquidityChart, rocPct } from "./components/LiquidityChart";
-import { useRange } from "./components/RangeSelect";
+import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
 import { lang, locale, t } from "./i18n";
 import { SEO_LIQUIDITY } from "./i18n/seo";
 import { getJson } from "./lib/data";
@@ -13,7 +13,7 @@ const date = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale
 export function LiquidityApp() {
   const [liq, setLiq] = useState<LiquidityJson | null>(null);
   const [error, setError] = useState(false);
-  const range = useRange("isbtccheap:liquidity-range", "4y");
+  const range = useRange("isbtccheap:liquidity-range", "4y", LIQUIDITY_RANGES);
 
   useEffect(() => {
     getJson("liquidity.json").then(setLiq, () => setError(true));

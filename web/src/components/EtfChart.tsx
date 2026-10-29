@@ -3,7 +3,7 @@ import { t } from "../i18n";
 import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { EtfSeries } from "../lib/etf";
 
-const PAD_L = 8;
+const PAD_L = 30; // eje del Fear & Greed (0-100), a la izquierda
 const PAD_R = 56;
 const PAD_T = 10;
 const GAP = 18;
@@ -15,7 +15,7 @@ export const flowUsd = (v: number, signed = true) => {
   return `${sign}${t.etf.money(Math.abs(v))}`;
 };
 
-/** El eje x son sesiones de mercado, sin huecos en fines de semana. */
+/** El eje x son sesiones de mercado, sin huecos en fines de semana. En el panel del precio, el Fear & Greed (0-100). */
 export function EtfChart({ data }: { data: EtfSeries }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -36,7 +36,8 @@ export function EtfChart({ data }: { data: EtfSeries }) {
     const max = Math.max(...data.flow.map(Math.abs), 1);
     const yFlow = (v: number) => flowTop + flowH / 2 - (v / max) * (flowH / 2 - 4);
     const flowTicks = niceTicks(0, max, 2).filter((v) => v > 0);
-    return { y, ticks, yFlow, flowTicks, price: linePath(data.price, x, y) };
+    const yFg = (v: number) => PAD_T + priceH - (v / 100) * priceH;
+    return { y, ticks, yFlow, flowTicks, yFg, price: linePath(data.price, x, y), fg: linePath(data.fearGreed, x, yFg) };
   }, [data, plotW, priceH, flowH, flowTop]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
@@ -61,6 +62,11 @@ export function EtfChart({ data }: { data: EtfSeries }) {
         <span className={`legend num ${data.flow[h] >= 0 ? "etf-in" : "etf-out"}`}>
           {tx.legend.flow} <strong>{flowUsd(data.flow[h])}</strong>
         </span>
+        {data.fearGreed[h] !== null && (
+          <span className="legend etf-fg num">
+            {tx.legend.fearGreed} <strong>{data.fearGreed[h]}</strong>
+          </span>
+        )}
         <span className="muted num">
           {tx.legend.cumulative} {flowUsd(data.cumulative[h])}
         </span>
@@ -72,6 +78,16 @@ export function EtfChart({ data }: { data: EtfSeries }) {
             <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
           </g>
         ))}
+        {chart.fg && (
+          <>
+            {[25, 50, 75].map((v) => (
+              <text key={v} x={PAD_L - 6} y={chart.yFg(v) + 4} className="axis" textAnchor="end">
+                {v}
+              </text>
+            ))}
+            <path d={chart.fg} className="etf-fg-line" />
+          </>
+        )}
         <path d={chart.price} className="line-price" />
 
         {[0, ...chart.flowTicks, ...chart.flowTicks.map((v) => -v)].map((v) => (

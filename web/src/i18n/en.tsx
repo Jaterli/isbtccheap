@@ -144,6 +144,7 @@ export const en: Messages = {
     info: [
       "Each bar is a session's net flow: inflows minus outflows across all US spot bitcoin ETFs (IBIT, FBTC, GBTC…), in dollars. Green, inflows; red, outflows. The x axis is trading sessions, without weekends or holidays.",
       "The index uses the sum of the last 20 sessions in BTC as a sentiment metric: strong inflows, typical of tops, add; outflows, typical of lows, subtract. The data is updated once a day.",
+      "The purple line is Alternative.me's Fear & Greed Index (left axis, from 0 = extreme fear to 100 = extreme greed), to compare flows with market sentiment.",
     ],
     money: (v: number) =>
       v >= 1e9
@@ -155,10 +156,11 @@ export const en: Messages = {
         2024: {total}.
       </>
     ),
-    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative" },
+    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative", fearGreed: "Fear & Greed" },
     tableTitle: "By fund",
     cols: { fund: "Fund", last: (d: string) => `${d} session`, d20: (n: number) => `Last ${n} sessions`, total: "Since launch" },
     source: "Source:",
+    fgSource: "Fear & Greed Index:",
     note: "Historical data, not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
   },
@@ -190,7 +192,7 @@ export const en: Messages = {
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "3m": "3M", "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },

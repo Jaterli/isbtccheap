@@ -44,8 +44,9 @@ def etf_attribution(extra: dict) -> list[dict]:
     return [{"name": etf_credit(extra["etf_flows"]), "url": "https://www.tftc.io/bitcoin-etf-flows", "license": "CC BY 4.0"}]
 
 
-def etf_json(etf) -> dict:
-    """etf.json: flujo y precio por sesión, y por fondo la última sesión, las últimas 20 y el acumulado (USD)."""
+def etf_json(etf, fear_greed=None) -> dict:
+    """etf.json: flujo, precio y Fear & Greed por sesión, y por fondo la última sesión, las últimas 20 y el acumulado
+    (USD)."""
     per = pd.DataFrame(list(etf["per_fund"]), index=etf.index).fillna(0)
     funds = [
         {"ticker": t, "last": round(per[t].iloc[-1]), "d20": round(per[t].iloc[-20:].sum()), "total": round(per[t].sum())}
@@ -56,6 +57,9 @@ def etf_json(etf) -> dict:
         "dates": [d.strftime("%Y-%m-%d") for d in etf.index],
         "flow": [round(float(v)) for v in etf["flow_usd"]],
         "price": [round(float(v)) for v in etf["price"]],
+        "fear_greed": None if fear_greed is None else [
+            None if pd.isna(v) else int(v) for v in fear_greed.reindex(fear_greed.index.union(etf.index)).ffill().reindex(etf.index)
+        ],
         "funds": funds,
     }
 
@@ -156,7 +160,7 @@ def main() -> None:
         liquidity = metrics_mod.liquidity_json(extra, cm["PriceUSD"].dropna())
         (OUT_DIR / "liquidity.json").write_text(json.dumps(liquidity, separators=(",", ":")), encoding="utf-8")
     if "etf_flows" in extra:
-        (OUT_DIR / "etf.json").write_text(json.dumps(etf_json(extra["etf_flows"]), separators=(",", ":")), encoding="utf-8")
+        (OUT_DIR / "etf.json").write_text(json.dumps(etf_json(extra["etf_flows"], extra.get("fear_greed")), separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")
 
 
