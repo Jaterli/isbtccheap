@@ -117,6 +117,61 @@ def liquidity_json(extra: dict, price: pd.Series) -> dict:
     }
 
 
+# Fase del mercado: una señal solo cambia de fase si lleva estos días seguidos en el nuevo valor. Sin confirmación,
+# entre el 60 % y el 77 % de los cambios se deshacían en menos de 30 días; con 7 días, el 16 % (tendencia)
+PHASE_CONFIRM_DAYS = 7
+PHASE_SINCE = "2012-01-01"
+
+
+def _confirm(signal: pd.Series, n: int) -> pd.Series:
+    out, cur, run, last = [], np.nan, 0, np.nan
+    for v in signal.values:
+        if np.isnan(v):
+            out.append(cur)
+            continue
+        run = run + 1 if v == last else 1
+        last = v
+        if run >= n:
+            cur = v
+        out.append(cur)
+    return pd.Series(out, index=signal.index)
+
+
+def _changes(phase: pd.Series) -> list:
+    """[[fecha, 1 o -1], ...]: cada cambio de fase."""
+    p = phase.dropna()
+    ch = p[p != p.shift()]
+    return [[d.strftime("%Y-%m-%d"), int(v)] for d, v in ch.items()]
+
+
+def market_phase(cm: pd.DataFrame, extra: dict) -> dict | None:
+    """phase.json: fase de tendencia (precio frente al precio realizado de corto plazo) y de liquidez global (su
+    variación en 13 semanas), con PHASE_CONFIRM_DAYS de confirmación. No anticipan los giros: los confirman con retraso,
+    pero separan bien las fases (rentabilidad mediana a 90 días desde 2012: +17 % en tendencia alcista frente a +1 %
+    en bajista; +24 % frente a −8 % con la liquidez)."""
+    if "sth_realized_price" not in extra:
+        return None
+    price = cm["PriceUSD"].dropna()
+    idx = pd.date_range(price.index[0], price.index[-1], freq="D")
+    p = price.reindex(idx).ffill()
+    sth = extra["sth_realized_price"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
+    trend = _confirm(np.sign(p - sth), PHASE_CONFIRM_DAYS)[PHASE_SINCE:]
+    out = {"trend": _changes(trend), "liquidity": None, "liquidity_roc": None}
+    if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *GLOBAL_SERIES)):
+        # La liquidez semanal se publica un día después de su fecha
+        roc = global_liquidity(extra, idx).pct_change(91, fill_method=None).shift(1)
+        out["liquidity"] = _changes(_confirm(np.sign(roc), PHASE_CONFIRM_DAYS)[PHASE_SINCE:])
+        out["liquidity_roc"] = round(float(roc.dropna().iloc[-1]), 4)
+    days = p[PHASE_SINCE:]
+    sig = lambda v: None if pd.isna(v) else float(f"{v:.5g}")
+    return {
+        "start": days.index[0].strftime("%Y-%m-%d"),
+        "price": [sig(v) for v in days],
+        "sth": [sig(v) for v in sth[PHASE_SINCE:]],
+        **out,
+    }
+
+
 def halving_phase_score(index: pd.DatetimeIndex) -> pd.Series:
     bounds = [GENESIS] + [pd.Timestamp(h) for h in HALVINGS]
     xs, ys = zip(*HALVING_PHASE_CURVE)

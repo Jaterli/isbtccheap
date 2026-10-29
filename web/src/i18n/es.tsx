@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", phase: "Tendencia" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -195,6 +195,59 @@ export const es = {
     ahead: "Próximas 13 semanas",
     note: "Datos de FRED (Reserva Federal de St. Louis). Correlación no implica causalidad; no es una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y de la variación en 13 semanas de la liquidez global, adelantada 13 semanas",
+  },
+  phase: {
+    title: "Fase del mercado de Bitcoin",
+    rest: "Si el mercado va a favor o en contra: tendencia del precio frente al coste de los compradores recientes y dirección de la liquidez global.",
+    card: "Precio y fase del mercado",
+    info: [
+      "Tendencia: alcista cuando el precio está por encima del precio realizado de corto plazo (el coste medio de las monedas compradas en los últimos 150 días, de Bitview); bajista cuando está por debajo. Liquidez: al alza o a la baja según la variación en 13 semanas de la liquidez global (Fed, BCE y Banco de Japón).",
+      "Una fase solo cambia cuando la señal lleva 7 días seguidos en el nuevo sentido: sin esa confirmación, la mayoría de los cambios se deshacían en días. Estas señales no anticipan los giros: los confirman con retraso, pero separan bien las fases.",
+    ],
+    currentTrend: (phase: ReactNode, since: ReactNode, days: number, vsSth: ReactNode, sth: ReactNode) => (
+      <>
+        Tendencia {phase} desde el {since} ({days} días)
+        {vsSth && (
+          <>
+            : el precio está un {vsSth} frente al coste de los compradores recientes ({sth})
+          </>
+        )}
+        .
+      </>
+    ),
+    currentLiquidity: (phase: ReactNode, since: ReactNode, roc: ReactNode) => (
+      <>
+        Liquidez global {phase} desde el {since}
+        {roc && <> ({roc} en 13 semanas)</>}.
+      </>
+    ),
+    names: { trend: { up: "alcista", down: "bajista" }, liquidity: { up: "al alza", down: "a la baja" } },
+    legend: { price: "Precio", sth: "Coste compradores recientes", trend: "Tendencia", liquidity: "Liquidez" },
+    stripLabel: "Liquidez",
+    statsTitle: "Historial desde 2012",
+    indicators: { trend: "Tendencia (precio vs. compradores recientes)", liquidity: "Liquidez global" },
+    cols: {
+      indicator: "Indicador",
+      bull90: "BTC a 90 días en fase alcista",
+      bear90: "En fase bajista",
+      bullShare: "Días en fase alcista",
+      perYear: "Cambios al año",
+      false: "Se deshacen en < 30 días",
+      date: "Cambio",
+      phase: "Fase",
+      price: "Precio",
+      duration: "Duración",
+    },
+    changesTitle: "Últimos cambios de tendencia",
+    days: (n: number) => `${n} días`,
+    ongoing: (n: number) => `${n} días (en curso)`,
+    note: "Rentabilidad mediana de BTC en los 90 días siguientes a cada día de la fase. Datos históricos, no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin con las fases de tendencia y de liquidez desde 2012",
+    homeLine: (trend: ReactNode, liquidity: ReactNode) => (
+      <>
+        Tendencia {trend} · Liquidez {liquidity}
+      </>
+    ),
   },
   charts: {
     tfAria: "Tamaño de vela",

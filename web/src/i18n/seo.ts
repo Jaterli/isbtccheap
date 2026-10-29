@@ -400,3 +400,44 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+export const SEO_PHASE: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Fase del mercado de Bitcoin",
+    intro:
+      "Fase actual de Bitcoin según dos señales: la tendencia del precio frente al coste de los compradores recientes (precio realizado de corto plazo) y la dirección de la liquidez global, con su historial desde 2012.",
+    sections: [
+      {
+        h: "¿Cómo saber si Bitcoin está en tendencia alcista o bajista?",
+        p: "Una de las señales más fiables es comparar el precio con el precio realizado de corto plazo: el coste medio de las monedas que se han movido en los últimos 150 días. Si el precio está por encima, los compradores recientes ganan dinero y el mercado suele estar en fase alcista; si está por debajo, están en pérdidas y la fase suele ser bajista. Para evitar falsas alarmas, la fase solo cambia cuando la señal se mantiene 7 días seguidos.",
+      },
+      {
+        h: "¿Qué tal ha funcionado?",
+        p: "Desde 2012, en los días de tendencia alcista Bitcoin subió una mediana del 17 % en los 90 días siguientes, frente al 1 % en los de tendencia bajista. La señal cambia unas 2,6 veces al año y un 16 % de los cambios se deshace en menos de un mes. La liquidez global separa aún más las fases (+24 % frente a −7 %), aunque da más falsas señales. Ninguna anticipa el giro exacto: lo confirman semanas después, a cambio de evitar la mayor parte de las grandes caídas.",
+      },
+      {
+        h: "¿Qué relación tiene con el índice?",
+        p: "Son dos preguntas distintas. El índice de Is BTC Cheap? dice si Bitcoin está caro o barato frente a su historia, y suele marcar «barato» en plena fase bajista. La fase dice si el mercado va a favor o en contra. Leídos juntos, un precio barato en fase alcista es una situación más favorable que un precio barato que sigue en fase bajista.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin market phase",
+    intro:
+      "Bitcoin's current phase according to two signals: the price trend versus the cost of recent buyers (short-term holder realized price) and the direction of global liquidity, with their history since 2012.",
+    sections: [
+      {
+        h: "How can you tell whether Bitcoin is in an uptrend or a downtrend?",
+        p: "One of the most reliable signals is to compare the price with the short-term holder realized price: the average cost of coins that have moved in the last 150 days. If the price is above it, recent buyers are making money and the market is usually in a bullish phase; if it is below, they are at a loss and the phase is usually bearish. To avoid false alarms, the phase only changes when the signal holds for 7 days in a row.",
+      },
+      {
+        h: "How well has it worked?",
+        p: "Since 2012, on days in a bullish trend Bitcoin rose a median 17% over the following 90 days, versus 1% on days in a bearish trend. The signal changes about 2.6 times a year and 16% of changes reverse within a month. Global liquidity separates the phases even more (+24% versus −7%), although it gives more false signals. Neither anticipates the exact turn: they confirm it weeks later, in exchange for avoiding most of the big drops.",
+      },
+      {
+        h: "How does it relate to the index?",
+        p: "They answer different questions. The Is BTC Cheap? index says whether Bitcoin is expensive or cheap relative to its history, and it usually reads “cheap” in the middle of a bearish phase. The phase says whether the market is with you or against you. Read together, a cheap price in a bullish phase is a more favourable situation than a cheap price still in a bearish phase.",
+      },
+    ],
+  },
+};

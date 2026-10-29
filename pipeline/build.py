@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json y liquidity.json.
+Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json, liquidity.json y phase.json.
 """
 
 import json
@@ -100,6 +100,7 @@ def main() -> None:
     score_1d = scoring.composite(cats, "1d")
 
     last = m.index[-1]
+    phase = metrics_mod.market_phase(cm, extra)
     latest = {
         "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "as_of": last.strftime("%Y-%m-%d"),
@@ -128,6 +129,11 @@ def main() -> None:
         "labels": [{"max": mx, "label": lb} for mx, lb in LABELS],
         "missing_sources": missing,
         "attribution": ATTRIBUTION + etf_attribution(extra),
+        # Fase actual y desde cuándo, para la portada (el detalle, en phase.json)
+        "phase": phase and {
+            "trend": phase["trend"][-1],
+            "liquidity": phase["liquidity"] and phase["liquidity"][-1],
+        },
     }
 
     hist = score_1d.dropna()
@@ -149,6 +155,8 @@ def main() -> None:
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
     (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
+    if phase:
+        (OUT_DIR / "phase.json").write_text(json.dumps(phase, separators=(",", ":")), encoding="utf-8")
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución

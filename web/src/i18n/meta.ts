@@ -22,6 +22,7 @@ const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
 const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
 const LIQUIDITY = { URL_ES: `${SITE}/liquidez/`, URL_EN: `${SITE}/en/liquidity/` };
+const PHASE = { URL_ES: `${SITE}/tendencia/`, URL_EN: `${SITE}/en/trend/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -182,6 +183,25 @@ const LIQUIDITY_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const PHASE_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...PHASE,
+    URL: PHASE.URL_ES,
+    TITLE: "¿Bitcoin está en tendencia alcista o bajista? Fase del mercado | Is BTC Cheap?",
+    DESCRIPTION:
+      "Fase actual de Bitcoin según el precio realizado de corto plazo y la liquidez global, con su historial desde 2012: cuándo cambió de fase, falsas señales y qué hizo el precio en cada una.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...PHASE,
+    URL: PHASE.URL_EN,
+    TITLE: "Is Bitcoin in an uptrend or a downtrend? Market phase | Is BTC Cheap?",
+    DESCRIPTION:
+      "Bitcoin's current phase based on the short-term holder realized price and global liquidity, with its history since 2012: when the phase changed, false signals and what the price did in each one.",
+  },
+};
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -191,4 +211,5 @@ export const META = {
   categories: CATEGORIES_META,
   etf: ETF_META,
   liquidity: LIQUIDITY_META,
+  phase: PHASE_META,
 };

@@ -30,6 +30,8 @@ export interface Latest {
   labels: { max: number; label: string }[];
   missing_sources: string[];
   attribution: { name: string; url: string; license?: string }[];
+  /** Fase actual: [fecha del cambio, 1 alcista o -1 bajista]; ausente en ficheros anteriores */
+  phase?: { trend: [string, 1 | -1]; liquidity: [string, 1 | -1] | null } | null;
 }
 
 export interface History {

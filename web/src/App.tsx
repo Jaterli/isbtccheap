@@ -220,6 +220,21 @@ export function App() {
             </span>
             <RefreshStatus nextAt={nextAt} loading={loading} />
           </div>
+          {latest.phase && (
+            <p className="hero-phase">
+              <a href={PAGE_PATH.phase[lang]}>
+                {t.phase.homeLine(
+                  <strong className={latest.phase.trend[1] === 1 ? "up" : "down"}>{t.phase.names.trend[latest.phase.trend[1] === 1 ? "up" : "down"].toLowerCase()}</strong>,
+                  latest.phase.liquidity ? (
+                    <strong className={latest.phase.liquidity[1] === 1 ? "up" : "down"}>{t.phase.names.liquidity[latest.phase.liquidity[1] === 1 ? "up" : "down"]}</strong>
+                  ) : (
+                    "—"
+                  ),
+                )}{" "}
+                →
+              </a>
+            </p>
+          )}
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 
