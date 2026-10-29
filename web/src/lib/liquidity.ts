@@ -1,15 +1,19 @@
-/** liquidity.json del pipeline: liquidez global semanal (miércoles) hasta `through`; precio semanal y diario hasta hoy */
+/**
+ * liquidity.json del pipeline: liquidez global diaria desde `start` hasta `through` y precio de BTC diario hasta hoy.
+ * Formato anterior (semanal): `dates` con un dato por miércoles y el precio semanal en `price`.
+ */
 export interface LiquidityJson {
   through: string;
-  dates: string[];
+  start?: string;
+  dates?: string[];
   /** Miles de millones de USD */
   net: (number | null)[];
   /** Variación en 13 semanas (0,02 = +2 %) */
   roc: (number | null)[];
-  /** Formato anterior del pipeline: ahí `net` y `roc` eran de la Fed y la liquidez global iba en estos campos */
+  /** Formato semanal más antiguo: ahí `net` y `roc` eran de la Fed y la liquidez global iba en estos campos */
   global_net?: (number | null)[];
   global_roc?: (number | null)[];
-  price: (number | null)[];
+  price?: (number | null)[];
   daily_start?: string;
   daily_price?: (number | null)[];
 }
@@ -20,7 +24,7 @@ const DAY = 86_400_000;
 const LEAD = LEAD_WEEKS * 7 * DAY;
 
 export interface LiquiditySeries {
-  /** Semanal: dónde se dibuja cada dato (13 semanas después de su fecha, `srcTime`) */
+  /** Dónde se dibuja cada dato de liquidez (13 semanas después de su fecha, `srcTime`) */
   liqTime: number[];
   srcTime: number[];
   roc: (number | null)[];
@@ -39,17 +43,24 @@ const positive = (v: number | null | undefined) => (v != null && v > 0 ? v : nul
 
 export function liquiditySeries(l: LiquidityJson): LiquiditySeries {
   const through = parse(l.through);
-  const weekly = l.dates.map(parse);
-  const idx = weekly.flatMap((t, i) => (t <= through ? [i] : []));
+  const liqDates = l.start ? l.roc.map((_, i) => parse(l.start!) + i * DAY) : l.dates!.map(parse);
+  const roc = l.global_roc ?? l.roc;
   const daily = l.daily_price
     ? { time: l.daily_price.map((_, i) => parse(l.daily_start!) + i * DAY), price: l.daily_price.map(positive) }
-    : { time: weekly, price: l.price.map(positive) };
+    : { time: liqDates, price: (l.price ?? []).map(positive) };
+  // Precio de un día concreto, del histórico diario
+  const first = daily.time[0];
+  const priceAt = (t: number) => {
+    const i = Math.round((t - first) / DAY);
+    return l.daily_price ? (daily.price[i] ?? null) : (daily.price[daily.time.indexOf(t)] ?? null);
+  };
+  const idx = liqDates.flatMap((t, i) => (t <= through ? [i] : []));
   return {
-    liqTime: idx.map((i) => weekly[i] + LEAD),
-    srcTime: idx.map((i) => weekly[i]),
-    roc: idx.map((i) => (l.global_roc ?? l.roc)[i]),
-    pNow: idx.map((i) => positive(l.price[i])),
-    pLead: idx.map((i) => positive(l.price[i + LEAD_WEEKS])),
+    liqTime: idx.map((i) => liqDates[i] + LEAD),
+    srcTime: idx.map((i) => liqDates[i]),
+    roc: idx.map((i) => roc[i] ?? null),
+    pNow: idx.map((i) => priceAt(liqDates[i])),
+    pLead: idx.map((i) => priceAt(liqDates[i] + LEAD)),
     btcTime: daily.time,
     btc: daily.price,
     end: through + LEAD,

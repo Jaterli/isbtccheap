@@ -97,23 +97,22 @@ def global_liquidity(extra: dict, index: pd.DatetimeIndex) -> pd.Series:
 
 
 def liquidity_json(extra: dict, price: pd.Series) -> dict:
-    """liquidity.json: liquidez global semanal (miércoles, el día de corte del balance de la Fed) en miles de millones y
-    su variación en 13 semanas hasta el último dato de la Fed; precio de BTC semanal y diario hasta hoy."""
-    through = min(extra[k].dropna().index[-1] for k in ("WALCL", "WTREGEN", "RRPONTSYD"))
+    """liquidity.json, diario: liquidez global en miles de millones y su variación en 13 semanas hasta el último día con
+    dato de las series diarias (repos inversos y tipos de cambio; los balances semanales y mensuales repiten su último
+    valor), y el precio de BTC hasta hoy."""
+    through = min(extra[k].dropna().index[-1] for k in ("RRPONTSYD", "DEXUSEU", "DEXJPUS"))
+    days = pd.date_range("2011-01-01", through, freq="D")
     glob = global_liquidity(extra, pd.date_range("2010-01-01", through, freq="D"))
-    weeks = pd.date_range("2011-01-05", max(through, price.index[-1]), freq="W-WED")
-    p = price.reindex(price.index.union(weeks)).ffill().reindex(weeks).where(weeks <= price.index[-1])
-    days = price["2011-01-01":]
+    prices = price["2011-01-01":]
     # 5 cifras significativas: los precios de 2011 son de céntimos
     sig = lambda v: None if pd.isna(v) else float(f"{v:.5g}")
     return {
         "through": through.strftime("%Y-%m-%d"),
-        "dates": [d.strftime("%Y-%m-%d") for d in weeks],
-        "net": [sig(v) for v in (glob / 1000).reindex(weeks)],
-        "roc": [None if pd.isna(v) else round(float(v), 4) for v in glob.pct_change(91, fill_method=None).reindex(weeks)],
-        "price": [sig(v) for v in p],
-        "daily_start": days.index[0].strftime("%Y-%m-%d"),
-        "daily_price": [sig(v) for v in days.reindex(pd.date_range(days.index[0], days.index[-1], freq="D"))],
+        "start": days[0].strftime("%Y-%m-%d"),
+        "net": [sig(v) for v in (glob / 1000).reindex(days)],
+        "roc": [None if pd.isna(v) else round(float(v), 4) for v in glob.pct_change(91, fill_method=None).reindex(days)],
+        "daily_start": prices.index[0].strftime("%Y-%m-%d"),
+        "daily_price": [sig(v) for v in prices.reindex(pd.date_range(prices.index[0], prices.index[-1], freq="D"))],
     }
 
 
