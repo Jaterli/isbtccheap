@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18n";
 
-const PAGES: Page[] = ["index", "volatility", "cycles", "valuation", "drawdown", "categories", "etf", "liquidity"];
+const PAGES: Page[] = ["index", "liquidity", "etf", "volatility", "valuation", "drawdown", "categories", "cycles"];
 
 export function Header({ title, rest }: { title: string; rest: string }) {
   // Por debajo de 900 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
