@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", phase: "Trend" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -186,54 +186,6 @@ export const en: Messages = {
     ahead: "Next 13 weeks",
     note: "Data from FRED (Federal Reserve Bank of St. Louis). Correlation is not causation; not a forecast or investment advice.",
     chartAria: "Chart of the Bitcoin price and the 13-week change in global liquidity, shifted 13 weeks forward",
-  },
-  phase: {
-    title: "Bitcoin market phase",
-    rest: "Whether the market is with you or against you: price trend versus the cost of recent buyers and the direction of global liquidity.",
-    card: "Price and market phase",
-    info: [
-      "Trend: bullish when the price is above the short-term holder realized price (the average cost of coins bought in the last 150 days, from Bitview); bearish when below. Liquidity: rising or falling according to the 13-week change in global liquidity (Fed, ECB and Bank of Japan).",
-      "The trend is confirmed with the index's daily score: a bullish turn only counts with the score at 60 or below and a bearish one with the score at 40 or above, and it is confirmed in 3 days if the score supports it, 14 if it contradicts it and 7 if it is neutral. Liquidity is always confirmed in 7 days. These signals do not anticipate turns: they confirm them late, but they separate phases well.",
-    ],
-    currentTrend: (phase: ReactNode, since: ReactNode, days: number, vsSth: ReactNode, sth: ReactNode) => (
-      <>
-        {phase} trend since {since} ({days} days)
-        {vsSth && (
-          <>
-            : the price is {vsSth} versus the cost of recent buyers ({sth})
-          </>
-        )}
-        .
-      </>
-    ),
-    currentLiquidity: (phase: ReactNode, since: ReactNode, roc: ReactNode) => (
-      <>
-        Global liquidity {phase} since {since}
-        {roc && <> ({roc} over 13 weeks)</>}.
-      </>
-    ),
-    names: { trend: { up: "Bullish", down: "Bearish" }, liquidity: { up: "rising", down: "falling" } },
-    legend: { price: "Price", sth: "Recent buyers' cost", trend: "Trend", liquidity: "Liquidity" },
-    stripLabel: "Liquidity",
-    statsTitle: "Track record since 2012",
-    indicators: { trend: "Trend (price vs. recent buyers)", liquidity: "Global liquidity" },
-    cols: {
-      indicator: "Indicator",
-      bull90: "BTC 90 days later, bullish phase",
-      bear90: "Bearish phase",
-      bullShare: "Days in bullish phase",
-      perYear: "Changes per year",
-      false: "Reversed in < 30 days",
-      date: "Change",
-      phase: "Phase",
-      price: "Price",
-      duration: "Duration",
-    },
-    changesTitle: "Latest trend changes",
-    days: (n: number) => `${n} days`,
-    ongoing: (n: number) => `${n} days (ongoing)`,
-    note: "Median BTC return over the 90 days following each day of the phase. Historical data, not a forecast or investment advice.",
-    chartAria: "Chart of the Bitcoin price with trend and liquidity phases since 2012",
   },
   charts: {
     tfAria: "Candle size",

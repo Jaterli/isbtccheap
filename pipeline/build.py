@@ -1,7 +1,7 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json, liquidity.json y phase.json.
+Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json y liquidity.json.
 """
 
 import json
@@ -149,9 +149,6 @@ def main() -> None:
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
     (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
-    phase = metrics_mod.market_phase(cm, extra, score_1d)
-    if phase:
-        (OUT_DIR / "phase.json").write_text(json.dumps(phase, separators=(",", ":")), encoding="utf-8")
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { META } from "./src/i18n/meta";
-import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_PHASE, SEO_VALUATION, SEO_VOL } from "./src/i18n/seo";
+import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_VALUATION, SEO_VOL } from "./src/i18n/seo";
 
 // En WSL node_modules es un enlace simbólico al disco de Linux: Vite debe poder servir desde su ubicación real
 const nodeModules = realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url)));
@@ -39,7 +39,6 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
   categories: { input: "categorias/index.html", en: "en/categories/index.html", seo: (l) => chartSeoHtml(SEO_CATEGORIES, l) },
   etf: { input: "etf/index.html", en: "en/etf/index.html", seo: (l) => chartSeoHtml(SEO_ETF, l) },
   liquidity: { input: "liquidez/index.html", en: "en/liquidity/index.html", seo: (l) => chartSeoHtml(SEO_LIQUIDITY, l) },
-  phase: { input: "tendencia/index.html", en: "en/trend/index.html", seo: (l) => chartSeoHtml(SEO_PHASE, l) },
 };
 
 const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
@@ -89,7 +88,6 @@ function devNews(): Plugin {
         else if (req.url?.startsWith("/en/categories")) req.url = "/categorias/";
         else if (req.url?.startsWith("/en/etf")) req.url = "/etf/";
         else if (req.url?.startsWith("/en/liquidity")) req.url = "/liquidez/";
-        else if (req.url?.startsWith("/en/trend")) req.url = "/tendencia/";
         next();
       });
       server.middlewares.use("/news", (req, res) => {
