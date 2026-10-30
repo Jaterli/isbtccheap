@@ -87,7 +87,7 @@ export const es = {
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado total y de corto plazo, la media de 200 semanas y la power law",
   },
-  status: { now: "BTC está", price: "Precio BTC/USDT", candle: (tf: string) => `vela de ${tf}` },
+  status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
   priceCard: {
     title: "Precio de BTC",
     period: { "1h": "Velas de 1 h · 7 días", "4h": "Velas de 4 h · 30 días", "1d": "Diario · 1 año", "1w": "Semanal · 4 años", "1M": "Mensual · desde 2011" } as Record<string, string>,

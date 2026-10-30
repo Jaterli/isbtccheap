@@ -212,15 +212,8 @@ export function App() {
             <Gauge score={score} label={label} />
           </div>
           <div className="status-block">
-            <span className="status-caption">
-              {t.status.price}
-              <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
-                <p>{t.priceInfo.body}</p>
-                <p>{t.priceInfo.changeInfo}</p>
-              </InfoTip>
-            </span>
             <div className="status-price num">
-              {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              <span>{shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</span>
               {change !== null && (
                 <span className={change > 0 ? "status-change up" : change < 0 ? "status-change down" : "status-change"}>
                   {change > 0 ? "+" : change < 0 ? "−" : ""}
@@ -228,6 +221,10 @@ export function App() {
                 </span>
               )}
               {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].label)}</span>}
+              <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
+                <p>{t.priceInfo.body}</p>
+                <p>{t.priceInfo.changeInfo}</p>
+              </InfoTip>
             </div>
           </div>
           {liveError && <p className="notice">{t.liveError}</p>}

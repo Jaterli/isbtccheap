@@ -77,15 +77,15 @@ header {position: relative;}
 .notice { margin: 0; padding: 10px 14px; border: 1px solid var(--band-4); border-radius: 8px; font-size: 0.9rem; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
-/* Cabecera: el logo ya incluye el nombre de la app */
+/* Cabecera: logo con el nombre de la app debajo y, a su derecha, la descripción */
 .top { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); }
 .intro { max-width: 52ch; font-size: clamp(0.92rem, 0.85rem + 0.4vw, 1.08rem); }
 .intro h1 { margin: 0 0 2px; font-size: 1.15em; font-weight: 600; letter-spacing: normal; }
 .top p { margin: 0; }
-.brand { flex: none; line-height: 0; }
-.brand img {
-  display: block; width: clamp(108px, 18vw, 160px); height: auto;
-}
+.brand { flex: none; display: grid; justify-items: center; gap: 4px; width: clamp(108px, 18vw, 160px); color: var(--fg); text-decoration: none; }
+.brand img { display: block; width: 100%; height: auto; border-radius: 12px; }
+/* El logo deja fondo libre bajo el arco: el nombre sube a ocuparlo (el % es del ancho) */
+.brand-name { margin-top: -16%; font-size: clamp(0.62rem, 0.5rem + 0.55vw, 0.92rem); font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap; }
 .top { position: relative; margin-top: 30px; }
 /* Navegación entre páginas e idioma, arriba a la derecha */
 .top-nav { position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: 14px; font-size: 0.85rem; }
@@ -123,6 +123,14 @@ header {position: relative;}
   .page-links a[aria-current] { background: var(--bg); }
   .top { margin-top: 12px; }
 }
+/* Móvil: logo y textos más compactos */
+@media (max-width: 639px) {
+  .nav-toggle { padding: 4px 9px; font-size: 0.9rem; }
+  .top { margin-top: 6px; gap: 12px; }
+  .brand { width: 78px; }
+  .intro { font-size: 0.86rem; line-height: 1.4; }
+  .intro h1 { font-size: 1.12em; }
+}
 
 /* Panel principal. Móvil: 1 columna, con el gráfico del precio tras el score · tablet: score y categorías en
    2 columnas, sin el gráfico · escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª */
@@ -149,11 +157,12 @@ header {position: relative;}
 .status-block { display: grid; gap: 2px; padding-top: 10px; border-top: 1px solid var(--border); }
 .status-caption { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .status-head { display: flex; justify-content: space-between; align-items: center; }
-.status-label { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; font-weight: 700; line-height: 1.15; }
-.status-value { font-size: 2.2rem; }
+.status-label { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; font-weight: 500; line-height: 1.15; }
+.status-value { font-size: 2rem; }
 .status-label .info-btn { font-size: 1rem; }
-.status-price { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
-.status-change { font-size: 0.95rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.status-price { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 1.2rem; font-weight: 700; line-height: 1.2; }
+.status-change { font-size: 0.95rem; font-weight: 600; }
+.status-price .info-btn { font-size: 0.9rem; font-weight: 400; }
 .status-change.up { color: var(--band-1); }
 .status-change.down { color: var(--band-5); }
 .status-sub { font-size: 0.82rem; font-weight: 400; }
