@@ -53,8 +53,7 @@ export function Header({ title, rest }: { title: string; rest: string }) {
       </div>
       <div className="top">
         <a className="brand" href={PAGE_PATH.index[lang]}>
-          <img src={`${import.meta.env.BASE_URL}logo-isbtccheap.jpg`} alt="" width="320" height="320" />
-          <span className="brand-name">Is BTC Cheap?</span>
+          <img src={`${import.meta.env.BASE_URL}logo-isbtccheap_v2.png`} alt="Is BTC Cheap?" width="350" height="350" />
         </a>
         <div className="intro">
           <h1>{title}</h1>

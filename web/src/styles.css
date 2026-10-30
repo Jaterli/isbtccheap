@@ -1,7 +1,7 @@
 :root {
   --bg: #f6f6f3;
   --surface: #ffffff;
-  --fg: #16181d;
+  --fg: #04090f;
   --muted: #646a73;
   --border: #e3e3de;
   --accent: #f7931a;
@@ -20,7 +20,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1115;
+    --bg: #04090f;
     --surface: #181b21;
     --fg: #eceef2;
     --muted: #9aa1ad;
@@ -77,15 +77,13 @@ header {position: relative;}
 .notice { margin: 0; padding: 10px 14px; border: 1px solid var(--band-4); border-radius: 8px; font-size: 0.9rem; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
-/* Cabecera: logo con el nombre de la app debajo y, a su derecha, la descripción */
+/* Cabecera: el logo (que ya incluye el nombre de la app) y, a su derecha, la descripción */
 .top { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); }
 .intro { max-width: 52ch; font-size: clamp(0.92rem, 0.85rem + 0.4vw, 1.08rem); }
 .intro h1 { margin: 0 0 2px; font-size: 1.15em; font-weight: 600; letter-spacing: normal; }
 .top p { margin: 0; }
-.brand { flex: none; display: grid; justify-items: center; gap: 4px; width: clamp(108px, 18vw, 160px); color: var(--fg); text-decoration: none; }
-.brand img { display: block; width: 100%; height: auto; border-radius: 12px; }
-/* El logo deja fondo libre bajo el arco: el nombre sube a ocuparlo (el % es del ancho) */
-.brand-name { margin-top: -16%; font-size: clamp(0.62rem, 0.5rem + 0.55vw, 0.92rem); font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap; }
+.brand { flex: none; display: block; width: clamp(100px, 15vw, 140px); line-height: 0; }
+.brand img { display: block; width: 100%; height: auto; }
 .top { position: relative; margin-top: 30px; }
 /* Navegación entre páginas e idioma, arriba a la derecha */
 .top-nav { position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: 14px; font-size: 0.85rem; }
@@ -127,7 +125,7 @@ header {position: relative;}
 @media (max-width: 639px) {
   .nav-toggle { padding: 4px 9px; font-size: 0.9rem; }
   .top { margin-top: 6px; gap: 12px; }
-  .brand { width: 78px; }
+  .brand { width: 88px; }
   .intro { font-size: 0.86rem; line-height: 1.4; }
   .intro h1 { font-size: 1.12em; }
 }

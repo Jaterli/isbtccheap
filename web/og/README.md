@@ -3,7 +3,7 @@
 `og-image.html` es la plantilla de `public/og-es.png` y `public/og-en.png` (1200×630), las imágenes que aparecen al
 compartir la web en X, LinkedIn, WhatsApp, etc. (`og:image` en `src/i18n/meta.ts`). Esta carpeta no se publica.
 
-Para regenerarlas tras cambiar el diseño, sirve la raíz del proyecto (la plantilla usa `../../assets/logo-isbtccheap.jpg`) y haz
+Para regenerarlas tras cambiar el diseño, sirve la raíz del proyecto (la plantilla usa `../public/logo-isbtccheap_v2.png`) y haz
 una captura de 1200×630 de cada idioma, por ejemplo con Chrome:
 
 ```bash
