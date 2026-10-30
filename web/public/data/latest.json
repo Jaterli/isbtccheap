@@ -1,132 +1,132 @@
 {
-  "updated_at": "2026-10-29T20:02:27+00:00",
-  "as_of": "2026-10-28",
-  "price": 81237.4378,
-  "score_1d": 38.1914,
+  "updated_at": "2026-10-30T00:24:01+00:00",
+  "as_of": "2026-10-29",
+  "price": 78193.4264,
+  "score_1d": 29.4348,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 47.593,
+      "score": 44.7525,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
           "value": 1.5018,
-          "score": 39.4935
+          "score": 39.4593
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 1.0549,
-          "score": 51.0609
+          "value": 1.0554,
+          "score": 51.1294
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 1.112,
-          "score": 52.2245
+          "value": 1.0697,
+          "score": 43.6687
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 20.4997,
+      "score": 17.5623,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 9.0694,
-          "score": 9.0694
+          "value": 9.1552,
+          "score": 9.1552
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.25,
-          "score": 16.4956
+          "value": -0.2669,
+          "score": 12.0465
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 1.2087,
-          "score": 35.9343
+          "value": 1.1626,
+          "score": 31.4853
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 43.0441,
+      "score": 53.1656,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0038,
-          "score": 38.7406
+          "value": -0.0185,
+          "score": 58.3847
         },
         {
           "id": "m2_yoy",
           "name": "M2 EE. UU. (var. interanual)",
           "value": 0.0536,
-          "score": 9.3429
+          "score": 9.3771
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
-          "value": 0.0044,
-          "score": 61.3279
+          "value": 0.0137,
+          "score": 80.835
         },
         {
           "id": "stablecoin_roc",
           "name": "Oferta de stablecoins (var. 90 d)",
-          "value": 0.0077,
-          "score": 62.7652
+          "value": 0.0053,
+          "score": 64.0657
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 54.5532,
+      "score": 35.3297,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 51.0,
-          "score": 51.0
+          "value": 30.0,
+          "score": 30.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 1.0065,
-          "score": 79.1923
+          "value": 1.0,
+          "score": 42.5051
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
           "value": 1086.1617,
-          "score": 33.4673
+          "score": 33.4839
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 48.7084,
+      "score": 24.6359,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 47.6305,
-          "score": 44.0762
+          "value": 37.1131,
+          "score": 17.7828
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": 36.9239,
-          "score": 36.9239
+          "value": -13.2576,
+          "score": 0.0
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 1.112,
-          "score": 65.125
+          "value": 1.0697,
+          "score": 56.125
         }
       ]
     }
