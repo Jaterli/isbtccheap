@@ -136,8 +136,12 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
       const l = Math.log10(history.price[i]);
       lo = Math.min(lo, l);
       hi = Math.max(hi, l);
-      if (history.score[i] > history.score[iMax]) iMax = i;
-      if (history.score[i] < history.score[iMin]) iMin = i;
+      // Se compara el score redondeado, como se muestra; en empate, el máximo con el precio más alto y el mínimo con el más bajo
+      const s = Math.round(history.score[i]);
+      const sMax = Math.round(history.score[iMax]);
+      const sMin = Math.round(history.score[iMin]);
+      if (s > sMax || (s === sMax && history.price[i] > history.price[iMax])) iMax = i;
+      if (s < sMin || (s === sMin && history.price[i] < history.price[iMin])) iMin = i;
     }
     const yPrice = (p: number) => heights.price - 6 - ((Math.log10(p) - lo) / (hi - lo || 1)) * (heights.price - 12);
     // Un punto más a cada lado para que la línea llegue al borde (se recorta con clipPath)
