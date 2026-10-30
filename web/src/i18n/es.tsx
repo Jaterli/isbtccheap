@@ -410,11 +410,15 @@ export const es = {
 
   history: {
     title: "Histórico del score diario frente al precio",
+    title4h: "Histórico del score de 4 h frente al precio",
+    score4h: "Score 4 h",
+    loading4h: "Cargando velas de 4 h…",
+    info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela. Binance solo guarda 30 días de derivados: antes de las últimas 3 semanas, aproximadamente, el sentimiento es el diario.",
     infoLabel: "el histórico",
     infoTitle: "Histórico",
     info1: "Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).",
     info2: "Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.",
-    ranges: { "1m": "1 mes", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
     rangeAria: "Rango del histórico",
     zoomOut: "Alejar",
     zoomIn: "Acercar",

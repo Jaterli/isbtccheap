@@ -400,11 +400,15 @@ export const en: Messages = {
 
   history: {
     title: "Daily score history vs. price",
+    title4h: "4h score history vs. price",
+    score4h: "4h score",
+    loading4h: "Loading 4h candles…",
+    info4h: "In “6 months”, 4-hour candles are shown with that timeframe's score, recomputed with what was known at each candle. Binance only keeps 30 days of derivatives data: before roughly the last 3 weeks, sentiment is the daily one.",
     infoLabel: "the history",
     infoTitle: "History",
     info1: "Top: Bitcoin's price on a log scale; bottom: the daily score. The green and red bands mark the very cheap (≤20) and very expensive (≥80) zones.",
     info2: "Each day is calculated only with the data available up to that day, so the history shows what the score would have read at the time. The high and low of the visible range are marked.",
-    ranges: { "1m": "1M", "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "6m": "6M", "1y": "1Y", "4y": "4Y", all: "All" },
     rangeAria: "History range",
     zoomOut: "Zoom out",
     zoomIn: "Zoom in",

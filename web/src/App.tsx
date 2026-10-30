@@ -232,7 +232,7 @@ export function App() {
         </div>
       </section>
 
-      {history && <HistoryChart history={history} />}
+      {history && <HistoryChart history={history} latest={latest} />}
 
       {history && <Outlook history={history} labels={latest.labels} />}
 

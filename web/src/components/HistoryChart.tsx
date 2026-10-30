@@ -1,10 +1,11 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import type { History } from "../types";
+import { load4h } from "../lib/history4h";
+import type { History, Latest } from "../types";
 import { InfoTip } from "./InfoTip";
 
 const RANGES = [
-  { id: "1m", days: 30 },
+  { id: "6m", days: 182 },
   { id: "1y", days: 365 },
   { id: "4y", days: 1461 },
   { id: "all", days: Infinity },
@@ -16,6 +17,7 @@ const HANDLE_H = 14;
 const PAD_L = 8;
 const PAD_R = 52;
 const MIN_SPAN = 14; // días
+const MIN_SPAN_4H = 12; // velas de 4 h (2 días)
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
 const HEIGHTS_KEY = "isbtccheap:chart-heights";
 
@@ -29,9 +31,9 @@ type Heights = Record<Panel, number>;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-function clampView(start: number, span: number, n: number): View {
+function clampView(start: number, span: number, n: number, minSpan = MIN_SPAN): View {
   const maxSpan = Math.max(1, n - 1);
-  const s = clamp(span, Math.min(MIN_SPAN, maxSpan), maxSpan);
+  const s = clamp(span, Math.min(minSpan, maxSpan), maxSpan);
   const st = clamp(start, 0, n - 1 - s);
   return { start: st, end: st + s };
 }
@@ -39,10 +41,10 @@ function clampView(start: number, span: number, n: number): View {
 const viewForRange = (days: number, n: number) => clampView(n - 1 - days, Math.min(days, n - 1), n);
 
 /** Zoom manteniendo fijo el día que hay en la posición relativa fx (0 = izquierda, 1 = derecha). */
-function zoomAt(v: View, factor: number, fx: number, n: number): View {
+function zoomAt(v: View, factor: number, fx: number, n: number, minSpan: number): View {
   const span = v.end - v.start;
-  const newSpan = clamp(span * factor, Math.min(MIN_SPAN, n - 1), n - 1);
-  return clampView(v.start + fx * span - fx * newSpan, newSpan, n);
+  const newSpan = clamp(span * factor, Math.min(minSpan, n - 1), n - 1);
+  return clampView(v.start + fx * span - fx * newSpan, newSpan, n, minSpan);
 }
 
 function loadHeights(): Heights | null {
@@ -56,28 +58,44 @@ function loadHeights(): Heights | null {
 
 const shortUsd = (p: number) => (p >= 1000 ? `$${(p / 1000).toFixed(p < 10_000 ? 1 : 0)}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`);
 
-/** Marcas en límites naturales (años, meses o días) según el zoom. */
-function dateTicks(dates: string[], v0: number, v1: number, maxTicks: number) {
+/** Fecha y hora locales de una vela, en el mismo formato que las fechas diarias ("2026-10-29T08:00"). */
+function localStamp(ms: number) {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** Marcas en límites naturales (años, meses o días) según el zoom. Con velas de 4 h, en el cambio de día. */
+function dateTicks(dates: string[], v0: number, v1: number, maxTicks: number, intraday: boolean) {
   const span = v1 - v0;
-  const unit = span > 1100 ? "y" : span > 75 ? "m" : "d";
+  const unit = intraday ? "d" : span > 1100 ? "y" : span > 75 ? "m" : "d";
   const cands: number[] = [];
   for (let i = v0; i <= v1; i++) {
     const prev = dates[i - 1];
-    const cut = unit === "y" ? 4 : 7;
-    if (unit === "d" || !prev || dates[i].slice(0, cut) !== prev.slice(0, cut)) cands.push(i);
+    const cut = unit === "y" ? 4 : unit === "m" ? 7 : 10;
+    if ((unit === "d" && !intraday) || !prev || dates[i].slice(0, cut) !== prev.slice(0, cut)) cands.push(i);
   }
   const step = Math.max(1, Math.ceil(cands.length / maxTicks));
   return cands
     .filter((_, k) => k % step === 0)
     .map((i) => {
-      const [y, m, d] = dates[i].split("-");
+      const [y, m, d] = dates[i].slice(0, 10).split("-");
       const month = t.history.months[+m - 1];
       const label = unit === "y" ? y : unit === "m" ? `${month} ${y.slice(2)}` : `${+d} ${month}`;
       return { i, label };
     });
 }
 
-export function HistoryChart({ history }: { history: History }) {
+export function HistoryChart({ history: daily, latest }: { history: History; latest: Latest | null }) {
+  // En "6 meses" se cambia a velas de 4 h con el score de esa temporalidad
+  const [want4h, setWant4h] = useState(false);
+  const [h4, setH4] = useState<History | null>(null);
+  const [h4Failed, setH4Failed] = useState(false);
+  const want4hRef = useRef(want4h);
+  want4hRef.current = want4h;
+  const is4h = want4h && h4 !== null;
+  const history = is4h ? h4 : daily;
+  const minSpan = is4h ? MIN_SPAN_4H : MIN_SPAN;
   const N = history.dates.length;
   const uid = useId().replace(/:/g, "");
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -85,6 +103,7 @@ export function HistoryChart({ history }: { history: History }) {
   const [width, setWidth] = useState(720);
   const [range, setRange] = useState<string | null>("4y");
   const [view, setView] = useState<View>(() => viewForRange(1461, N));
+  const fullView = (n: number) => clampView(0, n - 1, n, MIN_SPAN_4H);
   const [custom, setCustom] = useState<Heights | null>(loadHeights);
   const [hover, setHover] = useState<number | null>(null);
 
@@ -136,7 +155,7 @@ export function HistoryChart({ history }: { history: History }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [history, view, plotW, heights.price, heights.score]);
 
-  const ticks = useMemo(() => dateTicks(history.dates, v0, v1, Math.max(2, Math.floor(plotW / 90))), [history, v0, v1, plotW]);
+  const ticks = useMemo(() => dateTicks(history.dates, v0, v1, Math.max(2, Math.floor(plotW / 90)), is4h), [history, v0, v1, plotW, is4h]);
 
   // Zoom con Ctrl + rueda o pellizco del trackpad; desplazamiento con scroll horizontal
   const plotWRef = useRef(plotW);
@@ -152,14 +171,14 @@ export function HistoryChart({ history }: { history: History }) {
       const fx = clamp((e.clientX - el.getBoundingClientRect().left - PAD_L) / plotWRef.current, 0, 1);
       setRange(null);
       setView((v) => {
-        if (zooming) return zoomAt(v, Math.exp(e.deltaY * 0.003), fx, N);
+        if (zooming) return zoomAt(v, Math.exp(e.deltaY * 0.003), fx, N, minSpan);
         const delta = ((horizontal ? e.deltaX : e.deltaY) / plotWRef.current) * (v.end - v.start);
-        return clampView(v.start + delta, v.end - v.start, N);
+        return clampView(v.start + delta, v.end - v.start, N, minSpan);
       });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [N]);
+  }, [N, minSpan]);
 
   // Arrastrar para desplazar (1 dedo o ratón) y pellizcar para zoom (2 dedos)
   const pointers = useRef(new Map<number, number>());
@@ -199,9 +218,9 @@ export function HistoryChart({ history }: { history: History }) {
     g.moved = true;
     const span0 = g.view.end - g.view.start;
     const newSpan = xs.length > 1 && g.dist > 0 ? span0 * (g.dist / Math.max(1, Math.abs(xs[0] - xs[1]))) : span0;
-    const s = clamp(newSpan, Math.min(MIN_SPAN, N - 1), N - 1);
+    const s = clamp(newSpan, Math.min(minSpan, N - 1), N - 1);
     setRange(null);
-    setView(clampView(g.anchor - relX(mid) * s, s, N));
+    setView(clampView(g.anchor - relX(mid) * s, s, N, minSpan));
   };
 
   const onPointerEnd = (e: PointerEvent<SVGSVGElement>) => {
@@ -267,12 +286,29 @@ export function HistoryChart({ history }: { history: History }) {
 
   const selectRange = (r: (typeof RANGES)[number]) => {
     setRange(r.id);
-    setView(viewForRange(r.days, N));
+    const want = r.id === "6m" && latest !== null && !h4Failed;
+    setWant4h(want);
+    if (want && h4) return setView(fullView(h4.dates.length));
+    // Mientras llegan las velas de 4 h se ven los últimos 6 meses en diario
+    setView(viewForRange(r.days, daily.dates.length));
+    if (!want) return;
+    load4h(latest).then(
+      (d) => {
+        const series = { dates: d.time.map(localStamp), price: d.price, score: d.score };
+        if (series.dates.length < 2) return setH4Failed(true);
+        setH4(series);
+        if (want4hRef.current) setView(fullView(series.dates.length));
+      },
+      () => {
+        setH4Failed(true);
+        setWant4h(false);
+      },
+    );
   };
   const zoomButton = (factor: number) => {
     setRange(null);
     // Si se está viendo el final de la serie, el zoom mantiene el último día a la derecha
-    setView((v) => zoomAt(v, factor, v.end >= N - 1.5 ? 1 : 0.5, N));
+    setView((v) => zoomAt(v, factor, v.end >= N - 1.5 ? 1 : 0.5, N, minSpan));
   };
 
   const h = hover ?? v1;
@@ -282,7 +318,10 @@ export function HistoryChart({ history }: { history: History }) {
     const cy = yScore(history.score[i]);
     // La etiqueta va hacia el lado con más espacio
     const toRight = cx < PAD_L + plotW * 0.6;
-    const date = new Date(`${history.dates[i]}T00:00:00`).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
+    const stamp = history.dates[i];
+    const date = is4h
+      ? new Date(stamp).toLocaleString(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : new Date(`${stamp}T00:00:00`).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
     const py = chart.yPrice(history.price[i]);
     const tx = cx + (toRight ? 8 : -8);
     const anchor = toRight ? "start" : "end";
@@ -305,10 +344,11 @@ export function HistoryChart({ history }: { history: History }) {
     <section className="card chart">
       <header>
         <h3>
-          {t.history.title}
+          {is4h ? t.history.title4h : t.history.title}
           <InfoTip label={t.history.infoLabel} title={t.history.infoTitle}>
             <p>{t.history.info1}</p>
             <p>{t.history.info2}</p>
+            <p>{t.history.info4h}</p>
           </InfoTip>
         </h3>
         <div className="chart-controls">
@@ -321,19 +361,20 @@ export function HistoryChart({ history }: { history: History }) {
           </div>
           <div className="segmented small" role="group" aria-label="Zoom">
             <button onClick={() => zoomButton(1.5)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={span >= N - 1.5}>−</button>
-            <button onClick={() => zoomButton(1 / 1.5)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={span <= MIN_SPAN + 0.5}>+</button>
+            <button onClick={() => zoomButton(1 / 1.5)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={span <= minSpan + 0.5}>+</button>
           </div>
         </div>
       </header>
 
       <p className="chart-readout">
-        <span className="muted num">{history.dates[h]}</span>
+        <span className="muted num">{history.dates[h]?.replace("T", " ")}</span>
         <span className="legend legend-price num">
           {t.history.price} <strong>{history.price[h]?.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>
         <span className="legend legend-score num">
-          Score <strong>{history.score[h]?.toFixed(0)}</strong>
+          {is4h ? t.history.score4h : "Score"} <strong>{history.score[h]?.toFixed(0)}</strong>
         </span>
+        {want4h && !h4 && <span className="muted">{t.history.loading4h}</span>}
       </p>
 
       <div ref={wrapRef} className="chart-area">
@@ -376,7 +417,8 @@ export function HistoryChart({ history }: { history: History }) {
           <rect x={PAD_L} width={plotW} y={yScore(20)} height={yScore(0) - yScore(20)} className="zone-cold" />
           <path d={chart.scorePath} className="line-score" clipPath={`url(#${uid}s)`} />
 
-          {ticks.map((t) => (
+          {/* Sin la marca que quedaría cortada por el borde izquierdo */}
+          {ticks.filter((t) => x(t.i) >= PAD_L + 16).map((t) => (
             <text key={t.i} x={x(t.i)} y={scoreBottom + 15} className="axis" textAnchor="middle">{t.label}</text>
           ))}
 
