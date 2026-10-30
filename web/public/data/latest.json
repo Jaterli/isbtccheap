@@ -1,24 +1,24 @@
 {
-  "updated_at": "2026-10-30T00:24:01+00:00",
+  "updated_at": "2026-10-30T07:20:27+00:00",
   "as_of": "2026-10-29",
   "price": 78193.4264,
-  "score_1d": 29.4348,
+  "score_1d": 27.3275,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 44.7525,
+      "score": 39.927,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.5018,
-          "score": 39.4593
+          "value": 1.4466,
+          "score": 34.0178
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 1.0554,
-          "score": 51.1294
+          "value": 0.9667,
+          "score": 42.0945
         },
         {
           "id": "mayer",
