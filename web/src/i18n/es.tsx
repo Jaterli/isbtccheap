@@ -186,9 +186,9 @@ export const es = {
       "La línea naranja está adelantada 13 semanas: en cada fecha se ve la variación de la liquidez de 13 semanas antes, junto al precio de BTC (azul) de ese día. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado son las próximas 13 semanas: lo que anticipa la liquidez ya publicada.",
     ],
     money: (bn: number) => `${(bn / 1000).toLocaleString("es-ES", { maximumFractionDigits: 2 })} billones de $`,
-    current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
+    current: (day: ReactNode, net: ReactNode, roc: ReactNode, plotted: ReactNode) => (
       <>
-        Liquidez global a {day}: {net}, {roc} en 13 semanas.
+        Liquidez global a {day}: {net}, {roc} en 13 semanas. Por el adelanto, en la gráfica ese dato aparece el {plotted}.
       </>
     ),
     correlation: (c: ReactNode) => (

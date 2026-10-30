@@ -179,9 +179,9 @@ export const en: Messages = {
       "The orange line is shifted 13 weeks forward: each date shows the liquidity change from 13 weeks earlier, next to that day's BTC price (blue). If liquidity leads the price, both lines rise and fall together. The shaded stretch is the next 13 weeks: what the liquidity already released anticipates.",
     ],
     money: (bn: number) => `$${(bn / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} trillion`,
-    current: (day: ReactNode, net: ReactNode, roc: ReactNode) => (
+    current: (day: ReactNode, net: ReactNode, roc: ReactNode, plotted: ReactNode) => (
       <>
-        Global liquidity as of {day}: {net}, {roc} over 13 weeks.
+        Global liquidity as of {day}: {net}, {roc} over 13 weeks. Because of the lead, the chart plots it on {plotted}.
       </>
     ),
     correlation: (c: ReactNode) => <>Over the period shown, its correlation with BTC's return over the following 13 weeks is {c}.</>,

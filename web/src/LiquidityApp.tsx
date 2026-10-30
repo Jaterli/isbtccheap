@@ -52,6 +52,7 @@ export function LiquidityApp() {
               <strong className="num">{date(liq.through)}</strong>,
               <strong className="num">{tx.money(net)}</strong>,
               <strong className={roc > 0 ? "num up" : roc < 0 ? "num down" : "num"}>{rocPct(roc)}</strong>,
+              <strong className="num">{full ? date(new Date(full.end).toISOString().slice(0, 10)) : "—"}</strong>,
             )}{" "}
             {corr !== null && tx.correlation(<strong className="num">{`${corr > 0 ? "+" : corr < 0 ? "−" : ""}${Math.abs(corr).toLocaleString(locale, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}</strong>)}
           </p>
