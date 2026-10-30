@@ -20,8 +20,7 @@ import { getJson } from "./lib/data";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Faq } from "./components/Faq";
-import { News } from "./components/News";
-import { Calendar } from "./components/Calendar";
+import { Feed } from "./components/Feed";
 import { Outlook } from "./components/Outlook";
 import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type MetricScore, type Timeframe } from "./types";
 
@@ -178,12 +177,6 @@ export function App() {
       <Header title={t.taglineTitle} rest={t.taglineRest} />
 
       <section className="dashboard">
-        <article className="hero card">
-          {/* En la esquina: no suma alto a la tarjeta */}
-          <RefreshStatus nextAt={nextAt} loading={loading} />
-          <Gauge score={score} label={label} />
-        </article>
-
         <article className="card status">
           <div className="hero-top">
             <TimeframeSelector value={tf} onChange={setTf} />
@@ -196,8 +189,12 @@ export function App() {
             </InfoTip>
           </div>
           <div className="status-block">
-            <span className="status-caption">{t.status.now}</span>
+            <div className="status-head">
+              <span className="status-caption">{t.status.now}</span>
+              <RefreshStatus nextAt={nextAt} loading={loading} />
+            </div>
             <div className="status-label" style={score === null ? undefined : { color: bandColor(score) }}>
+              <strong className="status-value num">{score === null ? "—" : Math.round(score)}</strong>
               {label}
               <InfoTip label={t.scoreInfo.label} title={t.scoreInfo.title}>
                 <p>{t.scoreInfo.body}</p>
@@ -212,6 +209,7 @@ export function App() {
                 <p className="muted">{t.scoreInfo.disclaimer}</p>
               </InfoTip>
             </div>
+            <Gauge score={score} label={label} />
           </div>
           <div className="status-block">
             <span className="status-caption">
@@ -239,10 +237,9 @@ export function App() {
 
         <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 
-        {/* Si ni noticias ni agenda tienen datos queda vacía y no ocupa sitio (:empty) */}
+        {/* Sin noticias ni agenda queda vacía y no ocupa sitio (:empty) */}
         <div className="side">
-          <News />
-          <Calendar />
+          <Feed />
         </div>
       </section>
 

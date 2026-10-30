@@ -512,6 +512,7 @@ export const en: Messages = {
     note: "Sources: Forex Factory and FRED.",
   },
 
+  feed: { title: "News and calendar", tabs: { news: "Latest news", calendar: "This week's calendar" } },
   news: {
     title: "Latest market news",
     info: [

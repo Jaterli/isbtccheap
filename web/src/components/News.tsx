@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { lang, locale, t } from "../i18n";
-import { CollapseTitle, useMobileCollapse } from "./Collapsible";
 import { InfoTip } from "./InfoTip";
 
 /** Salida de news/build_news.py */
-interface NewsItem {
+export interface NewsItem {
   title_es: string;
   title: string;
   source: string;
@@ -37,10 +36,10 @@ function ago(iso: string, now: number) {
 /** Impacto 0-10 del script → nivel para el indicador */
 const level = (impact: number) => (impact >= 7 ? "high" : impact >= 5 ? "mid" : "low");
 
-export function News() {
+/** Noticias del cron, recargadas tras cada regeneración; null hasta que llegan o si no hay. */
+export function useNews() {
   const [items, setItems] = useState<NewsItem[] | null>(null);
   const [now, setNow] = useState(Date.now());
-  const fold = useMobileCollapse();
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -49,7 +48,7 @@ export function News() {
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
         .then((d: { items: NewsItem[] }) => setItems(d.items))
         .catch(() => {
-          /* sin noticias la tarjeta no se muestra; el resto de la web no depende de ellas */
+          /* sin noticias no se muestran; el resto de la web no depende de ellas */
         });
       timer = setTimeout(load, msToNextFetch());
     };
@@ -61,50 +60,49 @@ export function News() {
     };
   }, []);
 
-  if (!items?.length) return null;
-  const tx = t.news;
+  return { items: items?.length ? items : null, now };
+}
 
+export function NewsInfo() {
+  const tx = t.news;
   return (
-    <section className={`card news${fold.open ? "" : " collapsed"}`}>
-      <header>
-        <h3>
-          <CollapseTitle state={fold}>{tx.title}</CollapseTitle>
-          <InfoTip label={tx.title} title={tx.title}>
-            {tx.info.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
-            <ul className="info-list">
-              {(["high", "mid", "low"] as const).map((l) => (
-                <li key={l}>
-                  <span className={`news-dot ${l}`} />
-                  {tx.levels[l]}
-                </li>
-              ))}
-            </ul>
-          </InfoTip>
-        </h3>
-      </header>
-      {fold.open && (
-        <>
-          <ol className="news-list" id={fold.bodyId}>
-            {items.map((n) => (
-              <li key={n.link}>
-                <span className={`news-dot ${level(n.impact)}`} title={tx.levels[level(n.impact)]} />
-                <div>
-                  <a href={n.link} target="_blank" rel="noreferrer" lang={lang === "es" && n.title_es !== n.title ? "es" : "en"}>
-                    {lang === "es" ? n.title_es : n.title}
-                  </a>
-                  <p className="news-meta muted small">
-                    <span className="news-tag">{tx.categories[n.category] ?? n.category}</span>
-                    {n.source} · <time dateTime={n.published}>{ago(n.published, now)}</time>
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="muted small news-note">{tx.note}</p>
-        </>
-      )}
-    </section>
+    <InfoTip label={tx.title} title={tx.title}>
+      {tx.info.map((p) => (
+        <p key={p}>{p}</p>
+      ))}
+      <ul className="info-list">
+        {(["high", "mid", "low"] as const).map((l) => (
+          <li key={l}>
+            <span className={`news-dot ${l}`} />
+            {tx.levels[l]}
+          </li>
+        ))}
+      </ul>
+    </InfoTip>
+  );
+}
+
+export function NewsList({ items, now, id }: { items: NewsItem[]; now: number; id?: string }) {
+  const tx = t.news;
+  return (
+    <>
+      <ol className="news-list" id={id}>
+        {items.map((n) => (
+          <li key={n.link}>
+            <span className={`news-dot ${level(n.impact)}`} title={tx.levels[level(n.impact)]} />
+            <div>
+              <a href={n.link} target="_blank" rel="noreferrer" lang={lang === "es" && n.title_es !== n.title ? "es" : "en"}>
+                {lang === "es" ? n.title_es : n.title}
+              </a>
+              <p className="news-meta muted small">
+                <span className="news-tag">{tx.categories[n.category] ?? n.category}</span>
+                {n.source} · <time dateTime={n.published}>{ago(n.published, now)}</time>
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="muted small news-note">{tx.note}</p>
+    </>
   );
 }

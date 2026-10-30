@@ -1,51 +1,39 @@
 import { t } from "../i18n";
 
-const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
-const CX = 120;
-const CY = 120;
-const R = 100;
-const HUB_R = 25;
-
-// 0 -> izquierda (barato), 100 -> derecha (caro)
-function point(score: number, r = R) {
-  const a = Math.PI * (1 - score / 100);
-  return [CX + r * Math.cos(a), CY - r * Math.sin(a)];
-}
+const BANDS = ["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
 
 /** Mismos cortes que las etiquetas: ≤20, ≤40… */
 export function bandColor(score: number) {
   return BANDS[Math.min(4, Math.max(0, Math.ceil(score / 20) - 1))];
 }
 
-function arc(from: number, to: number) {
-  const [x1, y1] = point(from);
-  const [x2, y2] = point(to);
-  return `M ${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2}`;
-}
-
 interface Props {
   score: number | null;
-  /** Solo para lectores de pantalla: la etiqueta visible va en una esquina de la tarjeta */
+  /** Para lectores de pantalla: la etiqueta visible va junto al número */
   label: string;
 }
 
+/** Barra horizontal de 1 a 100 con las cinco zonas y una marca en el score. */
 export function Gauge({ score, label }: Props) {
-  const [nx, ny] = point(score ?? 50, R - 24);
-  const color = score === null ? "var(--muted)" : bandColor(score);
   return (
-    <figure className="gauge" aria-label={score === null ? t.noData : `Score ${Math.round(score)}: ${label}`}>
-      <svg viewBox={`0 0 240 ${CY + HUB_R + 2}`} role="img">
-        {BANDS.map((c, i) => (
-          <path key={i} d={arc(i * 20 + 0.8, (i + 1) * 20 - 0.8)} stroke={c} strokeWidth="18" fill="none" />
+    <div className="gauge">
+      <div
+        className="gauge-bar"
+        role="meter"
+        aria-valuemin={1}
+        aria-valuemax={100}
+        aria-valuenow={score === null ? undefined : Math.round(score)}
+        aria-valuetext={score === null ? t.noData : `${Math.round(score)}: ${label}`}
+      >
+        {BANDS.map((c) => (
+          <span key={c} style={{ background: c }} />
         ))}
-        {score !== null && <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="var(--fg)" strokeWidth="3" strokeLinecap="round" />}
-        <circle cx={CX} cy={CY} r={HUB_R} className="gauge-hub" style={{ stroke: color }} />
-        <text x={CX} y={CY} className="gauge-value" style={{ fill: color }} textAnchor="middle" dominantBaseline="central">
-          {score === null ? "—" : Math.round(score)}
-        </text>
-        <text x="14" y="138" className="gauge-end">{t.gauge.cheap}</text>
-        <text x="226" y="138" className="gauge-end" textAnchor="end">{t.gauge.expensive}</text>
-      </svg>
-    </figure>
+        {score !== null && <i className="gauge-marker" style={{ left: `${Math.min(100, Math.max(0, score))}%` }} />}
+      </div>
+      <div className="gauge-ends" aria-hidden="true">
+        <span>{t.gauge.cheap}</span>
+        <span>{t.gauge.expensive}</span>
+      </div>
+    </div>
   );
 }
