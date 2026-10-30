@@ -124,15 +124,13 @@ header {position: relative;}
   .top { margin-top: 12px; }
 }
 
-/* Panel principal. Móvil: 1 columna · tablet: categorías en 2 columnas · escritorio: medidor y categorías en
-   2 columnas × 3 filas, y noticias y agenda en la 3.ª */
+/* Panel principal. Móvil: 1 columna · tablet: medidor y estado, precio y sentimiento, y el resto de categorías en
+   2 columnas · escritorio: lo mismo en 2 columnas × 4 filas, y noticias y agenda en la 3.ª */
 .dashboard { display: grid; gap: var(--gutter); grid-template-columns: 1fr; }
 
 @media (min-width: 640px) {
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard .hero, .dashboard .side { grid-column: 1 / -1; }
-  /* La 5.ª categoría queda sola en su fila: ocupa el ancho */
-  .dashboard article.category:last-of-type { grid-column: 1 / -1; }
+  .dashboard .side { grid-column: 1 / -1; }
 }
 @media (min-width: 900px) {
   .top { margin-top: 0; }
@@ -140,13 +138,26 @@ header {position: relative;}
 
 @media (min-width: 1024px) {
   .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashboard .hero, .dashboard article.category:last-of-type { grid-column: auto; }
-  .dashboard .side { grid-column: 3; grid-row: 1 / span 3; }
+  .dashboard .side { grid-column: 3; grid-row: 1 / span 4; }
 }
 
 .hero { display: grid; justify-items: center; align-content: start; gap: 10px; }
-.hero-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 14px; color: var(--muted); }
-.price { font-size: 1rem; }
+
+/* Estado: temporalidad, zona del score, precio con su variación y cuenta atrás */
+.status { display: flex; flex-direction: column; gap: 10px; }
+.status .hero-top { justify-content: flex-start; }
+.status-block { display: grid; gap: 2px; padding-top: 10px; border-top: 1px solid var(--border); }
+.status-caption { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.status-label { display: flex; align-items: center; gap: 6px; font-size: 1.7rem; font-weight: 700; line-height: 1.15; }
+.status-label .info-btn { font-size: 1rem; }
+.status-price { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+.status-change { font-size: 0.95rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.status-change.up { color: var(--band-1); }
+.status-change.down { color: var(--band-5); }
+.status-sub { font-size: 0.82rem; font-weight: 400; }
+/* Sin el selector, el medidor se centra en su tarjeta; la cuenta atrás va en la esquina */
+.hero { align-content: center; position: relative; }
+.hero .refresh { position: absolute; top: 12px; right: 14px; }
 
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
 .segmented button { border: 0; background: none; color: var(--muted); padding: 6px 12px; border-radius: 7px; font: inherit; cursor: pointer; white-space: nowrap; }
@@ -159,13 +170,13 @@ header {position: relative;}
 .timeframes { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; max-width: 420px; }
 .segmented.timeframes button { padding-inline: 4px; }
 
-.gauge { margin: 2px 0 0; width: min(280px, 100%); display: grid; justify-items: center; }
+.gauge { margin: 2px 0 0; width: min(280px, 100%); }
 .gauge svg { width: 100%; height: auto; overflow: visible; }
 .gauge-end { font-size: 10px; fill: var(--muted); }
-.gauge figcaption { display: grid; justify-items: center; margin-top: 2px; }
+
 .gauge-hub { fill: var(--surface); stroke-width: 3; }
 .gauge-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.gauge-label { font-weight: 600; color: var(--muted); }
+
 
 .hero-top { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
 .hero-top .timeframes { flex: 1; }
@@ -208,6 +219,14 @@ header {position: relative;}
 .price-change { margin-left: 0.45em; font-size: 0.88em; font-weight: 600; }
 .price-change.up { color: var(--band-1); }
 .price-change.down { color: var(--band-5); }
+
+.price-card header { align-items: baseline; }
+.price-card .chart-readout { margin: 6px 0 2px; }
+.price-card svg { display: block; touch-action: pan-y; }
+.price-card .up { color: var(--band-1); font-weight: 600; }
+.price-card .down { color: var(--band-5); font-weight: 600; }
+.price-area { fill: var(--price); opacity: 0.08; }
+.price-card-empty { margin: 12px 0 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 10px; border: 1px solid var(--border); border-radius: 8px;

@@ -80,6 +80,12 @@ export const en: Messages = {
     note: "Historical data, not a forecast or investment advice. The power law fit is recalculated daily using the full history.",
     chartAria: "Chart of Bitcoin's price with the total and short-term holder realized price, the 200-week moving average and the power law",
   },
+  status: { now: "BTC is", price: "BTC/USDT price", candle: (tf: string) => `${tf} candle` },
+  priceCard: {
+    title: "BTC price",
+    period: { "1h": "1h candles · 7 days", "4h": "4h candles · 30 days", "1d": "Daily · 1 year", "1w": "Weekly · 4 years", "1M": "Monthly · since 2011" },
+    chartAria: "Bitcoin price chart in the selected timeframe",
+  },
   movesLink: { text: "How long has BTC gone without a 10% drop or a 20% rally? Compare it with what is usual.", cta: "Drops and rallies" },
   drawdown: {
     title: "Bitcoin drops and rallies",

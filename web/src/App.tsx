@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Breakdown } from "./components/Breakdown";
-import { Gauge } from "./components/Gauge";
+import { bandColor, Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
+import { PriceCard, type Closes } from "./components/PriceCard";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchDerivatives, fetchFundingRate } from "./lib/binance";
@@ -36,6 +37,7 @@ interface LiveEntry {
   price: number | null;
   /** Cierre de la vela anterior: la variación se mide desde ahí */
   prevClose: number | null;
+  closes: Closes;
   at: number;
 }
 
@@ -56,7 +58,7 @@ export function App() {
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
   // null: Binance no respondió y se usa lo diario del pipeline
-  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
+  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null; closes: Closes | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
   const [funding, setFunding] = useState<number | null>(null);
@@ -96,7 +98,7 @@ export function App() {
     const load = async () => {
       const cached = cache.current.get(tf);
       if (cached && Date.now() - cached.at < ms) {
-        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
+        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives, closes: cached.closes });
         setPrice(cached.price);
         setPrevClose(cached.prevClose);
         setLiveError(false);
@@ -104,7 +106,7 @@ export function App() {
         return;
       }
       // Mientras se refresca se muestra la caché de esta temporalidad, no la de otra
-      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
+      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives, closes: cached.closes });
       // Hasta tener velas de esta temporalidad no se muestra la variación de otra
       else setPrevClose(null);
       setLoading(true);
@@ -124,14 +126,15 @@ export function App() {
           derivatives,
           price: candles.value.at(-1)?.close ?? null,
           prevClose: candles.value.at(-2)?.close ?? null,
+          closes: { time: candles.value.map((c) => c.time), close: candles.value.map((c) => c.close) },
           at: now,
         };
         cache.current.set(tf, entry);
-        setLive({ tf, technical: entry.technical, derivatives });
+        setLive({ tf, technical: entry.technical, derivatives, closes: entry.closes });
         setPrice(entry.price);
         setPrevClose(entry.prevClose);
       } else {
-        setLive({ tf, technical: cached?.technical ?? null, derivatives });
+        setLive({ tf, technical: cached?.technical ?? null, derivatives, closes: cached?.closes ?? null });
       }
       if (fr.status === "fulfilled") {
         if (needFunding) fundingCache.current = { value: fr.value, at: now };
@@ -176,6 +179,12 @@ export function App() {
 
       <section className="dashboard">
         <article className="hero card">
+          {/* En la esquina: no suma alto a la tarjeta */}
+          <RefreshStatus nextAt={nextAt} loading={loading} />
+          <Gauge score={score} label={label} />
+        </article>
+
+        <article className="card status">
           <div className="hero-top">
             <TimeframeSelector value={tf} onChange={setTf} />
             <InfoTip label={t.timeframeInfo.label} title={t.timeframeInfo.title}>
@@ -186,10 +195,10 @@ export function App() {
               </p>
             </InfoTip>
           </div>
-          <Gauge
-            score={score}
-            label={label}
-            info={
+          <div className="status-block">
+            <span className="status-caption">{t.status.now}</span>
+            <div className="status-label" style={score === null ? undefined : { color: bandColor(score) }}>
+              {label}
               <InfoTip label={t.scoreInfo.label} title={t.scoreInfo.title}>
                 <p>{t.scoreInfo.body}</p>
                 <ul className="info-list">
@@ -202,26 +211,31 @@ export function App() {
                 </ul>
                 <p className="muted">{t.scoreInfo.disclaimer}</p>
               </InfoTip>
-            }
-          />
-          <div className="hero-meta">
-            <span className="price num">
-              BTC {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-              {change !== null && (
-                <span className={change > 0 ? "price-change up" : change < 0 ? "price-change down" : "price-change"} title={t.priceInfo.change(t.timeframes[tf].label)}>
-                  {change > 0 ? "+" : change < 0 ? "−" : ""}
-                  {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
-                </span>
-              )}
+            </div>
+          </div>
+          <div className="status-block">
+            <span className="status-caption">
+              {t.status.price}
               <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
                 <p>{t.priceInfo.body}</p>
                 <p>{t.priceInfo.changeInfo}</p>
               </InfoTip>
             </span>
-            <RefreshStatus nextAt={nextAt} loading={loading} />
+            <div className="status-price num">
+              {shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              {change !== null && (
+                <span className={change > 0 ? "status-change up" : change < 0 ? "status-change down" : "status-change"}>
+                  {change > 0 ? "+" : change < 0 ? "−" : ""}
+                  {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
+                </span>
+              )}
+              {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].label)}</span>}
+            </div>
           </div>
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
+
+        <PriceCard tf={tf} data={liveTf?.closes ?? null} />
 
         <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 

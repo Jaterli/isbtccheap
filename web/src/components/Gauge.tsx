@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { t } from "../i18n";
 
 const BANDS =["var(--band-1)", "var(--band-2)", "var(--band-3)", "var(--band-4)", "var(--band-5)"];
@@ -26,11 +25,11 @@ function arc(from: number, to: number) {
 
 interface Props {
   score: number | null;
+  /** Solo para lectores de pantalla: la etiqueta visible va en una esquina de la tarjeta */
   label: string;
-  info?: ReactNode;
 }
 
-export function Gauge({ score, label, info }: Props) {
+export function Gauge({ score, label }: Props) {
   const [nx, ny] = point(score ?? 50, R - 24);
   const color = score === null ? "var(--muted)" : bandColor(score);
   return (
@@ -47,12 +46,6 @@ export function Gauge({ score, label, info }: Props) {
         <text x="14" y="138" className="gauge-end">{t.gauge.cheap}</text>
         <text x="226" y="138" className="gauge-end" textAnchor="end">{t.gauge.expensive}</text>
       </svg>
-      <figcaption>
-        <span className="gauge-label">
-          {label}
-          {info}
-        </span>
-      </figcaption>
     </figure>
   );
 }

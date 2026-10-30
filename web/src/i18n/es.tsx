@@ -87,6 +87,12 @@ export const es = {
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado total y de corto plazo, la media de 200 semanas y la power law",
   },
+  status: { now: "BTC está", price: "Precio BTC/USDT", candle: (tf: string) => `vela de ${tf}` },
+  priceCard: {
+    title: "Precio de BTC",
+    period: { "1h": "Velas de 1 h · 7 días", "4h": "Velas de 4 h · 30 días", "1d": "Diario · 1 año", "1w": "Semanal · 4 años", "1M": "Mensual · desde 2011" } as Record<string, string>,
+    chartAria: "Gráfico del precio de Bitcoin en la temporalidad elegida",
+  },
   movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
   drawdown: {
     title: "Caídas y subidas de Bitcoin",
@@ -402,7 +408,7 @@ export const es = {
       read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
     },
     ma48_ratio: {
-      name: "Precio frente a MA48 meses (percentil)",
+      name: "Precio frente a MA48 m. (percentil)",
       what: "Cuánto está el precio por encima o por debajo de su media de 48 velas mensuales (4 años, un ciclo de halving), comparado con todo el histórico mensual desde 2011. En mensual se usa esta media en lugar de la de 200 velas, que serían 16 años.",
       read: "La puntuación es el percentil: alto significa que el precio está más alejado de su media de lo habitual.",
     },
