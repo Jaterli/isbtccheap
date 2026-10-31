@@ -586,10 +586,10 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
 .an-scenario:not(.primary) { opacity: 0.8; }
 .an-text h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .an-text > p { margin: 0 0 8px; line-height: 1.5; }
-.an-columns { display: grid; gap: 4px 28px; margin-top: 4px; }
-@media (min-width: 720px) { .an-columns { grid-template-columns: 1fr 1fr; } }
-.an-columns h3 { margin: 8px 0 4px; font-size: 0.95rem; }
-.an-columns ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.92rem; line-height: 1.45; }
+.an-text h3 { margin: 12px 0 4px; font-size: 0.95rem; }
+.an-points { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.92rem; line-height: 1.45; }
+.an-sources { margin: 12px 0 0; }
+.an-suggestions { display: block; width: 100%; height: 64px; margin-top: 8px; border: 0; }
 .an-id { font-weight: 600; }
 .an-id.support { color: var(--band-1); }
 .an-id.resistance { color: var(--band-5); }

@@ -175,7 +175,7 @@ export const en: Messages = {
     rest: "BTC's situation today according to an AI analysis: support and resistance, market bias and what is most likely over the next hours. Updated twice a day.",
     card: "Zones and next hours",
     info: [
-      "An AI model (Gemini) receives raw market data: daily, 4h and 1h candles, funding, open interest, long and short positioning, Fear & Greed and ETF flows. With its own analysis it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
+      "An AI model receives raw market data (daily, 4h and 1h candles, funding, open interest, long and short positioning, Fear & Greed and ETF flows) and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
       "The solid arrow is what it considers most likely over the next hours; the dashed one, the alternative scenario. The short line marks the price that would invalidate the main scenario. Candles are 4h and update live; the analysis, twice a day.",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
@@ -193,12 +193,13 @@ export const en: Messages = {
       d === "alcista" ? `A rise toward ${target}.` : d === "bajista" ? `A drop toward ${target}.` : `Sideways around ${target}.`,
     invalidatedAt: (price: string) => `Invalidated if it reaches ${price}.`,
     nextHours: "Next hours:",
-    technical: "Technicals",
-    sentiment: "Sentiment",
+    points: "Key points",
+    sources: "Sources consulted by the AI:",
+    suggestions: "Google searches used in the analysis",
     levelsTitle: "Support and resistance",
     cols: { zone: "Zone", range: "Range", distance: "Distance", strength: "Strength" },
     note: (model: string) =>
-      `Analysis, zones and scenarios generated with AI (${model}) from Binance, Alternative.me and ETF flow data; it may contain errors. It is a reading of the moment, not a prediction or investment advice.`,
+      `Analysis, zones and scenarios generated with AI (${model}); it may contain errors. It is a reading of the moment, not a prediction or investment advice.`,
     chartAria: "Bitcoin 4-hour candles with support and resistance zones and arrows toward the most likely move over the next hours and the alternative scenario",
   },
   liquidity: {

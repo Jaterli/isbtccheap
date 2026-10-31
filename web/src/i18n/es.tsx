@@ -182,7 +182,7 @@ export const es = {
     rest: "La situación de BTC hoy según un análisis con IA: soportes y resistencias, sesgo del mercado y lo más probable en las próximas horas. Se actualiza dos veces al día.",
     card: "Zonas y próximas horas",
     info: [
-      "Un modelo de IA (Gemini) recibe datos de mercado en bruto: velas diarias, de 4 h y de 1 h, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF. Con su propio análisis determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
+      "Un modelo de IA recibe datos de mercado en bruto (velas diarias, de 4 h y de 1 h, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF) y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
       "La flecha continua es lo que considera más probable en las próximas horas; la discontinua, el escenario alternativo. La línea corta marca el precio que invalidaría el escenario principal. Las velas son de 4 h y se actualizan en vivo; el análisis, dos veces al día.",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
@@ -200,12 +200,13 @@ export const es = {
       d === "alcista" ? `Subida hacia ${target}.` : d === "bajista" ? `Bajada hacia ${target}.` : `Movimiento lateral en torno a ${target}.`,
     invalidatedAt: (price: string) => `Se invalidaría si llega a ${price}.`,
     nextHours: "Próximas horas:",
-    technical: "Técnico",
-    sentiment: "Sentimiento",
+    points: "Claves",
+    sources: "Fuentes consultadas por la IA:",
+    suggestions: "Búsquedas de Google usadas en el análisis",
     levelsTitle: "Soportes y resistencias",
     cols: { zone: "Zona", range: "Rango", distance: "Distancia", strength: "Fuerza" },
     note: (model: string) =>
-      `Análisis, zonas y escenarios generados con IA (${model}) a partir de datos de Binance, Alternative.me y los flujos de los ETF; puede contener errores. Es una lectura del momento, no una predicción ni una recomendación de inversión.`,
+      `Análisis, zonas y escenarios generados con IA (${model}); puede contener errores. Es una lectura del momento, no una predicción ni una recomendación de inversión.`,
     chartAria: "Velas de 4 horas de Bitcoin con las zonas de soporte y resistencia y flechas hacia lo más probable en las próximas horas y el escenario alternativo",
   },
   liquidity: {

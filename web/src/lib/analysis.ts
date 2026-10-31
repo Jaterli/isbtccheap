@@ -1,4 +1,4 @@
-/** analysis.json de news/build_analysis.py (Gemini, dos veces al día): zonas, sesgo y movimiento más probable */
+/** analysis.json de news/build_analysis.py (Gemini con la Búsqueda de Google): zonas, sesgo y movimiento más probable */
 export interface Level {
   id: string;
   kind: "support" | "resistance";
@@ -16,8 +16,8 @@ export interface AnalysisText {
   summary: string;
   /** Lo más probable en las próximas horas y qué lo invalidaría */
   outlook: string;
-  technical: string[];
-  sentiment: string[];
+  /** Lo que está moviendo el precio, según el modelo */
+  points: string[];
 }
 
 export interface Analysis {
@@ -32,6 +32,10 @@ export interface Analysis {
   alternative: { direction: Direction; target: number };
   es: AnalysisText;
   en: AnalysisText;
+  /** Páginas que consultó el modelo */
+  sources?: { title: string; uri: string }[];
+  /** HTML de Google con las búsquedas hechas: sus condiciones exigen mostrarlo tal cual junto al resultado */
+  search_suggestions?: string | null;
 }
 
 export const ANALYSIS_URL = `${import.meta.env.BASE_URL}news/analysis.json`;

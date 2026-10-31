@@ -1,23 +1,25 @@
-"""Genera analysis.json: análisis de BTC hecho por Gemini, con sus soportes, resistencias, sesgo y lo más probable en las
-próximas horas.
+"""Genera analysis.json: un análisis breve de la situación de BTC hecho por IA, con sus soportes, resistencias, sesgo y
+lo más probable en las próximas horas. El modelo hace su propio análisis: nunca recibe niveles ni conclusiones nuestras.
 
-Cada ejecución (cron dos veces al día en el droplet):
-  1. Descarga datos de mercado en bruto: velas de 1 h, 4 h y diarias de Binance, derivados (funding, open interest,
-     cuentas en largo y compras a mercado), el Fear & Greed de Alternative.me y los flujos de los ETF del índice.
-  2. Se los pasa a Gemini sin niveles ni sesgo calculados por nosotros: el modelo hace su propio análisis y devuelve las
-     zonas, el sesgo, el movimiento más probable y uno alternativo, con un texto en español e inglés.
-  3. Comprueba que la respuesta sea coherente con el precio (zonas a su lado, objetivos razonables) antes de publicarla.
-Si algo falla se mantiene el analysis.json anterior. Cada análisis publicado se añade a state/analysis_log.jsonl para
-poder medir después cuánto acierta.
+Dos proveedores (ANALYSIS_PROVIDER):
+  - "digitalocean" (por defecto): los modelos abiertos de DigitalOcean no buscan en internet, así que reciben datos de
+    mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF).
+  - "gemini": no recibe ningún dato; busca por su cuenta con la Búsqueda de Google, que exige el nivel de pago de la API
+    (5.000 búsquedas gratis al mes; aquí se usan unas 50).
+El precio de Binance se usa para comprobar la respuesta (zonas a cada lado del precio, objetivos razonables): si no
+cuadra, o si falla la llamada, se mantiene el analysis.json anterior. Cada análisis publicado se añade a
+state/analysis_log.jsonl para poder medir después cuánto acierta.
 
-Variables de entorno (ver .env.example): GEMINI_API_KEY, ANALYSIS_MODELS (opcional), NEWS_OUT_DIR, NEWS_STATE_DIR.
-Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: niveles por reglas simples, para probar la web)
+Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY o GEMINI_API_KEY, ANALYSIS_PROVIDER, ANALYSIS_MODELS,
+NEWS_OUT_DIR, NEWS_STATE_DIR.
+Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: zonas de prueba, para probar la web)
 """
 
 import argparse
 import json
 import logging
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -27,26 +29,92 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from build_news import OUT_DIR, STATE_DIR, write_json  # noqa: E402
+from build_news import OUT_DIR, STATE_DIR, chat, write_json  # noqa: E402
 
 log = logging.getLogger("analysis")
 
-# Se prueban en orden: los "latest" de Google a veces responden 503 por saturación
-MODELS = os.environ.get("ANALYSIS_MODELS", "gemini-flash-latest,gemini-3.5-flash,gemini-flash-lite-latest").split(",")
+PROVIDER = os.environ.get("ANALYSIS_PROVIDER", "digitalocean")
+# Se prueban en orden si el anterior falla o está saturado
+DEFAULT_MODELS = {
+    # GLM-5.3 Flash fue el más preciso en las pruebas; DeepSeek V4 Flash confundía tendencias de los derivados
+    "digitalocean": "glm-5.3-flash,qwen3.5-397b-a17b,deepseek-4-flash",
+    "gemini": "gemini-flash-latest,gemini-3.5-flash,gemini-flash-lite-latest",
+}
+MODELS = [m.strip() for m in os.environ.get("ANALYSIS_MODELS", DEFAULT_MODELS[PROVIDER]).split(",") if m.strip()]
 GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
+PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 
 MAX_LEVELS = 4
 MAX_TARGET = 0.15  # un objetivo a más de un 15 % no es "las próximas horas"
 
+SEARCH_INTRO = """Eres un analista de mercado de Bitcoin. Busca la información más reciente que necesites (precio actual de \
+BTC, su evolución reciente y lo que esté influyendo en él hoy) y haz tu propio análisis de la situación actual de BTC: \
+tú decides qué factores pesan más."""
 
-def get(url: str):
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=30) as res:
-        return json.loads(res.read())
+DATA_INTRO = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas \
+diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
+reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
+de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed y flujos netos de los ETF al contado. Haz tu propio \
+análisis de la situación actual de BTC: tú decides qué factores pesan más."""
+
+FORMAT = """Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
+{
+  "price": precio actual de BTC en dólares (número),
+  "supports": [{"low": número, "high": número, "strength": 1 a 3}, ...],
+  "resistances": [{"low": número, "high": número, "strength": 1 a 3}, ...],
+  "bias": "alcista" | "bajista" | "neutral",
+  "confidence": 1 a 3,
+  "outlook": {"direction": "alcista" | "bajista" | "lateral", "target": número, "invalidation": número, "horizon_hours": número},
+  "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número},
+  "es": {"headline": texto, "summary": texto, "outlook": texto, "points": [texto, ...]},
+  "en": {"headline": texto, "summary": texto, "outlook": texto, "points": [texto, ...]}
+}
+
+- supports y resistances: de 2 a 4 zonas inmediatas de cada lado del precio actual, como rangos [low, high] de anchura \
+realista, de la más cercana a la más lejana; strength de 1 (débil) a 3 (fuerte). Soportes por debajo del precio y \
+resistencias por encima.
+- bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
+- outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): dirección, precio objetivo y precio que \
+invalidaría ese escenario (al otro lado del precio actual). alternative: el escenario alternativo menos probable, en una \
+dirección distinta de la de outlook. Los precios y la dirección de outlook deben coincidir con lo que dicen los textos.
+- es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
+la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). outlook: lo más probable en las próximas horas y qué \
+lo invalidaría, en 1 o 2 frases. points: de 2 a 4 claves breves (25 palabras como máximo) de lo que está moviendo el \
+precio.
+
+Precios en dólares redondeados en los textos (78.500 $ en español, $78,500 en inglés). Habla de probabilidades y \
+escenarios, nunca de certezas, y no des recomendaciones de compra o venta."""
+
+ZONE = {"type": "object", "properties": {"low": {"type": "number"}, "high": {"type": "number"}, "strength": {"type": "integer"}},
+        "required": ["low", "high", "strength"], "additionalProperties": False}
+DIRECTION = {"type": "string", "enum": ["alcista", "bajista", "lateral"]}
+TEXT = {"type": "object", "properties": {"headline": {"type": "string"}, "summary": {"type": "string"}, "outlook": {"type": "string"},
+                                          "points": {"type": "array", "items": {"type": "string"}}},
+        "required": ["headline", "summary", "outlook", "points"], "additionalProperties": False}
+# Esquema estricto de la API de DigitalOcean (compatible con OpenAI): todos los campos obligatorios
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "price": {"type": "number"},
+        "supports": {"type": "array", "items": ZONE},
+        "resistances": {"type": "array", "items": ZONE},
+        "bias": {"type": "string", "enum": ["alcista", "bajista", "neutral"]},
+        "confidence": {"type": "integer"},
+        "outlook": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "invalidation": {"type": "number"},
+                                                     "horizon_hours": {"type": "integer"}},
+                    "required": ["direction", "target", "invalidation", "horizon_hours"], "additionalProperties": False},
+        "alternative": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}},
+                        "required": ["direction", "target"], "additionalProperties": False},
+        "es": TEXT,
+        "en": TEXT,
+    },
+    "required": ["price", "supports", "resistances", "bias", "confidence", "outlook", "alternative", "es", "en"],
+    "additionalProperties": False,
+}
 
 
 def klines(interval: str, limit: int) -> list[list]:
@@ -58,11 +126,7 @@ def klines(interval: str, limit: int) -> list[list]:
 
 def market() -> dict:
     """Datos en bruto, sin indicadores ni niveles: el análisis lo hace el modelo."""
-    data: dict = {
-        "candles_1d": klines("1d", 180),
-        "candles_4h": klines("4h", 120),
-        "candles_1h": klines("1h", 72),
-    }
+    data: dict = {"candles_1d": klines("1d", 180), "candles_4h": klines("4h", 120), "candles_1h": klines("1h", 72)}
     try:
         fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
         data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
@@ -88,74 +152,39 @@ def market() -> dict:
     return data
 
 
-# ---------- Modelo ----------
-
-PROMPT = """Eres un analista técnico de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas diarias, de \
-4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más reciente), \
-funding de los perpetuos, open interest, porcentaje de cuentas en largo, ratio de compras/ventas a mercado, Fear & \
-Greed y flujos de los ETF al contado. La última vela de cada serie está en curso: su cierre es el precio actual.
-
-Haz tu propio análisis (estructura de mercado, tendencia, máximos y mínimos relevantes, volumen, medias, impulso, \
-posicionamiento en derivados, sentimiento) y devuelve:
-- supports y resistances: de 2 a 4 zonas inmediatas de cada lado del precio actual, como rangos de precio [low, high] \
-de anchura realista, de la más cercana a la más lejana, con strength de 1 (débil) a 3 (fuerte). Soportes por debajo \
-del precio actual y resistencias por encima.
-- bias: el sesgo de corto plazo, "alcista", "bajista" o "neutral", y confidence de 1 (baja) a 3 (alta).
-- outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): direction ("alcista", "bajista" o \
-"lateral"), target (precio al que es más probable que vaya) e invalidation (precio que, si se alcanza, invalidaría ese \
-escenario, al otro lado del precio actual).
-- alternative: el escenario alternativo menos probable, con su direction y su target.
-- es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
-la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). outlook: lo más probable en las próximas horas y qué \
-lo invalidaría, en 1 o 2 frases. technical y sentiment: 2 a 4 puntos breves cada uno (25 palabras como máximo) con las \
-cifras que los justifican.
-
-Reglas: básate solo en los datos recibidos; precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). \
-Habla en términos de probabilidad y escenarios, nunca de certezas, y no des recomendaciones de compra o venta."""
-
-ZONE = {"type": "OBJECT", "properties": {"low": {"type": "NUMBER"}, "high": {"type": "NUMBER"}, "strength": {"type": "INTEGER"}},
-        "required": ["low", "high", "strength"]}
-DIRECTION = {"type": "STRING", "enum": ["alcista", "bajista", "lateral"]}
-TEXT = {
-    "type": "OBJECT",
-    "properties": {
-        "headline": {"type": "STRING"},
-        "summary": {"type": "STRING"},
-        "outlook": {"type": "STRING"},
-        "technical": {"type": "ARRAY", "items": {"type": "STRING"}},
-        "sentiment": {"type": "ARRAY", "items": {"type": "STRING"}},
-    },
-    "required": ["headline", "summary", "outlook", "technical", "sentiment"],
-}
-SCHEMA = {
-    "type": "OBJECT",
-    "properties": {
-        "supports": {"type": "ARRAY", "items": ZONE},
-        "resistances": {"type": "ARRAY", "items": ZONE},
-        "bias": {"type": "STRING", "enum": ["alcista", "bajista", "neutral"]},
-        "confidence": {"type": "INTEGER"},
-        "outlook": {
-            "type": "OBJECT",
-            "properties": {"direction": DIRECTION, "target": {"type": "NUMBER"}, "invalidation": {"type": "NUMBER"},
-                           "horizon_hours": {"type": "INTEGER"}},
-            "required": ["direction", "target", "invalidation", "horizon_hours"],
-        },
-        "alternative": {"type": "OBJECT", "properties": {"direction": DIRECTION, "target": {"type": "NUMBER"}},
-                        "required": ["direction", "target"]},
-        "es": TEXT,
-        "en": TEXT,
-    },
-    "required": ["supports", "resistances", "bias", "confidence", "outlook", "alternative", "es", "en"],
-    "propertyOrdering": ["supports", "resistances", "bias", "confidence", "outlook", "alternative", "es", "en"],
-}
+def digitalocean() -> tuple[dict, str, list[dict], str | None]:
+    """Análisis del primer modelo de MODELS que conteste, con los datos de mercado en el mensaje."""
+    data = json.dumps(market(), separators=(",", ":"))
+    last: Exception | None = None
+    for model in MODELS:
+        try:
+            return chat(f"{DATA_INTRO}\n\n{FORMAT}", data, SCHEMA, "analisis", model=model), model, [], None
+        except Exception as e:  # el modelo siguiente puede responder
+            last = e
+            log.warning("%s: %s", model, e)
+    raise RuntimeError(f"ningún modelo respondió: {last}")
 
 
-def gemini(user: str) -> tuple[dict, str]:
-    """Respuesta JSON del primer modelo de MODELS que conteste. Reintenta saturación (429/503) y errores del servidor."""
+def get(url: str):
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as res:
+        return json.loads(res.read())
+
+
+def parse_json(text: str) -> dict:
+    """El JSON de la respuesta, aunque venga entre ```json ... ``` o con texto alrededor."""
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        raise ValueError("la respuesta no contiene JSON")
+    return json.loads(m.group(0))
+
+
+def gemini() -> tuple[dict, str, list[dict], str | None]:
+    """(análisis, modelo, fuentes, sugerencias de búsqueda) del primer modelo de MODELS que conteste.
+    Reintenta la saturación (429/503) y los errores del servidor."""
     body = json.dumps({
-        "systemInstruction": {"parts": [{"text": PROMPT}]},
-        "contents": [{"role": "user", "parts": [{"text": user}]}],
-        "generationConfig": {"responseMimeType": "application/json", "responseSchema": SCHEMA, "temperature": 0.4},
+        "contents": [{"role": "user", "parts": [{"text": f"{SEARCH_INTRO}\n\n{FORMAT}"}]}],
+        "tools": [{"google_search": {}}],
+        "generationConfig": {"temperature": 0.4},
     }).encode()
     last: Exception | None = None
     for model in MODELS:
@@ -163,16 +192,20 @@ def gemini(user: str) -> tuple[dict, str]:
             "Content-Type": "application/json", "X-goog-api-key": os.environ["GEMINI_API_KEY"]})
         for attempt in range(3):
             try:
-                with urllib.request.urlopen(req, timeout=180) as res:
+                with urllib.request.urlopen(req, timeout=240) as res:
                     data = json.loads(res.read())
                 cand = data["candidates"][0]
                 if cand.get("finishReason") != "STOP":
                     raise RuntimeError(f"respuesta incompleta: finishReason={cand.get('finishReason')}")
                 usage = data.get("usageMetadata", {})
-                log.info("%s (%s): %s tokens de entrada, %s de salida, %s de razonamiento", model, data.get("modelVersion"),
-                         usage.get("promptTokenCount"), usage.get("candidatesTokenCount"), usage.get("thoughtsTokenCount"))
+                g = cand.get("groundingMetadata", {})
+                log.info("%s (%s): %s tokens de entrada, %s de salida, %s de razonamiento; búsquedas: %s", model,
+                         data.get("modelVersion"), usage.get("promptTokenCount"), usage.get("candidatesTokenCount"),
+                         usage.get("thoughtsTokenCount"), g.get("webSearchQueries"))
                 text = "".join(p.get("text", "") for p in cand["content"]["parts"] if not p.get("thought"))
-                return json.loads(text), data.get("modelVersion") or model
+                sources = [{"title": c["web"].get("title", ""), "uri": c["web"]["uri"]} for c in g.get("groundingChunks", []) if "web" in c]
+                suggestions = g.get("searchEntryPoint", {}).get("renderedContent")
+                return parse_json(text), data.get("modelVersion") or model, sources[:8], suggestions
             except urllib.error.HTTPError as e:
                 try:
                     msg = json.loads(e.read())["error"]["message"]
@@ -181,7 +214,7 @@ def gemini(user: str) -> tuple[dict, str]:
                 last = RuntimeError(f"{model}: HTTP {e.code} {msg[:120]}")
                 if e.code not in (429, 500, 502, 503, 504):
                     break  # modelo inexistente o petición inválida: se pasa al siguiente
-            except (urllib.error.URLError, TimeoutError, RuntimeError, KeyError, json.JSONDecodeError) as e:
+            except (urllib.error.URLError, TimeoutError, RuntimeError, KeyError, ValueError) as e:
                 last = RuntimeError(f"{model}: {e}")
             log.warning("%s", last)
             time.sleep(5 * 2**attempt)
@@ -190,6 +223,10 @@ def gemini(user: str) -> tuple[dict, str]:
 
 def validate(a: dict, price: float) -> dict:
     """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene."""
+    said = float(a.get("price") or 0)
+    if not said or abs(said / price - 1) > 0.03:
+        raise ValueError(f"el modelo da un precio de {said} y en Binance está a {price:.0f}")
+
     def zones(raw: list[dict], kind: str) -> list[dict]:
         out = []
         for z in raw:
@@ -199,7 +236,7 @@ def validate(a: dict, price: float) -> dict:
             side = mid < price * 1.005 if kind == "support" else mid > price * 0.995
             if near and side and hi - lo < price * 0.06:
                 out.append({"kind": kind, "low": round(lo), "high": round(hi), "mid": round(mid),
-                            "strength": max(1, min(3, int(z["strength"])))})
+                            "strength": max(1, min(3, int(z.get("strength", 2))))})
         out.sort(key=lambda z: abs(z["mid"] - price))
         for i, z in enumerate(out[:MAX_LEVELS]):
             z["id"] = f"{'S' if kind == 'support' else 'R'}{i + 1}"
@@ -215,60 +252,63 @@ def validate(a: dict, price: float) -> dict:
             raise ValueError(f"objetivo fuera de rango: {target}")
         # La dirección la marca el objetivo: un "alcista" con objetivo por debajo no se sostiene
         d = "lateral" if abs(target / price - 1) < 0.004 else "alcista" if target > price else "bajista"
-        out = {"direction": m["direction"] if m["direction"] == d or d == "lateral" else d, "target": round(target)}
+        out = {"direction": m.get("direction") if m.get("direction") == d or d == "lateral" else d, "target": round(target)}
+        if out["direction"] not in ("alcista", "bajista", "lateral"):
+            out["direction"] = d
         if "invalidation" in m:
-            inv = float(m["invalidation"])
+            inv = float(m["invalidation"] or 0)
             other_side = (inv - price) * (target - price) < 0
-            out["invalidation"] = round(inv) if other_side and abs(inv / price - 1) <= MAX_TARGET else None
-            out["horizon_hours"] = max(1, min(48, int(m.get("horizon_hours", 24))))
+            out["invalidation"] = round(inv) if inv and other_side and abs(inv / price - 1) <= MAX_TARGET else None
+            out["horizon_hours"] = max(1, min(48, int(m.get("horizon_hours") or 24)))
         return out
 
+    bias = a.get("bias") if a.get("bias") in ("alcista", "bajista", "neutral") else "neutral"
+    main, alt = move(a["outlook"]), move(a["alternative"])
+    if main["direction"] == alt["direction"]:
+        raise ValueError(f"el escenario alternativo va en la misma dirección que el principal ({main['direction']})")
     result = {
-        "bias": a["bias"],
-        "confidence": max(1, min(3, int(a["confidence"]))),
+        "bias": bias,
+        "confidence": max(1, min(3, int(a.get("confidence") or 1))),
         "levels": sup + res,
-        "outlook": move(a["outlook"]),
-        "alternative": move(a["alternative"]),
+        "outlook": main,
+        "alternative": alt,
     }
     for lang in ("es", "en"):
         t = a[lang]
-        if not all(t[k].strip() for k in ("headline", "summary", "outlook")):
+        if not all(str(t.get(k, "")).strip() for k in ("headline", "summary", "outlook")):
             raise ValueError(f"texto vacío ({lang})")
-        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "outlook")} | {
-            k: [x.strip() for x in t[k] if x.strip()][:4] for k in ("technical", "sentiment")}
+        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "outlook")}
+        result[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
     return result
 
 
-def dry_run(data: dict, price: float) -> dict:
-    """Sin modelo: mínimos y máximos recientes como zonas, para probar la salida y la web."""
-    c4 = data["candles_4h"]
-    lows = sorted({c[3] for c in c4 if c[3] < price}, reverse=True)
-    highs = sorted({c[2] for c in c4 if c[2] > price})
-    pick = lambda xs: [xs[min(i * 8, len(xs) - 1)] for i in range(3)]
-    sup = [{"low": p - 300, "high": p + 300, "strength": 2} for p in pick(lows)]
-    res = [{"low": p - 300, "high": p + 300, "strength": 2} for p in pick(highs)]
+def dry_run(price: float) -> dict:
+    """Sin modelo: zonas a distancias fijas del precio, para probar la salida y la web."""
+    z = lambda f, s: {"low": price * f - 300, "high": price * f + 300, "strength": s}
     text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "outlook": "Sin modelo.",
-            "technical": ["Sin modelo"], "sentiment": ["Sin modelo"]}
-    return {"supports": sup, "resistances": res, "bias": "neutral", "confidence": 1,
-            "outlook": {"direction": "bajista", "target": sup[0]["low"], "invalidation": res[0]["high"], "horizon_hours": 12},
-            "alternative": {"direction": "alcista", "target": res[0]["high"]}, "es": text, "en": text}
+            "points": ["Sin modelo"]}
+    return {"price": price, "supports": [z(0.985, 3), z(0.96, 2)], "resistances": [z(1.015, 2), z(1.04, 3)],
+            "bias": "neutral", "confidence": 1,
+            "outlook": {"direction": "bajista", "target": price * 0.985, "invalidation": price * 1.015, "horizon_hours": 12},
+            "alternative": {"direction": "alcista", "target": price * 1.015}, "es": text, "en": text}
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true", help="no llama al modelo: niveles por reglas simples")
+    ap.add_argument("--dry-run", action="store_true", help="no llama al modelo: zonas de prueba")
     args = ap.parse_args()
 
-    data = market()
-    price = float(data["candles_1h"][-1][4])
     if args.dry_run:
-        raw, model = dry_run(data, price), "dry-run"
+        price = float(get(PRICE_URL)["price"])
+        raw, model, sources, suggestions = dry_run(price), "dry-run", [], None
     else:
-        raw, model = gemini(json.dumps(data, separators=(",", ":")))
+        raw, model, sources, suggestions = gemini() if PROVIDER == "gemini" else digitalocean()
+        price = float(get(PRICE_URL)["price"])  # después: el precio del momento de la respuesta
     result = validate(raw, price)
 
-    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price), **result}
+    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price),
+           **result, "sources": sources, "search_suggestions": suggestions}
     write_json(OUT_DIR / "analysis.json", out)
     if not args.dry_run:
         STATE_DIR.mkdir(parents=True, exist_ok=True)

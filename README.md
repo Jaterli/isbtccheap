@@ -102,9 +102,11 @@ Sin esos ficheros las tarjetas no se muestran.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
-- `build_analysis.py`: velas de 1 h, 4 h y diarias y derivados de Binance, Fear & Greed y flujos de los ETF, en bruto,
-  → Gemini (`GEMINI_API_KEY` en `news/.env`) hace su propio análisis: soportes y resistencias, sesgo, lo más probable
-  en las próximas horas y un escenario alternativo. Si un modelo está saturado prueba el siguiente de `ANALYSIS_MODELS`.
+- `build_analysis.py`: análisis de BTC hecho por IA (soportes y resistencias, sesgo, lo más probable en las próximas
+  horas y un escenario alternativo), sin niveles ni conclusiones nuestras. Por defecto usa los modelos de DigitalOcean
+  (`ANALYSIS_PROVIDER=digitalocean`), que reciben datos de mercado en bruto: velas, derivados, Fear & Greed y flujos de
+  los ETF. Con `ANALYSIS_PROVIDER=gemini` (`GEMINI_API_KEY`, nivel de pago) no recibe datos: busca por su cuenta en
+  Google. Si un modelo falla prueba el siguiente de `ANALYSIS_MODELS`.
   Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 
 En el droplet, una vez:
@@ -124,12 +126,14 @@ crontab -e
 5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
-# Análisis: a las 09:00 y a las 16:00 de Madrid. Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue
-# si en Madrid es la hora buscada: así no hay que tocarlo con el cambio de hora (en crontab, % se escribe \%)
-0 7,8,14,15 * * *       h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 09 ] || [ "$h" = 16 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+# Análisis (hora de Madrid): de lunes a viernes a las 09:00 y a las 16:00, los domingos a las 18:00 y los sábados no.
+# Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue si en Madrid es la hora buscada: así no hay que
+# tocarlo con el cambio de hora. En crontab, % se escribe \%
+0 7,8,14,15 * * 1-5     h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 09 ] || [ "$h" = 16 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
-Coste orientativo: 1-2 $/mes, más el análisis con Gemini (unos 18.000 tokens de entrada y 1.000 de salida por consulta). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+Coste orientativo: 1-2 $/mes, más el análisis (unas 48 consultas al mes: unos 0,20 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
 sirve `news/out` en `/news/`.
 
 ## Estructura
