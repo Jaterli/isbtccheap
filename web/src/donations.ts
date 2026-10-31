@@ -19,7 +19,7 @@ export const CRYPTO: CryptoMethod[] = [
   {
     id: "btc",
     label: "Bitcoin",
-    address: "3PaRjB5uzksnyQaggVxrhknWSoi1pPUBkT", // dirección on-chain, p. ej. bc1q…
+    address: "3KhcBbAxNtdyEXB9fS7QZ3vCyWEZJA1PZH", // dirección on-chain, p. ej. bc1q…
     uri: (a) => `bitcoin:${a}`,
   },
   {
