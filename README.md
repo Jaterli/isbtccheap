@@ -104,8 +104,8 @@ Sin esos ficheros las tarjetas no se muestran.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (soportes y resistencias, sesgo, lo más probable en las próximas
   horas y un escenario alternativo), sin niveles ni conclusiones nuestras. Por defecto usa los modelos de DigitalOcean
-  (`ANALYSIS_PROVIDER=digitalocean`), que reciben datos de mercado en bruto: velas, derivados, Fear & Greed y flujos de
-  los ETF. Con `ANALYSIS_PROVIDER=gemini` (`GEMINI_API_KEY`, nivel de pago) no recibe datos: busca por su cuenta en
+  (`ANALYSIS_PROVIDER=digitalocean`), que reciben datos de mercado en bruto (velas, derivados, Fear & Greed y flujos de
+  los ETF) y, como contexto, los titulares de impacto alto (7 o más) de las últimas 48 h del `news.json`. Con `ANALYSIS_PROVIDER=gemini` (`GEMINI_API_KEY`, nivel de pago) no recibe datos: busca por su cuenta en
   Google. Si un modelo falla prueba el siguiente de `ANALYSIS_MODELS`.
   Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 

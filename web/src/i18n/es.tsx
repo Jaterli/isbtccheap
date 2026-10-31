@@ -182,7 +182,7 @@ export const es = {
     rest: "La situación de BTC hoy según un análisis con IA: soportes y resistencias, sesgo del mercado y lo más probable en las próximas horas. Se actualiza dos veces al día.",
     card: "Zonas y próximas horas",
     info: [
-      "Un modelo de IA recibe datos de mercado en bruto (velas diarias, de 4 h y de 1 h, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF) y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
+      "Un modelo de IA recibe datos de mercado en bruto (velas diarias, de 4 h y de 1 h, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de mayor impacto de las últimas 48 h, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
       "La flecha continua es lo que considera más probable en las próximas horas; la discontinua, el escenario alternativo. La línea corta marca el precio que invalidaría el escenario principal. Las velas son de 4 h y se actualizan en vivo; el análisis, dos veces al día.",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },

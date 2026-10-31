@@ -3,7 +3,8 @@ lo más probable en las próximas horas. El modelo hace su propio análisis: nun
 
 Dos proveedores (ANALYSIS_PROVIDER):
   - "digitalocean" (por defecto): los modelos abiertos de DigitalOcean no buscan en internet, así que reciben datos de
-    mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF).
+    mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF) y, como contexto, los
+    titulares de impacto alto de las últimas 48 h que ya clasifica build_news.py.
   - "gemini": no recibe ningún dato; busca por su cuenta con la Búsqueda de Google, que exige el nivel de pago de la API
     (5.000 búsquedas gratis al mes; aquí se usan unas 50).
 El precio de Binance se usa para comprobar la respuesta (zonas a cada lado del precio, objetivos razonables): si no
@@ -48,6 +49,10 @@ PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 
+# Titulares de news.json que se pasan como contexto: los de impacto alto (rojo en la web) y recientes
+NEWS_MIN_IMPACT = 7
+NEWS_MAX_HOURS = 48
+
 MAX_LEVELS = 4
 MAX_TARGET = 0.15  # un objetivo a más de un 15 % no es "las próximas horas"
 
@@ -58,8 +63,10 @@ tú decides qué factores pesan más."""
 DATA_INTRO = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas \
 diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
-de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed y flujos netos de los ETF al contado. Haz tu propio \
-análisis de la situación actual de BTC: tú decides qué factores pesan más."""
+de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed y flujos netos de los ETF al contado. Si hay \
+noticias recientes de impacto alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
+factores pesan más."""
 
 FORMAT = """Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 {
@@ -143,6 +150,9 @@ def market() -> dict:
         data["fear_greed_14d"] = [int(x["value"]) for x in reversed(fg)]
     except Exception as e:
         log.warning("Fear & Greed no disponible: %s", e)
+    news = headlines()
+    if news:
+        data["news_headlines_high_impact"] = news
     try:
         metrics = {m["id"]: m["value"] for c in get(LATEST_URL)["categories"].values() for m in c["metrics"]}
         if metrics.get("etf_flows") is not None:
@@ -150,6 +160,23 @@ def market() -> dict:
     except Exception as e:
         log.warning("latest.json no disponible: %s", e)
     return data
+
+
+def headlines() -> list[dict]:
+    """Titulares de impacto alto de las últimas NEWS_MAX_HOURS horas, del news.json del cron de noticias."""
+    try:
+        items = json.loads((OUT_DIR / "news.json").read_text(encoding="utf-8"))["items"]
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        log.warning("news.json no disponible: %s", e)
+        return []
+    now = datetime.now(timezone.utc)
+    out = []
+    for n in items:
+        published = datetime.fromisoformat(n["published"])
+        if n["impact"] >= NEWS_MIN_IMPACT and (now - published).total_seconds() <= NEWS_MAX_HOURS * 3600:
+            out.append({"published_utc": published.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M"), "source": n["source"],
+                        "impact": n["impact"], "title": n["title"]})
+    return out
 
 
 def digitalocean() -> tuple[dict, str, list[dict], str | None]:
