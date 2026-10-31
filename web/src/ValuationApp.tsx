@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
-import { LegalLinks } from "./components/LegalLinks";
+import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { useRange } from "./components/RangeSelect";
 import { ValuationChart } from "./components/ValuationChart";
@@ -131,13 +131,7 @@ export function ValuationApp() {
         ))}
       </section>
 
-      <footer className="muted small">
-        <p>{t.footer.disclaimer}</p>
-        <p className="credit">
-          {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
-        </p>
-        <LegalLinks />
-      </footer>
+      <Footer />
     </main>
   );
 }

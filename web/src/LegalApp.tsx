@@ -1,6 +1,6 @@
 import { Header } from "./components/Header";
-import { LegalLinks } from "./components/LegalLinks";
-import { lang, page, t } from "./i18n";
+import { Footer } from "./components/Footer";
+import { lang, page } from "./i18n";
 import { LEGAL, linkParts, type LegalPage } from "./i18n/legal";
 
 function Rich({ text }: { text: string }) {
@@ -79,13 +79,7 @@ export function LegalApp() {
         ))}
       </section>
 
-      <footer className="muted small">
-        <p>{t.footer.disclaimer}</p>
-        <p className="credit">
-          {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
-        </p>
-        <LegalLinks />
-      </footer>
+      <Footer />
     </main>
   );
 }

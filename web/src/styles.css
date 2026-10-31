@@ -533,7 +533,8 @@ header {position: relative;}
 
 footer { display: grid; gap: 4px; padding-top: 8px; border-top: 1px solid var(--border); }
 footer p { margin: 0; }
-footer .credit { margin-top: 8px; }
+/* Crédito a la izquierda y enlaces legales a la derecha; en pantallas estrechas, uno debajo del otro */
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; margin-top: 8px; }
 footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 
 /* Pantallas pequeñas */
@@ -611,7 +612,7 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
 .legal-table td { text-align: left; vertical-align: top; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); }
 .legal-table tr:last-child td { border-bottom: 0; }
 .legal-table code { display: block; font-size: 0.82rem; overflow-wrap: anywhere; }
-.legal-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .legal-links a { text-underline-offset: 3px; }
 .legal-links a:not(:hover) { text-decoration-color: transparent; }
 .legal-links a[aria-current="page"] { color: var(--fg); }

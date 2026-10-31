@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnalysisChart } from "./components/AnalysisChart";
 import { Header } from "./components/Header";
-import { LegalLinks } from "./components/LegalLinks";
+import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
@@ -180,13 +180,7 @@ export function AnalysisApp() {
         ))}
       </section>
 
-      <footer className="muted small">
-        <p>{t.footer.disclaimer}</p>
-        <p className="credit">
-          {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
-        </p>
-        <LegalLinks />
-      </footer>
+      <Footer />
     </main>
   );
 }

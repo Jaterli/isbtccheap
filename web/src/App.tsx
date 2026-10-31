@@ -16,7 +16,7 @@ import {
 } from "./lib/score";
 import { labelAt, lang, locale, PAGE_PATH, t } from "./i18n";
 import { Header } from "./components/Header";
-import { LegalLinks } from "./components/LegalLinks";
+import { Footer } from "./components/Footer";
 import { getJson } from "./lib/data";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
@@ -254,7 +254,7 @@ export function App() {
 
       <Donate />
 
-      <footer className="muted small">
+      <Footer>
         <p>
           {t.footer.dataAsOf(latest.as_of, new Date(latest.updated_at).toLocaleString(locale))}
           {latest.missing_sources.length > 0 && t.footer.missing(latest.missing_sources.join(", "))}
@@ -269,12 +269,7 @@ export function App() {
             </span>
           ))}
         </p>
-        <p>{t.footer.disclaimer}</p>
-        <p className="credit">
-          {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
-        </p>
-        <LegalLinks />
-      </footer>
+      </Footer>
     </main>
   );
 }
