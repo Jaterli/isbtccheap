@@ -1,7 +1,8 @@
 """Genera analysis.json: un análisis breve de la situación de BTC hecho por IA, con sus soportes, resistencias, sesgo, lo
 más probable en las próximas horas y en 1-2 días, y un escenario alternativo.
 
-El modelo recibe datos de mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF) y,
+El modelo recibe datos de mercado en bruto (velas de 1 h, 4 h y diarias, derivados, liquidaciones de las últimas 24 h de
+los principales exchanges según Coinalyze, o solo de OKX si Coinalyze no responde, Fear & Greed y flujos de los ETF) y,
 como contexto, los titulares de impacto alto de las últimas 48 h que ya clasifica build_news.py. Nunca recibe niveles ni
 conclusiones nuestras: el análisis es suyo.
 
@@ -10,8 +11,8 @@ del precio, objetivos fuera de rango, escenarios incoherentes), se pasa al sigui
 a la API de Gemini; el resto, a la inferencia de DigitalOcean. Si ninguno sirve se mantiene el analysis.json anterior.
 Cada análisis publicado se añade a state/analysis_log.jsonl para poder medir después cuánto acierta.
 
-Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GEMINI_API_KEY (para los gemini:), ANALYSIS_MODELS,
-NEWS_OUT_DIR, NEWS_STATE_DIR.
+Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GEMINI_API_KEY (para los gemini:), COINANALIZE_API_KEY
+(liquidaciones de Coinalyze), ANALYSIS_MODELS, NEWS_OUT_DIR, NEWS_STATE_DIR.
 Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: zonas de prueba, para probar la web)
 """
 
@@ -40,6 +41,12 @@ MODELS = [m.strip() for m in os.environ.get(
 GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
+# Liquidaciones agregadas de los principales exchanges (plan gratuito: 40 peticiones/min). Los de Binance son una
+# estimación a la baja: el exchange solo publica una liquidación por segundo y contrato
+COINALYZE = "https://api.coinalyze.net/v1"
+# Respaldo: liquidaciones públicas de OKX (Binance ya no las da por REST): guarda unas 24 h, en páginas de 100
+OKX_LIQ = "https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&instFamily=BTC-USDT&state=filled&limit=100"
+OKX_CONTRACT_BTC = 0.01  # tamaño de un contrato BTC-USDT-SWAP
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
@@ -56,7 +63,9 @@ MAX_DAYS = 0.20
 PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas \
 diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
-de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed y flujos netos de los ETF al contado. Si hay \
+de cuentas en largo, ratio de compras/ventas a mercado, liquidaciones de las últimas 24 h por hora (de posiciones largas \
+y cortas, sumando los principales exchanges o solo OKX; las de Binance están infravaloradas), Fear & Greed y flujos \
+netos de los ETF al contado. Si hay \
 noticias recientes de impacto alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
@@ -156,6 +165,86 @@ def headlines() -> list[dict]:
     return out
 
 
+def coinalyze(path: str, params: dict) -> list | dict:
+    """Petición a Coinalyze; si se supera el límite (429), espera lo que indica y reintenta una vez."""
+    q = "&".join(f"{k}={v}" for k, v in params.items())
+    req = urllib.request.Request(f"{COINALYZE}/{path}?{q}", headers={**UA, "api_key": os.environ["COINANALIZE_API_KEY"]})
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as res:
+                return json.loads(res.read())
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or attempt:
+                raise
+            time.sleep(min(60, float(e.headers.get("Retry-After") or 30)))  # puede venir con decimales
+
+
+def liquidations_coinalyze() -> dict | None:
+    """Liquidaciones de los perpetuos de BTC de todos los exchanges de Coinalyze en las últimas 24 h, por hora y en millones
+    de dólares: [hora UTC, largos liquidados, cortos liquidados], y los totales."""
+    names = {e["code"]: e["name"] for e in coinalyze("exchanges", {})}
+    # Polymarket aparece entre los mercados pero es de predicciones: no tiene liquidaciones de futuros
+    perps = [m for m in coinalyze("future-markets", {}) if m.get("base_asset") == "BTC" and m.get("is_perpetual")
+             and names.get(m["exchange"]) != "Polymarket"]
+    now = int(time.time())
+    hours: dict[int, list[float]] = {}
+    for i in range(0, len(perps), 20):  # como mucho 20 contratos por petición
+        symbols = ",".join(m["symbol"] for m in perps[i : i + 20])
+        for serie in coinalyze("liquidation-history", {"symbols": symbols, "interval": "1hour", "from": now - 24 * 3600,
+                                                        "to": now, "convert_to_usd": "true"}):
+            for p in serie.get("history", []):
+                h = hours.setdefault(int(p["t"]), [0.0, 0.0])
+                h[0] += float(p.get("l") or 0)
+                h[1] += float(p.get("s") or 0)
+    if not hours:
+        return None
+    by_hour = [[datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d %H:00"), round(v[0] / 1e6, 2), round(v[1] / 1e6, 2)]
+               for t, v in sorted(hours.items())]
+    exchanges = sorted({names.get(m["exchange"], m["exchange"]) for m in perps})
+    return {"source": "Coinalyze", "exchanges": exchanges, "unit": "millones de USD", "per_hour_utc": by_hour,
+            "total_24h_long_musd": round(sum(h[1] for h in by_hour), 1), "total_24h_short_musd": round(sum(h[2] for h in by_hour), 1)}
+
+
+def liquidations() -> dict | None:
+    """Liquidaciones de Coinalyze o, si no hay clave o no responde, solo las de OKX."""
+    if os.environ.get("COINANALIZE_API_KEY"):
+        try:
+            return liquidations_coinalyze()
+        except Exception as e:
+            log.warning("Coinalyze no disponible, se usa OKX: %s", e)
+    return liquidations_okx()
+
+
+def liquidations_okx() -> dict | None:
+    """Liquidaciones del perpetuo BTC-USDT de OKX en las últimas 24 h, por hora: [hora UTC, BTC de largos liquidados,
+    BTC de cortos liquidados, precio medio], y los totales. Un "sell" liquida un largo; un "buy", un corto."""
+    rows, after, since = [], None, time.time() * 1000 - 24 * 3600e3
+    for _ in range(30):
+        data = get(OKX_LIQ + (f"&after={after}" if after else ""))["data"]
+        page = data[0]["details"] if data else []
+        if not page:
+            break
+        rows += page
+        after = min(int(x["ts"]) for x in page)
+        if after < since:
+            break
+        time.sleep(0.15)  # límite de OKX: 20 peticiones cada 2 s
+    hours: dict[str, list[float]] = {}
+    for x in rows:
+        ts = int(x["ts"])
+        if ts < since:
+            continue
+        btc = float(x["sz"]) * OKX_CONTRACT_BTC
+        h = hours.setdefault(datetime.fromtimestamp(ts / 1000, timezone.utc).strftime("%Y-%m-%d %H:00"), [0.0, 0.0, 0.0])
+        h[0 if x["side"] == "sell" else 1] += btc
+        h[2] += btc * float(x["bkPx"])
+    if not hours:
+        return None
+    by_hour = [[k, round(v[0], 2), round(v[1], 2), round(v[2] / (v[0] + v[1]))] for k, v in sorted(hours.items())]
+    return {"source": "OKX", "exchanges": ["OKX"], "unit": "BTC", "per_hour_utc": by_hour,
+            "total_24h_long_btc": round(sum(h[1] for h in by_hour), 1), "total_24h_short_btc": round(sum(h[2] for h in by_hour), 1)}
+
+
 def market() -> dict:
     """Datos en bruto, sin indicadores ni niveles: el análisis lo hace el modelo."""
     data: dict = {"candles_1d": klines("1d", 180), "candles_4h": klines("4h", 120), "candles_1h": klines("1h", 72)}
@@ -170,6 +259,12 @@ def market() -> dict:
         data["taker_buy_sell_ratio_4h"] = [round(float(x["buySellRatio"]), 3) for x in tk]
     except Exception as e:  # sin derivados el análisis sigue, con menos datos
         log.warning("derivados no disponibles: %s", e)
+    try:
+        liq = liquidations()
+        if liq:
+            data["liquidations_24h"] = liq
+    except Exception as e:
+        log.warning("liquidaciones no disponibles: %s", e)
     try:
         fg = get("https://api.alternative.me/fng/?limit=14")["data"]
         data["fear_greed_14d"] = [int(x["value"]) for x in reversed(fg)]
