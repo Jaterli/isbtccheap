@@ -3,7 +3,7 @@ más probable en las próximas horas y en 1-2 días, y un escenario alternativo.
 
 El modelo recibe datos de mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF),
 la hora actual y si la bolsa de EE. UU. está abierta (en fin de semana la liquidez es menor) y, como contexto, los
-titulares de impacto alto de las últimas 48 h que ya clasifica build_news.py. Nunca recibe niveles ni conclusiones
+titulares de impacto medio y alto de las últimas 48 h que ya clasifica build_news.py. Nunca recibe niveles ni conclusiones
 nuestras: el análisis es suyo.
 
 Los modelos de ANALYSIS_MODELS se prueban en orden: si uno falla o su respuesta no se sostiene (zonas al lado equivocado
@@ -46,8 +46,8 @@ PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 
-# Titulares de news.json que se pasan como contexto: los de impacto alto (rojo en la web) y recientes
-NEWS_MIN_IMPACT = 7
+# Titulares de news.json que se pasan como contexto: los de impacto medio y alto (naranja y rojo en la web) y recientes
+NEWS_MIN_IMPACT = 5
 NEWS_MAX_HOURS = 48
 
 MAX_LEVELS = 3
@@ -59,7 +59,7 @@ PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mer
 diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
 de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
-hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta. Si hay noticias recientes de impacto alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -142,7 +142,7 @@ def klines(interval: str, limit: int) -> list[list]:
 
 
 def headlines() -> list[dict]:
-    """Titulares de impacto alto de las últimas NEWS_MAX_HOURS horas, del news.json del cron de noticias."""
+    """Titulares de impacto medio y alto de las últimas NEWS_MAX_HOURS horas, del news.json del cron de noticias."""
     try:
         items = json.loads((OUT_DIR / "news.json").read_text(encoding="utf-8"))["items"]
     except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
@@ -189,7 +189,7 @@ def market() -> dict:
         log.warning("Fear & Greed no disponible: %s", e)
     news = headlines()
     if news:
-        data["news_headlines_high_impact"] = news
+        data["news_headlines"] = news
     try:
         metrics = {m["id"]: m["value"] for c in get(LATEST_URL)["categories"].values() for m in c["metrics"]}
         if metrics.get("etf_flows") is not None:

@@ -409,7 +409,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "¿Cómo se hace el análisis?",
-        p: "Un modelo de IA recibe datos de mercado en bruto de Bitcoin: velas diarias, de 4 horas y de 1 hora, el funding de los futuros perpetuos, el open interest, el porcentaje de cuentas en largo, el ratio de compras y ventas a mercado, el Fear & Greed Index y los flujos de los ETF al contado, además de los titulares de mayor impacto de las últimas 48 horas. Con ellos hace su propio análisis y decide qué factores pesan más, sin niveles ni conclusiones de esta web.",
+        p: "Un modelo de IA recibe datos de mercado en bruto de Bitcoin: velas diarias, de 4 horas y de 1 hora, el funding de los futuros perpetuos, el open interest, el porcentaje de cuentas en largo, el ratio de compras y ventas a mercado, el Fear & Greed Index y los flujos de los ETF al contado, además de los titulares de impacto medio y alto de las últimas 48 horas. Con ellos hace su propio análisis y decide qué factores pesan más, sin niveles ni conclusiones de esta web.",
       },
       {
         h: "¿Qué muestra?",
@@ -428,7 +428,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "How is the analysis made?",
-        p: "An AI model receives raw Bitcoin market data: daily, 4-hour and 1-hour candles, perpetual futures funding, open interest, the share of accounts long, the taker buy/sell ratio, the Fear & Greed Index and spot ETF flows, plus the highest-impact headlines of the last 48 hours. From them it makes its own analysis and decides which factors weigh most, with no levels or conclusions from this site.",
+        p: "An AI model receives raw Bitcoin market data: daily, 4-hour and 1-hour candles, perpetual futures funding, open interest, the share of accounts long, the taker buy/sell ratio, the Fear & Greed Index and spot ETF flows, plus the medium- and high-impact headlines of the last 48 hours. From them it makes its own analysis and decides which factors weigh most, with no levels or conclusions from this site.",
       },
       {
         h: "What does it show?",

@@ -175,7 +175,7 @@ export const en: Messages = {
     rest: "BTC's situation today according to an AI analysis: support and resistance, market bias and what is most likely over the next hours and 1-2 days.",
     card: "Zones and outlook",
     info: [
-      "An AI model receives raw market data (daily, 4h and 1h candles, funding, open interest, long and short positioning, Fear & Greed and ETF flows), along with the highest-impact headlines of the last 48 hours, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
+      "An AI model receives raw market data (daily, 4h and 1h candles, funding, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
       "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. Candles are 4h and update live; the analysis runs Monday to Friday at 9:00 and 16:00 and on Sundays at 18:00 (Madrid time).",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
