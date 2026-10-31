@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnalysisChart } from "./components/AnalysisChart";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
@@ -184,6 +185,7 @@ export function AnalysisApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

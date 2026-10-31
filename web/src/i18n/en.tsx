@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", analysis: "Analysis" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -592,5 +592,6 @@ export const en: Messages = {
     attribution: { "https://www.binance.com/": "Binance (live price and funding)" },
     disclaimer: "This indicator is for information only and is not financial advice.",
     credit: "Built by",
+    legalAria: "Legal information",
   },
 };

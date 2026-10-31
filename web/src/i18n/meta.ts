@@ -1,3 +1,5 @@
+import { LEGAL, type LegalPage } from "./legal";
+
 /** Metadatos de cada index.html, que vite.config.ts rellena al compilar (__CLAVE__). Sin dependencias del navegador. */
 export interface PageMeta {
   LANG: string;
@@ -202,6 +204,30 @@ const ANALYSIS_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const LEGAL_PATHS = {
+  legal: { URL_ES: `${SITE}/aviso-legal/`, URL_EN: `${SITE}/en/legal-notice/` },
+  privacy: { URL_ES: `${SITE}/privacidad/`, URL_EN: `${SITE}/en/privacy/` },
+  cookies: { URL_ES: `${SITE}/cookies/`, URL_EN: `${SITE}/en/cookies/` },
+};
+
+/** Aviso legal, privacidad y cookies (noindex): el título sale de i18n/legal.ts */
+const legalMeta = (p: LegalPage): Record<"es" | "en", PageMeta> => ({
+  es: {
+    ...INDEX_META.es,
+    ...LEGAL_PATHS[p],
+    URL: LEGAL_PATHS[p].URL_ES,
+    TITLE: `${LEGAL[p].es.title} | Is BTC Cheap?`,
+    DESCRIPTION: LEGAL[p].es.rest,
+  },
+  en: {
+    ...INDEX_META.en,
+    ...LEGAL_PATHS[p],
+    URL: LEGAL_PATHS[p].URL_EN,
+    TITLE: `${LEGAL[p].en.title} | Is BTC Cheap?`,
+    DESCRIPTION: LEGAL[p].en.rest,
+  },
+});
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -212,4 +238,7 @@ export const META = {
   etf: ETF_META,
   liquidity: LIQUIDITY_META,
   analysis: ANALYSIS_META,
+  legal: legalMeta("legal"),
+  privacy: legalMeta("privacy"),
+  cookies: legalMeta("cookies"),
 };

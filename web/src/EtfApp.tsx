@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { EtfChart, flowUsd } from "./components/EtfChart";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { SHORT_RANGES, useRange } from "./components/RangeSelect";
 import { lang, locale, t } from "./i18n";
@@ -122,6 +123,7 @@ export function EtfApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

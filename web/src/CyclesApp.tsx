@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CyclesChart, fmtMult } from "./components/CyclesChart";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_CYCLES } from "./i18n/seo";
@@ -163,6 +164,7 @@ export function CyclesApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

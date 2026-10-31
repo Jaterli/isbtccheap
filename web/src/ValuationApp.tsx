@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { useRange } from "./components/RangeSelect";
 import { ValuationChart } from "./components/ValuationChart";
@@ -135,6 +136,7 @@ export function ValuationApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

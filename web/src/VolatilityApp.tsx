@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CandleSeriesControls, useCandleSeries } from "./components/CandleSeries";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { VolChart } from "./components/VolChart";
 import { lang, locale, t } from "./i18n";
@@ -78,6 +79,7 @@ export function VolatilityApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

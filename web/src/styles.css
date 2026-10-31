@@ -597,3 +597,21 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
 .an-strength { display: inline-flex; gap: 3px; }
 .an-strength i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .an-strength i.on { background: var(--fg); }
+
+/* Aviso legal, privacidad y cookies */
+.legal { max-width: 820px; line-height: 1.55; }
+.legal h2 { margin: 22px 0 6px; font-size: 1.05rem; }
+.legal > div:first-child h2 { margin-top: 0; }
+.legal p { margin: 0 0 8px; }
+.legal ul { margin: 0 0 8px; padding-left: 20px; display: grid; gap: 4px; }
+.legal a { text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.legal-table-wrap { overflow-x: auto; margin: 4px 0 10px; }
+.legal-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.legal-table th { text-align: left; font-weight: 500; color: var(--muted); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--border); }
+.legal-table td { text-align: left; vertical-align: top; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); }
+.legal-table tr:last-child td { border-bottom: 0; }
+.legal-table code { display: block; font-size: 0.82rem; overflow-wrap: anywhere; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.legal-links a { text-underline-offset: 3px; }
+.legal-links a:not(:hover) { text-decoration-color: transparent; }
+.legal-links a[aria-current="page"] { color: var(--fg); }

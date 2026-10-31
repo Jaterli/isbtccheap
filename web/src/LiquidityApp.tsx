@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { LiquidityChart, rocPct } from "./components/LiquidityChart";
 import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
@@ -76,6 +77,7 @@ export function LiquidityApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );

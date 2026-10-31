@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { LEGAL, linkParts, type LegalPage } from "./src/i18n/legal";
 import { META } from "./src/i18n/meta";
 import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_VALUATION, SEO_VOL, SEO_ANALYSIS } from "./src/i18n/seo";
 
@@ -28,6 +29,21 @@ function chartSeoHtml(texts: typeof SEO_VOL, lang: "es" | "en") {
   return `<main class="container seo-prerender"><h1>${esc(s.title)}</h1><p>${esc(s.intro)}</p>${secs}</main>`;
 }
 
+/** Lo mismo para el aviso legal, la privacidad y las cookies */
+function legalSeoHtml(p: LegalPage, lang: "es" | "en") {
+  const d = LEGAL[p][lang];
+  const rich = (s: string) => linkParts(s).map((x) => ("href" in x ? `<a href="${esc(x.href)}">${esc(x.text)}</a>` : esc(x.text))).join("");
+  const ps = (list?: string[]) => (list ?? []).map((x) => `<p>${rich(x)}</p>`).join("");
+  const secs = d.sections
+    .map((s) => {
+      const list = s.list ? `<ul>${s.list.map((x) => `<li>${rich(x)}</li>`).join("")}</ul>` : "";
+      const table = s.table ? `<table>${s.table.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table>` : "";
+      return `<h2>${esc(s.h)}</h2>${ps(s.p)}${list}${table}${ps(s.after)}`;
+    })
+    .join("");
+  return `<main class="container seo-prerender"><h1>${esc(d.title)}</h1><p>${esc(d.rest)}</p>${secs}</main>`;
+}
+
 type Page = keyof typeof META;
 // Cada página: su HTML de entrada (español) y dónde se escribe la versión en inglés
 const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") => string }> = {
@@ -40,6 +56,9 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
   etf: { input: "etf/index.html", en: "en/etf/index.html", seo: (l) => chartSeoHtml(SEO_ETF, l) },
   liquidity: { input: "liquidez/index.html", en: "en/liquidity/index.html", seo: (l) => chartSeoHtml(SEO_LIQUIDITY, l) },
   analysis: { input: "analisis/index.html", en: "en/analysis/index.html", seo: (l) => chartSeoHtml(SEO_ANALYSIS, l) },
+  legal: { input: "aviso-legal/index.html", en: "en/legal-notice/index.html", seo: (l) => legalSeoHtml("legal", l) },
+  privacy: { input: "privacidad/index.html", en: "en/privacy/index.html", seo: (l) => legalSeoHtml("privacy", l) },
+  cookies: { input: "cookies/index.html", en: "en/cookies/index.html", seo: (l) => legalSeoHtml("cookies", l) },
 };
 
 const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
@@ -90,6 +109,9 @@ function devNews(): Plugin {
         else if (req.url?.startsWith("/en/etf")) req.url = "/etf/";
         else if (req.url?.startsWith("/en/liquidity")) req.url = "/liquidez/";
         else if (req.url?.startsWith("/en/analysis")) req.url = "/analisis/";
+        else if (req.url?.startsWith("/en/legal-notice")) req.url = "/aviso-legal/";
+        else if (req.url?.startsWith("/en/privacy")) req.url = "/privacidad/";
+        else if (req.url?.startsWith("/en/cookies")) req.url = "/cookies/";
         next();
       });
       server.middlewares.use("/news", (req, res) => {

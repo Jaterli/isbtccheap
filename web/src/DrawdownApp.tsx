@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ddPct, DrawdownChart } from "./components/DrawdownChart";
 import { Header } from "./components/Header";
+import { LegalLinks } from "./components/LegalLinks";
 import { InfoTip } from "./components/InfoTip";
 import { Moves } from "./components/Moves";
 import { useRange } from "./components/RangeSelect";
@@ -138,6 +139,7 @@ export function DrawdownApp() {
         <p className="credit">
           {t.footer.credit} <a href="https://jaterli.com" target="_blank" rel="noreferrer">Jaterli</a>
         </p>
+        <LegalLinks />
       </footer>
     </main>
   );
