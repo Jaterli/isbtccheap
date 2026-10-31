@@ -3,7 +3,8 @@ más probable en las próximas horas y en 1-2 días, y un escenario alternativo.
 
 El modelo recibe datos de mercado en bruto (velas de 1 h, 4 h y diarias, derivados, Fear & Greed y flujos de los ETF),
 la hora actual y si la bolsa de EE. UU. está abierta (en fin de semana la liquidez es menor) y, como contexto, los
-titulares de impacto medio y alto de las últimas 48 h que ya clasifica build_news.py. Nunca recibe niveles ni conclusiones
+titulares de impacto medio y alto de las últimas 48 h que ya clasifica build_news.py y la agenda económica de la
+semana de build_calendar.py. Nunca recibe niveles ni conclusiones
 nuestras: el análisis es suyo.
 
 Los modelos de ANALYSIS_MODELS se prueban en orden: si uno falla o su respuesta no se sostiene (zonas al lado equivocado
@@ -59,7 +60,8 @@ PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mer
 diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
 de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
-hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta, y la agenda económica de la semana (datos y \
+decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -158,6 +160,22 @@ def headlines() -> list[dict]:
     return out
 
 
+def calendar() -> list[dict]:
+    """Eventos de la agenda económica de la semana, del calendar.json de build_calendar.py (los ya publicados con su dato)."""
+    try:
+        events = json.loads((OUT_DIR / "calendar.json").read_text(encoding="utf-8"))["events"]
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        log.warning("calendar.json no disponible: %s", e)
+        return []
+    out = []
+    for e in events:
+        ev = {"time_utc": datetime.fromisoformat(e["date"]).astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M"),
+              "country": e["country"], "event": e["title"]}
+        ev.update({k: e[k] for k in ("forecast", "previous", "actual") if e.get(k)})
+        out.append(ev)
+    return out
+
+
 def now_context() -> dict:
     """Día y hora, y si la bolsa de EE. UU. está abierta: fuera de su horario (sobre todo en fin de semana) hay menos
     liquidez, sin flujos de los ETF. Es un dato, no una conclusión: el modelo decide si le da importancia."""
@@ -190,6 +208,9 @@ def market() -> dict:
     news = headlines()
     if news:
         data["news_headlines"] = news
+    agenda = calendar()
+    if agenda:
+        data["economic_calendar_week"] = agenda
     try:
         metrics = {m["id"]: m["value"] for c in get(LATEST_URL)["categories"].values() for m in c["metrics"]}
         if metrics.get("etf_flows") is not None:

@@ -105,7 +105,8 @@ Sin esos ficheros las tarjetas no se muestran.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
   de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), la hora y si la bolsa de EE. UU. está
-  abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json`. Usa
+  abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
+  económica de la semana del `calendar.json`. Usa
   GLM-5.3 Flash de DigitalOcean y, si falla o su respuesta no se sostiene, el siguiente de `ANALYSIS_MODELS` (Gemini de
   respaldo, con `GEMINI_API_KEY`). Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir
   después cuánto acierta.
