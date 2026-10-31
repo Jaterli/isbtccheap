@@ -128,10 +128,10 @@ crontab -e
 5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
-# Análisis (hora de Madrid): de lunes a viernes a las 09:00 y a las 16:00, los domingos a las 18:00 y los sábados no.
+# Análisis (hora de Madrid): de lunes a viernes a las 10:00 y a las 17:00, los domingos a las 18:00 y los sábados no.
 # Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue si en Madrid es la hora buscada: así no hay que
 # tocarlo con el cambio de hora. En crontab, % se escribe \%
-0 7,8,14,15 * * 1-5     h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 09 ] || [ "$h" = 16 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+0 8,9,15,16 * * 1-5     h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 10 ] || [ "$h" = 17 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
