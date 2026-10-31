@@ -190,7 +190,7 @@ const ANALYSIS_META: Record<"es" | "en", PageMeta> = {
     URL: ANALYSIS.URL_ES,
     TITLE: "Análisis de Bitcoin hoy: soportes, resistencias y sesgo | Is BTC Cheap?",
     DESCRIPTION:
-      "Análisis diario del precio de Bitcoin con IA: soportes y resistencias inmediatos, sesgo del mercado según el técnico y el sentimiento, y los escenarios alcista y bajista.",
+      "Análisis diario del precio de Bitcoin con IA: soportes y resistencias inmediatos, sesgo del mercado y lo más probable en las próximas horas, sobre el gráfico de BTC.",
   },
   en: {
     ...INDEX_META.en,
@@ -198,7 +198,7 @@ const ANALYSIS_META: Record<"es" | "en", PageMeta> = {
     URL: ANALYSIS.URL_EN,
     TITLE: "Bitcoin analysis today: support, resistance and bias | Is BTC Cheap?",
     DESCRIPTION:
-      "Daily AI analysis of the Bitcoin price: immediate support and resistance, market bias from technicals and sentiment, and the bullish and bearish scenarios.",
+      "Daily AI analysis of the Bitcoin price: immediate support and resistance, market bias and what is most likely over the next hours, on the BTC chart.",
   },
 };
 

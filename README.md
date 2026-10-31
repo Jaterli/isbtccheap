@@ -102,10 +102,10 @@ Sin esos ficheros las tarjetas no se muestran.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
-- `build_analysis.py`: velas y derivados de Binance, Fear & Greed y el `latest.json` del índice → soportes y
-  resistencias calculados con reglas fijas, y el sesgo y los escenarios que elige el modelo entre esas zonas. El modelo
-  se cambia con `ANALYSIS_MODEL` en `news/.env` (por defecto `glm-5.3-flash`). Cada análisis se guarda también en
-  `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
+- `build_analysis.py`: velas de 1 h, 4 h y diarias y derivados de Binance, Fear & Greed y flujos de los ETF, en bruto,
+  → Gemini (`GEMINI_API_KEY` en `news/.env`) hace su propio análisis: soportes y resistencias, sesgo, lo más probable
+  en las próximas horas y un escenario alternativo. Si un modelo está saturado prueba el siguiente de `ANALYSIS_MODELS`.
+  Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 
 En el droplet, una vez:
 
@@ -124,11 +124,12 @@ crontab -e
 5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
-# Análisis: tras el cierre de la vela diaria y antes de la apertura de Wall Street
-15 0,13 * * *           /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+# Análisis: a las 09:00 y a las 16:00 de Madrid. Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue
+# si en Madrid es la hora buscada: así no hay que tocarlo con el cambio de hora (en crontab, % se escribe \%)
+0 7,8,14,15 * * *       h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 09 ] || [ "$h" = 16 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
-Coste orientativo: 1-2 $/mes (el análisis, unos céntimos más con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+Coste orientativo: 1-2 $/mes, más el análisis con Gemini (unos 18.000 tokens de entrada y 1.000 de salida por consulta). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
 sirve `news/out` en `/news/`.
 
 ## Estructura

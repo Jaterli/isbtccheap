@@ -1,46 +1,46 @@
-"""Genera analysis.json: soportes y resistencias inmediatos de BTC, sesgo del mercado y escenarios probables.
+"""Genera analysis.json: análisis de BTC hecho por Gemini, con sus soportes, resistencias, sesgo y lo más probable en las
+próximas horas.
 
 Cada ejecución (cron dos veces al día en el droplet):
-  1. Descarga velas diarias y de 4 h de Binance, los derivados (funding, open interest, ratios long/short y de compras a
-     mercado), el Fear & Greed de Alternative.me y el latest.json del índice (flujos de los ETF, SOPR, score diario).
-  2. Calcula los niveles con reglas fijas: máximos y mínimos de giro, zonas de mucho volumen, medias de 50 y 200 y
-     números redondos, agrupados en zonas. El modelo nunca inventa precios: elige entre estas zonas por su id.
-  3. Pide al modelo el sesgo, las zonas clave y un escenario alcista y otro bajista, con un texto breve en español e
-     inglés, y comprueba que la respuesta sea coherente con los niveles antes de publicarla.
+  1. Descarga datos de mercado en bruto: velas de 1 h, 4 h y diarias de Binance, derivados (funding, open interest,
+     cuentas en largo y compras a mercado), el Fear & Greed de Alternative.me y los flujos de los ETF del índice.
+  2. Se los pasa a Gemini sin niveles ni sesgo calculados por nosotros: el modelo hace su propio análisis y devuelve las
+     zonas, el sesgo, el movimiento más probable y uno alternativo, con un texto en español e inglés.
+  3. Comprueba que la respuesta sea coherente con el precio (zonas a su lado, objetivos razonables) antes de publicarla.
 Si algo falla se mantiene el analysis.json anterior. Cada análisis publicado se añade a state/analysis_log.jsonl para
 poder medir después cuánto acierta.
 
-Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, ANALYSIS_MODEL (opcional), NEWS_OUT_DIR, NEWS_STATE_DIR.
-Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: sesgo por reglas y texto de prueba)
+Variables de entorno (ver .env.example): GEMINI_API_KEY, ANALYSIS_MODELS (opcional), NEWS_OUT_DIR, NEWS_STATE_DIR.
+Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: niveles por reglas simples, para probar la web)
 """
 
 import argparse
 import json
 import logging
-import math
 import os
 import sys
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from build_news import OUT_DIR, STATE_DIR, chat, write_json  # noqa: E402
+from build_news import OUT_DIR, STATE_DIR, write_json  # noqa: E402
 
 log = logging.getLogger("analysis")
 
-# Modelo abierto, como el de las noticias; se puede cambiar sin tocar el código (p. ej. glm-5.3 o kimi-k2.6)
-MODEL = os.environ.get("ANALYSIS_MODEL", "glm-5.3-flash")
+# Se prueban en orden: los "latest" de Google a veces responden 503 por saturación
+MODELS = os.environ.get("ANALYSIS_MODELS", "gemini-flash-latest,gemini-3.5-flash,gemini-flash-lite-latest").split(",")
+GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 
-LEVELS_PER_SIDE = 4
-MAX_DISTANCE = 0.2  # zonas a más de un 20 % del precio no son "inmediatas"
-# Peso de cada tipo de nivel al agrupar: los giros diarios y las zonas de volumen pesan más
-WEIGHTS = {"swing_1d": 3, "swing_4h": 2, "volume": 2, "ma50_1d": 2, "ma200_1d": 3, "ma200_4h": 1, "round": 1}
+MAX_LEVELS = 4
+MAX_TARGET = 0.15  # un objetivo a más de un 15 % no es "las próximas horas"
 
 
 def get(url: str):
@@ -49,325 +49,232 @@ def get(url: str):
         return json.loads(res.read())
 
 
-def klines(interval: str, limit: int) -> list[dict]:
+def klines(interval: str, limit: int) -> list[list]:
+    """[hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], redondeado para gastar menos tokens."""
     rows = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={interval}&limit={limit}")
-    return [{"t": r[0], "o": float(r[1]), "h": float(r[2]), "l": float(r[3]), "c": float(r[4]), "v": float(r[5])} for r in rows]
+    fmt = "%Y-%m-%d" if interval == "1d" else "%Y-%m-%d %H:%M"
+    return [[datetime.fromtimestamp(r[0] / 1000, timezone.utc).strftime(fmt), *(round(float(x)) for x in r[1:6])] for r in rows]
 
 
-# ---------- Indicadores ----------
-
-def sma(xs: list[float], n: int) -> float | None:
-    return sum(xs[-n:]) / n if len(xs) >= n else None
-
-
-def rsi(xs: list[float], n: int = 14) -> float | None:
-    if len(xs) <= n:
-        return None
-    gain = loss = 0.0
-    for i in range(1, len(xs)):
-        d = xs[i] - xs[i - 1]
-        g, l = max(d, 0), max(-d, 0)
-        if i <= n:
-            gain += g / n
-            loss += l / n
-        else:
-            gain = (gain * (n - 1) + g) / n
-            loss = (loss * (n - 1) + l) / n
-    return 100.0 if loss == 0 else 100 - 100 / (1 + gain / loss)
-
-
-def pct_b(xs: list[float], n: int = 20, k: float = 2) -> float | None:
-    if len(xs) < n:
-        return None
-    w = xs[-n:]
-    m = sum(w) / n
-    sd = math.sqrt(sum((x - m) ** 2 for x in w) / n)
-    return 50.0 if sd == 0 else (xs[-1] - (m - k * sd)) / (2 * k * sd) * 100
-
-
-def atr(c: list[dict], n: int = 14) -> float:
-    trs = [max(c[i]["h"] - c[i]["l"], abs(c[i]["h"] - c[i - 1]["c"]), abs(c[i]["l"] - c[i - 1]["c"])) for i in range(1, len(c))]
-    return sum(trs[-n:]) / n
-
-
-def pct(a: float | None, b: float | None) -> float | None:
-    return None if a is None or not b else round((a / b - 1) * 100, 2)
-
-
-def technical(c: list[dict], label: str) -> dict:
-    closes = [x["c"] for x in c]
-    price = closes[-1]
-    per_day = 6 if label == "4h" else 1
-    return {
-        "rsi_14": round(rsi(closes), 1),
-        "bollinger_pct_b": round(pct_b(closes), 1),
-        "dist_sma20_pct": pct(price, sma(closes, 20)),
-        "dist_sma50_pct": pct(price, sma(closes, 50)),
-        "dist_sma200_pct": pct(price, sma(closes, 200)),
-        "atr_14_pct": round(atr(c) / price * 100, 2),
-        "change_1d_pct": pct(price, closes[-1 - per_day]),
-        "change_7d_pct": pct(price, closes[-1 - 7 * per_day]),
-        "change_30d_pct": pct(price, closes[-1 - 30 * per_day]) if len(closes) > 30 * per_day else None,
-        "high_20": round(max(x["h"] for x in c[-20:])),
-        "low_20": round(min(x["l"] for x in c[-20:])),
+def market() -> dict:
+    """Datos en bruto, sin indicadores ni niveles: el análisis lo hace el modelo."""
+    data: dict = {
+        "candles_1d": klines("1d", 180),
+        "candles_4h": klines("4h", 120),
+        "candles_1h": klines("1h", 72),
     }
-
-
-# ---------- Niveles ----------
-
-def swings(c: list[dict], w: int) -> list[float]:
-    """Máximos y mínimos de giro: la vela más alta (o más baja) de las w de cada lado."""
-    out = []
-    for i in range(w, len(c) - w):
-        win = c[i - w : i + w + 1]
-        if c[i]["h"] == max(x["h"] for x in win):
-            out.append(c[i]["h"])
-        if c[i]["l"] == min(x["l"] for x in win):
-            out.append(c[i]["l"])
-    return out
-
-
-def volume_nodes(c: list[dict], step: float, top: int = 5) -> list[float]:
-    """Precios con más volumen negociado: el volumen de cada vela se reparte por igual en su rango."""
-    lo = min(x["l"] for x in c)
-    bins = [0.0] * (int((max(x["h"] for x in c) - lo) / step) + 1)
-    for x in c:
-        a, b = int((x["l"] - lo) / step), int((x["h"] - lo) / step)
-        for k in range(a, b + 1):
-            bins[k] += x["v"] / (b - a + 1)
-    peaks = [k for k in range(1, len(bins) - 1) if bins[k] >= bins[k - 1] and bins[k] >= bins[k + 1]]
-    peaks.sort(key=lambda k: bins[k], reverse=True)
-    return [lo + (k + 0.5) * step for k in peaks[:top]]
-
-
-def levels(d1: list[dict], h4: list[dict]) -> tuple[list[dict], float]:
-    price = h4[-1]["c"]
-    a = atr(d1)
-    cands = [(p, "swing_1d") for p in swings(d1[-180:], 5)]
-    cands += [(p, "swing_4h") for p in swings(h4[-360:], 6)]
-    cands += [(p, "volume") for p in volume_nodes(h4[-180:], a * 0.25)]
-    closes_d, closes_h = [x["c"] for x in d1], [x["c"] for x in h4]
-    for src, v in (("ma50_1d", sma(closes_d, 50)), ("ma200_1d", sma(closes_d, 200)), ("ma200_4h", sma(closes_h, 200))):
-        if v:
-            cands.append((v, src))
-    step = 5000
-    cands += [(k * step, "round") for k in range(int(price * (1 - MAX_DISTANCE) / step), int(price * (1 + MAX_DISTANCE) / step) + 2)]
-    cands = sorted((p, s) for p, s in cands if abs(p / price - 1) <= MAX_DISTANCE)
-
-    # Se agrupan los precios cercanos, en zonas de 0,7 ATR diarios como máximo (si no, se encadenan sin fin)
-    zones: list[list[tuple[float, str]]] = []
-    for p, s in cands:
-        if zones and p - zones[-1][0][0] < a * 0.7:
-            zones[-1].append((p, s))
-        else:
-            zones.append([(p, s)])
-    out = []
-    for z in zones:
-        ps = [p for p, _ in z]
-        strength = sum(WEIGHTS[s] for _, s in z)
-        if strength < 3:  # un número redondo o un giro de 4 h sueltos no bastan
-            continue
-        mid = sum(ps) / len(ps)
-        half = max((max(ps) - min(ps)) / 2, a * 0.1)
-        out.append({"low": round(mid - half), "high": round(mid + half), "mid": round(mid), "strength": strength,
-                    "sources": sorted({s for _, s in z})})
-
-    sup = sorted((z for z in out if z["mid"] < price), key=lambda z: -z["mid"])[:LEVELS_PER_SIDE]
-    res = sorted((z for z in out if z["mid"] >= price), key=lambda z: z["mid"])[:LEVELS_PER_SIDE]
-    for i, z in enumerate(sup):
-        z.update(id=f"S{i + 1}", kind="support")
-    for i, z in enumerate(res):
-        z.update(id=f"R{i + 1}", kind="resistance")
-    return sup + res, a
-
-
-# ---------- Sentimiento ----------
-
-def sentiment() -> dict:
-    out: dict = {}
     try:
-        fr = get(f"{FUTURES}/fapi/v1/premiumIndex?symbol=BTCUSDT")
-        out["funding_rate_8h_pct"] = round(float(fr["lastFundingRate"]) * 100, 4)
-        oi = get(f"{FUTURES}/futures/data/openInterestHist?symbol=BTCUSDT&period=4h&limit=180")
-        ois = [float(x["sumOpenInterest"]) for x in oi]
-        out["open_interest_btc"] = round(ois[-1])
-        out["open_interest_change_1d_pct"] = pct(ois[-1], ois[-7])
-        out["open_interest_change_7d_pct"] = pct(ois[-1], ois[-43])
-        ls = get(f"{FUTURES}/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=4h&limit=6")
-        r = float(ls[-1]["longShortRatio"])
-        out["accounts_long_pct"] = round(r / (1 + r) * 100, 1)
-        tk = get(f"{FUTURES}/futures/data/takerlongshortRatio?symbol=BTCUSDT&period=4h&limit=6")
-        rs = [float(x["buySellRatio"]) for x in tk]
-        out["taker_buy_pct_24h"] = round(sum(x / (1 + x) for x in rs) / len(rs) * 100, 1)
+        fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
+        data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
+        oi = get(f"{FUTURES}/futures/data/openInterestHist?symbol=BTCUSDT&period=4h&limit=42")
+        data["open_interest_btc_4h"] = [round(float(x["sumOpenInterest"])) for x in oi]
+        ls = get(f"{FUTURES}/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=4h&limit=42")
+        data["accounts_long_pct_4h"] = [round(float(x["longAccount"]) * 100, 1) for x in ls]
+        tk = get(f"{FUTURES}/futures/data/takerlongshortRatio?symbol=BTCUSDT&period=4h&limit=42")
+        data["taker_buy_sell_ratio_4h"] = [round(float(x["buySellRatio"]), 3) for x in tk]
     except Exception as e:  # sin derivados el análisis sigue, con menos datos
         log.warning("derivados no disponibles: %s", e)
     try:
-        fg = get("https://api.alternative.me/fng/?limit=8")["data"]
-        out["fear_greed"] = int(fg[0]["value"])
-        out["fear_greed_7d_ago"] = int(fg[7]["value"])
+        fg = get("https://api.alternative.me/fng/?limit=14")["data"]
+        data["fear_greed_14d"] = [int(x["value"]) for x in reversed(fg)]
     except Exception as e:
         log.warning("Fear & Greed no disponible: %s", e)
-    return out
-
-
-def index_context() -> dict:
-    """Score diario y métricas diarias del índice (ETF, SOPR…): del latest.json que publica el pipeline."""
     try:
-        latest = get(LATEST_URL)
+        metrics = {m["id"]: m["value"] for c in get(LATEST_URL)["categories"].values() for m in c["metrics"]}
+        if metrics.get("etf_flows") is not None:
+            data["spot_etf_net_flows_20_sessions_btc"] = round(metrics["etf_flows"])
     except Exception as e:
         log.warning("latest.json no disponible: %s", e)
-        return {}
-    metrics = {m["id"]: m["value"] for cat in latest["categories"].values() for m in cat["metrics"]}
-    return {
-        "index_score_1d": latest.get("score_1d"),
-        "category_scores": {k: v["score"] for k, v in latest["categories"].items()},
-        "etf_flows_20_sessions_btc": metrics.get("etf_flows"),
-        "sth_sopr_7d": metrics.get("sth_sopr"),
-        "as_of": latest.get("as_of"),
-    }
+    return data
 
 
 # ---------- Modelo ----------
 
-PROMPT = """Eres un analista de mercado que escribe para una web que estima si Bitcoin está caro o barato. Con los datos \
-que recibes en JSON (técnico en velas diarias y de 4 h, sentimiento y derivados, contexto del índice y una lista de \
-zonas de soporte S1… y de resistencia R1… ya calculadas, de la más cercana a la más lejana) decides:
+PROMPT = """Eres un analista técnico de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas diarias, de \
+4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más reciente), \
+funding de los perpetuos, open interest, porcentaje de cuentas en largo, ratio de compras/ventas a mercado, Fear & \
+Greed y flujos de los ETF al contado. La última vela de cada serie está en curso: su cierre es el precio actual.
 
-- bias: el sesgo de corto plazo (próximos días): "alcista", "bajista" o "neutral". confidence: 1 (débil) a 3 (fuerte).
-- key_supports y key_resistances: los ids de las 1 o 2 zonas más relevantes de cada lado. Solo ids de la lista.
-- bull: el escenario alcista. trigger es la resistencia cuya ruptura lo activaría y target la resistencia siguiente a \
-la que podría ir (más lejana que trigger). bear: igual con soportes (target más lejano que trigger).
-- primary: el escenario más probable ("bull" o "bear"), coherente con bias; con bias neutral, el que veas algo más \
-probable.
-- es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. \
-summary: 2 o 3 frases (60 palabras como máximo). technical y sentiment: 2 a 4 puntos breves cada uno (25 palabras como \
-máximo), citando las cifras que los justifican.
+Haz tu propio análisis (estructura de mercado, tendencia, máximos y mínimos relevantes, volumen, medias, impulso, \
+posicionamiento en derivados, sentimiento) y devuelve:
+- supports y resistances: de 2 a 4 zonas inmediatas de cada lado del precio actual, como rangos de precio [low, high] \
+de anchura realista, de la más cercana a la más lejana, con strength de 1 (débil) a 3 (fuerte). Soportes por debajo \
+del precio actual y resistencias por encima.
+- bias: el sesgo de corto plazo, "alcista", "bajista" o "neutral", y confidence de 1 (baja) a 3 (alta).
+- outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): direction ("alcista", "bajista" o \
+"lateral"), target (precio al que es más probable que vaya) e invalidation (precio que, si se alcanza, invalidaría ese \
+escenario, al otro lado del precio actual).
+- alternative: el escenario alternativo menos probable, con su direction y su target.
+- es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
+la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). outlook: lo más probable en las próximas horas y qué \
+lo invalidaría, en 1 o 2 frases. technical y sentiment: 2 a 4 puntos breves cada uno (25 palabras como máximo) con las \
+cifras que los justifican.
 
-Reglas: usa solo los datos recibidos; no inventes precios, menciona niveles por su precio redondeado (p. ej. 78.500 $ \
-en español y $78,500 en inglés). Habla en condicional y de escenarios, nunca de certezas, y no des recomendaciones de \
-compra o venta."""
+Reglas: básate solo en los datos recibidos; precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). \
+Habla en términos de probabilidad y escenarios, nunca de certezas, y no des recomendaciones de compra o venta."""
 
+ZONE = {"type": "OBJECT", "properties": {"low": {"type": "NUMBER"}, "high": {"type": "NUMBER"}, "strength": {"type": "INTEGER"}},
+        "required": ["low", "high", "strength"]}
+DIRECTION = {"type": "STRING", "enum": ["alcista", "bajista", "lateral"]}
 TEXT = {
-    "type": "object",
+    "type": "OBJECT",
     "properties": {
-        "headline": {"type": "string"},
-        "summary": {"type": "string"},
-        "technical": {"type": "array", "items": {"type": "string"}},
-        "sentiment": {"type": "array", "items": {"type": "string"}},
+        "headline": {"type": "STRING"},
+        "summary": {"type": "STRING"},
+        "outlook": {"type": "STRING"},
+        "technical": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "sentiment": {"type": "ARRAY", "items": {"type": "STRING"}},
     },
-    "required": ["headline", "summary", "technical", "sentiment"],
-    "additionalProperties": False,
-}
-SCENARIO = {
-    "type": "object",
-    "properties": {"trigger": {"type": "string"}, "target": {"type": "string"}},
-    "required": ["trigger", "target"],
-    "additionalProperties": False,
+    "required": ["headline", "summary", "outlook", "technical", "sentiment"],
 }
 SCHEMA = {
-    "type": "object",
+    "type": "OBJECT",
     "properties": {
-        "bias": {"type": "string", "enum": ["alcista", "bajista", "neutral"]},
-        "confidence": {"type": "integer"},
-        "key_supports": {"type": "array", "items": {"type": "string"}},
-        "key_resistances": {"type": "array", "items": {"type": "string"}},
-        "bull": SCENARIO,
-        "bear": SCENARIO,
-        "primary": {"type": "string", "enum": ["bull", "bear"]},
+        "supports": {"type": "ARRAY", "items": ZONE},
+        "resistances": {"type": "ARRAY", "items": ZONE},
+        "bias": {"type": "STRING", "enum": ["alcista", "bajista", "neutral"]},
+        "confidence": {"type": "INTEGER"},
+        "outlook": {
+            "type": "OBJECT",
+            "properties": {"direction": DIRECTION, "target": {"type": "NUMBER"}, "invalidation": {"type": "NUMBER"},
+                           "horizon_hours": {"type": "INTEGER"}},
+            "required": ["direction", "target", "invalidation", "horizon_hours"],
+        },
+        "alternative": {"type": "OBJECT", "properties": {"direction": DIRECTION, "target": {"type": "NUMBER"}},
+                        "required": ["direction", "target"]},
         "es": TEXT,
         "en": TEXT,
     },
-    "required": ["bias", "confidence", "key_supports", "key_resistances", "bull", "bear", "primary", "es", "en"],
-    "additionalProperties": False,
+    "required": ["supports", "resistances", "bias", "confidence", "outlook", "alternative", "es", "en"],
+    "propertyOrdering": ["supports", "resistances", "bias", "confidence", "outlook", "alternative", "es", "en"],
 }
 
 
-def validate(a: dict, lv: list[dict]) -> dict:
-    """Corrige lo que se puede (ids desconocidos, primary incoherente) y lanza ValueError si el análisis no se sostiene."""
-    sup = [z["id"] for z in lv if z["kind"] == "support"]
-    res = [z["id"] for z in lv if z["kind"] == "resistance"]
+def gemini(user: str) -> tuple[dict, str]:
+    """Respuesta JSON del primer modelo de MODELS que conteste. Reintenta saturación (429/503) y errores del servidor."""
+    body = json.dumps({
+        "systemInstruction": {"parts": [{"text": PROMPT}]},
+        "contents": [{"role": "user", "parts": [{"text": user}]}],
+        "generationConfig": {"responseMimeType": "application/json", "responseSchema": SCHEMA, "temperature": 0.4},
+    }).encode()
+    last: Exception | None = None
+    for model in MODELS:
+        req = urllib.request.Request(GEMINI.format(model=model.strip()), data=body, method="POST", headers={
+            "Content-Type": "application/json", "X-goog-api-key": os.environ["GEMINI_API_KEY"]})
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=180) as res:
+                    data = json.loads(res.read())
+                cand = data["candidates"][0]
+                if cand.get("finishReason") != "STOP":
+                    raise RuntimeError(f"respuesta incompleta: finishReason={cand.get('finishReason')}")
+                usage = data.get("usageMetadata", {})
+                log.info("%s (%s): %s tokens de entrada, %s de salida, %s de razonamiento", model, data.get("modelVersion"),
+                         usage.get("promptTokenCount"), usage.get("candidatesTokenCount"), usage.get("thoughtsTokenCount"))
+                text = "".join(p.get("text", "") for p in cand["content"]["parts"] if not p.get("thought"))
+                return json.loads(text), data.get("modelVersion") or model
+            except urllib.error.HTTPError as e:
+                try:
+                    msg = json.loads(e.read())["error"]["message"]
+                except Exception:
+                    msg = ""
+                last = RuntimeError(f"{model}: HTTP {e.code} {msg[:120]}")
+                if e.code not in (429, 500, 502, 503, 504):
+                    break  # modelo inexistente o petición inválida: se pasa al siguiente
+            except (urllib.error.URLError, TimeoutError, RuntimeError, KeyError, json.JSONDecodeError) as e:
+                last = RuntimeError(f"{model}: {e}")
+            log.warning("%s", last)
+            time.sleep(5 * 2**attempt)
+    raise RuntimeError(f"ningún modelo respondió: {last}")
 
-    def scenario(s: dict, side: list[str]) -> dict:
-        if s["trigger"] not in side:
-            raise ValueError(f"nivel desconocido: {s}")
-        i = side.index(s["trigger"])
-        j = side.index(s["target"]) if s["target"] in side else i + 1
-        if j <= i:  # el objetivo ha de estar más lejos que el disparador
-            j = i + 1
-        return {"trigger": s["trigger"], "target": side[j] if j < len(side) else None}
 
-    out = {
+def validate(a: dict, price: float) -> dict:
+    """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene."""
+    def zones(raw: list[dict], kind: str) -> list[dict]:
+        out = []
+        for z in raw:
+            lo, hi = sorted((float(z["low"]), float(z["high"])))
+            mid = (lo + hi) / 2
+            near = abs(mid / price - 1) <= 0.25
+            side = mid < price * 1.005 if kind == "support" else mid > price * 0.995
+            if near and side and hi - lo < price * 0.06:
+                out.append({"kind": kind, "low": round(lo), "high": round(hi), "mid": round(mid),
+                            "strength": max(1, min(3, int(z["strength"])))})
+        out.sort(key=lambda z: abs(z["mid"] - price))
+        for i, z in enumerate(out[:MAX_LEVELS]):
+            z["id"] = f"{'S' if kind == 'support' else 'R'}{i + 1}"
+        return out[:MAX_LEVELS]
+
+    sup, res = zones(a["supports"], "support"), zones(a["resistances"], "resistance")
+    if not sup or not res:
+        raise ValueError(f"faltan zonas: {len(sup)} soportes, {len(res)} resistencias")
+
+    def move(m: dict) -> dict:
+        target = float(m["target"])
+        if abs(target / price - 1) > MAX_TARGET:
+            raise ValueError(f"objetivo fuera de rango: {target}")
+        # La dirección la marca el objetivo: un "alcista" con objetivo por debajo no se sostiene
+        d = "lateral" if abs(target / price - 1) < 0.004 else "alcista" if target > price else "bajista"
+        out = {"direction": m["direction"] if m["direction"] == d or d == "lateral" else d, "target": round(target)}
+        if "invalidation" in m:
+            inv = float(m["invalidation"])
+            other_side = (inv - price) * (target - price) < 0
+            out["invalidation"] = round(inv) if other_side and abs(inv / price - 1) <= MAX_TARGET else None
+            out["horizon_hours"] = max(1, min(48, int(m.get("horizon_hours", 24))))
+        return out
+
+    result = {
         "bias": a["bias"],
         "confidence": max(1, min(3, int(a["confidence"]))),
-        "key_supports": [x for x in a["key_supports"] if x in sup][:2] or sup[:1],
-        "key_resistances": [x for x in a["key_resistances"] if x in res][:2] or res[:1],
-        "bull": scenario(a["bull"], res),
-        "bear": scenario(a["bear"], sup),
-        "primary": {"alcista": "bull", "bajista": "bear"}.get(a["bias"], a["primary"]),
+        "levels": sup + res,
+        "outlook": move(a["outlook"]),
+        "alternative": move(a["alternative"]),
     }
     for lang in ("es", "en"):
         t = a[lang]
-        if not t["headline"].strip() or not t["summary"].strip():
+        if not all(t[k].strip() for k in ("headline", "summary", "outlook")):
             raise ValueError(f"texto vacío ({lang})")
-        out[lang] = {"headline": t["headline"].strip(), "summary": t["summary"].strip(),
-                     "technical": [x.strip() for x in t["technical"] if x.strip()][:4],
-                     "sentiment": [x.strip() for x in t["sentiment"] if x.strip()][:4]}
-    return out
+        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "outlook")} | {
+            k: [x.strip() for x in t[k] if x.strip()][:4] for k in ("technical", "sentiment")}
+    return result
 
 
-def dry_run(data: dict, lv: list[dict]) -> dict:
-    """Sin modelo: sesgo por el RSI diario y la media de 50, para probar la salida y la web."""
-    t = data["technical"]["1d"]
-    up = (t["rsi_14"] or 50) > 50 and (t["dist_sma50_pct"] or 0) > 0
-    down = (t["rsi_14"] or 50) < 45 and (t["dist_sma50_pct"] or 0) < 0
-    sup = [z["id"] for z in lv if z["kind"] == "support"]
-    res = [z["id"] for z in lv if z["kind"] == "resistance"]
-    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run: el sesgo sale de reglas fijas.",
-            "technical": [f"RSI diario {t['rsi_14']}"], "sentiment": ["Sin modelo"]}
-    return {"bias": "alcista" if up else "bajista" if down else "neutral", "confidence": 1,
-            "key_supports": sup[:1], "key_resistances": res[:1],
-            "bull": {"trigger": res[0], "target": res[1]}, "bear": {"trigger": sup[0], "target": sup[1]},
-            "primary": "bull" if up else "bear", "es": text, "en": {**text, "headline": "Test analysis (no model)"}}
+def dry_run(data: dict, price: float) -> dict:
+    """Sin modelo: mínimos y máximos recientes como zonas, para probar la salida y la web."""
+    c4 = data["candles_4h"]
+    lows = sorted({c[3] for c in c4 if c[3] < price}, reverse=True)
+    highs = sorted({c[2] for c in c4 if c[2] > price})
+    pick = lambda xs: [xs[min(i * 8, len(xs) - 1)] for i in range(3)]
+    sup = [{"low": p - 300, "high": p + 300, "strength": 2} for p in pick(lows)]
+    res = [{"low": p - 300, "high": p + 300, "strength": 2} for p in pick(highs)]
+    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "outlook": "Sin modelo.",
+            "technical": ["Sin modelo"], "sentiment": ["Sin modelo"]}
+    return {"supports": sup, "resistances": res, "bias": "neutral", "confidence": 1,
+            "outlook": {"direction": "bajista", "target": sup[0]["low"], "invalidation": res[0]["high"], "horizon_hours": 12},
+            "alternative": {"direction": "alcista", "target": res[0]["high"]}, "es": text, "en": text}
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true", help="no llama al modelo: sesgo por reglas y texto de prueba")
+    ap.add_argument("--dry-run", action="store_true", help="no llama al modelo: niveles por reglas simples")
     args = ap.parse_args()
 
-    d1, h4 = klines("1d", 400), klines("4h", 500)
-    price = h4[-1]["c"]
-    lv, a = levels(d1, h4)
-    if len([z for z in lv if z["kind"] == "support"]) < 2 or len([z for z in lv if z["kind"] == "resistance"]) < 2:
-        raise SystemExit("no hay niveles suficientes a cada lado del precio")
-    data = {
-        "price": round(price),
-        "time_utc": datetime.fromtimestamp(h4[-1]["t"] / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M"),
-        "technical": {"1d": technical(d1, "1d"), "4h": technical(h4, "4h")},
-        "sentiment": sentiment(),
-        "index": index_context(),
-        "zones": [{k: z[k] for k in ("id", "low", "high", "strength", "sources")} for z in lv],
-    }
-    raw = dry_run(data, lv) if args.dry_run else chat(PROMPT, json.dumps(data, ensure_ascii=False), SCHEMA, "analisis", model=MODEL)
-    result = validate(raw, lv)
+    data = market()
+    price = float(data["candles_1h"][-1][4])
+    if args.dry_run:
+        raw, model = dry_run(data, price), "dry-run"
+    else:
+        raw, model = gemini(json.dumps(data, separators=(",", ":")))
+    result = validate(raw, price)
 
-    now = datetime.now(timezone.utc)
-    out = {
-        "generated_at": now.isoformat(timespec="seconds"),
-        "model": "dry-run" if args.dry_run else MODEL,
-        "price": round(price),
-        "atr_1d": round(a),
-        "levels": lv,
-        **result,
-        "inputs": {"technical": data["technical"], "sentiment": data["sentiment"], "index": data["index"]},
-    }
+    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price), **result}
     write_json(OUT_DIR / "analysis.json", out)
     if not args.dry_run:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         with open(STATE_DIR / "analysis_log.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps({k: out[k] for k in ("generated_at", "model", "price", "levels", "bias", "confidence", "bull", "bear", "primary")}) + "\n")
-    log.info("analysis.json: %s (%s), %d niveles", result["bias"], result["primary"], len(lv))
+            f.write(json.dumps({k: out[k] for k in ("generated_at", "model", "price", "levels", "bias", "confidence", "outlook", "alternative")}) + "\n")
+    log.info("analysis.json: %s, %s hacia %s (%s)", result["bias"], result["outlook"]["direction"], result["outlook"]["target"], model)
 
 
 if __name__ == "__main__":

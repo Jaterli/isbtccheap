@@ -405,38 +405,38 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Análisis de Bitcoin: soportes, resistencias y sesgo",
     intro:
-      "Análisis del precio de Bitcoin que se actualiza dos veces al día: los soportes y resistencias inmediatos, el sesgo del mercado según el técnico y el sentimiento, y los escenarios alcista y bajista dibujados sobre el gráfico de BTC.",
+      "Análisis del precio de Bitcoin con IA que se actualiza dos veces al día: la situación de BTC hoy, sus soportes y resistencias inmediatos, el sesgo del mercado y lo más probable en las próximas horas, dibujado sobre el gráfico de BTC.",
     sections: [
       {
-        h: "¿Cómo se calculan los soportes y resistencias?",
-        p: "Con reglas fijas, sin IA: los máximos y mínimos de giro de las velas diarias y de 4 horas, los precios en los que más volumen se ha negociado en el último mes, las medias móviles de 50 y 200 sesiones y los números redondos. Los precios cercanos se agrupan en zonas, y cuantas más referencias coinciden en una zona, más fuerte se considera.",
+        h: "¿Cómo se hace el análisis?",
+        p: "Un modelo de IA de Google (Gemini) recibe datos de mercado en bruto: velas diarias, de 4 horas y de 1 hora de Binance, el funding de los futuros perpetuos, el open interest, el porcentaje de cuentas en largo, el ratio de compras y ventas a mercado, el Fear & Greed Index y los flujos de los ETF al contado. Con ellos hace su propio análisis técnico y de sentimiento, sin niveles ni conclusiones previas.",
       },
       {
-        h: "¿Qué hace la IA?",
-        p: "Un modelo de lenguaje recibe esas zonas junto con los indicadores técnicos (RSI, bandas de Bollinger, distancia a las medias, volatilidad) y los de sentimiento (Fear & Greed, funding, open interest, posiciones largas y cortas, flujos de los ETF). Con ellos decide el sesgo de corto plazo, señala las zonas clave y elige qué nivel tendría que romperse para cada escenario y hacia dónde podría ir el precio. No puede inventar precios: solo elige entre las zonas calculadas.",
+        h: "¿Qué muestra?",
+        p: "Las zonas de soporte y resistencia más cercanas al precio, con su fuerza; el sesgo de corto plazo y la confianza en él; el movimiento más probable en las próximas horas, con el precio que lo invalidaría, y un escenario alternativo. Antes de publicarse se comprueba que todo sea coherente con el precio: zonas a cada lado y objetivos razonables.",
       },
       {
         h: "¿Es una predicción?",
-        p: "No. Es una lectura del momento: los soportes y resistencias se rompen a menudo y el sesgo puede cambiar en horas. Sirve para situar el precio entre los niveles relevantes y entender qué está pesando más, no como recomendación de compra o venta.",
+        p: "No. Es una lectura del momento hecha por un modelo de IA, que puede equivocarse: los soportes y resistencias se rompen a menudo y el sesgo puede cambiar en horas. Sirve para situar el precio y entender qué está pesando más, no como recomendación de compra o venta.",
       },
     ],
   },
   en: {
     title: "Bitcoin analysis: support, resistance and bias",
     intro:
-      "Bitcoin price analysis updated twice a day: the immediate support and resistance zones, the market bias from technicals and sentiment, and the bullish and bearish scenarios drawn on the BTC chart.",
+      "AI analysis of the Bitcoin price updated twice a day: BTC's situation today, its immediate support and resistance, the market bias and what is most likely over the next hours, drawn on the BTC chart.",
     sections: [
       {
-        h: "How are support and resistance calculated?",
-        p: "With fixed rules, no AI: swing highs and lows on daily and 4-hour candles, the prices where most volume traded over the last month, the 50- and 200-session moving averages and round numbers. Nearby prices are grouped into zones, and the more references coincide in a zone, the stronger it is considered.",
+        h: "How is the analysis made?",
+        p: "A Google AI model (Gemini) receives raw market data: daily, 4-hour and 1-hour Binance candles, perpetual futures funding, open interest, the share of accounts long, the taker buy/sell ratio, the Fear & Greed Index and spot ETF flows. From them it makes its own technical and sentiment analysis, with no prior levels or conclusions.",
       },
       {
-        h: "What does the AI do?",
-        p: "A language model receives those zones along with technical indicators (RSI, Bollinger Bands, distance to the moving averages, volatility) and sentiment data (Fear & Greed, funding, open interest, long and short positioning, ETF flows). From them it decides the short-term bias, highlights the key zones and chooses which level would have to break for each scenario and where the price could head. It cannot invent prices: it only chooses among the calculated zones.",
+        h: "What does it show?",
+        p: "The support and resistance zones closest to the price, with their strength; the short-term bias and the confidence in it; the most likely move over the next hours, with the price that would invalidate it, and an alternative scenario. Before publishing, everything is checked for consistency with the price: zones on each side and reasonable targets.",
       },
       {
         h: "Is it a prediction?",
-        p: "No. It is a reading of the moment: support and resistance levels break often and the bias can change within hours. It helps place the price between the relevant levels and understand what is weighing most, not as a buy or sell recommendation.",
+        p: "No. It is a reading of the moment by an AI model, which can be wrong: support and resistance levels break often and the bias can change within hours. It helps place the price and understand what is weighing most, not as a buy or sell recommendation.",
       },
     ],
   },

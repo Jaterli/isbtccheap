@@ -4,7 +4,7 @@ import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
-import { ANALYSIS_URL, levelById, type Analysis, type Level } from "./lib/analysis";
+import { ANALYSIS_URL, type Analysis } from "./lib/analysis";
 import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
@@ -12,7 +12,8 @@ import type { Candle } from "./types";
 // Las velas se refrescan; el análisis cambia dos veces al día, basta con leerlo al cargar
 const CANDLES_MS = 5 * 60_000;
 
-const range = (l: Level) => `${usd(l.low)} – ${usd(l.high)}`;
+const signedPct = (v: number) =>
+  `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(Math.abs(v).toLocaleString(locale, { maximumFractionDigits: 1 }))}`;
 
 export function AnalysisApp() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -41,19 +42,6 @@ export function AnalysisApp() {
   const seo = SEO_ANALYSIS[lang];
   const text = analysis?.[lang];
   const price = candles?.at(-1)?.close ?? analysis?.price ?? null;
-  const scenario = (side: "bull" | "bear") => {
-    const s = analysis![side];
-    const trigger = levelById(analysis!, s.trigger);
-    const target = levelById(analysis!, s.target);
-    if (!trigger) return null;
-    return (
-      <li className={`an-scenario ${side}${analysis!.primary === side ? " primary" : ""}`}>
-        <strong>{side === "bull" ? tx.bull : tx.bear}</strong>
-        {analysis!.primary === side && <span className="news-tag">{tx.mostLikely}</span>}
-        <span>{tx.scenario(side, usd(side === "bull" ? trigger.high : trigger.low), target ? usd(target.mid) : null)}</span>
-      </li>
-    );
-  };
 
   return (
     <main className="container">
@@ -90,8 +78,17 @@ export function AnalysisApp() {
 
         {analysis && (
           <ul className="an-scenarios">
-            {scenario(analysis.primary)}
-            {scenario(analysis.primary === "bull" ? "bear" : "bull")}
+            <li className={`an-scenario primary ${analysis.outlook.direction}`}>
+              <strong>{tx.mostLikely(analysis.outlook.horizon_hours)}</strong>
+              <span>
+                {tx.move(analysis.outlook.direction, usd(analysis.outlook.target))}
+                {analysis.outlook.invalidation !== null && ` ${tx.invalidatedAt(usd(analysis.outlook.invalidation))}`}
+              </span>
+            </li>
+            <li className={`an-scenario ${analysis.alternative.direction}`}>
+              <strong>{tx.alternative}</strong>
+              <span>{tx.move(analysis.alternative.direction, usd(analysis.alternative.target))}</span>
+            </li>
           </ul>
         )}
       </section>
@@ -100,6 +97,9 @@ export function AnalysisApp() {
         <section className="card an-text">
           <h2>{text.headline}</h2>
           <p>{text.summary}</p>
+          <p className="an-outlook">
+            <strong>{tx.nextHours}</strong> {text.outlook}
+          </p>
           <div className="an-columns">
             <div>
               <h3>{tx.technical}</h3>
@@ -132,36 +132,30 @@ export function AnalysisApp() {
                   <th scope="col">{tx.cols.range}</th>
                   <th scope="col">{tx.cols.distance}</th>
                   <th scope="col">{tx.cols.strength}</th>
-                  <th scope="col">{tx.cols.sources}</th>
                 </tr>
               </thead>
               <tbody>
                 {[...analysis.levels]
                   .sort((p, q) => q.mid - p.mid)
-                  .map((l) => {
-                    const key = analysis.key_supports.includes(l.id) || analysis.key_resistances.includes(l.id);
-                    const dist = price ? (l.mid / price - 1) * 100 : null;
-                    return (
-                      <tr key={l.id} className={key ? "key" : undefined}>
-                        <th scope="row">
-                          <span className={`an-id ${l.kind}`}>
-                            {l.id}
-                            {key && <span className="news-tag">{tx.key}</span>}
-                          </span>
-                        </th>
-                        <td className="num">{range(l)}</td>
-                        <td className="num">{dist === null ? "—" : `${dist > 0 ? "+" : dist < 0 ? "−" : ""}${t.percent(Math.abs(dist).toLocaleString(locale, { maximumFractionDigits: 1 }))}`}</td>
-                        <td>
-                          <span className="an-strength" aria-label={String(l.strength)} title={String(l.strength)}>
-                            {[1, 2, 3].map((k) => (
-                              <i key={k} className={l.strength >= [3, 8, 15][k - 1] ? "on" : undefined} />
-                            ))}
-                          </span>
-                        </td>
-                        <td className="small muted">{l.sources.map((s) => tx.sources[s] ?? s).join(" · ")}</td>
-                      </tr>
-                    );
-                  })}
+                  .map((l) => (
+                    <tr key={l.id}>
+                      <th scope="row">
+                        <span className={`an-id ${l.kind}`}>{l.id}</span>
+                      </th>
+                      <td className="num">
+                        {usd(l.low)} – {usd(l.high)}
+                      </td>
+                      <td className="num">{price ? signedPct((l.mid / price - 1) * 100) : "—"}</td>
+                      <td>
+                        <span className="an-strength" title={tx.strength[l.strength - 1]}>
+                          {[1, 2, 3].map((k) => (
+                            <i key={k} className={l.strength >= k ? "on" : undefined} />
+                          ))}
+                          <span className="visually-hidden">{tx.strength[l.strength - 1]}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
