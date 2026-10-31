@@ -104,8 +104,7 @@ Sin esos ficheros las tarjetas no se muestran.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
-  de mercado en bruto (velas, derivados, liquidaciones de las últimas 24 h de 15 exchanges según Coinalyze, con
-  `COINANALIZE_API_KEY`, o solo de OKX si no responde, Fear & Greed y flujos de los ETF) y, como contexto, los titulares de impacto
+  de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), la hora y si la bolsa de EE. UU. está abierta y, como contexto, los titulares de impacto
   alto (7 o más) de las últimas 48 h del `news.json`. Usa GLM-5.3 Flash de DigitalOcean y, si falla o su respuesta no se
   sostiene, el siguiente de `ANALYSIS_MODELS` (Gemini de respaldo, con `GEMINI_API_KEY`).
   Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
