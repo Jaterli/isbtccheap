@@ -400,3 +400,44 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Análisis de Bitcoin: soportes, resistencias y sesgo",
+    intro:
+      "Análisis del precio de Bitcoin que se actualiza dos veces al día: los soportes y resistencias inmediatos, el sesgo del mercado según el técnico y el sentimiento, y los escenarios alcista y bajista dibujados sobre el gráfico de BTC.",
+    sections: [
+      {
+        h: "¿Cómo se calculan los soportes y resistencias?",
+        p: "Con reglas fijas, sin IA: los máximos y mínimos de giro de las velas diarias y de 4 horas, los precios en los que más volumen se ha negociado en el último mes, las medias móviles de 50 y 200 sesiones y los números redondos. Los precios cercanos se agrupan en zonas, y cuantas más referencias coinciden en una zona, más fuerte se considera.",
+      },
+      {
+        h: "¿Qué hace la IA?",
+        p: "Un modelo de lenguaje recibe esas zonas junto con los indicadores técnicos (RSI, bandas de Bollinger, distancia a las medias, volatilidad) y los de sentimiento (Fear & Greed, funding, open interest, posiciones largas y cortas, flujos de los ETF). Con ellos decide el sesgo de corto plazo, señala las zonas clave y elige qué nivel tendría que romperse para cada escenario y hacia dónde podría ir el precio. No puede inventar precios: solo elige entre las zonas calculadas.",
+      },
+      {
+        h: "¿Es una predicción?",
+        p: "No. Es una lectura del momento: los soportes y resistencias se rompen a menudo y el sesgo puede cambiar en horas. Sirve para situar el precio entre los niveles relevantes y entender qué está pesando más, no como recomendación de compra o venta.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin analysis: support, resistance and bias",
+    intro:
+      "Bitcoin price analysis updated twice a day: the immediate support and resistance zones, the market bias from technicals and sentiment, and the bullish and bearish scenarios drawn on the BTC chart.",
+    sections: [
+      {
+        h: "How are support and resistance calculated?",
+        p: "With fixed rules, no AI: swing highs and lows on daily and 4-hour candles, the prices where most volume traded over the last month, the 50- and 200-session moving averages and round numbers. Nearby prices are grouped into zones, and the more references coincide in a zone, the stronger it is considered.",
+      },
+      {
+        h: "What does the AI do?",
+        p: "A language model receives those zones along with technical indicators (RSI, Bollinger Bands, distance to the moving averages, volatility) and sentiment data (Fear & Greed, funding, open interest, long and short positioning, ETF flows). From them it decides the short-term bias, highlights the key zones and chooses which level would have to break for each scenario and where the price could head. It cannot invent prices: it only chooses among the calculated zones.",
+      },
+      {
+        h: "Is it a prediction?",
+        p: "No. It is a reading of the moment: support and resistance levels break often and the bias can change within hours. It helps place the price between the relevant levels and understand what is weighing most, not as a buy or sell recommendation.",
+      },
+    ],
+  },
+};

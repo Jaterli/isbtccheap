@@ -22,6 +22,7 @@ const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
 const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
 const LIQUIDITY = { URL_ES: `${SITE}/liquidez/`, URL_EN: `${SITE}/en/liquidity/` };
+const ANALYSIS = { URL_ES: `${SITE}/analisis/`, URL_EN: `${SITE}/en/analysis/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
   es: {
@@ -182,6 +183,25 @@ const LIQUIDITY_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const ANALYSIS_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...ANALYSIS,
+    URL: ANALYSIS.URL_ES,
+    TITLE: "Análisis de Bitcoin hoy: soportes, resistencias y sesgo | Is BTC Cheap?",
+    DESCRIPTION:
+      "Análisis diario del precio de Bitcoin con IA: soportes y resistencias inmediatos, sesgo del mercado según el técnico y el sentimiento, y los escenarios alcista y bajista.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...ANALYSIS,
+    URL: ANALYSIS.URL_EN,
+    TITLE: "Bitcoin analysis today: support, resistance and bias | Is BTC Cheap?",
+    DESCRIPTION:
+      "Daily AI analysis of the Bitcoin price: immediate support and resistance, market bias from technicals and sentiment, and the bullish and bearish scenarios.",
+  },
+};
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -191,4 +211,5 @@ export const META = {
   categories: CATEGORIES_META,
   etf: ETF_META,
   liquidity: LIQUIDITY_META,
+  analysis: ANALYSIS_META,
 };

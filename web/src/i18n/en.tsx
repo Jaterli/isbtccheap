@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", analysis: "Analysis" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -169,6 +169,48 @@ export const en: Messages = {
     fgSource: "Fear & Greed Index:",
     note: "Historical data, not a forecast or investment advice.",
     chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
+  },
+  analysis: {
+    title: "Bitcoin analysis",
+    rest: "Immediate support and resistance, market bias and likely scenarios, based on technicals and sentiment. Updated twice a day.",
+    card: "Levels and scenarios",
+    info: [
+      "Zones are calculated with fixed rules: swings on daily and 4h candles, the highest-volume prices of the last month, the 50 and 200 moving averages and round numbers. Supports in green, resistances in red; key zones are stronger.",
+      "An AI model reads the technicals and sentiment, decides the bias and chooses, among those zones, which one would have to break for each scenario and where the price could head. The solid arrow is the most likely scenario; the dashed one, the alternative. Candles are 4h and update live; the analysis, twice a day.",
+    ],
+    bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
+    confidence: ["low confidence", "medium confidence", "high confidence"],
+    updated: (when: string, price: string) => `Analysis from ${when}, with BTC at ${price}.`,
+    unavailable: "The analysis is not available yet.",
+    close: "Close",
+    legendBull: "Bullish scenario",
+    legendBear: "Bearish scenario",
+    legendStyle: "Solid: most likely",
+    ahead: "Scenarios",
+    bull: "Bullish",
+    bear: "Bearish",
+    mostLikely: "Most likely",
+    scenario: (side: "bull" | "bear", trigger: string, target: string | null) =>
+      side === "bull"
+        ? `If it breaks above ${trigger}${target ? `, it could head toward ${target}` : ", the way up would be open"}.`
+        : `If it loses ${trigger}${target ? `, it could fall toward ${target}` : ", the way down would be open"}.`,
+    technical: "Technicals",
+    sentiment: "Sentiment",
+    levelsTitle: "Support and resistance",
+    key: "Key",
+    cols: { zone: "Zone", range: "Range", distance: "Distance", strength: "Strength", sources: "References" },
+    sources: {
+      swing_1d: "Daily swing",
+      swing_4h: "4h swing",
+      volume: "Volume",
+      ma50_1d: "Daily MA50",
+      ma200_1d: "Daily MA200",
+      ma200_4h: "4h MA200",
+      round: "Round number",
+    } as Record<string, string>,
+    note: (model: string) =>
+      `Text and scenarios generated with AI (${model}) from Binance, Alternative.me and the index's own data; it may contain errors. It is a reading of the moment, not a prediction or investment advice.`,
+    chartAria: "Bitcoin 4-hour candles with support and resistance zones and arrows toward the bullish and bearish scenarios",
   },
   liquidity: {
     title: "Global liquidity and Bitcoin",

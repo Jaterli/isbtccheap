@@ -206,11 +206,11 @@ def write_json(path: Path, data) -> None:
     os.replace(f.name, path)
 
 
-def chat(system: str, user: str, schema: dict, name: str, retries: int = 3) -> dict:
+def chat(system: str, user: str, schema: dict, name: str, retries: int = 3, model: str = MODEL) -> dict:
     """Llamada a la API de chat de DigitalOcean con respuesta JSON obligatoria según `schema`.
     Reintenta los límites de peticiones y los errores del servidor."""
     body = {
-        "model": MODEL,
+        "model": model,
         "max_tokens": 16000,
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},

@@ -113,4 +113,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/liquidity/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/liquidity/" />
   </url>
+  <url>
+    <loc>https://isbtccheap.com/analisis/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/analisis/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/analysis/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/analysis/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/analysis/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/analisis/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/analysis/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/analysis/" />
+  </url>
 </urlset>

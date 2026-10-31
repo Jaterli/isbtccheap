@@ -94,20 +94,25 @@ cd web; npm install; npm run dev
 
 ## Noticias y agenda económica (droplet)
 
-Las tarjetas de noticias y agenda leen `/news/news.json` y `/news/calendar.json`. Los generan dos scripts de `news/`
+Las tarjetas de noticias y agenda leen `/news/news.json` y `/news/calendar.json`, y la página de análisis,
+`/news/analysis.json`. Los generan tres scripts de `news/`
 (solo librería estándar de Python 3.10+) con un modelo de la inferencia serverless de DigitalOcean (GLM-5.3 Flash: los de
 Anthropic y OpenAI exigen el nivel 3). nginx los sirve desde `news/out`, montado como volumen en `docker-compose.yml`.
 Sin esos ficheros las tarjetas no se muestran.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
+- `build_analysis.py`: velas y derivados de Binance, Fear & Greed y el `latest.json` del índice → soportes y
+  resistencias calculados con reglas fijas, y el sesgo y los escenarios que elige el modelo entre esas zonas. El modelo
+  se cambia con `ANALYSIS_MODEL` en `news/.env` (por defecto `glm-5.3-flash`). Cada análisis se guarda también en
+  `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 
 En el droplet, una vez:
 
 ```bash
 cd ~/isbtccheap && git pull && docker compose up -d --build
 cp news/.env.example news/.env && chmod 600 news/.env   # y pon la Model Access Key en DO_MODEL_ACCESS_KEY
-news/run.sh build_news.py && news/run.sh build_calendar.py   # primera ejecución, para comprobar
+news/run.sh build_news.py && news/run.sh build_calendar.py && news/run.sh build_analysis.py   # primera ejecución
 crontab -e
 ```
 
@@ -119,9 +124,11 @@ crontab -e
 5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
+# Análisis: tras el cierre de la vela diaria y antes de la apertura de Wall Street
+15 0,13 * * *           /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
-Coste orientativo: 1-2 $/mes. En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+Coste orientativo: 1-2 $/mes (el análisis, unos céntimos más con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
 sirve `news/out` en `/news/`.
 
 ## Estructura

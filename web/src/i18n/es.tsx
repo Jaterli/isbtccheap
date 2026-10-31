@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", analysis: "Análisis" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -176,6 +176,48 @@ export const es = {
     fgSource: "Fear & Greed Index:",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
+  },
+  analysis: {
+    title: "Análisis de Bitcoin",
+    rest: "Soportes y resistencias inmediatos, sesgo del mercado y escenarios probables, a partir del técnico y del sentimiento. Se actualiza dos veces al día.",
+    card: "Niveles y escenarios",
+    info: [
+      "Las zonas se calculan con reglas fijas: giros de las velas diarias y de 4 h, precios con más volumen del último mes, medias de 50 y 200 y números redondos. En verde, los soportes; en rojo, las resistencias; más intensas, las zonas clave.",
+      "Un modelo de IA lee el técnico y el sentimiento, decide el sesgo y elige, entre esas zonas, cuál tendría que romperse para cada escenario y hacia dónde podría ir el precio. La flecha continua es el escenario más probable; la discontinua, el alternativo. Las velas son de 4 h y se actualizan en vivo; el análisis, dos veces al día.",
+    ],
+    bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
+    confidence: ["confianza baja", "confianza media", "confianza alta"],
+    updated: (when: string, price: string) => `Análisis del ${when}, con BTC a ${price}.`,
+    unavailable: "El análisis aún no está disponible.",
+    close: "Cierre",
+    legendBull: "Escenario alcista",
+    legendBear: "Escenario bajista",
+    legendStyle: "Continua: más probable",
+    ahead: "Escenarios",
+    bull: "Alcista",
+    bear: "Bajista",
+    mostLikely: "Más probable",
+    scenario: (side: "bull" | "bear", trigger: string, target: string | null) =>
+      side === "bull"
+        ? `Si supera ${trigger}${target ? `, podría ir hacia ${target}` : ", quedaría vía libre al alza"}.`
+        : `Si pierde ${trigger}${target ? `, podría caer hacia ${target}` : ", quedaría vía libre a la baja"}.`,
+    technical: "Técnico",
+    sentiment: "Sentimiento",
+    levelsTitle: "Soportes y resistencias",
+    key: "Clave",
+    cols: { zone: "Zona", range: "Rango", distance: "Distancia", strength: "Fuerza", sources: "Referencias" },
+    sources: {
+      swing_1d: "Giro diario",
+      swing_4h: "Giro 4 h",
+      volume: "Volumen",
+      ma50_1d: "MA50 diaria",
+      ma200_1d: "MA200 diaria",
+      ma200_4h: "MA200 4 h",
+      round: "Número redondo",
+    } as Record<string, string>,
+    note: (model: string) =>
+      `Texto y escenarios generados con IA (${model}) a partir de datos de Binance, Alternative.me y el propio índice; puede contener errores. Es una lectura del momento, no una predicción ni una recomendación de inversión.`,
+    chartAria: "Velas de 4 horas de Bitcoin con las zonas de soporte y resistencia y flechas hacia los escenarios alcista y bajista",
   },
   liquidity: {
     title: "Liquidez global y Bitcoin",
