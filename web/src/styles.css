@@ -536,6 +536,9 @@ footer p { margin: 0; }
 /* Crédito a la izquierda y enlaces legales a la derecha; en pantallas estrechas, uno debajo del otro */
 .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; margin-top: 8px; }
 footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+footer .credit .support-link { display: inline-flex; align-items: center; gap: 4px; margin-left: 14px; font-weight: 500; color: inherit; text-decoration-color: transparent; }
+footer .credit .support-link:hover { color: var(--fg); text-decoration-color: var(--accent); }
+.support-link svg { fill: var(--accent); }
 
 /* Pantallas pequeñas */
 @media (max-width: 480px) {

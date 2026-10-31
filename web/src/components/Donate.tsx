@@ -1,6 +1,6 @@
 import qrcode from "qrcode-generator";
 import { useEffect, useMemo, useState } from "react";
-import { CRYPTO, PAYPAL_URL } from "../donations";
+import { CRYPTO, OPEN_DONATE_EVENT, PAYPAL_URL } from "../donations";
 import { t } from "../i18n";
 import { InfoTip } from "./InfoTip";
 
@@ -41,15 +41,14 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-/** Evento para desplegar el bloque desde fuera (p. ej. el enlace del footer) */
-export const OPEN_DONATE_EVENT = "isbtccheap:open-donate";
-
 export function Donate() {
   const methods = CRYPTO.filter((m) => m.address);
   const [active, setActive] = useState(methods[0]?.id);
   const [open, setOpen] = useState(() => window.location.hash === "#donar");
 
   useEffect(() => {
+    // Al llegar con #donar desde otra página el bloque aún no existía cuando el navegador buscó el ancla
+    if (window.location.hash === "#donar") document.getElementById("donar")?.scrollIntoView();
     const show = () => setOpen(true);
     const onHash = () => window.location.hash === "#donar" && show();
     window.addEventListener(OPEN_DONATE_EVENT, show);

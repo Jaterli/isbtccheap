@@ -1,5 +1,8 @@
 /** Datos de donación. Deja una cadena vacía para ocultar ese método; si todos están vacíos no se muestra la sección. */
 
+/** Evento para desplegar el bloque de donaciones desde fuera (el enlace del pie, en el índice) */
+export const OPEN_DONATE_EVENT = "isbtccheap:open-donate";
+
 /** p. ej. "https://paypal.me/tu_usuario" */
 export const PAYPAL_URL = "https://paypal.me/Jaterli";
 
