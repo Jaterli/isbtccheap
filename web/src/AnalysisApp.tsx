@@ -85,8 +85,17 @@ export function AnalysisApp() {
                 {analysis.outlook.invalidation !== null && ` ${tx.invalidatedAt(usd(analysis.outlook.invalidation))}`}
               </span>
             </li>
+            {analysis.outlook_days && (
+              <li className={`an-scenario primary ${analysis.outlook_days.direction}`}>
+                <strong>{tx.days}</strong>
+                <span>
+                  {tx.move(analysis.outlook_days.direction, usd(analysis.outlook_days.target))}
+                  {analysis.outlook_days.invalidation !== null && ` ${tx.invalidatedAt(usd(analysis.outlook_days.invalidation))}`}
+                </span>
+              </li>
+            )}
             <li className={`an-scenario ${analysis.alternative.direction}`}>
-              <strong>{tx.alternative}</strong>
+              <strong>{tx.alternative(analysis.outlook.horizon_hours)}</strong>
               <span>{tx.move(analysis.alternative.direction, usd(analysis.alternative.target))}</span>
             </li>
           </ul>
@@ -100,6 +109,11 @@ export function AnalysisApp() {
           <p className="an-outlook">
             <strong>{tx.nextHours}</strong> {text.outlook}
           </p>
+          {text.outlook_days && (
+            <p className="an-outlook">
+              <strong>{tx.nextDays}</strong> {text.outlook_days}
+            </p>
+          )}
           {!!text.points?.length && (
             <>
               <h3>{tx.points}</h3>
@@ -109,29 +123,6 @@ export function AnalysisApp() {
                 ))}
               </ul>
             </>
-          )}
-          {!!analysis.sources?.length && (
-            <p className="muted small an-sources">
-              {tx.sources}{" "}
-              {analysis.sources.map((s, i) => (
-                <span key={s.uri}>
-                  {i > 0 && " · "}
-                  <a href={s.uri} target="_blank" rel="noreferrer">
-                    {s.title || new URL(s.uri).hostname}
-                  </a>
-                </span>
-              ))}
-            </p>
-          )}
-          {/* Aislado en un iframe: es HTML y CSS de Google que no debe mezclarse con los estilos de la página. Con el mismo
-              esquema de color que la página, el fondo del iframe queda transparente */}
-          {analysis.search_suggestions && (
-            <iframe
-              className="an-suggestions"
-              title={tx.suggestions}
-              srcDoc={`<meta name="color-scheme" content="light dark">${analysis.search_suggestions}`}
-              sandbox="allow-popups allow-popups-to-escape-sandbox"
-            />
           )}
         </section>
       )}

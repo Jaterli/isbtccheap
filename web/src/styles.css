@@ -576,6 +576,9 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
 .an-head.up { fill: var(--band-1); }
 .an-head.down { fill: var(--band-5); }
 .an-head.flat { fill: var(--band-3); }
+.an-node.up { fill: var(--band-1); }
+.an-node.down { fill: var(--band-5); }
+.an-node.flat { fill: var(--band-3); }
 .an-invalid line { stroke: var(--muted); stroke-dasharray: 2 3; stroke-width: 1.4; }
 .an-invalid text { font-size: 10px; fill: var(--muted); }
 .an-scenarios { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; font-size: 0.92rem; }
@@ -588,8 +591,6 @@ footer .credit a { color: var(--fg); font-weight: 600; text-decoration-color: va
 .an-text > p { margin: 0 0 8px; line-height: 1.5; }
 .an-text h3 { margin: 12px 0 4px; font-size: 0.95rem; }
 .an-points { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.92rem; line-height: 1.45; }
-.an-sources { margin: 12px 0 0; }
-.an-suggestions { display: block; width: 100%; height: 64px; margin-top: 8px; border: 0; }
 .an-id { font-weight: 600; }
 .an-id.support { color: var(--band-1); }
 .an-id.resistance { color: var(--band-5); }

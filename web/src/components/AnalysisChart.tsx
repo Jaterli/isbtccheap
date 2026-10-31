@@ -8,13 +8,15 @@ const PAD_L = 4;
 const PAD_R = 58;
 const PAD_T = 10;
 const AXIS_H = 20;
-// Parte derecha del gráfico, sin velas, para las flechas
-const AHEAD = 0.24;
+// Parte derecha del gráfico, sin velas, para las flechas: el primer tramo son las próximas horas; el resto, 1-2 días
+const AHEAD = 0.3;
+const HOURS_PART = 0.45;
 
 /**
  * Velas de 4 h con las zonas del análisis (soportes en verde, resistencias en rojo, más intensas las fuertes) y, desde
- * el último precio, una flecha continua hacia el objetivo más probable de las próximas horas y otra discontinua hacia
- * el alternativo. La línea corta discontinua marca el precio que invalidaría el escenario principal.
+ * el último precio, una flecha continua hacia el objetivo más probable de las próximas horas que sigue hasta el de 1-2
+ * días, y otra discontinua hacia el alternativo. La línea corta discontinua marca el precio que invalidaría el escenario
+ * de las próximas horas.
  */
 export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; candles: Candle[] }) {
   const { ref, width } = useWidth();
@@ -31,6 +33,9 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
   const x = (i: number) => PAD_L + (i + 0.5) * step;
   const xNow = x(n - 1);
   const xEnd = PAD_L + plotW - 8;
+  const days = a.outlook_days;
+  // Sin valoración a 1-2 días (análisis anteriores), las flechas de las próximas horas llegan al final
+  const xMid = days ? xNow + (xEnd - xNow) * HOURS_PART : xEnd;
   const last = shown.at(-1)!;
 
   const chart = useMemo(() => {
@@ -41,6 +46,7 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
       ...near.flatMap((l) => [l.low, l.high]),
       a.outlook.target,
       a.alternative.target,
+      ...(days ? [days.target] : []),
       ...(a.outlook.invalidation ? [a.outlook.invalidation] : []),
     ];
     const pad = (Math.max(...vals) - Math.min(...vals)) * 0.06;
@@ -62,11 +68,11 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
     setHover(i >= 0 && i < n ? i : null);
   };
 
-  // Curva suave desde el precio actual hasta el objetivo
-  const arrow = (target: number, d: Direction, primary: boolean) => {
-    const y0 = y(last.close);
-    const y1 = y(target);
-    const path = `M${xNow},${y0} C${xNow + (xEnd - xNow) * 0.45},${y0} ${xEnd - (xEnd - xNow) * 0.4},${y1} ${xEnd},${y1}`;
+  // Curva suave de un precio a otro
+  const arrow = (x0: number, from: number, x1: number, to: number, d: Direction, primary: boolean) => {
+    const y0 = y(from);
+    const y1 = y(to);
+    const path = `M${x0},${y0} C${x0 + (x1 - x0) * 0.45},${y0} ${x1 - (x1 - x0) * 0.4},${y1} ${x1},${y1}`;
     return <path d={path} className={`an-arrow ${cls(d)}${primary ? " primary" : ""}`} markerEnd={`url(#an-head-${cls(d)})`} />;
   };
 
@@ -109,9 +115,18 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
           })}
 
         <rect x={PAD_L + candlesW} width={plotW - candlesW} y={PAD_T} height={plotH} className="an-ahead" />
-        <text x={(PAD_L + candlesW + xEnd) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
-          {tx.ahead(a.outlook.horizon_hours)}
+        {/* En pantallas estrechas los tramos no dan para la etiqueta larga */}
+        <text x={(xNow + xMid) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
+          {xMid - xNow < 90 ? tx.aheadShort(a.outlook.horizon_hours) : tx.ahead(a.outlook.horizon_hours)}
         </text>
+        {days && (
+          <>
+            <line x1={xMid} x2={xMid} y1={PAD_T} y2={PAD_T + plotH} className="grid grid-ref" />
+            <text x={(xMid + xEnd) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
+              {xEnd - xMid < 70 ? tx.daysShort : tx.days}
+            </text>
+          </>
+        )}
 
         {shown.map((c, i) => {
           const up = c.close >= c.open;
@@ -125,14 +140,16 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
 
         {a.outlook.invalidation !== null && (
           <g className="an-invalid">
-            <line x1={xNow + 6} x2={xEnd} y1={y(a.outlook.invalidation)} y2={y(a.outlook.invalidation)} />
-            <text x={xEnd} y={y(a.outlook.invalidation) + (a.outlook.invalidation > last.close ? -5 : 13)} textAnchor="end">
+            <line x1={xNow + 6} x2={xMid} y1={y(a.outlook.invalidation)} y2={y(a.outlook.invalidation)} />
+            <text x={xMid} y={y(a.outlook.invalidation) + (a.outlook.invalidation > last.close ? -5 : 13)} textAnchor="end">
               {tx.invalidation}
             </text>
           </g>
         )}
-        {arrow(a.alternative.target, a.alternative.direction, false)}
-        {arrow(a.outlook.target, a.outlook.direction, true)}
+        {arrow(xNow, last.close, xMid, a.alternative.target, a.alternative.direction, false)}
+        {days && arrow(xMid, a.outlook.target, xEnd, days.target, days.direction, true)}
+        {arrow(xNow, last.close, xMid, a.outlook.target, a.outlook.direction, true)}
+        {days && <circle cx={xMid} cy={y(a.outlook.target)} r="3" className={`an-node ${cls(a.outlook.direction)}`} />}
         <circle cx={xNow} cy={y(last.close)} r="4" className="dot-price" />
 
         {[0, Math.floor(n / 2), n - 1].map((i, k) => (
