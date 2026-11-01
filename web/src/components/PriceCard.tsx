@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
@@ -12,22 +12,39 @@ const AXIS_H = 18;
 // Temporalidad propia de esta tarjeta, independiente de la del score, y velas que se dibujan en cada una
 const PRICE_TFS = ["15m", "1h", "4h", "1d", "1w"] as const;
 type PriceTf = (typeof PRICE_TFS)[number];
-// (60-90: en un móvil quedan 4-5 px entre cierres, lo justo para que cada punto se distinga)
+// (60-90: en un móvil quedan 4-5 px entre cierres, lo justo para que cada punto se distinga). Con − y + se ven más o
+// menos, entre MIN_VISIBLE y todas las descargadas
+const MIN_VISIBLE = 20;
+const ZOOM = 1.5;
+// Por debajo de esta separación entre cierres los puntos se solaparían: solo se dibuja la línea
+const MIN_DOT_GAP = 2;
+// Alto del gráfico, ajustable arrastrando la barra de debajo (se guarda)
+const HEIGHT_KEY = "isbtccheap:price-height";
+const HEIGHT_LIMITS = [90, 360] as const;
 const VISIBLE: Record<PriceTf, number> = { "15m": 64, "1h": 72, "4h": 60, "1d": 90, "1w": 78 };
 const REFRESH_MS: Record<PriceTf, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000 };
-// Fechas del eje: con la hora en los tramos de horas o pocos días, sin el día en el semanal
-const AXIS_FMT: Record<PriceTf, Intl.DateTimeFormatOptions> = {
-  "15m": { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
-  "1h": { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
-  "4h": { day: "numeric", month: "short" },
-  "1d": { day: "numeric", month: "short" },
-  "1w": { month: "short", year: "numeric" },
-};
+// Fechas del eje según el tramo visible (cambia con el zoom): con la hora si son pocos días; sin el día, con el año, si
+// pasa de medio año
+const axisFmt = (spanMs: number): Intl.DateTimeFormatOptions =>
+  spanMs <= 4 * 86_400_000
+    ? { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
+    : spanMs <= 180 * 86_400_000
+      ? { day: "numeric", month: "short" }
+      : { month: "short", year: "numeric" };
 // Formato de la fecha de la lectura: 15 min como intradía
 const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "1w" };
 const TF_KEY = "isbtccheap:price-tf";
 // La tarjeta solo se ve en móvil (styles.css): en pantallas mayores no se piden velas
 const MOBILE = "(max-width: 639px)";
+
+function loadHeight(): number | null {
+  try {
+    const h = Number(localStorage.getItem(HEIGHT_KEY));
+    return h >= HEIGHT_LIMITS[0] && h <= HEIGHT_LIMITS[1] ? h : null;
+  } catch {
+    return null;
+  }
+}
 
 function loadTf(): PriceTf {
   try {
@@ -96,8 +113,12 @@ export function PriceCard() {
   const tx = t.priceCard;
   const axisTf = AXIS_TF[tf];
 
+  const [visible, setVisible] = useState(VISIBLE[tf]);
+  const [height, setHeight] = useState<number | null>(loadHeight);
+
   const select = (v: PriceTf) => {
     setTf(v);
+    setVisible(VISIBLE[v]);
     setHover(null);
     try {
       localStorage.setItem(TF_KEY, v);
@@ -108,11 +129,48 @@ export function PriceCard() {
 
   const view = useMemo(() => {
     if (!data || data.close.length < 2) return null;
-    const from = Math.max(0, data.close.length - VISIBLE[tf]);
+    const from = Math.max(0, data.close.length - visible);
     return { time: data.time.slice(from), open: data.open.slice(from), close: data.close.slice(from) };
-  }, [data, tf]);
+  }, [data, visible]);
 
-  const H = width < 520 ? 130 : 150;
+  const total = data?.close.length ?? 0;
+  const zoom = (factor: number) => {
+    setHover(null);
+    setVisible((v) => Math.round(Math.min(Math.max(total, MIN_VISIBLE), Math.max(MIN_VISIBLE, v * factor))));
+  };
+
+  const H = height ?? (width < 520 ? 130 : 150);
+  const saveHeight = (h: number | null) => {
+    const v = h === null ? null : Math.round(Math.min(HEIGHT_LIMITS[1], Math.max(HEIGHT_LIMITS[0], h)));
+    setHeight(v);
+    try {
+      if (v === null) localStorage.removeItem(HEIGHT_KEY);
+      else localStorage.setItem(HEIGHT_KEY, String(v));
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  };
+  const startResize = (e: PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const y0 = e.clientY;
+    const base = H;
+    const move = (ev: globalThis.PointerEvent) => saveHeight(base + ev.clientY - y0);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+  const keyResize = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = e.key === "ArrowUp" ? -10 : e.key === "ArrowDown" ? 10 : 0;
+    if (!step) return;
+    e.preventDefault();
+    saveHeight(H + step);
+  };
+
   const plotH = H - PAD_T - AXIS_H;
   const scale = useMemo(() => {
     if (!view) return null;
@@ -146,12 +204,19 @@ export function PriceCard() {
         <h3>{tx.title}</h3>
         <span className="muted small">{tx.period[tf]}</span>
       </header>
-      <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
-        {PRICE_TFS.map((v) => (
-          <button key={v} role="radio" aria-checked={tf === v} aria-label={tx.tfs[v].label} title={tx.tfs[v].label} className={tf === v ? "active" : ""} onClick={() => select(v)}>
-            {tx.tfs[v].short}
-          </button>
-        ))}
+      {/* Temporalidad y, a su lado, zoom */}
+      <div className="price-controls">
+        <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
+          {PRICE_TFS.map((v) => (
+            <button key={v} role="radio" aria-checked={tf === v} aria-label={tx.tfs[v].label} title={tx.tfs[v].label} className={tf === v ? "active" : ""} onClick={() => select(v)}>
+              {tx.tfs[v].short}
+            </button>
+          ))}
+        </div>
+        <div className="segmented small" role="group" aria-label="Zoom">
+          <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
+          <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
+        </div>
       </div>
       <div ref={ref}>
         {view && chart ? (
@@ -180,14 +245,14 @@ export function PriceCard() {
               <path d={chart.line} className="line-price price-card-line" />
               {/* Un punto por cierre de vela (el último, el precio actual con la vela en curso), verde si está por encima de
                   su apertura y rojo si por debajo */}
-              <g className="price-card-dots">
+              <g className="price-card-dots" display={plotW / Math.max(1, N - 1) < MIN_DOT_GAP ? "none" : undefined}>
                 {view.close.map((c, i) => (
                   <circle key={i} cx={x(i)} cy={chart.y(c)} r="1.3" className={dir(i)} />
                 ))}
               </g>
               {[0, N - 1].map((i, k) => (
                 <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
-                  {new Date(view.time[i]).toLocaleString(locale, AXIS_FMT[tf])}
+                  {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
                 </text>
               ))}
               {hover !== null && (
@@ -197,6 +262,22 @@ export function PriceCard() {
                 </>
               )}
             </svg>
+            <div
+              className="resize-handle price-card-resize"
+              role="separator"
+              aria-orientation="horizontal"
+              aria-label={tx.resize}
+              aria-valuenow={H}
+              aria-valuemin={HEIGHT_LIMITS[0]}
+              aria-valuemax={HEIGHT_LIMITS[1]}
+              tabIndex={0}
+              title={t.history.resizeTitle}
+              onPointerDown={startResize}
+              onDoubleClick={() => saveHeight(null)}
+              onKeyDown={keyResize}
+            >
+              <span />
+            </div>
           </>
         ) : (
           <p className="muted price-card-empty">{t.loading}</p>

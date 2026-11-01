@@ -83,7 +83,8 @@ export const en: Messages = {
   status: { now: "BTC is", candle: (tf: string) => `${tf} candle` },
   priceCard: {
     title: "BTC price",
-    period: { "15m": "15m candles · 16 hours", "1h": "1h candles · 3 days", "4h": "4h candles · 10 days", "1d": "Daily · 3 months", "1w": "Weekly · 1.5 years" },
+    period: { "15m": "15m candles", "1h": "1h candles", "4h": "4h candles", "1d": "Daily", "1w": "Weekly" },
+    resize: "Price chart height",
     tfs: {
       "15m": { label: "15 minutes", short: "15m" },
       "1h": { label: "1 hour", short: "1h" },

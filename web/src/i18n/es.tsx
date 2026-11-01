@@ -90,13 +90,14 @@ export const es = {
   status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
   priceCard: {
     title: "Precio de BTC",
-    period: { "15m": "Velas de 15 min · 16 horas", "1h": "Velas de 1 h · 3 días", "4h": "Velas de 4 h · 10 días", "1d": "Diario · 3 meses", "1w": "Semanal · 1,5 años" },
+    period: { "15m": "Velas de 15 min", "1h": "Velas de 1 h", "4h": "Velas de 4 h", "1d": "Diario", "1w": "Semanal" },
+    resize: "Alto del gráfico del precio",
     tfs: {
-      "15m": { label: "15 minutos", short: "15 min" },
-      "1h": { label: "1 hora", short: "1 h" },
-      "4h": { label: "4 horas", short: "4 h" },
-      "1d": { label: "1 día", short: "1 día" },
-      "1w": { label: "1 semana", short: "1 sem" },
+      "15m": { label: "15 minutos", short: "15m" },
+      "1h": { label: "1 hora", short: "1h" },
+      "4h": { label: "4 horas", short: "4h" },
+      "1d": { label: "1 día", short: "1D" },
+      "1w": { label: "1 semana", short: "1S" },
     },
     chartAria: "Gráfico del precio de Bitcoin en la temporalidad elegida",
   },
@@ -276,11 +277,11 @@ export const es = {
   taglineRest: "Un índice de 1 a 100 que combina valoración on‑chain, ciclos, liquidez, sentimiento y análisis técnico.",
 
   timeframes: {
-    "1h": { label: "1 hora", short: "1 h" },
-    "4h": { label: "4 horas", short: "4 h" },
-    "1d": { label: "1 día", short: "1 día" },
-    "1w": { label: "1 semana", short: "1 sem" },
-    "1M": { label: "1 mes", short: "1 mes" },
+    "1h": { label: "1 hora", short: "1h" },
+    "4h": { label: "4 horas", short: "4h" },
+    "1d": { label: "1 día", short: "1D" },
+    "1w": { label: "1 semana", short: "1S" },
+    "1M": { label: "1 mes", short: "1M" },
   } satisfies Record<Timeframe, { label: string; short: string }>,
   timeframeAria: "Temporalidad",
   timeframeInfo: {
