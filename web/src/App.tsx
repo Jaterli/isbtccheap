@@ -219,7 +219,7 @@ export function App() {
                   {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
                 </span>
               )}
-              {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].label)}</span>}
+              {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].short)}</span>}
               <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
                 <p>{t.priceInfo.body}</p>
                 <p>{t.priceInfo.changeInfo}</p>

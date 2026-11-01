@@ -207,7 +207,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .status-price .info-btn { font-size: 0.9rem; font-weight: 400; }
 .status-change.up { color: var(--band-1); }
 .status-change.down { color: var(--band-5); }
-.status-sub { font-size: 0.82rem; font-weight: 400; }
+/* Pantallas muy estrechas: precio, variación, vela e info en una sola línea */
+@media (max-width: 360px) { .status-price { gap: 4px 5px; font-size: 1.1rem; } }
+.status-sub { font-size: 0.85rem; font-weight: 400; }
 
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
 .segmented button { border: 0; background: none; color: var(--muted); padding: 6px 12px; border-radius: 7px; font: inherit; cursor: pointer; white-space: nowrap; }
