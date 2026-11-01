@@ -253,7 +253,7 @@ export const en: Messages = {
     priceLegend: "Price",
     chartAria: "Chart of Bitcoin's realized volatility and price",
   },
-  periods: { "2y": "2 years", "4y": "4 years", "8y": "8 years", all: "Since 2011" },
+  periods: { "2y": "2Y", "4y": "4Y", "8y": "8Y", all: "Since 2011" },
   periodAria: "Sample period",
 
   taglineTitle: "Is Bitcoin cheap or expensive?",
