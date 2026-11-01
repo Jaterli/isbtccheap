@@ -1,10 +1,8 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { LiquiditySeries } from "../lib/liquidity";
 
-const PAD_L = 44;
-const PAD_R = 56;
 const PAD_T = 10;
 const AXIS_H = 22;
 const DAY = 86_400_000;
@@ -48,13 +46,8 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
   const [hover, setHover] = useState<number | null>(null);
 
   const plotH = width < 600 ? 260 : 340;
-  const plotW = width - PAD_L - PAD_R;
-  const H = PAD_T + plotH + AXIS_H;
-  const t0 = Math.min(data.liqTime[0] ?? data.end, data.btcTime[0] ?? data.end);
-  const t1 = data.end;
-  const x = (t: number) => PAD_L + ((t - t0) / (t1 - t0 || 1)) * plotW;
-
-  const chart = useMemo(() => {
+  // Escalas verticales: la variación de la liquidez (eje izquierdo) y el precio (derecho)
+  const scale = useMemo(() => {
     const rocs = data.roc.filter((v): v is number => v !== null);
     const lo = Math.min(0, ...rocs);
     const hi = Math.max(0, ...rocs);
@@ -62,20 +55,28 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
     const yRoc = (v: number) => PAD_T + plotH - ((v - (lo - pad)) / (hi - lo + 2 * pad)) * plotH;
     const prices = data.btc.filter((v): v is number => v !== null);
     const { y: yPrice, ticks: priceTicks } = logPriceScale(prices.length ? prices : [1, 2], PAD_T, plotH);
+    return { yRoc, rocTicks: niceTicks(lo, hi, 4), yPrice, priceTicks };
+  }, [data, plotH]);
+  const PAD_L = axisPad(scale.rocTicks.map((v) => rocPct(v, 0)));
+  const plotW = width - PAD_L - axisPad(scale.priceTicks.map(shortUsd));
+  const H = PAD_T + plotH + AXIS_H;
+  const t0 = Math.min(data.liqTime[0] ?? data.end, data.btcTime[0] ?? data.end);
+  const t1 = data.end;
+  const x = (t: number) => PAD_L + ((t - t0) / (t1 - t0 || 1)) * plotW;
+
+  const chart = useMemo(() => {
+    const { yRoc, yPrice } = scale;
     const lastPrice = indexAt(data.btcTime, Infinity);
     const nTicks = Math.max(2, Math.floor(plotW / 110));
     const dateTicks = Array.from({ length: nTicks }, (_, k) => t0 + (k / (nTicks - 1)) * (t1 - t0));
     return {
-      yRoc,
-      rocTicks: niceTicks(lo, hi, 4),
-      yPrice,
-      priceTicks,
+      ...scale,
       lastPrice,
       dateTicks,
       roc: timePath(data.liqTime, data.roc, x, yRoc),
       btc: timePath(data.btcTime, data.btc, x, yPrice),
     };
-  }, [data, plotW, plotH]);
+  }, [data, scale, plotW, PAD_L]);
 
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();

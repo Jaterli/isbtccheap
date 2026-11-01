@@ -1,11 +1,10 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
 import type { Analysis, Direction } from "../lib/analysis";
-import { fmtTime, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, fmtTime, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { Candle } from "../types";
 
 const PAD_L = 4;
-const PAD_R = 58;
 const PAD_T = 10;
 const AXIS_H = 20;
 // Parte derecha del gráfico, sin velas, para las flechas: el primer tramo son las próximas horas; el resto, 1-2 días
@@ -26,16 +25,8 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
   const n = Math.min(candles.length, width < 520 ? 54 : 96);
   const shown = candles.slice(-n);
   const H = width < 520 ? 300 : 400;
-  const plotW = width - PAD_L - PAD_R;
   const plotH = H - PAD_T - AXIS_H;
-  const candlesW = plotW * (1 - AHEAD);
-  const step = candlesW / n;
-  const x = (i: number) => PAD_L + (i + 0.5) * step;
-  const xNow = x(n - 1);
-  const xEnd = PAD_L + plotW - 8;
   const days = a.outlook_days;
-  // Sin valoración a 1-2 días (análisis anteriores), las flechas de las próximas horas llegan al final
-  const xMid = days ? xNow + (xEnd - xNow) * HOURS_PART : xEnd;
   const last = shown.at(-1)!;
 
   const chart = useMemo(() => {
@@ -58,6 +49,14 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
   }, [a, shown[0]?.time, last.close, plotH]);
 
   const { y } = chart;
+  const plotW = width - PAD_L - axisPad(chart.ticks.map(shortUsd));
+  const candlesW = plotW * (1 - AHEAD);
+  const step = candlesW / n;
+  const x = (i: number) => PAD_L + (i + 0.5) * step;
+  const xNow = x(n - 1);
+  const xEnd = PAD_L + plotW - 8;
+  // Sin valoración a 1-2 días (análisis anteriores), las flechas de las próximas horas llegan al final
+  const xMid = days ? xNow + (xEnd - xNow) * HOURS_PART : xEnd;
   const bodyW = Math.max(1, step * 0.62);
   const h = hover ?? n - 1;
   const cls = (d: Direction) => (d === "alcista" ? "up" : d === "bajista" ? "down" : "flat");

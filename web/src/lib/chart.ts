@@ -6,6 +6,22 @@ import { isIntraday, type CandleTf } from "./series";
 export const shortUsd = (p: number) =>
   p >= 1000 ? `$${(p / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`;
 
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+/** Ancho en px de un texto de los ejes (.axis: 11 px con la fuente de la página), normal o en negrita */
+function axisTextWidth(s: string, bold = false) {
+  if (measureCtx === undefined) measureCtx = document.createElement("canvas").getContext("2d");
+  if (!measureCtx) return s.length * (bold ? 7 : 6.5);
+  measureCtx.font = `${bold ? "700 " : ""}11px ${getComputedStyle(document.body).fontFamily}`;
+  return measureCtx.measureText(s).width;
+}
+
+/**
+ * Margen lateral para las etiquetas de un eje, a la medida de la más ancha: los 6 px que las separan del gráfico más
+ * un pequeño respiro hasta el borde. Así el hueco sobrante no depende de lo largas que sean las cifras.
+ */
+export const axisPad = (labels: string[], bold: string[] = []) =>
+  Math.ceil(6 + Math.max(0, ...labels.map((s) => axisTextWidth(s)), ...bold.map((s) => axisTextWidth(s, true))) + 4);
+
 export const usd = (p: number) => p.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: p < 100 ? 2 : 0 });
 
 export function niceTicks(lo: number, hi: number, count: number) {

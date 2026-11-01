@@ -1,10 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { linePath, useWidth } from "../lib/chart";
+import { axisPad, linePath, useWidth } from "../lib/chart";
 import { CYCLE_DAYS, multAt, type Cycle } from "../lib/cycles";
 
 const PAD_L = 8;
-const PAD_R = 44;
 const PAD_T = 10;
 const AXIS_H = 22;
 
@@ -20,10 +19,8 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
 
   const H = (width < 600 ? 260 : 360) + PAD_T + AXIS_H;
   const plotH = H - PAD_T - AXIS_H;
-  const plotW = width - PAD_L - PAD_R;
-  const x = (d: number) => PAD_L + (d / CYCLE_DAYS) * plotW;
 
-  const chart = useMemo(() => {
+  const scale = useMemo(() => {
     const logs = cycles.flatMap((c) => c.mult).map(Math.log10);
     const lo = Math.min(0, ...logs); // ×1 (el precio del halving) siempre a la vista
     const hi = Math.max(...logs);
@@ -32,8 +29,16 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
     let ticks = TICKS.filter((v) => Math.log10(v) >= lo - pad && Math.log10(v) <= hi + pad);
     // Con mucho rango (el ciclo de 2012 llegó a ×92), solo los ×1 y ×5 de cada potencia de 10
     if (ticks.length > 7) ticks = ticks.filter((v) => Math.round(v / 10 ** Math.floor(Math.log10(v))) !== 2);
-    return { y, ticks, lines: cycles.map((c) => linePath(c.mult, (i) => x(c.day[i]), y)) };
-  }, [cycles, plotW, plotH]);
+    return { y, ticks };
+  }, [cycles, plotH]);
+
+  const plotW = width - PAD_L - axisPad(scale.ticks.map(fmtMult));
+  const x = (d: number) => PAD_L + (d / CYCLE_DAYS) * plotW;
+  const chart = useMemo(
+    () => ({ ...scale, lines: cycles.map((c) => linePath(c.mult, (i) => x(c.day[i]), scale.y)) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cycles, scale, plotW],
+  );
 
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();

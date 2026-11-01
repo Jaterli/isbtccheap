@@ -1,10 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { Timeframe } from "../types";
 
 const PAD_L = 4;
-const PAD_R = 46;
 const PAD_T = 6;
 const AXIS_H = 18;
 
@@ -31,18 +30,23 @@ export function PriceCard({ tf, data }: { tf: Timeframe; data: Closes | null }) 
 
   const H = width < 520 ? 130 : 150;
   const plotH = H - PAD_T - AXIS_H;
-  const plotW = width - PAD_L - PAD_R;
+  const scale = useMemo(() => {
+    if (!view) return null;
+    const { y, ticks } = logPriceScale(view.close, PAD_T, plotH);
+    return { y, ticks: ticks.length > 4 ? ticks.filter((_, k) => k % 2 === 0) : ticks };
+  }, [view, plotH]);
+  const plotW = width - PAD_L - axisPad(scale?.ticks.map(shortUsd) ?? []);
   const N = view?.close.length ?? 0;
   const x = (i: number) => PAD_L + (i / Math.max(1, N - 1)) * plotW;
 
   const chart = useMemo(() => {
-    if (!view) return null;
-    const { y, ticks } = logPriceScale(view.close, PAD_T, plotH);
+    if (!view || !scale) return null;
+    const { y, ticks } = scale;
     const line = linePath(view.close, x, y);
     const area = `${line}L${x(N - 1).toFixed(1)},${PAD_T + plotH}L${x(0).toFixed(1)},${PAD_T + plotH}Z`;
-    return { y, ticks: ticks.length > 4 ? ticks.filter((_, k) => k % 2 === 0) : ticks, line, area };
+    return { y, ticks, line, area };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, plotW, plotH]);
+  }, [view, scale, plotW]);
 
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();

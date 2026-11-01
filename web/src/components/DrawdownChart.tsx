@@ -1,10 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { DrawdownSeries } from "../lib/drawdown";
 
 const PAD_L = 8;
-const PAD_R = 56;
 const PAD_T = 10;
 const GAP = 18;
 const AXIS_H = 22;
@@ -19,7 +18,8 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
   const small = width < 600;
   const priceH = small ? 190 : 250;
   const ddH = small ? 130 : 170;
-  const plotW = width - PAD_L - PAD_R;
+  const scale = useMemo(() => logPriceScale([...data.price, ...data.ath], PAD_T, priceH), [data, priceH]);
+  const plotW = width - PAD_L - axisPad([...scale.ticks.map(shortUsd), ...DD_REFS.map(ddPct)]);
   const ddTop = PAD_T + priceH + GAP;
   const H = ddTop + ddH + AXIS_H;
   const N = data.time.length;
@@ -27,7 +27,7 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
   const yDd = (f: number) => ddTop - f * ddH;
 
   const chart = useMemo(() => {
-    const { y, ticks } = logPriceScale([...data.price, ...data.ath], PAD_T, priceH);
+    const { y, ticks } = scale;
     const ddLine = linePath(data.dd, x, yDd);
     return {
       y,
@@ -37,7 +37,7 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
       ddLine,
       ddArea: N ? `${ddLine}L${x(N - 1).toFixed(1)},${ddTop}L${x(0).toFixed(1)},${ddTop}Z` : "",
     };
-  }, [data, plotW, priceH, ddH, ddTop]);
+  }, [data, scale, plotW, ddH, ddTop]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
 

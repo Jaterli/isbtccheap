@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
+import { axisPad } from "../lib/chart";
 import { load4h } from "../lib/history4h";
 import type { History, Latest } from "../types";
 import { InfoTip } from "./InfoTip";
@@ -15,7 +16,6 @@ const GAP = 18; // es también la barra para cambiar el alto
 const AXIS_H = 20;
 const HANDLE_H = 14;
 const PAD_L = 8;
-const PAD_R = 52;
 const MIN_SPAN = 14; // días
 const MIN_SPAN_4H = 12; // velas de 4 h (2 días)
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
@@ -116,7 +116,10 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
 
   const auto: Heights = { price: width < 520 ? 140 : width < 900 ? 170 : 220, score: width < 520 ? 80 : 100 };
   const heights = custom ?? auto;
-  const plotW = Math.max(50, width - PAD_L - PAD_R);
+  // El margen del eje no sigue al zoom (el gráfico saltaría al arrastrar): se mide con el precio más alto del histórico,
+  // cuya etiqueta es la más ancha que puede salir, y con las del score
+  const padR = useMemo(() => axisPad([shortUsd(Math.max(...history.price)), "80"]), [history]);
+  const plotW = Math.max(50, width - PAD_L - padR);
   const scoreTop = heights.price + GAP;
   const scoreBottom = scoreTop + heights.score;
   const H = scoreBottom + AXIS_H + HANDLE_H;

@@ -1,10 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { EtfSeries } from "../lib/etf";
 
-const PAD_L = 30; // eje del Fear & Greed (0-100), a la izquierda
-const PAD_R = 56;
+const FG_TICKS = [25, 50, 75]; // eje del Fear & Greed (0-100), a la izquierda
 const PAD_T = 10;
 const GAP = 18;
 const AXIS_H = 22;
@@ -21,9 +20,16 @@ export function EtfChart({ data }: { data: EtfSeries }) {
   const [hover, setHover] = useState<number | null>(null);
 
   const small = width < 600;
+  const PAD_L = axisPad(FG_TICKS.map(String));
   const priceH = small ? 160 : 210;
   const flowH = small ? 140 : 180;
-  const plotW = width - PAD_L - PAD_R;
+  const scale = useMemo(() => {
+    // Flujos: simétrico alrededor de 0, para comparar entradas y salidas
+    const max = Math.max(...data.flow.map(Math.abs), 1);
+    return { ...logPriceScale(data.price, PAD_T, priceH), max, flowTicks: niceTicks(0, max, 2).filter((v) => v > 0) };
+  }, [data, priceH]);
+  const flowLabels = [0, ...scale.flowTicks, ...scale.flowTicks.map((v) => -v)].map((v) => (v === 0 ? "0" : flowUsd(v)));
+  const plotW = width - PAD_L - axisPad([...scale.ticks.map(shortUsd), ...flowLabels]);
   const flowTop = PAD_T + priceH + GAP;
   const H = flowTop + flowH + AXIS_H;
   const N = data.time.length;
@@ -31,14 +37,11 @@ export function EtfChart({ data }: { data: EtfSeries }) {
   const x = (i: number) => PAD_L + (i + 0.5) * step;
 
   const chart = useMemo(() => {
-    const { y, ticks } = logPriceScale(data.price, PAD_T, priceH);
-    // Simétrico alrededor de 0, para comparar entradas y salidas
-    const max = Math.max(...data.flow.map(Math.abs), 1);
+    const { y, ticks, max, flowTicks } = scale;
     const yFlow = (v: number) => flowTop + flowH / 2 - (v / max) * (flowH / 2 - 4);
-    const flowTicks = niceTicks(0, max, 2).filter((v) => v > 0);
     const yFg = (v: number) => PAD_T + priceH - (v / 100) * priceH;
     return { y, ticks, yFlow, flowTicks, yFg, price: linePath(data.price, x, y), fg: linePath(data.fearGreed, x, yFg) };
-  }, [data, plotW, priceH, flowH, flowTop]);
+  }, [data, scale, plotW, priceH, flowH, flowTop]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
   const barW = Math.max(1, step * 0.75);
@@ -80,7 +83,7 @@ export function EtfChart({ data }: { data: EtfSeries }) {
         ))}
         {chart.fg && (
           <>
-            {[25, 50, 75].map((v) => (
+            {FG_TICKS.map((v) => (
               <text key={v} x={PAD_L - 6} y={chart.yFg(v) + 4} className="axis" textAnchor="end">
                 {v}
               </text>

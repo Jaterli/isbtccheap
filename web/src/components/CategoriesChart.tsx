@@ -1,6 +1,6 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { CategoriesSeries } from "../lib/categories";
 import { ROWS } from "../lib/categories";
 import { bandColor } from "./Gauge";
@@ -17,17 +17,19 @@ export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks
   const [hover, setHover] = useState<number | null>(null);
 
   const small = width < 600;
-  const PAD_R = small ? 74 : 84; // eje de precio y nombres de las filas
   const priceH = small ? 150 : 200;
   const rowH = small ? 18 : 22;
-  const plotW = width - PAD_L - PAD_R;
+  const scale = useMemo(() => logPriceScale(data.price, PAD_T, priceH), [data, priceH]);
+  // A la derecha, el eje de precio y los nombres de las filas (el del score, en negrita)
+  const names = t.catHistory.short;
+  const plotW = width - PAD_L - axisPad([...scale.ticks.map(shortUsd), ...ROWS.filter((r) => r !== "score").map((r) => names[r])], [names.score]);
   const heatTop = PAD_T + priceH + GAP;
   const H = heatTop + ROWS.length * rowH + AXIS_H;
   const N = data.time.length;
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
   const chart = useMemo(() => {
-    const { y, ticks } = logPriceScale(data.price, PAD_T, priceH);
+    const { y, ticks } = scale;
     // Los tramos seguidos del mismo color se unen en un solo rectángulo
     const cols = Math.max(1, Math.min(N, Math.floor(plotW / CELL_W)));
     const colW = plotW / cols;
@@ -45,7 +47,7 @@ export function CategoriesChart({ data, marks }: { data: CategoriesSeries; marks
       return out;
     });
     return { y, ticks, price: linePath(data.price, x, y), cells };
-  }, [data, plotW, priceH, N]);
+  }, [data, scale, plotW, N]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
   const marksIn = marks

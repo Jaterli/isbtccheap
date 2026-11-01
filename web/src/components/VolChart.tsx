@@ -1,11 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, useWidth } from "../lib/chart";
+import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
 import type { VolSeries } from "../lib/volatility";
 
-const PAD_L = 44; // eje de la volatilidad
-const PAD_R = 56; // eje del precio
 const PAD_T = 10;
 const AXIS_H = 22;
 
@@ -16,23 +14,27 @@ export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
   const [hover, setHover] = useState<number | null>(null);
 
   const H = width < 600 ? 260 : 360;
-  const plotW = width - PAD_L - PAD_R;
   const plotH = H - PAD_T - AXIS_H;
+  // Escalas verticales: la volatilidad (eje izquierdo) y el precio (derecho)
+  const scale = useMemo(() => {
+    const vMax = Math.max(...data.vol.filter((v): v is number => v !== null), 0.01) * 1.08;
+    const { y: yPrice, ticks: priceTicks } = logPriceScale(data.price, PAD_T, plotH);
+    return { vMax, yVol: (v: number) => PAD_T + plotH - (v / vMax) * plotH, volTicks: niceTicks(0, vMax, 4), yPrice, priceTicks };
+  }, [data, plotH]);
+  const PAD_L = axisPad(scale.volTicks.map((v) => pct(v)));
+  const plotW = width - PAD_L - axisPad(scale.priceTicks.map(shortUsd));
   const N = data.time.length;
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
   const chart = useMemo(() => {
-    const vols = data.vol.filter((v): v is number => v !== null);
-    const vMax = Math.max(...vols, 0.01) * 1.08;
-    const yVol = (v: number) => PAD_T + plotH - (v / vMax) * plotH;
-    const { y: yPrice, ticks: priceTicks } = logPriceScale(data.price, PAD_T, plotH);
+    const { yVol, yPrice } = scale;
     const volLine = linePath(data.vol, x, yVol);
     const first = data.vol.findIndex((v) => v !== null);
     const volArea = first < 0 ? "" : `${volLine}L${x(N - 1).toFixed(1)},${PAD_T + plotH}L${x(first).toFixed(1)},${PAD_T + plotH}Z`;
     const priceLine = data.price.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${yPrice(p).toFixed(1)}`).join("");
 
-    return { yVol, yPrice, volLine, volArea, priceLine, volTicks: niceTicks(0, vMax, 4), priceTicks };
-  }, [data, plotW, plotH]);
+    return { ...scale, volLine, volArea, priceLine };
+  }, [data, scale, plotW, PAD_L]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
 

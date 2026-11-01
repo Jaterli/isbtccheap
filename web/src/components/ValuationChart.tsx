@@ -1,10 +1,9 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
-import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { ValuationSeries } from "../lib/valuation";
 
 const PAD_L = 8;
-const PAD_R = 56;
 const PAD_T = 10;
 const AXIS_H = 22;
 
@@ -13,15 +12,18 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
   const [hover, setHover] = useState<number | null>(null);
 
   const plotH = width < 600 ? 280 : 380;
-  const plotW = width - PAD_L - PAD_R;
+  // Sin el techo del corredor ni los precios realizados (de céntimos en 2010), que estirarían la escala: se recortan
+  const scale = useMemo(
+    () => logPriceScale([...data.price, ...data.wma200, ...data.trend, ...data.low].filter((v): v is number => v !== null), PAD_T, plotH),
+    [data, plotH],
+  );
+  const plotW = width - PAD_L - axisPad(scale.ticks.map(shortUsd));
   const H = PAD_T + plotH + AXIS_H;
   const N = data.time.length;
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
   const chart = useMemo(() => {
-    // Sin el techo del corredor ni los precios realizados (de céntimos en 2010), que estirarían la escala: se recortan
-    const values = [...data.price, ...data.wma200, ...data.trend, ...data.low].filter((v): v is number => v !== null);
-    const { y, ticks } = logPriceScale(values, PAD_T, plotH);
+    const { y, ticks } = scale;
     const pt = (i: number, v: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
     const corridor = N
       ? `M${data.high.map((v, i) => pt(i, v)).join("L")}L${data.low.map((_, k) => pt(N - 1 - k, data.low[N - 1 - k])).join("L")}Z`
@@ -38,7 +40,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
       sth: linePath(data.sth, x, y),
       price: linePath(data.price, x, y),
     };
-  }, [data, plotW, plotH]);
+  }, [data, scale, plotW]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
 
