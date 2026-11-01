@@ -133,14 +133,15 @@ crontab -e
 2 6-11,16,17 * * 1-5    /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
 2,32 12-15,18-20 * * 1-5 /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
 2 8 * * 0               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
-# Análisis (hora de Madrid): de lunes a viernes a las 10:00 y a las 17:00, los domingos a las 18:00 y los sábados no.
+# Análisis (hora de Madrid): de lunes a viernes a las 10:00 y a las 17:00, los sábados a las 12:00 y los domingos a las 18:00.
 # Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue si en Madrid es la hora buscada: así no hay que
 # tocarlo con el cambio de hora. En crontab, % se escribe \%
 0 8,9,15,16 * * 1-5     h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 10 ] || [ "$h" = 17 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+0 10,11 * * 6           [ "$(TZ=Europe/Madrid date +\%H)" = 12 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
-Coste orientativo: 1-2 $/mes, más el análisis (unas 48 consultas al mes: unos 0,20 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+Coste orientativo: 1-2 $/mes, más el análisis (unas 52 consultas al mes: unos 0,20 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
 sirve `news/out` en `/news/`.
 
 ## Estructura
