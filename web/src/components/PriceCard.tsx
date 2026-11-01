@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
-import { t } from "../i18n";
+import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
@@ -12,9 +12,18 @@ const AXIS_H = 18;
 // Temporalidad propia de esta tarjeta, independiente de la del score, y velas que se dibujan en cada una
 const PRICE_TFS = ["15m", "1h", "4h", "1d", "1w"] as const;
 type PriceTf = (typeof PRICE_TFS)[number];
-const VISIBLE: Record<PriceTf, number> = { "15m": 192, "1h": 168, "4h": 180, "1d": 365, "1w": 208 };
+// (60-90: en un móvil quedan 4-5 px entre cierres, lo justo para que cada punto se distinga)
+const VISIBLE: Record<PriceTf, number> = { "15m": 64, "1h": 72, "4h": 60, "1d": 90, "1w": 78 };
 const REFRESH_MS: Record<PriceTf, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000 };
-// Formato de las fechas: 15 min como intradía
+// Fechas del eje: con la hora en los tramos de horas o pocos días, sin el día en el semanal
+const AXIS_FMT: Record<PriceTf, Intl.DateTimeFormatOptions> = {
+  "15m": { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+  "1h": { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+  "4h": { day: "numeric", month: "short" },
+  "1d": { day: "numeric", month: "short" },
+  "1w": { month: "short", year: "numeric" },
+};
+// Formato de la fecha de la lectura: 15 min como intradía
 const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "1w" };
 const TF_KEY = "isbtccheap:price-tf";
 // La tarjeta solo se ve en móvil (styles.css): en pantallas mayores no se piden velas
@@ -159,17 +168,30 @@ export function PriceCard() {
                   <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
                 </g>
               ))}
-              <path d={chart.area} className="price-area" />
-              <path d={chart.line} className="line-price" />
+              <defs>
+                <linearGradient id="price-card-fill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" className="price-fill-top" />
+                  <stop offset="1" className="price-fill-bottom" />
+                </linearGradient>
+              </defs>
+              <path d={chart.area} fill="url(#price-card-fill)" />
+              <path d={chart.line} className="line-price price-card-line" />
+              {/* Un punto por cierre de vela; el último (el precio actual) más grande */}
+              <g className="price-card-dots">
+                {view.close.slice(0, -1).map((c, i) => (
+                  <circle key={i} cx={x(i)} cy={chart.y(c)} r="1.7" />
+                ))}
+              </g>
+              {hover === null && <circle cx={x(N - 1)} cy={chart.y(view.close[N - 1])} r="3.5" className="dot-price price-card-now" />}
               {[0, N - 1].map((i, k) => (
                 <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
-                  {fmtTime(view.time[i], axisTf, false)}
+                  {new Date(view.time[i]).toLocaleString(locale, AXIS_FMT[tf])}
                 </text>
               ))}
               {hover !== null && (
                 <>
                   <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
-                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="3.5" className="dot-price" />
+                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="4" className="dot-price price-card-now" />
                 </>
               )}
             </svg>

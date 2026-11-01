@@ -90,7 +90,7 @@ export const es = {
   status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
   priceCard: {
     title: "Precio de BTC",
-    period: { "15m": "Velas de 15 min · 2 días", "1h": "Velas de 1 h · 7 días", "4h": "Velas de 4 h · 30 días", "1d": "Diario · 1 año", "1w": "Semanal · 4 años" },
+    period: { "15m": "Velas de 15 min · 16 horas", "1h": "Velas de 1 h · 3 días", "4h": "Velas de 4 h · 10 días", "1d": "Diario · 3 meses", "1w": "Semanal · 1,5 años" },
     tfs: {
       "15m": { label: "15 minutos", short: "15 min" },
       "1h": { label: "1 hora", short: "1 h" },
