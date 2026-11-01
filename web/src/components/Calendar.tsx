@@ -89,7 +89,7 @@ export function CalendarList({ events: shown, now, id }: { events: CalendarEvent
 
   return (
     <>
-      <div className={h12 ? "cal-list h12" : "cal-list"} id={id}>
+      <div className="cal-list" id={id}>
         {[...days.values()].map((list) => (
           <div key={dayKey(new Date(list[0].date))} className="cal-day">
             <h4>{dayFmt.format(new Date(list[0].date))}</h4>
@@ -103,7 +103,7 @@ export function CalendarList({ events: shown, now, id }: { events: CalendarEvent
                     <div>
                       <span className="cal-title">
                         <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
-                        {lang === "es" ? e.title_es : e.title}
+                        <span className="cal-name">{lang === "es" ? e.title_es : e.title}</span>
                       </span>
                       {(e.forecast || e.previous || e.actual) && (
                         <span className="cal-meta muted small num">

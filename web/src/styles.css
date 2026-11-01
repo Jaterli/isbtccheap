@@ -431,7 +431,8 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .news-list a:hover { color: var(--accent); }
 .news-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 .news-meta { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
-.news-tag { padding: 0 6px; border: 1px solid var(--tag-border); border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+/* Mismo color en noticias y agenda, también en los eventos pasados (que se atenúan sin la etiqueta) */
+.news-tag { flex: none; white-space: nowrap; color: var(--muted); font-weight: 500; padding: 0 6px; border: 1px solid var(--tag-border); border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .news-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); background: var(--muted); }
 .news-dot.high { background: var(--band-5); }
 .news-dot.mid { background: var(--band-4); }
@@ -442,15 +443,15 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cal-list { margin-top: 6px; max-height: 520px; overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain; padding-right: 6px; }
 .cal-day h4 { margin: 8px 0 0; font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: capitalize; }
 .cal-day ul { list-style: none; margin: 0; padding: 0; }
-.cal-day li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+/* La columna de la hora mide lo mismo en español (14:30) y en inglés (12:30PM) y cabe en una línea */
+.cal-day li { display: grid; grid-template-columns: 4.7em minmax(0, 1fr); gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 .cal-day li time { color: var(--muted); padding-top: 1px; white-space: nowrap; }
-.cal-list.h12 .cal-day li { grid-template-columns: 4em minmax(0, 1fr); }
 .cal-ampm { margin-left: 1px; font-size: 0.66em; letter-spacing: 0.02em; vertical-align: 0.45em; }
 .cal-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-weight: 500; line-height: 1.35; }
 .cal-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: 2px; }
-.cal-day li.past { opacity: 0.5; }
+.cal-day li.past :is(time, .cal-name, .cal-meta) { opacity: 0.5; }
 /* El dato real se lee bien aunque el evento ya haya pasado */
-.cal-day li.past:has(.cal-actual) { opacity: 0.8; }
+.cal-day li.past:has(.cal-actual) :is(time, .cal-name, .cal-meta) { opacity: 0.8; }
 .cal-actual strong { color: var(--fg); }
 .cal-day li.next time { color: var(--accent); font-weight: 600; }
 
