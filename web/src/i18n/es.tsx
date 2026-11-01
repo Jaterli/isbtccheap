@@ -556,7 +556,7 @@ export const es = {
     note: "Fuentes: Forex Factory y FRED.",
   },
 
-  feed: { title: "Noticias y agenda", tabs: { news: "Últimas noticias", calendar: "Agenda de la semana" } },
+  feed: { title: "Noticias y agenda", tabs: { news: "Noticias", calendar: "Agenda de la semana" } },
   news: {
     title: "Últimas noticias del mercado",
     info: [

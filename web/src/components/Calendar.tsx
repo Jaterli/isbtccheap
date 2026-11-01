@@ -73,11 +73,23 @@ export function CalendarList({ events: shown, now, id }: { events: CalendarEvent
     days.set(k, [...(days.get(k) ?? []), e]);
   }
   const dayFmt = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "short" });
-  const timeFmt = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
+  // En 12 h (inglés) la hora va sin cero inicial y el AM/PM, pequeño y elevado, para que quepa en una línea
+  const h12 = new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hour12;
+  const timeFmt = new Intl.DateTimeFormat(locale, { hour: h12 ? "numeric" : "2-digit", minute: "2-digit" });
+  const time = (d: Date) =>
+    timeFmt.formatToParts(d).map((p, i) =>
+      p.type === "dayPeriod" ? (
+        <span key={i} className="cal-ampm">
+          {p.value}
+        </span>
+      ) : p.type === "literal" && p.value.trim() === "" ? null : (
+        p.value
+      ),
+    );
 
   return (
     <>
-      <div className="cal-list" id={id}>
+      <div className={h12 ? "cal-list h12" : "cal-list"} id={id}>
         {[...days.values()].map((list) => (
           <div key={dayKey(new Date(list[0].date))} className="cal-day">
             <h4>{dayFmt.format(new Date(list[0].date))}</h4>
@@ -87,7 +99,7 @@ export function CalendarList({ events: shown, now, id }: { events: CalendarEvent
                 const cls = isPast(d) ? "past" : e === next ? "next" : undefined;
                 return (
                   <li key={e.title + e.date} className={cls}>
-                    <time dateTime={e.date} className="num">{timeFmt.format(d)}</time>
+                    <time dateTime={e.date} className="num">{time(d)}</time>
                     <div>
                       <span className="cal-title">
                         <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
