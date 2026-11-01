@@ -83,7 +83,14 @@ export const en: Messages = {
   status: { now: "BTC is", candle: (tf: string) => `${tf} candle` },
   priceCard: {
     title: "BTC price",
-    period: { "1h": "1h candles · 7 days", "4h": "4h candles · 30 days", "1d": "Daily · 1 year", "1w": "Weekly · 4 years", "1M": "Monthly · since 2011" },
+    period: { "15m": "15m candles · 2 days", "1h": "1h candles · 7 days", "4h": "4h candles · 30 days", "1d": "Daily · 1 year", "1w": "Weekly · 4 years" },
+    tfs: {
+      "15m": { label: "15 minutes", short: "15m" },
+      "1h": { label: "1 hour", short: "1h" },
+      "4h": { label: "4 hours", short: "4h" },
+      "1d": { label: "1 day", short: "1D" },
+      "1w": { label: "1 week", short: "1W" },
+    },
     chartAria: "Bitcoin price chart in the selected timeframe",
   },
   movesLink: { text: "How long has BTC gone without a 10% drop or a 20% rally? Compare it with what is usual.", cta: "Drops and rallies" },

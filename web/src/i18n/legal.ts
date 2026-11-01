@@ -34,6 +34,7 @@ const PAYPAL_PRIVACY = "https://www.paypal.com/es/legalhub/paypal/privacy-full";
 const STORAGE: { key: string; es: string; en: string }[] = [
   { key: "isbtccheap:lang", es: "Idioma que has elegido", en: "Language you chose" },
   { key: "isbtccheap:tf", es: "Temporalidad del índice", en: "Index timeframe" },
+  { key: "isbtccheap:price-tf", es: "Temporalidad del gráfico del precio (móvil)", en: "Price chart timeframe (mobile)" },
   { key: "isbtccheap:feed", es: "Pestaña de noticias o agenda", en: "News or calendar tab" },
   { key: "isbtccheap:chart-heights", es: "Altura de las gráficas del histórico", en: "Height of the history charts" },
   { key: "isbtccheap:outlook-period, isbtccheap:moves-period", es: "Periodo de las tablas del índice", en: "Period of the index tables" },

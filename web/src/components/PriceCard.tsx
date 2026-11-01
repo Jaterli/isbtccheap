@@ -1,26 +1,93 @@
-import { useMemo, useState, type PointerEvent } from "react";
-import { locale, t } from "../i18n";
+import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { t } from "../i18n";
+import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
-import type { Timeframe } from "../types";
+import type { CandleTf } from "../lib/series";
 
 const PAD_L = 4;
 const PAD_T = 6;
 const AXIS_H = 18;
 
-// Velas que se dibujan por temporalidad (en mensual, todo desde 2011)
-const VISIBLE: Record<Timeframe, number> = { "1h": 168, "4h": 180, "1d": 365, "1w": 208, "1M": Infinity };
+// Temporalidad propia de esta tarjeta, independiente de la del score, y velas que se dibujan en cada una
+const PRICE_TFS = ["15m", "1h", "4h", "1d", "1w"] as const;
+type PriceTf = (typeof PRICE_TFS)[number];
+const VISIBLE: Record<PriceTf, number> = { "15m": 192, "1h": 168, "4h": 180, "1d": 365, "1w": 208 };
+const REFRESH_MS: Record<PriceTf, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000 };
+// Formato de las fechas: 15 min como intradía
+const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "1w" };
+const TF_KEY = "isbtccheap:price-tf";
+// La tarjeta solo se ve en móvil (styles.css): en pantallas mayores no se piden velas
+const MOBILE = "(max-width: 639px)";
 
-export interface Closes {
+function loadTf(): PriceTf {
+  try {
+    const saved = localStorage.getItem(TF_KEY);
+    return PRICE_TFS.includes(saved as PriceTf) ? (saved as PriceTf) : "1d";
+  } catch {
+    return "1d";
+  }
+}
+
+interface Closes {
   time: number[];
   close: number[];
 }
 
-/** Precio de cierre de las últimas velas de la temporalidad elegida en el medidor. */
-export function PriceCard({ tf, data }: { tf: Timeframe; data: Closes | null }) {
+/** Velas de `tf`, recargadas a su ritmo, mientras `active`. */
+function useCloses(tf: PriceTf, active: boolean) {
+  const [data, setData] = useState<{ tf: PriceTf; closes: Closes } | null>(null);
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const load = async () => {
+      try {
+        const candles = await fetchCandles(tf);
+        if (!cancelled) setData({ tf, closes: { time: candles.map((c) => c.time), close: candles.map((c) => c.close) } });
+      } catch {
+        /* sin respuesta se mantiene lo último y se reintenta en el siguiente ciclo */
+      }
+      if (!cancelled) timer = setTimeout(load, REFRESH_MS[tf]);
+    };
+    load();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [tf, active]);
+  // Recién cambiada la temporalidad, no se muestran las velas de la anterior
+  return data?.tf === tf ? data.closes : null;
+}
+
+function useMedia(query: string) {
+  const [match, setMatch] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setMatch(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [query]);
+  return match;
+}
+
+/** Precio de cierre de las últimas velas, con su propio selector de temporalidad (solo en móvil). */
+export function PriceCard() {
   const { ref, width } = useWidth(200);
   const [hover, setHover] = useState<number | null>(null);
+  const [tf, setTf] = useState<PriceTf>(loadTf);
+  const data = useCloses(tf, useMedia(MOBILE));
   const tx = t.priceCard;
-  const axisTf = tf === "1M" ? "1w" : tf;
+  const axisTf = AXIS_TF[tf];
+
+  const select = (v: PriceTf) => {
+    setTf(v);
+    setHover(null);
+    try {
+      localStorage.setItem(TF_KEY, v);
+    } catch {
+      /* almacenamiento no disponible: no pasa nada */
+    }
+  };
 
   const view = useMemo(() => {
     if (!data || data.close.length < 2) return null;
@@ -54,7 +121,6 @@ export function PriceCard({ tf, data }: { tf: Timeframe; data: Closes | null }) 
   };
 
   const h = hover ?? N - 1;
-  const change = view ? view.close[N - 1] / view.close[0] - 1 : null;
 
   return (
     <article className="card price-card">
@@ -62,6 +128,13 @@ export function PriceCard({ tf, data }: { tf: Timeframe; data: Closes | null }) 
         <h3>{tx.title}</h3>
         <span className="muted small">{tx.period[tf]}</span>
       </header>
+      <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
+        {PRICE_TFS.map((v) => (
+          <button key={v} role="radio" aria-checked={tf === v} aria-label={tx.tfs[v].label} title={tx.tfs[v].label} className={tf === v ? "active" : ""} onClick={() => select(v)}>
+            {tx.tfs[v].short}
+          </button>
+        ))}
+      </div>
       <div ref={ref}>
         {view && chart ? (
           <>
@@ -70,12 +143,6 @@ export function PriceCard({ tf, data }: { tf: Timeframe; data: Closes | null }) 
               <span className="legend legend-price num">
                 <strong>{usd(view.close[h])}</strong>
               </span>
-              {hover === null && change !== null && (
-                <span className={`num ${change > 0 ? "up" : change < 0 ? "down" : ""}`}>
-                  {change > 0 ? "+" : change < 0 ? "−" : ""}
-                  {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }))}
-                </span>
-              )}
             </p>
             <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
               {chart.ticks.map((p) => (

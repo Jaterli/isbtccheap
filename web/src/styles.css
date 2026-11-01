@@ -277,8 +277,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card header { align-items: baseline; }
 .price-card .chart-readout { margin: 6px 0 2px; }
 .price-card svg { display: block; touch-action: pan-y; }
-.price-card .up { color: var(--band-1); font-weight: 600; }
-.price-card .down { color: var(--band-5); font-weight: 600; }
+.price-card .price-tfs { grid-template-columns: repeat(5, 1fr); max-width: none; margin-top: 10px; }
 .price-area { fill: var(--price); opacity: 0.08; }
 .price-card-empty { margin: 12px 0 0; }
 .btn {

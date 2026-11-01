@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Breakdown } from "./components/Breakdown";
 import { bandColor, Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
-import { PriceCard, type Closes } from "./components/PriceCard";
+import { PriceCard } from "./components/PriceCard";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchDerivatives, fetchFundingRate } from "./lib/binance";
@@ -37,7 +37,6 @@ interface LiveEntry {
   price: number | null;
   /** Cierre de la vela anterior: la variación se mide desde ahí */
   prevClose: number | null;
-  closes: Closes;
   at: number;
 }
 
@@ -58,7 +57,7 @@ export function App() {
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
   // null: Binance no respondió y se usa lo diario del pipeline
-  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null; closes: Closes | null } | null>(null);
+  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
   const [funding, setFunding] = useState<number | null>(null);
@@ -98,7 +97,7 @@ export function App() {
     const load = async () => {
       const cached = cache.current.get(tf);
       if (cached && Date.now() - cached.at < ms) {
-        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives, closes: cached.closes });
+        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
         setPrice(cached.price);
         setPrevClose(cached.prevClose);
         setLiveError(false);
@@ -106,7 +105,7 @@ export function App() {
         return;
       }
       // Mientras se refresca se muestra la caché de esta temporalidad, no la de otra
-      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives, closes: cached.closes });
+      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
       // Hasta tener velas de esta temporalidad no se muestra la variación de otra
       else setPrevClose(null);
       setLoading(true);
@@ -126,15 +125,14 @@ export function App() {
           derivatives,
           price: candles.value.at(-1)?.close ?? null,
           prevClose: candles.value.at(-2)?.close ?? null,
-          closes: { time: candles.value.map((c) => c.time), close: candles.value.map((c) => c.close) },
           at: now,
         };
         cache.current.set(tf, entry);
-        setLive({ tf, technical: entry.technical, derivatives, closes: entry.closes });
+        setLive({ tf, technical: entry.technical, derivatives });
         setPrice(entry.price);
         setPrevClose(entry.prevClose);
       } else {
-        setLive({ tf, technical: cached?.technical ?? null, derivatives, closes: cached?.closes ?? null });
+        setLive({ tf, technical: cached?.technical ?? null, derivatives });
       }
       if (fr.status === "fulfilled") {
         if (needFunding) fundingCache.current = { value: fr.value, at: now };
@@ -231,7 +229,7 @@ export function App() {
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 
-        <PriceCard tf={tf} data={liveTf?.closes ?? null} />
+        <PriceCard />
 
         <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 

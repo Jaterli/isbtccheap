@@ -90,7 +90,14 @@ export const es = {
   status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
   priceCard: {
     title: "Precio de BTC",
-    period: { "1h": "Velas de 1 h · 7 días", "4h": "Velas de 4 h · 30 días", "1d": "Diario · 1 año", "1w": "Semanal · 4 años", "1M": "Mensual · desde 2011" } as Record<string, string>,
+    period: { "15m": "Velas de 15 min · 2 días", "1h": "Velas de 1 h · 7 días", "4h": "Velas de 4 h · 30 días", "1d": "Diario · 1 año", "1w": "Semanal · 4 años" },
+    tfs: {
+      "15m": { label: "15 minutos", short: "15 min" },
+      "1h": { label: "1 hora", short: "1 h" },
+      "4h": { label: "4 horas", short: "4 h" },
+      "1d": { label: "1 día", short: "1 día" },
+      "1w": { label: "1 semana", short: "1 sem" },
+    },
     chartAria: "Gráfico del precio de Bitcoin en la temporalidad elegida",
   },
   movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
