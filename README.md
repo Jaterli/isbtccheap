@@ -127,7 +127,12 @@ crontab -e
 5,20,35,50 6-20 * * 1-5 /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
-2 * * * *               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
+# Agenda: cada 30 min (minutos 2 y 32) cuando salen los datos de EE. UU. (12:00-15:59 UTC: 8:30 y 10:00 en Nueva York
+# con horario de verano o de invierno) y la Fed (18:00-20:59 UTC); cada hora en el resto del horario europeo, de lunes a
+# viernes. Fines de semana no hay datos: solo el domingo a las 08:02 UTC, cuando Forex Factory ya publica la nueva semana
+2 6-11,16,17 * * 1-5    /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
+2,32 12-15,18-20 * * 1-5 /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
+2 8 * * 0               /root/isbtccheap/news/run.sh build_calendar.py >> /var/log/isbtccheap-news.log 2>&1
 # Análisis (hora de Madrid): de lunes a viernes a las 10:00 y a las 17:00, los domingos a las 18:00 y los sábados no.
 # Se lanza a las dos horas UTC posibles (invierno y verano) y solo sigue si en Madrid es la hora buscada: así no hay que
 # tocarlo con el cambio de hora. En crontab, % se escribe \%

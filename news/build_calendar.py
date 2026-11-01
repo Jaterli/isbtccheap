@@ -1,6 +1,7 @@
 """Genera calendar.json: los eventos económicos de la semana que más pueden mover el precio de BTC.
 
-Cada ejecución (cron cada hora en el droplet):
+Cada ejecución (cron en el droplet: cada 30 min en las horas de datos de EE. UU., cada hora en el resto del horario
+europeo de lunes a viernes y una vez el domingo; ver README):
   1. Descarga el calendario semanal de Forex Factory (JSON público, no oficial: pedirlo poco).
   2. Se queda con los eventos de impacto alto de EE. UU. y con las decisiones de tipos de otros grandes bancos centrales.
   3. Traduce al español los nombres de evento que aún no conoce, con el mismo modelo que las noticias, y los guarda:
