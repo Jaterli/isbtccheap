@@ -1,132 +1,132 @@
 {
-  "updated_at": "2026-10-31T15:50:41+00:00",
-  "as_of": "2026-10-30",
-  "price": 77109.5907,
-  "score_1d": 25.1094,
+  "updated_at": "2026-11-01T07:41:58+00:00",
+  "as_of": "2026-10-31",
+  "price": 77401.0173,
+  "score_1d": 26.262,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 39.5619,
+      "score": 40.9765,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.4273,
-          "score": 31.2115
+          "value": 1.4325,
+          "score": 32.1013
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 1.0036,
-          "score": 45.9959
+          "value": 1.0294,
+          "score": 48.9391
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 1.0547,
-          "score": 41.4784
+          "value": 1.0585,
+          "score": 41.8891
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 16.6555,
+      "score": 16.9579,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 9.2411,
-          "score": 9.2411
+          "value": 9.3269,
+          "score": 9.3269
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.2732,
-          "score": 10.8145
+          "value": -0.2718,
+          "score": 11.2252
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 1.1458,
-          "score": 29.911
+          "value": 1.1494,
+          "score": 30.3217
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 53.4993,
+      "score": 53.7474,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
           "value": -0.0191,
-          "score": 59.2745
+          "score": 59.3087
         },
         {
           "id": "m2_yoy",
           "name": "M2 EE. UU. (var. interanual)",
           "value": 0.0536,
-          "score": 9.4114
+          "score": 9.4456
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
           "value": 0.0135,
-          "score": 80.835
+          "score": 80.8693
         },
         {
           "id": "stablecoin_roc",
           "name": "Oferta de stablecoins (var. 90 d)",
-          "value": 0.0038,
-          "score": 64.4764
+          "value": 0.0016,
+          "score": 65.3662
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 27.3978,
+      "score": 28.878,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 30.0,
-          "score": 30.0
+          "value": 34.0,
+          "score": 34.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 0.9986,
-          "score": 32.0329
+          "value": 0.9987,
+          "score": 32.4435
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
           "value": -10535.7078,
-          "score": 20.1605
+          "score": 20.1904
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 21.3051,
+      "score": 22.7668,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 34.2161,
-          "score": 10.5402
+          "value": 35.6702,
+          "score": 14.1754
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": -14.5478,
+          "value": -1.5591,
           "score": 0.0
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 1.0547,
-          "score": 53.375
+          "value": 1.0585,
+          "score": 54.125
         }
       ]
     }
