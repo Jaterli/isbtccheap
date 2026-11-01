@@ -3,6 +3,7 @@ import { t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
+import { RefreshStatus } from "./RefreshStatus";
 
 const PAD_L = 4;
 const PAD_T = 6;
@@ -33,21 +34,27 @@ interface Closes {
   close: number[];
 }
 
-/** Velas de `tf`, recargadas a su ritmo, mientras `active`. */
+/** Velas de `tf`, recargadas a su ritmo (con su propio reloj, independiente del del score), mientras `active`. */
 function useCloses(tf: PriceTf, active: boolean) {
   const [data, setData] = useState<{ tf: PriceTf; closes: Closes } | null>(null);
+  const [nextAt, setNextAt] = useState(0);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
+      setLoading(true);
       try {
         const candles = await fetchCandles(tf);
         if (!cancelled) setData({ tf, closes: { time: candles.map((c) => c.time), close: candles.map((c) => c.close) } });
       } catch {
         /* sin respuesta se mantiene lo último y se reintenta en el siguiente ciclo */
       }
-      if (!cancelled) timer = setTimeout(load, REFRESH_MS[tf]);
+      if (cancelled) return;
+      setLoading(false);
+      setNextAt(Date.now() + REFRESH_MS[tf]);
+      timer = setTimeout(load, REFRESH_MS[tf]);
     };
     load();
     return () => {
@@ -56,7 +63,7 @@ function useCloses(tf: PriceTf, active: boolean) {
     };
   }, [tf, active]);
   // Recién cambiada la temporalidad, no se muestran las velas de la anterior
-  return data?.tf === tf ? data.closes : null;
+  return { closes: data?.tf === tf ? data.closes : null, nextAt, loading };
 }
 
 function useMedia(query: string) {
@@ -75,7 +82,7 @@ export function PriceCard() {
   const { ref, width } = useWidth(200);
   const [hover, setHover] = useState<number | null>(null);
   const [tf, setTf] = useState<PriceTf>(loadTf);
-  const data = useCloses(tf, useMedia(MOBILE));
+  const { closes: data, nextAt, loading } = useCloses(tf, useMedia(MOBILE));
   const tx = t.priceCard;
   const axisTf = AXIS_TF[tf];
 
@@ -143,6 +150,7 @@ export function PriceCard() {
               <span className="legend legend-price num">
                 <strong>{usd(view.close[h])}</strong>
               </span>
+              <RefreshStatus nextAt={nextAt} loading={loading} />
             </p>
             <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
               {chart.ticks.map((p) => (
