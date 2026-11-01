@@ -90,7 +90,7 @@ export const es = {
   status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
   priceCard: {
     title: "Precio de BTC",
-    period: { "15m": "Velas de 15 min", "1h": "Velas de 1 h", "4h": "Velas de 4 h", "1d": "Diario", "1w": "Semanal" },
+    period: { "15m": "Velas de 15m", "1h": "Velas de 1h", "4h": "Velas de 4h", "1d": "Diario", "1w": "Semanal" },
     resize: "Alto del gráfico del precio",
     tfs: {
       "15m": { label: "15 minutos", short: "15m" },
@@ -249,7 +249,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3 M", "6m": "6 M", "1y": "1 Y", "4y": "4 Y", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3M", "6m": "6M", "1y": "1A", "4y": "4A", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
@@ -270,7 +270,7 @@ export const es = {
     priceLegend: "Precio",
     chartAria: "Gráfico de la volatilidad realizada de Bitcoin y de su precio",
   },
-  periods: { "2y": "2 Y", "4y": "4 Y", "8y": "8 Y", all: "Desde 2011" } as Record<string, string>,
+  periods: { "2y": "2A", "4y": "4A", "8y": "8A", all: "Desde 2011" } as Record<string, string>,
   periodAria: "Periodo de la muestra",
 
   taglineTitle: "¿Está Bitcoin barato o caro?",
@@ -466,7 +466,7 @@ export const es = {
     infoTitle: "Histórico",
     info1: "Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).",
     info2: "Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.",
-    ranges: { "6m": "6 M", "1y": "1 Y", "4y": "4 Y", all: "Todo" } as Record<string, string>,
+    ranges: { "6m": "6M", "1y": "1A", "4y": "4A", all: "Todo" } as Record<string, string>,
     rangeAria: "Rango del histórico",
     zoomOut: "Alejar",
     zoomIn: "Acercar",
@@ -492,7 +492,7 @@ export const es = {
       "La tabla toma los días del histórico con un score diario parecido al de hoy (±7,5 puntos) y mide cuánto había cambiado el precio al cabo de cada plazo.",
       "Los días cercanos se parecen mucho entre sí, así que se agrupan en episodios: días de la muestra separados por menos de un mes son el mismo episodio. El tamaño real de la muestra es el número de episodios, no el de días.",
       "El tiempo en una zona se mide con la media de 30 días del score, porque el valor diario es demasiado ruidoso: en pocas semanas puede cruzar varias zonas.",
-      '"2 años" muestra solo el mercado más reciente y tiene muy pocos episodios; "4 años" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "8 años" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.',
+      '"2A" (2 años) muestra solo el mercado más reciente y tiene muy pocos episodios; "4A" (un ciclo) es lo más parecido al mercado actual, pero tiene pocos episodios; "8A" (unos dos ciclos) equilibra parecido y tamaño de la muestra; "Desde 2011" tiene más episodios, pero incluye las subidas extremas de los primeros años.',
     ],
     infoNote:
       "El score histórico usa una regresión power law ajustada con todos los datos, así que los resultados pasados salen algo mejores de lo que habría marcado en su momento. Describe el pasado, no predice el futuro.",

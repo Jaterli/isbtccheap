@@ -482,7 +482,7 @@ export const en: Messages = {
       "The table takes the days in the history with a daily score similar to today's (±7.5 points) and measures how much the price had changed after each period.",
       "Nearby days are very similar to each other, so they are grouped into episodes: sample days less than a month apart belong to the same episode. The real sample size is the number of episodes, not of days.",
       "Time in a zone is measured with the score's 30-day average, because the daily value is too noisy: in a few weeks it can cross several zones.",
-      '"2 years" shows only the most recent market and has very few episodes; "4 years" (one cycle) is closest to today\'s market but has few episodes; "8 years" (about two cycles) balances similarity and sample size; "Since 2011" has the most episodes but includes the extreme rallies of the early years.',
+      '"2Y" (2 years) shows only the most recent market and has very few episodes; "4Y" (one cycle) is closest to today\'s market but has few episodes; "8Y" (about two cycles) balances similarity and sample size; "Since 2011" has the most episodes but includes the extreme rallies of the early years.',
     ],
     infoNote:
       "The historical score uses a power law regression fitted on all the data, so past results look somewhat better than what the score would have shown at the time. It describes the past; it does not predict the future.",
