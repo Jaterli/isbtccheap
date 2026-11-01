@@ -4,7 +4,7 @@ import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18
 const PAGES: Page[] = ["index", "analysis", "liquidity", "etf", "volatility", "valuation", "drawdown", "categories", "cycles"];
 
 export function Header({ title, rest }: { title: string; rest: string }) {
-  // Por debajo de 900 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
+  // Por debajo de 1000 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
   const [open, setOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -25,9 +25,31 @@ export function Header({ title, rest }: { title: string; rest: string }) {
     };
   }, [open]);
 
+  // stuck: en pantallas grandes, la barra pasa a estar fija arriba con el logo pequeño en cuanto llega al borde
+  // (el padding superior del contenedor). scrolled: el botón flotante para volver arriba (solo en móvil, ver
+  // styles.css) aparece tras bajar una pantalla
+  const [stuck, setStuck] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      setStuck(window.scrollY > 24);
+      setScrolled(window.scrollY > window.innerHeight);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Móvil: la barra (logo pequeño, páginas e idioma) va siempre pegada arriba. Pantallas grandes: sin scroll, el
+  // menú arriba a la derecha y el logo grande junto al título; al bajar, la barra se fija arriba con el logo pequeño
+  const home = PAGE_PATH.index[lang];
+  const logo = `${import.meta.env.BASE_URL}logo-isbtccheap_v2.png`;
   return (
-    <header>
-      <div className="top-nav">
+    <>
+      <header className={stuck ? "site-bar stuck" : "site-bar"}>
+        <a className="brand-mini" href={home}>
+          <img src={logo} alt="Is BTC Cheap?" width="350" height="350" />
+        </a>
         <nav className="page-nav" aria-label={t.nav.aria} ref={nav}>
           <button ref={toggle} type="button" className="nav-toggle" aria-expanded={open} aria-controls="page-links" onClick={() => setOpen(!open)}>
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
@@ -50,16 +72,27 @@ export function Header({ title, rest }: { title: string; rest: string }) {
             </a>
           ))}
         </nav>
-      </div>
+      </header>
       <div className="top">
-        <a className="brand" href={PAGE_PATH.index[lang]}>
-          <img src={`${import.meta.env.BASE_URL}logo-isbtccheap_v2.png`} alt="Is BTC Cheap?" width="350" height="350" />
+        <a className="brand" href={home}>
+          <img src={logo} alt="Is BTC Cheap?" width="350" height="350" />
         </a>
         <div className="intro">
           <h1>{title}</h1>
           <p className="muted">{rest}</p>
         </div>
       </div>
-    </header>
+      <button
+        type="button"
+        className={scrolled ? "to-top show" : "to-top"}
+        aria-label={t.nav.top}
+        tabIndex={scrolled ? 0 : -1}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+          <path d="M3 10l5-5 5 5" />
+        </svg>
+      </button>
+    </>
   );
 }

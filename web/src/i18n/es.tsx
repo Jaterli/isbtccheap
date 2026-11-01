@@ -15,7 +15,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -556,7 +556,7 @@ export const es = {
     note: "Fuentes: Forex Factory y FRED.",
   },
 
-  feed: { title: "Noticias y agenda", tabs: { news: "Noticias", calendar: "Agenda de la semana" } },
+  feed: { title: "Noticias y agenda", tabs: { news: "Últimas noticias", calendar: "Agenda semanal" } },
   news: {
     title: "Últimas noticias del mercado",
     info: [

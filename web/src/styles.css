@@ -81,17 +81,37 @@ header {position: relative;}
 .notice { margin: 0; padding: 10px 14px; border: 1px solid var(--band-4); border-radius: 8px; font-size: 0.9rem; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
-/* Cabecera: el logo (que ya incluye el nombre de la app) y, a su derecha, la descripción */
+/* Cabecera. Pantallas grandes: el logo (que ya incluye el nombre de la app) y, a su derecha, la descripción; la
+   barra con las páginas y el idioma, arriba a la derecha, se fija arriba con un logo pequeño al hacer scroll
+   (.stuck, desde Header.tsx). Móvil: la barra va siempre pegada arriba, con el logo pequeño (ver más abajo) */
+html { overflow-x: clip; scroll-padding-top: 76px; }
+.container { position: relative; }
 .top { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); }
 .intro { max-width: 52ch; font-size: clamp(0.92rem, 0.85rem + 0.4vw, 1.08rem); }
 .intro h1 { margin: 0 0 2px; font-size: 1.15em; font-weight: 600; letter-spacing: normal; }
 .top p { margin: 0; }
 .brand { flex: none; display: block; width: clamp(100px, 15vw, 140px); line-height: 0; }
-.brand img { display: block; width: 100%; height: auto; }
-.top { position: relative; margin-top: 30px; }
-/* Navegación entre páginas e idioma, arriba a la derecha */
-.top-nav { position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: 14px; font-size: 0.85rem; }
-.page-nav { position: relative; }
+.brand img, .brand-mini img { display: block; width: 100%; height: auto; }
+.brand:focus-visible, .brand-mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 50%; }
+.site-bar {
+  position: absolute; top: 24px; left: var(--gutter); right: var(--gutter); z-index: 20;
+  display: flex; align-items: center; gap: 14px; font-size: 0.85rem;
+}
+.brand-mini { display: none; flex: none; width: 44px; line-height: 0; }
+.site-bar.stuck {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 8px max(var(--gutter), calc((100% - 1200px) / 2 + var(--gutter)));
+}
+.site-bar.stuck .brand-mini { display: block; animation: brand-in 0.25s ease-out; }
+@keyframes brand-in { from { opacity: 0; transform: scale(0.6); } }
+.site-bar.stuck::before, .site-bar::before {
+  content: ""; position: absolute; z-index: -1; inset: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.site-bar:not(.stuck)::before { display: none; }
+.page-nav { position: relative; margin-left: auto; }
 .page-links { display: flex; gap: 2px; }
 .nav-toggle { display: none; }
 .page-nav a { padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 600; }
@@ -103,9 +123,13 @@ header {position: relative;}
 .lang-switch a:hover { color: var(--fg); }
 .lang-switch a[aria-current] { color: var(--fg); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
 .lang-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Por debajo de 900 px los enlaces no caben junto al logo: van en un desplegable, en una fila propia */
-@media (max-width: 899px) {
-  .top-nav { position: static; justify-content: space-between; gap: 8px; }
+/* Botón flotante para volver arriba: solo en móvil (ver más abajo) */
+.to-top { display: none; }
+/* Por debajo de 1000 px los enlaces no caben junto al logo: van en un desplegable, en una fila propia sobre el logo */
+@media (max-width: 999px) {
+  .site-bar { gap: 10px; }
+  .page-nav { margin-left: 0; margin-right: auto; }
+  .top { margin-top: 44px; }
   .nav-toggle {
     display: inline-flex; align-items: center; gap: 7px;
     padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px;
@@ -123,16 +147,32 @@ header {position: relative;}
   .page-links.open { display: flex; }
   .page-links a { padding: 9px 10px; font-size: 0.95rem; }
   .page-links a[aria-current] { background: var(--bg); }
-  .top { margin-top: 12px; }
 }
-/* Móvil: logo y textos más compactos */
+/* Móvil: la barra va siempre pegada arriba con el logo pequeño (sin el grande), textos más compactos y botón para
+   volver arriba. El fondo de la barra ocupa todo el ancho de la ventana aunque la barra mida lo que el contenedor */
 @media (max-width: 639px) {
+  html { scroll-padding-top: 64px; }
+  .site-bar, .site-bar.stuck { position: sticky; top: 0; left: auto; right: auto; margin-top: -24px; padding: 6px 0; }
+  .site-bar::before, .site-bar:not(.stuck)::before { display: block; inset: 0 calc(50% - 50vw); }
+  .brand-mini, .site-bar.stuck .brand-mini { display: block; width: 42px; animation: none; }
+  .top { margin-top: 0; }
+  .top .brand { display: none; }
   .nav-toggle { padding: 4px 9px; font-size: 0.9rem; }
-  .top { margin-top: 6px; gap: 12px; }
-  .brand { width: 88px; }
   .intro { font-size: 0.86rem; line-height: 1.4; }
   .intro h1 { font-size: 1.12em; }
+  .to-top {
+    display: grid; place-items: center; position: fixed; z-index: 20;
+    right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--fg);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.25); cursor: pointer;
+    opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: none; }
+  .to-top svg { stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
+@media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
 
 /* Panel principal. Móvil: 1 columna, con el gráfico del precio tras el score · tablet: score y categorías en
    2 columnas, sin el gráfico · escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª */
@@ -143,7 +183,7 @@ header {position: relative;}
   .dashboard .side { grid-column: 1 / -1; }
   .dashboard .price-card { display: none; }
 }
-@media (min-width: 900px) {
+@media (min-width: 1000px) {
   .top { margin-top: 0; }
 }
 
@@ -551,6 +591,7 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
   :root { --gutter: 12px; }
   body { font-size: 14px; }
   .container { padding-top: 16px; }
+  .site-bar, .site-bar.stuck { margin-top: -16px; }
   .card { padding: 14px; border-radius: 12px; }
   .segmented.timeframes button { padding-inline: 2px; }
   .category li { grid-template-columns: minmax(0, 1fr) auto 2em; gap: 8px; }

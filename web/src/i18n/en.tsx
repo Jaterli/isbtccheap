@@ -8,7 +8,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies", top: "Back to top" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
