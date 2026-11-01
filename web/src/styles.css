@@ -279,13 +279,12 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-resize { position: static; height: 14px; margin-bottom: -8px; }
 .price-card .chart-readout { margin: 6px 0 2px; }
 .price-card .chart-readout .refresh { margin-left: auto; }
-/* Gráfico del precio (móvil): área en degradado, un punto por cierre y el actual destacado con un halo */
+/* Gráfico del precio (móvil): área en degradado y, al pasar el dedo, un punto verde o rojo según cerró la vela */
 .price-fill-top { stop-color: var(--price); stop-opacity: 0.22; }
 .price-fill-bottom { stop-color: var(--price); stop-opacity: 0; }
-.price-card-line { stroke-width: 1.6; stroke-linejoin: round; stroke-opacity: 0.85; }
-.price-card-dots circle { fill: var(--price); }
-.price-card-dots .up, .price-card-now.up { fill: var(--band-1); }
-.price-card-dots .down, .price-card-now.down { fill: var(--band-5); }
+.price-card-line { stroke-width: 1.6; stroke-linejoin: round; }
+.price-card-now.up { fill: var(--band-1); }
+.price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
 .price-card svg { display: block; touch-action: pan-y; }
 .price-controls { display: flex; gap: 8px; margin-top: 10px; }

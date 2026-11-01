@@ -16,8 +16,6 @@ type PriceTf = (typeof PRICE_TFS)[number];
 // menos, entre MIN_VISIBLE y todas las descargadas
 const MIN_VISIBLE = 20;
 const ZOOM = 1.5;
-// Por debajo de esta separación entre cierres los puntos se solaparían: solo se dibuja la línea
-const MIN_DOT_GAP = 2;
 // Alto del gráfico, ajustable arrastrando la barra de debajo (se guarda)
 const HEIGHT_KEY = "isbtccheap:price-height";
 const HEIGHT_LIMITS = [90, 360] as const;
@@ -243,13 +241,6 @@ export function PriceCard() {
               </defs>
               <path d={chart.area} fill="url(#price-card-fill)" />
               <path d={chart.line} className="line-price price-card-line" />
-              {/* Un punto por cierre de vela (el último, el precio actual con la vela en curso), verde si está por encima de
-                  su apertura y rojo si por debajo */}
-              <g className="price-card-dots" display={plotW / Math.max(1, N - 1) < MIN_DOT_GAP ? "none" : undefined}>
-                {view.close.map((c, i) => (
-                  <circle key={i} cx={x(i)} cy={chart.y(c)} r="1.3" className={dir(i)} />
-                ))}
-              </g>
               {[0, N - 1].map((i, k) => (
                 <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
                   {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
