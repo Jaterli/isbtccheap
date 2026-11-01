@@ -241,7 +241,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3 meses", "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3 M", "6m": "6 M", "1y": "1 Y", "4y": "4 Y", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
@@ -262,7 +262,7 @@ export const es = {
     priceLegend: "Precio",
     chartAria: "Gráfico de la volatilidad realizada de Bitcoin y de su precio",
   },
-  periods: { "2y": "2 años", "4y": "4 años", "8y": "8 años", all: "Desde 2011" } as Record<string, string>,
+  periods: { "2y": "2 Y", "4y": "4 Y", "8y": "8 Y", all: "Desde 2011" } as Record<string, string>,
   periodAria: "Periodo de la muestra",
 
   taglineTitle: "¿Está Bitcoin barato o caro?",
@@ -458,7 +458,7 @@ export const es = {
     infoTitle: "Histórico",
     info1: "Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).",
     info2: "Cada día se calcula solo con los datos disponibles hasta ese día, así que el histórico refleja lo que el score habría marcado en su momento. Se señalan el máximo y el mínimo del tramo visible.",
-    ranges: { "6m": "6 meses", "1y": "1 año", "4y": "4 años", all: "Todo" } as Record<string, string>,
+    ranges: { "6m": "6 M", "1y": "1 Y", "4y": "4 Y", all: "Todo" } as Record<string, string>,
     rangeAria: "Rango del histórico",
     zoomOut: "Alejar",
     zoomIn: "Acercar",
