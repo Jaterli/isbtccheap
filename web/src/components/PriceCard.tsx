@@ -40,6 +40,7 @@ function loadTf(): PriceTf {
 
 interface Closes {
   time: number[];
+  open: number[];
   close: number[];
 }
 
@@ -56,7 +57,7 @@ function useCloses(tf: PriceTf, active: boolean) {
       setLoading(true);
       try {
         const candles = await fetchCandles(tf);
-        if (!cancelled) setData({ tf, closes: { time: candles.map((c) => c.time), close: candles.map((c) => c.close) } });
+        if (!cancelled) setData({ tf, closes: { time: candles.map((c) => c.time), open: candles.map((c) => c.open), close: candles.map((c) => c.close) } });
       } catch {
         /* sin respuesta se mantiene lo último y se reintenta en el siguiente ciclo */
       }
@@ -108,7 +109,7 @@ export function PriceCard() {
   const view = useMemo(() => {
     if (!data || data.close.length < 2) return null;
     const from = Math.max(0, data.close.length - VISIBLE[tf]);
-    return { time: data.time.slice(from), close: data.close.slice(from) };
+    return { time: data.time.slice(from), open: data.open.slice(from), close: data.close.slice(from) };
   }, [data, tf]);
 
   const H = width < 520 ? 130 : 150;
@@ -137,6 +138,7 @@ export function PriceCard() {
   };
 
   const h = hover ?? N - 1;
+  const dir = (i: number) => (!view ? undefined : view.close[i] > view.open[i] ? "up" : view.close[i] < view.open[i] ? "down" : undefined);
 
   return (
     <article className="card price-card">
@@ -176,13 +178,13 @@ export function PriceCard() {
               </defs>
               <path d={chart.area} fill="url(#price-card-fill)" />
               <path d={chart.line} className="line-price price-card-line" />
-              {/* Un punto por cierre de vela; el último (el precio actual) más grande */}
+              {/* Un punto por cierre de vela (el último, el precio actual con la vela en curso), verde si está por encima de
+                  su apertura y rojo si por debajo */}
               <g className="price-card-dots">
-                {view.close.slice(0, -1).map((c, i) => (
-                  <circle key={i} cx={x(i)} cy={chart.y(c)} r="1.7" />
+                {view.close.map((c, i) => (
+                  <circle key={i} cx={x(i)} cy={chart.y(c)} r="1.3" className={dir(i)} />
                 ))}
               </g>
-              {hover === null && <circle cx={x(N - 1)} cy={chart.y(view.close[N - 1])} r="3.5" className="dot-price price-card-now" />}
               {[0, N - 1].map((i, k) => (
                 <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
                   {new Date(view.time[i]).toLocaleString(locale, AXIS_FMT[tf])}
@@ -191,7 +193,7 @@ export function PriceCard() {
               {hover !== null && (
                 <>
                   <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
-                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="4" className="dot-price price-card-now" />
+                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
                 </>
               )}
             </svg>

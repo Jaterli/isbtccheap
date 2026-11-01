@@ -282,7 +282,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-fill-bottom { stop-color: var(--price); stop-opacity: 0; }
 .price-card-line { stroke-width: 1.6; stroke-linejoin: round; stroke-opacity: 0.85; }
 .price-card-dots circle { fill: var(--price); }
-.price-card-now { stroke: var(--surface); stroke-width: 2; }
+.price-card-dots .up, .price-card-now.up { fill: var(--band-1); }
+.price-card-dots .down, .price-card-now.down { fill: var(--band-5); }
+.price-card-now { stroke: var(--surface); stroke-width: 1.5; }
 .price-card svg { display: block; touch-action: pan-y; }
 .price-card .price-tfs { grid-template-columns: repeat(5, 1fr); max-width: none; margin-top: 10px; }
 .price-card-empty { margin: 12px 0 0; }
