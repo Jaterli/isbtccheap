@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-02T20:28:40+00:00",
+  "updated_at": "2026-11-02T22:41:39+00:00",
   "as_of": "2026-11-01",
   "price": 78135.0803,
-  "score_1d": 28.0859,
+  "score_1d": 28.1227,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -54,13 +54,13 @@
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 54.7399,
+      "score": 55.5441,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0191,
-          "score": 59.3429
+          "value": -0.0212,
+          "score": 61.191
         },
         {
           "id": "m2_yoy",
@@ -71,8 +71,8 @@
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
-          "value": 0.0135,
-          "score": 80.9035
+          "value": 0.0164,
+          "score": 82.2724
         },
         {
           "id": "stablecoin_roc",
@@ -162,8 +162,8 @@
     },
     "1M": {
       "tecnico": 3,
-      "sentimiento": 5,
-      "valoracion": 39,
+      "sentimiento": 3,
+      "valoracion": 41,
       "ciclo": 38,
       "liquidez": 15
     }
