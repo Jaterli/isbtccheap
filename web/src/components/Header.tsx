@@ -43,7 +43,7 @@ export function Header({ title, rest }: { title: string; rest: string }) {
   // Móvil: la barra (logo pequeño, páginas e idioma) va siempre pegada arriba. Pantallas grandes: sin scroll, el
   // menú arriba a la derecha y el logo grande junto al título; al bajar, la barra se fija arriba con el logo pequeño
   const home = PAGE_PATH.index[lang];
-  const logo = `${import.meta.env.BASE_URL}logo-isbtccheap_v2.png`;
+  const logo = `${import.meta.env.BASE_URL}logo-isbtccheap.png`;
   return (
     <>
       <header className={stuck ? "site-bar stuck" : "site-bar"}>
