@@ -3,7 +3,8 @@
 Cada ejecución (cron en el droplet: cada 30 min en las horas de datos de EE. UU., cada hora en el resto del horario
 europeo de lunes a viernes y una vez el domingo; ver README):
   1. Descarga el calendario semanal de Forex Factory (JSON público, no oficial: pedirlo poco).
-  2. Se queda con los eventos de impacto alto de EE. UU. y con las decisiones de tipos de otros grandes bancos centrales.
+  2. Se queda con los eventos de impacto alto y medio de EE. UU., unos pocos más que el mercado sigue aunque Forex
+     Factory los puntúe más bajo, y las decisiones de tipos de otros grandes bancos centrales.
   3. Traduce al español los nombres de evento que aún no conoce, con el mismo modelo que las noticias, y los guarda:
      los eventos se repiten cada mes, así que casi nunca hace falta llamar al modelo.
 
@@ -24,11 +25,16 @@ from datetime import date, datetime, timedelta
 from build_news import OUT_DIR, STATE_DIR, _now, chat, write_json
 
 FEED_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+# De EE. UU., los de impacto alto y medio (ISM, JOLTS, peticiones de desempleo, Michigan…)
+US_IMPACTS = {"High", "Medium"}
 # Fuera de EE. UU. solo interesan las decisiones de tipos: el resto de sus datos apenas mueve BTC
 CENTRAL_BANKS = {"EUR", "JPY", "GBP", "CNY"}
 RATE_DECISION = re.compile(r"rate", re.I)
-# Comunicados que salen a la vez que la decisión: repetirían la misma línea
-SKIP = re.compile(r"statement|minutes", re.I)
+# Eventos que el mercado sigue aunque Forex Factory les dé menos impacto: el ADP anticipa el informe de empleo y el IPC
+# preliminar de la zona euro (solo el general: el subyacente sale a la vez)
+EXTRA = {("USD", "ADP Non-Farm Employment Change"), ("EUR", "CPI Flash Estimate y/y")}
+# Comunicados y votos que salen a la vez que la decisión: repetirían la misma línea
+SKIP = re.compile(r"statement|minutes|votes", re.I)
 
 TRANSLATE_PROMPT = """Traduce al español de España nombres de eventos del calendario económico, tal como aparecerían \
 en una agenda de un periódico económico español. Breves y claros. Usa la terminología de España: "tipos de interés", \
@@ -149,9 +155,13 @@ def fetch() -> list[dict]:
 
 
 def relevant(e: dict) -> bool:
-    if e.get("impact") != "High" or SKIP.search(e["title"]):
+    if SKIP.search(e["title"]):
         return False
-    return e["country"] == "USD" or (e["country"] in CENTRAL_BANKS and bool(RATE_DECISION.search(e["title"])))
+    if (e["country"], e["title"]) in EXTRA:
+        return True
+    if e["country"] == "USD":
+        return e.get("impact") in US_IMPACTS
+    return e.get("impact") == "High" and e["country"] in CENTRAL_BANKS and bool(RATE_DECISION.search(e["title"]))
 
 
 def translate(titles: list[str], known: dict[str, str]) -> None:

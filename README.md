@@ -101,7 +101,8 @@ Anthropic y OpenAI exigen el nivel 3). nginx los sirve desde `news/out`, montado
 Sin esos ficheros las tarjetas no se muestran.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
-- `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto de EE. UU. y decisiones de tipos.
+- `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC
+  preliminar de la zona euro y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
   de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), la hora y si la bolsa de EE. UU. está
