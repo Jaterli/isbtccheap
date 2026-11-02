@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-02T07:49:32+00:00",
+  "updated_at": "2026-11-02T12:50:27+00:00",
   "as_of": "2026-11-01",
   "price": 78135.0803,
-  "score_1d": 28.5134,
+  "score_1d": 28.0859,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -133,25 +133,25 @@
   },
   "weights": {
     "1h": {
-      "tecnico": 40,
-      "sentimiento": 27,
+      "tecnico": 41,
+      "sentimiento": 28,
       "valoracion": 20,
       "ciclo": 10,
-      "liquidez": 3
+      "liquidez": 1
     },
     "4h": {
-      "tecnico": 30,
-      "sentimiento": 20,
+      "tecnico": 31,
+      "sentimiento": 21,
       "valoracion": 27,
       "ciclo": 19,
-      "liquidez": 4
+      "liquidez": 2
     },
     "1d": {
       "tecnico": 12,
       "sentimiento": 15,
       "valoracion": 38,
-      "ciclo": 30,
-      "liquidez": 5
+      "ciclo": 31,
+      "liquidez": 4
     },
     "1w": {
       "tecnico": 6,
@@ -161,11 +161,11 @@
       "liquidez": 8
     },
     "1M": {
-      "tecnico": 4,
+      "tecnico": 3,
       "sentimiento": 5,
       "valoracion": 39,
       "ciclo": 38,
-      "liquidez": 14
+      "liquidez": 15
     }
   },
   "stretch": 1.0,
