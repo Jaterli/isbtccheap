@@ -42,14 +42,17 @@ METRICS = [
 
 # Pesos por temporalidad: en las cortas pesa más lo que cambia rápido. Correlaciones con la rentabilidad a un año:
 # ciclo −0,51, liquidez −0,16 y técnico +0,27 (momentum), así que la liquidez sube y el técnico baja con el plazo.
-# La liquidez difumina los extremos (alta en los suelos, baja en los techos): pesa poco en plazos cortos.
+# La liquidez difumina los extremos (alta en los suelos, baja en los techos): pesa poco en plazos cortos. Quitarla del
+# todo marca más techos y suelos pero empeora la anticipación; en 1 mes, donde más aporta, pesa un punto más a costa
+# del técnico (backtest desde 2018, 1 M: rentabilidad a un año −0,567 → −0,577; 1 d con un punto menos para el ciclo:
+# −0,401 → −0,404 y suelos más bajos).
 # En 1 h el ciclo es casi constante y cede peso al sentimiento (derivados en vivo); sin datos para un backtest.
 TIMEFRAME_WEIGHTS = {
-    "1h": {"tecnico": 40, "sentimiento": 27, "valoracion": 20, "ciclo": 10, "liquidez": 3},
-    "4h": {"tecnico": 30, "sentimiento": 20, "valoracion": 27, "ciclo": 19, "liquidez": 4},
-    "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 30, "liquidez": 5},
+    "1h": {"tecnico": 41, "sentimiento": 28, "valoracion": 20, "ciclo": 10, "liquidez": 1},
+    "4h": {"tecnico": 31, "sentimiento": 21, "valoracion": 27, "ciclo": 19, "liquidez": 2},
+    "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 31, "liquidez": 4},
     "1w": {"tecnico": 6, "sentimiento": 12, "valoracion": 41, "ciclo": 33, "liquidez": 8},
-    "1M": {"tecnico": 4, "sentimiento": 5, "valoracion": 39, "ciclo": 38, "liquidez": 14},
+    "1M": {"tecnico": 3, "sentimiento": 5, "valoracion": 39, "ciclo": 38, "liquidez": 15},
 }
 
 # Un ciclo de halving: con ventana expansiva los techos recientes no llegaban arriba frente a las burbujas de 2013 y 2017
