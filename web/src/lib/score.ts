@@ -25,24 +25,33 @@ export function technicalFromCandles(candles: Candle[], tf: Timeframe): Category
   return { name: "Técnico", score: mean(metrics.map((m) => m.score)), metrics };
 }
 
-/** Velas mensuales de Binance (desde 2017) completadas con el histórico diario (desde 2011) para la media de 48. */
-export function withMonthlyHistory(binance: Candle[], history: History | null): Candle[] {
+/** Inicio (UTC) de la vela semanal (lunes, como Binance) o mensual que contiene el día `d` (AAAA-MM-DD). */
+function candleStart(d: string, tf: "1w" | "1M") {
+  const t = Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, tf === "1M" ? 1 : +d.slice(8, 10));
+  return tf === "1M" ? t : t - ((new Date(t).getUTCDay() + 6) % 7) * 86_400_000;
+}
+
+/**
+ * Velas semanales o mensuales de Binance (desde 2017) completadas con el histórico diario (desde 2011): así la media de
+ * 200 semanas o de 48 meses y su percentil cubren varios ciclos, como en el diario.
+ */
+export function withHistory(binance: Candle[], history: History | null, tf: "1w" | "1M"): Candle[] {
   if (!history || !binance.length) return binance;
   const first = binance[0].time;
-  const months = new Map<string, Candle>();
+  const candles = new Map<number, Candle>();
   history.dates.forEach((d, i) => {
     const p = history.price[i];
-    const key = d.slice(0, 7);
-    const c = months.get(key);
+    const key = candleStart(d, tf);
+    const c = candles.get(key);
     if (c) {
       c.high = Math.max(c.high, p);
       c.low = Math.min(c.low, p);
       c.close = p;
     } else {
-      months.set(key, { time: Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, 1), open: p, high: p, low: p, close: p });
+      candles.set(key, { time: key, open: p, high: p, low: p, close: p });
     }
   });
-  return [...[...months.values()].filter((c) => c.time < first), ...binance];
+  return [...[...candles.values()].filter((c) => c.time < first), ...binance];
 }
 
 /** En 1 h y 4 h el sentimiento sale de los derivados: las métricas diarias apenas cambian a ese ritmo */

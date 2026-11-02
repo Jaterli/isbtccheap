@@ -12,7 +12,7 @@ import {
   derivativesMetrics,
   labelIndex,
   technicalFromCandles,
-  withMonthlyHistory,
+  withHistory,
 } from "./lib/score";
 import { labelAt, lang, locale, PAGE_PATH, t } from "./i18n";
 import { Header } from "./components/Header";
@@ -112,7 +112,7 @@ export function App() {
       const f = fundingCache.current;
       const needFunding = !f || Date.now() - f.at > FUNDING_MS;
       const [candles, fr, derivs] = await Promise.allSettled([
-        tf === "1M" ? fetchCandles(tf).then((c) => withMonthlyHistory(c, history)) : fetchCandles(tf),
+        tf === "1w" || tf === "1M" ? fetchCandles(tf).then((c) => withHistory(c, history, tf)) : fetchCandles(tf),
         needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
         DERIVATIVES_TFS.includes(tf) ? fetchDerivatives(tf).then(derivativesMetrics) : Promise.resolve(null),
       ]);
@@ -148,7 +148,7 @@ export function App() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [tf, tf === "1M" ? history : null]);
+  }, [tf, tf === "1w" || tf === "1M" ? history : null]);
 
   // Datos en vivo de esta temporalidad: los ya aplicados o, recién seleccionada, los de la caché. Sin ninguno, el score
   // muestra "—" hasta que lleguen (con los de otra temporalidad o los diarios daría un valor que luego salta)
