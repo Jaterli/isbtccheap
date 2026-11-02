@@ -67,7 +67,7 @@ export function AnalysisApp() {
 
         {analysis && (
           <p className="muted small an-updated">
-            {tx.updated(new Date(analysis.generated_at).toLocaleString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), usd(analysis.price))}
+            {tx.updated(new Date(analysis.generated_at).toLocaleString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" }), usd(analysis.price))}
           </p>
         )}
 
