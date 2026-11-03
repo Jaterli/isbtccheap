@@ -216,7 +216,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* Estado: temporalidad, zona del score, precio con su variación y cuenta atrás */
 .status { display: flex; flex-direction: column; gap: 10px; }
 .status .hero-top { justify-content: flex-start; }
-.status-block { display: grid; gap: 2px; padding-top: 10px; border-top: 1px solid var(--border); }
+.status-block { display: grid; gap: 2px; padding-top: 4px; }
 .status-label { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; font-weight: 500; line-height: 1.15; }
 .status-value { font-size: 2rem; }
 .status-label .info-btn { font-size: 1rem; }
