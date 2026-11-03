@@ -316,7 +316,10 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-controls > .segmented:last-child { flex: none; }
 .price-card .price-tfs { flex: 1; grid-template-columns: repeat(4, 1fr); max-width: none; }
 @media (min-width: 640px) { .price-card .price-tfs { flex: none; width: auto; } }
-.price-card-empty { margin: 12px 0 0; }
+/* Mientras llegan las velas: el gráfico (el anterior, o un hueco de su alto) atenuado y "Cargando…" centrado encima */
+.price-chart { position: relative; }
+.price-chart.pending > :not(.price-loading) { opacity: 0.35; pointer-events: none; transition: opacity 0.2s; }
+.price-loading { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; margin: 0; color: var(--muted); font-weight: 600; }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 10px; border: 1px solid var(--border); border-radius: 8px;

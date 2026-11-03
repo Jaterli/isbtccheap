@@ -86,8 +86,9 @@ function useCloses(tf: PriceTf, active: boolean) {
       clearTimeout(timer);
     };
   }, [tf, active]);
-  // Recién cambiada la temporalidad, no se muestran las velas de la anterior
-  return { closes: data?.tf === tf ? data.closes : null, nextAt, loading };
+  // Recién cambiada la temporalidad se siguen devolviendo las velas de la anterior (pending): el gráfico no desaparece
+  // mientras llegan las nuevas, solo se atenúa con "Cargando…" encima
+  return { closes: data?.closes ?? null, shownTf: data?.tf ?? tf, pending: data?.tf !== tf, nextAt, loading };
 }
 
 /**
@@ -98,9 +99,10 @@ export function PriceCard({ active }: { active: boolean }) {
   const { ref, width } = useWidth(200);
   const [hover, setHover] = useState<number | null>(null);
   const [tf, setTf] = useState<PriceTf>(loadTf);
-  const { closes: data, nextAt, loading } = useCloses(tf, active);
+  const { closes: data, shownTf, pending, nextAt, loading } = useCloses(tf, active);
   const tx = t.priceCard;
-  const axisTf = AXIS_TF[tf];
+  // Mientras llegan las velas de la nueva temporalidad, las de la anterior se ven como estaban (su tramo y sus fechas)
+  const axisTf = AXIS_TF[shownTf];
 
   const [visible, setVisible] = useState(VISIBLE[tf]);
   const [height, setHeight] = useState<number | null>(loadHeight);
@@ -118,9 +120,9 @@ export function PriceCard({ active }: { active: boolean }) {
 
   const view = useMemo(() => {
     if (!data || data.close.length < 2) return null;
-    const from = Math.max(0, data.close.length - visible);
+    const from = Math.max(0, data.close.length - (pending ? VISIBLE[shownTf] : visible));
     return { time: data.time.slice(from), open: data.open.slice(from), close: data.close.slice(from) };
-  }, [data, visible]);
+  }, [data, visible, pending, shownTf]);
 
   const total = data?.close.length ?? 0;
   const zoom = (factor: number) => {
@@ -191,8 +193,7 @@ export function PriceCard({ active }: { active: boolean }) {
     <article className="card price-card" id="precio">
       {/* Título y, en la misma fila, temporalidad y zoom (como en el histórico) */}
       <header>
-        <h3>
-          <BtcIcon size={26} label={tx.title} />
+        <h3>Precio <BtcIcon size={18} label={tx.title} />
         </h3>
         <div className="price-controls">
           <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
@@ -211,40 +212,43 @@ export function PriceCard({ active }: { active: boolean }) {
       <div ref={ref}>
         {view && chart ? (
           <>
-            <p className="chart-readout">
-              <span className="muted num">{fmtTime(view.time[h], axisTf, true)}</span>
-              <span className="legend legend-price num">
-                <strong>{usd(view.close[h])}</strong>
-              </span>
-              <RefreshStatus nextAt={nextAt} loading={loading} />
-            </p>
-            <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-              {chart.ticks.map((p) => (
-                <g key={p}>
-                  <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
-                  <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
-                </g>
-              ))}
-              <defs>
-                <linearGradient id="price-card-fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" className="price-fill-top" />
-                  <stop offset="1" className="price-fill-bottom" />
-                </linearGradient>
-              </defs>
-              <path d={chart.area} fill="url(#price-card-fill)" />
-              <path d={chart.line} className="line-price price-card-line" />
-              {[0, N - 1].map((i, k) => (
-                <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
-                  {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
-                </text>
-              ))}
-              {hover !== null && (
-                <>
-                  <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
-                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
-                </>
-              )}
-            </svg>
+            <div className={pending ? "price-chart pending" : "price-chart"} aria-busy={pending}>
+              {pending && <p className="price-loading">{t.loading}</p>}
+              <p className="chart-readout">
+                <span className="muted num">{fmtTime(view.time[h], axisTf, true)}</span>
+                <span className="legend legend-price num">
+                  <strong>{usd(view.close[h])}</strong>
+                </span>
+                <RefreshStatus nextAt={nextAt} loading={loading} />
+              </p>
+              <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+                {chart.ticks.map((p) => (
+                  <g key={p}>
+                    <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
+                    <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
+                  </g>
+                ))}
+                <defs>
+                  <linearGradient id="price-card-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" className="price-fill-top" />
+                    <stop offset="1" className="price-fill-bottom" />
+                  </linearGradient>
+                </defs>
+                <path d={chart.area} fill="url(#price-card-fill)" />
+                <path d={chart.line} className="line-price price-card-line" />
+                {[0, N - 1].map((i, k) => (
+                  <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
+                    {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
+                  </text>
+                ))}
+                {hover !== null && (
+                  <>
+                    <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
+                    <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
+                  </>
+                )}
+              </svg>
+            </div>
             <div
               className="resize-handle price-card-resize"
               role="separator"
@@ -263,7 +267,10 @@ export function PriceCard({ active }: { active: boolean }) {
             </div>
           </>
         ) : (
-          <p className="muted price-card-empty">{t.loading}</p>
+          // Primera carga: un hueco del alto del gráfico, para que la tarjeta no cambie de tamaño al llegar las velas
+          <div className="price-chart pending" style={{ height: H + 30 }} aria-busy="true">
+            <p className="price-loading">{t.loading}</p>
+          </div>
         )}
       </div>
     </article>
