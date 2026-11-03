@@ -85,13 +85,15 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
   };
 
   const tx = t.liquidity;
-  const th = hover ?? t1;
+  const lastBtcTime = data.btcTime[chart.lastPrice];
+  // Sin cursor, el último precio (hoy), como en el resto de gráficos; el eje sigue unas semanas más por la liquidez
+  // adelantada, y ahí el precio "aún no" existe (solo se ve al recorrerla con el cursor)
+  const th = hover ?? lastBtcTime ?? t1;
   const li = indexAt(data.liqTime, th);
   const bi = indexAt(data.btcTime, th);
   const roc = li >= 0 ? data.roc[li] : null;
   // Pasado el último precio, BTC "aún no" tiene dato
   const btc = bi >= 0 && th - data.btcTime[bi] < 2 * DAY ? data.btc[bi] : null;
-  const lastBtcTime = data.btcTime[chart.lastPrice];
   const short = t1 - t0 < 400 * DAY;
 
   return (
@@ -133,10 +135,14 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
         )}
         <path d={chart.btc} className="line-price" />
         <path d={chart.roc} className="liq-line" />
+        {/* Punto del precio de hoy y su etiqueta, con un halo del color de fondo para que se lea sobre las líneas */}
         {chart.lastPrice >= 0 && (
-          <text x={x(lastBtcTime) - 4} y={chart.yPrice(data.btc[chart.lastPrice]!) - 8} className="axis liq-today" textAnchor="end">
-            {tx.today}
-          </text>
+          <>
+            <circle cx={x(lastBtcTime)} cy={chart.yPrice(data.btc[chart.lastPrice]!)} r="3.5" className="dot-price liq-today-dot" />
+            <text x={x(lastBtcTime) - 6} y={chart.yPrice(data.btc[chart.lastPrice]!) - 9} className="axis liq-today" textAnchor="end">
+              {tx.today}
+            </text>
+          </>
         )}
 
         {chart.dateTicks.map((tt, k) => (

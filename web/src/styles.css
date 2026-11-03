@@ -573,7 +573,8 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .liq-dot { fill: var(--accent); }
 .liq-zero { stroke: var(--muted); stroke-dasharray: 3 3; }
 .liq-ahead { fill: var(--accent); opacity: 0.06; }
-.liq-today { fill: var(--price); font-weight: 600; }
+.liq-today { fill: var(--fg); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.liq-today-dot { stroke: var(--surface); stroke-width: 1.5; }
 
 /* Enlace de la portada a otra página */
 .page-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 14px 18px; text-decoration: none; }
