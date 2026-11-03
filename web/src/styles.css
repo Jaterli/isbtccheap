@@ -356,7 +356,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 @media (max-width: 399px) { .chart-readout { column-gap: 12px; } }
 /* Logotipo de Bitcoin en lugar de "Precio": alineado con el texto (las reglas ".chart svg" y ".price-card svg" de los
    gráficos lo pondrían en bloque) */
-.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: -0.15em; cursor: default; }
+.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: middle; cursor: default; }
 .legend::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .legend-price::before { background: var(--price); }
 .legend-score::before { background: var(--accent); }

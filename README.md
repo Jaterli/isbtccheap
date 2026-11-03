@@ -106,10 +106,10 @@ nivel 3):
 
 | Script | Orden (variable para cambiarlo) |
 |---|---|
-| Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
+| Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b → qwen3.8-27b → gpt-oss-20b (los tres en Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
 | Análisis | GLM-5.3 Flash → Qwen 3.5 → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`) |
 
-gpt-oss-120b no está en el análisis: sus datos superan los 8.000 tokens por minuto del nivel gratuito de Groq.
+Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC

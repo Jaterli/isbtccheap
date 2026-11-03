@@ -44,10 +44,12 @@ FEEDS = [
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "banco central"),
 ]
 
-# Por orden de preferencia (llm.py). En las pruebas (3 nov 2026) GLM-5.3 Flash (DigitalOcean) puntuó mejor el impacto y
-# tradujo con un español más natural; gpt-oss-120b (Groq) fue 10 veces más rápido y detectó más duplicados, pero dejaba
-# casi todo en impacto 4-5: queda de primer respaldo, y Gemini detrás
-MODELS = llm.models_from_env("NEWS_MODELS", "glm-5.3-flash,groq:openai/gpt-oss-120b,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
+# Por orden de preferencia (llm.py). En las pruebas (3 nov 2026, mismos 40 titulares) GLM-5.3 Flash (DigitalOcean) puntuó
+# mejor el impacto y tradujo con el español más natural. Respaldos en Groq (cada modelo con su propio límite por minuto):
+# gpt-oss-120b, el más equilibrado (buen español, pero comprime el impacto hacia 4-6); qwen3.8-27b, el que más se parece a
+# GLM en el impacto pero traduce con errores; gpt-oss-20b, como el 120b con un español más pobre. Y Gemini detrás
+MODELS = llm.models_from_env("NEWS_MODELS", "glm-5.3-flash,groq:openai/gpt-oss-120b,groq:qwen/qwen3.8-27b,groq:openai/gpt-oss-20b,"
+                             "gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
 WINDOW_HOURS = 48  # antigüedad máxima de una noticia publicada
 SEEN_DAYS = 7  # cuánto se recuerda un titular ya clasificado, para no volver a pagar por él
 BATCH = 40  # titulares nuevos por llamada
