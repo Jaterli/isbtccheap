@@ -173,14 +173,32 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
   .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
+/* Botón flotante para abrir o cerrar el gráfico del precio: solo desde tablet (en móvil está siempre visible) */
+.price-fab { display: none; }
+@media (min-width: 640px) {
+  .price-fab {
+    display: inline-flex; align-items: center; gap: 7px; position: fixed; z-index: 20;
+    right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); padding: 9px 14px;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--fg);
+    font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  }
+  .price-fab svg { fill: none; stroke: var(--price); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .price-fab.open, .price-fab:hover { border-color: var(--accent); }
+  .price-fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+}
 
-/* Panel principal. Móvil: 1 columna · tablet: la tarjeta principal (score o precio) y las categorías en 2 columnas ·
-   escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª */
+/* Panel principal. Móvil: 1 columna, con el gráfico del precio antes del score · tablet: score y categorías en
+   2 columnas · escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª. Desde tablet, el gráfico
+   del precio solo se ve si se abre con el botón flotante (.price-open), en 2 columnas encima del score y el sentimiento */
 .dashboard { display: grid; gap: var(--gutter); grid-template-columns: 1fr; }
 
 @media (min-width: 640px) {
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard .side { grid-column: 1 / -1; }
+  .dashboard .price-card { display: none; grid-column: span 2; }
+  .dashboard.price-open .price-card { display: block; }
+  /* El score, siempre debajo del gráfico (sin esto, en escritorio sin noticias ni agenda se pondría a su lado) */
+  .dashboard.price-open .status { grid-column: 1; }
 }
 @media (min-width: 1000px) {
   .top { margin-top: 0; }
@@ -189,6 +207,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 @media (min-width: 1024px) {
   .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dashboard .side { grid-column: 3; grid-row: 1 / span 3; }
+  .dashboard.price-open .side { grid-row: 1 / span 4; }
+  /* Sin noticias ni agenda la tercera columna queda libre: el gráfico ocupa todo el ancho */
+  .dashboard.price-open:has(> .side:empty) .price-card { grid-column: 1 / -1; }
 }
 
 
@@ -196,11 +217,11 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .status { display: flex; flex-direction: column; gap: 10px; }
 .status .hero-top { justify-content: flex-start; }
 .status-block { display: grid; gap: 2px; padding-top: 10px; border-top: 1px solid var(--border); }
-.status-caption { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.status-head { display: flex; justify-content: space-between; align-items: center; }
 .status-label { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; font-weight: 500; line-height: 1.15; }
 .status-value { font-size: 2rem; }
 .status-label .info-btn { font-size: 1rem; }
+/* La cuenta atrás, a la derecha del score (sin heredar su tamaño ni su color) */
+.status-label .refresh { margin-left: auto; align-self: center; font-weight: 400; }
 .status-price { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 1.2rem; font-weight: 700; line-height: 1.2; }
 .status-change { font-size: 0.95rem; font-weight: 600; }
 .status-price .info-btn { font-size: 0.9rem; font-weight: 400; }
@@ -220,10 +241,6 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* Selector de temporalidad */
 .timeframes { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; max-width: 420px; }
 .segmented.timeframes button { padding-inline: 4px; }
-/* Score o precio, en la tarjeta principal: dos iconos al inicio de la fila de temporalidades */
-.segmented.hero-view { flex: none; flex-wrap: nowrap; }
-.segmented.hero-view button { display: grid; place-items: center; padding: 4px 6px; }
-.hero-view svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Barra del score: cinco zonas y una marca en el valor */
 .gauge { margin-top: 8px; }
@@ -279,7 +296,6 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-change.up { color: var(--band-1); }
 .price-change.down { color: var(--band-5); }
 
-.price-card header { align-items: baseline; }
 /* Barra para cambiar el alto, bajo el gráfico */
 .price-card-resize { position: static; height: 14px; margin-bottom: -8px; }
 .price-card .chart-readout { margin: 6px 0 2px; }
@@ -292,11 +308,13 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
 .price-card svg { display: block; touch-action: pan-y; }
-.price-controls { display: flex; gap: 6px; }
-.price-card .price-tfs { flex: 1; grid-template-columns: repeat(5, 1fr); max-width: none; }
-.price-chart { position: relative; }
-.price-zoom { position: absolute; top: 4px; left: 4px; z-index: 1; padding: 2px; gap: 2px; background: color-mix(in srgb, var(--bg) 85%, transparent); }
-.segmented.small.price-zoom button { padding: 1px 9px; }
+/* Título y controles en una fila; si no caben (móvil), los controles bajan a la suya, a todo el ancho */
+.price-card header { flex-wrap: wrap; row-gap: 10px; align-items: center; }
+.price-card header h3 { flex: 1 0 auto; white-space: nowrap; }
+.price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 8px; }
+.price-controls > .segmented:last-child { flex: none; }
+.price-card .price-tfs { flex: 1; grid-template-columns: repeat(4, 1fr); max-width: none; }
+@media (min-width: 640px) { .price-card .price-tfs { flex: none; width: auto; } }
 .price-card-empty { margin: 12px 0 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;

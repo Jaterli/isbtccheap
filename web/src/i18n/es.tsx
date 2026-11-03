@@ -87,16 +87,16 @@ export const es = {
     note: "Datos históricos, no una predicción ni una recomendación de inversión. El ajuste de la power law se recalcula cada día con todo el histórico.",
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado total y de corto plazo, la media de 200 semanas y la power law",
   },
-  status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
-  heroView: { aria: "Qué mostrar", score: "Score", price: "Precio" },
+  status: { candle: (tf: string) => `vela de ${tf}` },
+  priceToggle: { show: "Ver precio", hide: "Ocultar precio" },
   priceCard: {
+    title: "Precio de BTC",
     resize: "Alto del gráfico del precio",
     tfs: {
       "15m": { label: "15 minutos", short: "15m" },
       "1h": { label: "1 hora", short: "1h" },
       "4h": { label: "4 horas", short: "4h" },
       "1d": { label: "1 día", short: "1D" },
-      "1w": { label: "1 semana", short: "1S" },
     },
     chartAria: "Gráfico del precio de Bitcoin en la temporalidad elegida",
   },
@@ -456,8 +456,8 @@ export const es = {
   } as Record<string, Description & { name: string }>,
 
   history: {
-    title: "Histórico del score diario frente al precio",
-    title4h: "Histórico del score de 4 h frente al precio",
+    title: "Score diario frente al precio",
+    title4h: "Score de 4h frente al precio",
     score4h: "Score 4 h",
     loading4h: "Cargando velas de 4 h…",
     info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela. Binance solo guarda 30 días de derivados: antes de las últimas 3 semanas, aproximadamente, el sentimiento es el diario.",
