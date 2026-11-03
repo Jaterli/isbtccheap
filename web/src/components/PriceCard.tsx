@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
@@ -32,8 +32,6 @@ const axisFmt = (spanMs: number): Intl.DateTimeFormatOptions =>
 // Formato de la fecha de la lectura: 15 min como intradía
 const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "1w" };
 const TF_KEY = "isbtccheap:price-tf";
-// La tarjeta solo se ve en móvil (styles.css): en pantallas mayores no se piden velas
-const MOBILE = "(max-width: 639px)";
 
 function loadHeight(): number | null {
   try {
@@ -91,23 +89,15 @@ function useCloses(tf: PriceTf, active: boolean) {
   return { closes: data?.tf === tf ? data.closes : null, nextAt, loading };
 }
 
-function useMedia(query: string) {
-  const [match, setMatch] = useState(() => window.matchMedia(query).matches);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const on = () => setMatch(mq.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, [query]);
-  return match;
-}
-
-/** Precio de cierre de las últimas velas, con su propio selector de temporalidad (solo en móvil). */
-export function PriceCard() {
+/**
+ * Vista del precio de la tarjeta principal (la alternativa al score): cierres de las últimas velas, con su propia
+ * temporalidad. Solo está montada mientras se muestra, así que solo entonces pide velas.
+ */
+export function PriceView({ toggle }: { toggle: ReactNode }) {
   const { ref, width } = useWidth(200);
   const [hover, setHover] = useState<number | null>(null);
   const [tf, setTf] = useState<PriceTf>(loadTf);
-  const { closes: data, nextAt, loading } = useCloses(tf, useMedia(MOBILE));
+  const { closes: data, nextAt, loading } = useCloses(tf, true);
   const tx = t.priceCard;
   const axisTf = AXIS_TF[tf];
 
@@ -197,23 +187,16 @@ export function PriceCard() {
   const dir = (i: number) => (!view ? undefined : view.close[i] > view.open[i] ? "up" : view.close[i] < view.open[i] ? "down" : undefined);
 
   return (
-    <article className="card price-card">
-      <header>
-        <h3>{tx.title}</h3>
-        <span className="muted small">{tx.period[tf]}</span>
-      </header>
-      {/* Temporalidad y, a su lado, zoom */}
+    <div className="price-card">
+      {/* Score o precio y temporalidad */}
       <div className="price-controls">
+        {toggle}
         <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
           {PRICE_TFS.map((v) => (
             <button key={v} role="radio" aria-checked={tf === v} aria-label={tx.tfs[v].label} title={tx.tfs[v].label} className={tf === v ? "active" : ""} onClick={() => select(v)}>
               {tx.tfs[v].short}
             </button>
           ))}
-        </div>
-        <div className="segmented small" role="group" aria-label="Zoom">
-          <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
-          <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
         </div>
       </div>
       <div ref={ref}>
@@ -226,33 +209,40 @@ export function PriceCard() {
               </span>
               <RefreshStatus nextAt={nextAt} loading={loading} />
             </p>
-            <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-              {chart.ticks.map((p) => (
-                <g key={p}>
-                  <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
-                  <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
-                </g>
-              ))}
-              <defs>
-                <linearGradient id="price-card-fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" className="price-fill-top" />
-                  <stop offset="1" className="price-fill-bottom" />
-                </linearGradient>
-              </defs>
-              <path d={chart.area} fill="url(#price-card-fill)" />
-              <path d={chart.line} className="line-price price-card-line" />
-              {[0, N - 1].map((i, k) => (
-                <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
-                  {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
-                </text>
-              ))}
-              {hover !== null && (
-                <>
-                  <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
-                  <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
-                </>
-              )}
-            </svg>
+            {/* Zoom flotando sobre la esquina superior izquierda del gráfico: en la fila de arriba no cabe en móvil */}
+            <div className="price-chart">
+              <div className="segmented small price-zoom" role="group" aria-label="Zoom">
+                <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
+                <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
+              </div>
+              <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+                {chart.ticks.map((p) => (
+                  <g key={p}>
+                    <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
+                    <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
+                  </g>
+                ))}
+                <defs>
+                  <linearGradient id="price-card-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" className="price-fill-top" />
+                    <stop offset="1" className="price-fill-bottom" />
+                  </linearGradient>
+                </defs>
+                <path d={chart.area} fill="url(#price-card-fill)" />
+                <path d={chart.line} className="line-price price-card-line" />
+                {[0, N - 1].map((i, k) => (
+                  <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
+                    {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
+                  </text>
+                ))}
+                {hover !== null && (
+                  <>
+                    <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
+                    <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
+                  </>
+                )}
+              </svg>
+            </div>
             <div
               className="resize-handle price-card-resize"
               role="separator"
@@ -274,6 +264,6 @@ export function PriceCard() {
           <p className="muted price-card-empty">{t.loading}</p>
         )}
       </div>
-    </article>
+    </div>
   );
 }

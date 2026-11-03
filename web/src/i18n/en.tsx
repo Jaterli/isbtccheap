@@ -81,9 +81,8 @@ export const en: Messages = {
     chartAria: "Chart of Bitcoin's price with the total and short-term holder realized price, the 200-week moving average and the power law",
   },
   status: { now: "BTC is", candle: (tf: string) => `${tf} candle` },
+  heroView: { aria: "What to show", score: "Score", price: "Price" },
   priceCard: {
-    title: "BTC price",
-    period: { "15m": "15m candles", "1h": "1h candles", "4h": "4h candles", "1d": "Daily", "1w": "Weekly" },
     resize: "Price chart height",
     tfs: {
       "15m": { label: "15 minutes", short: "15m" },

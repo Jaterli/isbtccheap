@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Breakdown } from "./components/Breakdown";
 import { bandColor, Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
-import { PriceCard } from "./components/PriceCard";
+import { PriceView } from "./components/PriceCard";
+import { HeroViewToggle, type HeroView } from "./components/HeroViewToggle";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
 import { fetchCandles, fetchDerivatives, fetchFundingRate } from "./lib/binance";
@@ -40,6 +41,17 @@ interface LiveEntry {
   at: number;
 }
 
+// La tarjeta principal muestra el score o el gráfico del precio (se recuerda la elección)
+const VIEW_KEY = "isbtccheap:hero-view";
+
+function loadView(): HeroView {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "price" ? "price" : "score";
+  } catch {
+    return "score";
+  }
+}
+
 function loadTf(): Timeframe {
   try {
     const saved = localStorage.getItem(TF_KEY);
@@ -54,6 +66,15 @@ function loadTf(): Timeframe {
 
 export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
+  const [view, setView] = useState<HeroView>(loadView);
+  const selectView = (v: HeroView) => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* almacenamiento no disponible: no pasa nada */
+    }
+  };
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
   // null: Binance no respondió y se usa lo diario del pipeline
@@ -177,59 +198,64 @@ export function App() {
 
       <section className="dashboard">
         <article className="card status">
-          <div className="hero-top">
-            <TimeframeSelector value={tf} onChange={setTf} />
-            <InfoTip label={t.timeframeInfo.label} title={t.timeframeInfo.title}>
-              <p>{t.timeframeInfo.body}</p>
-              <p className="muted">
-                {t.timeframeInfo.weightsIn(t.timeframes[tf].label)}{" "}
-                {Object.entries(latest.weights[tf] ?? latest.weights["1w"]).map(([id, w]) => `${t.categories[id as CategoryId].name} ${t.percent(String(w))}`).join(" · ")}
-              </p>
-            </InfoTip>
-          </div>
-          <div className="status-block">
-            <div className="status-head">
-              <span className="status-caption">{t.status.now}</span>
-              <RefreshStatus nextAt={nextAt} loading={loading} />
-            </div>
-            <div className="status-label" style={score === null ? undefined : { color: bandColor(score) }}>
-              <strong className="status-value num">{score === null ? "—" : Math.round(score)}</strong>
-              {label}
-              <InfoTip label={t.scoreInfo.label} title={t.scoreInfo.title}>
-                <p>{t.scoreInfo.body}</p>
-                <ul className="info-list">
-                  {latest.labels.map((l, i) => (
-                    <li key={l.label}>
-                      <span className="swatch" style={{ background: `var(--band-${i + 1})` }} />
-                      {i === 0 ? 1 : latest.labels[i - 1].max + 1}–{l.max}: {labelAt(i, l.label)}
-                    </li>
-                  ))}
-                </ul>
-                <p className="muted">{t.scoreInfo.disclaimer}</p>
-              </InfoTip>
-            </div>
-            <Gauge score={score} label={label} />
-          </div>
-          <div className="status-block">
-            <div className="status-price num">
-              <span>{shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</span>
-              {change !== null && (
-                <span className={change > 0 ? "status-change up" : change < 0 ? "status-change down" : "status-change"}>
-                  {change > 0 ? "+" : change < 0 ? "−" : ""}
-                  {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
-                </span>
-              )}
-              {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].short)}</span>}
-              <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
-                <p>{t.priceInfo.body}</p>
-                <p>{t.priceInfo.changeInfo}</p>
-              </InfoTip>
-            </div>
-          </div>
-          {liveError && <p className="notice">{t.liveError}</p>}
+          {view === "price" ? (
+            <PriceView toggle={<HeroViewToggle value={view} onChange={selectView} />} />
+          ) : (
+            <>
+              <div className="hero-top">
+                <HeroViewToggle value={view} onChange={selectView} />
+                <TimeframeSelector value={tf} onChange={setTf} />
+                <InfoTip label={t.timeframeInfo.label} title={t.timeframeInfo.title}>
+                  <p>{t.timeframeInfo.body}</p>
+                  <p className="muted">
+                    {t.timeframeInfo.weightsIn(t.timeframes[tf].label)}{" "}
+                    {Object.entries(latest.weights[tf] ?? latest.weights["1w"]).map(([id, w]) => `${t.categories[id as CategoryId].name} ${t.percent(String(w))}`).join(" · ")}
+                  </p>
+                </InfoTip>
+              </div>
+              <div className="status-block">
+                <div className="status-head">
+                  <span className="status-caption">{t.status.now}</span>
+                  <RefreshStatus nextAt={nextAt} loading={loading} />
+                </div>
+                <div className="status-label" style={score === null ? undefined : { color: bandColor(score) }}>
+                  <strong className="status-value num">{score === null ? "—" : Math.round(score)}</strong>
+                  {label}
+                  <InfoTip label={t.scoreInfo.label} title={t.scoreInfo.title}>
+                    <p>{t.scoreInfo.body}</p>
+                    <ul className="info-list">
+                      {latest.labels.map((l, i) => (
+                        <li key={l.label}>
+                          <span className="swatch" style={{ background: `var(--band-${i + 1})` }} />
+                          {i === 0 ? 1 : latest.labels[i - 1].max + 1}–{l.max}: {labelAt(i, l.label)}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="muted">{t.scoreInfo.disclaimer}</p>
+                  </InfoTip>
+                </div>
+                <Gauge score={score} label={label} />
+              </div>
+              <div className="status-block">
+                <div className="status-price num">
+                  <span>{shownPrice.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</span>
+                  {change !== null && (
+                    <span className={change > 0 ? "status-change up" : change < 0 ? "status-change down" : "status-change"}>
+                      {change > 0 ? "+" : change < 0 ? "−" : ""}
+                      {t.percent(Math.abs(change * 100).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
+                    </span>
+                  )}
+                  {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].short)}</span>}
+                  <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
+                    <p>{t.priceInfo.body}</p>
+                    <p>{t.priceInfo.changeInfo}</p>
+                  </InfoTip>
+                </div>
+              </div>
+              {liveError && <p className="notice">{t.liveError}</p>}
+            </>
+          )}
         </article>
-
-        <PriceCard />
 
         <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
 

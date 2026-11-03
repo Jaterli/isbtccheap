@@ -88,9 +88,8 @@ export const es = {
     chartAria: "Gráfico del precio de Bitcoin con el precio realizado total y de corto plazo, la media de 200 semanas y la power law",
   },
   status: { now: "BTC está", candle: (tf: string) => `vela de ${tf}` },
+  heroView: { aria: "Qué mostrar", score: "Score", price: "Precio" },
   priceCard: {
-    title: "Precio de BTC",
-    period: { "15m": "Velas de 15m", "1h": "Velas de 1h", "4h": "Velas de 4h", "1d": "Diario", "1w": "Semanal" },
     resize: "Alto del gráfico del precio",
     tfs: {
       "15m": { label: "15 minutos", short: "15m" },

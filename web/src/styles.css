@@ -174,14 +174,13 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
 
-/* Panel principal. Móvil: 1 columna, con el gráfico del precio tras el score · tablet: score y categorías en
-   2 columnas, sin el gráfico · escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª */
+/* Panel principal. Móvil: 1 columna · tablet: la tarjeta principal (score o precio) y las categorías en 2 columnas ·
+   escritorio: lo mismo en 2 columnas × 3 filas, y noticias y agenda en la 3.ª */
 .dashboard { display: grid; gap: var(--gutter); grid-template-columns: 1fr; }
 
 @media (min-width: 640px) {
   .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard .side { grid-column: 1 / -1; }
-  .dashboard .price-card { display: none; }
 }
 @media (min-width: 1000px) {
   .top { margin-top: 0; }
@@ -221,6 +220,10 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* Selector de temporalidad */
 .timeframes { display: grid; grid-template-columns: repeat(5, 1fr); width: 100%; max-width: 420px; }
 .segmented.timeframes button { padding-inline: 4px; }
+/* Score o precio, en la tarjeta principal: dos iconos al inicio de la fila de temporalidades */
+.segmented.hero-view { flex: none; flex-wrap: nowrap; }
+.segmented.hero-view button { display: grid; place-items: center; padding: 4px 6px; }
+.hero-view svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Barra del score: cinco zonas y una marca en el valor */
 .gauge { margin-top: 8px; }
@@ -289,9 +292,11 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
 .price-card svg { display: block; touch-action: pan-y; }
-.price-controls { display: flex; gap: 8px; margin-top: 10px; }
-.price-controls > .segmented:last-child { flex: none; }
+.price-controls { display: flex; gap: 6px; }
 .price-card .price-tfs { flex: 1; grid-template-columns: repeat(5, 1fr); max-width: none; }
+.price-chart { position: relative; }
+.price-zoom { position: absolute; top: 4px; left: 4px; z-index: 1; padding: 2px; gap: 2px; background: color-mix(in srgb, var(--bg) 85%, transparent); }
+.segmented.small.price-zoom button { padding: 1px 9px; }
 .price-card-empty { margin: 12px 0 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
