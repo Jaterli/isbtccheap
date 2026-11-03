@@ -312,7 +312,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card header { flex-wrap: wrap; row-gap: 10px; align-items: center; }
 .price-card header h3 { flex: 1 0 auto; white-space: nowrap; line-height: 0; }
 
-.price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 6px; }
+.price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 8px; }
 .price-controls > .segmented:last-child { flex: none; }
 .price-card .price-tfs { flex: 1; grid-template-columns: repeat(4, 1fr); max-width: none; }
 @media (min-width: 640px) { .price-card .price-tfs { flex: none; width: auto; } }
