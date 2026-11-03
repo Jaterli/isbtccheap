@@ -8,8 +8,8 @@ semana de build_calendar.py. Nunca recibe niveles ni conclusiones
 nuestras: el análisis es suyo.
 
 Los modelos de ANALYSIS_MODELS se prueban en orden: si uno falla o su respuesta no se sostiene (zonas al lado equivocado
-del precio, objetivos fuera de rango, escenarios incoherentes), se pasa al siguiente. Los que empiezan por "gemini:" van
-a la API de Gemini; el resto, a la inferencia de DigitalOcean. Si ninguno sirve se mantiene el analysis.json anterior.
+del precio, objetivos fuera de rango, escenarios incoherentes), se pasa al siguiente (proveedores y prefijos en llm.py).
+Si ninguno sirve se mantiene el analysis.json anterior.
 Cada análisis publicado se añade a state/analysis_log.jsonl para poder medir después cuánto acierta.
 
 Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GEMINI_API_KEY (para los gemini:), ANALYSIS_MODELS,
@@ -21,10 +21,7 @@ import argparse
 import json
 import logging
 import os
-import re
 import sys
-import time
-import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,15 +29,16 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from build_news import OUT_DIR, STATE_DIR, chat, write_json  # noqa: E402
+import llm  # noqa: E402
+from build_news import OUT_DIR, STATE_DIR, write_json  # noqa: E402
 
 log = logging.getLogger("analysis")
 
-# En las pruebas (31 oct 2026), GLM-5.3 Flash dio el análisis más completo y preciso; Gemini 3.5 Flash acertó también pero
-# con menos detalle (queda de respaldo, en el nivel gratuito), y DeepSeek V4 Flash confundía tendencias de los derivados
-MODELS = [m.strip() for m in os.environ.get(
-    "ANALYSIS_MODELS", "glm-5.3-flash,qwen3.5-397b-a17b,gemini:gemini-3.5-flash,gemini:gemini-flash-latest").split(",") if m.strip()]
-GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+# Por orden de preferencia (llm.py). En las pruebas (31 oct 2026), GLM-5.3 Flash dio el análisis más completo y preciso;
+# Gemini 3.5 Flash acertó también pero con menos detalle (queda de respaldo, en el nivel gratuito), y DeepSeek V4 Flash
+# confundía tendencias de los derivados. gpt-oss-120b (Groq) no cabe: los datos superan los 8.000 tokens por minuto de su
+# nivel gratuito
+MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,qwen3.5-397b-a17b,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
@@ -222,47 +220,6 @@ def market() -> dict:
 
 # ---------- Modelos ----------
 
-def gemini(model: str, user: str) -> dict:
-    """Llamada a la API de Gemini con respuesta JSON según SCHEMA. Reintenta la saturación (429/503)."""
-    body = json.dumps({
-        "systemInstruction": {"parts": [{"text": PROMPT}]},
-        "contents": [{"role": "user", "parts": [{"text": user}]}],
-        "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": SCHEMA, "temperature": 0.4},
-    }).encode()
-    req = urllib.request.Request(GEMINI.format(model=model), data=body, method="POST", headers={
-        "Content-Type": "application/json", "X-goog-api-key": os.environ["GEMINI_API_KEY"]})
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(req, timeout=240) as res:
-                data = json.loads(res.read())
-            break
-        except urllib.error.HTTPError as e:
-            try:
-                msg = json.loads(e.read())["error"]["message"]
-            except Exception:
-                msg = ""
-            if e.code not in (429, 500, 502, 503, 504) or attempt == 2:
-                raise RuntimeError(f"HTTP {e.code} {msg[:120]}") from None
-        time.sleep(5 * 2**attempt)
-    cand = data["candidates"][0]
-    if cand.get("finishReason") != "STOP":
-        raise RuntimeError(f"respuesta incompleta: finishReason={cand.get('finishReason')}")
-    usage = data.get("usageMetadata", {})
-    log.info("%s (%s): %s tokens de entrada, %s de salida, %s de razonamiento", model, data.get("modelVersion"),
-             usage.get("promptTokenCount"), usage.get("candidatesTokenCount"), usage.get("thoughtsTokenCount"))
-    text = "".join(p.get("text", "") for p in cand["content"]["parts"] if not p.get("thought"))
-    m = re.search(r"\{.*\}", text, re.S)
-    if not m:
-        raise ValueError("la respuesta no contiene JSON")
-    return json.loads(m.group(0))
-
-
-def ask(model: str, user: str) -> dict:
-    if model.startswith("gemini:"):
-        return gemini(model.removeprefix("gemini:"), user)
-    return chat(PROMPT, user, SCHEMA, "analisis", model=model)
-
-
 # ---------- Validación ----------
 
 def validate(a: dict, price: float) -> dict:
@@ -350,17 +307,18 @@ def main() -> None:
         result, model = validate(dry_run(price), price), "dry-run"
     else:
         user = json.dumps(market(), separators=(",", ":"))
-        result = model = None
-        for m in MODELS:
-            try:
-                raw = ask(m, user)
-                price = float(get(PRICE_URL)["price"])  # el del momento de la respuesta
-                result, model = validate(raw, price), m.removeprefix("gemini:")
-                break
-            except Exception as e:  # el modelo siguiente puede servir
-                log.warning("%s: %s", m, e)
-        if result is None:
+        prices: list[float] = []
+
+        def check(raw: dict) -> dict:
+            prices.append(float(get(PRICE_URL)["price"]))  # el del momento de la respuesta
+            return validate(raw, prices[-1])
+
+        try:
+            # Si la respuesta no se sostiene (zonas al lado equivocado, precio que no cuadra…), se prueba el siguiente
+            result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis", MODELS, check)
+        except RuntimeError:
             raise SystemExit("ningún modelo dio un análisis válido: se mantiene el anterior")
+        price, model = prices[-1], llm.label(spec)
 
     out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price), **result}
     write_json(OUT_DIR / "analysis.json", out)

@@ -96,9 +96,20 @@ cd web; npm install; npm run dev
 
 Las tarjetas de noticias y agenda leen `/news/news.json` y `/news/calendar.json`, y la página de análisis,
 `/news/analysis.json`. Los generan tres scripts de `news/`
-(solo librería estándar de Python 3.10+) con un modelo de la inferencia serverless de DigitalOcean (GLM-5.3 Flash: los de
-Anthropic y OpenAI exigen el nivel 3). nginx los sirve desde `news/out`, montado como volumen en `docker-compose.yml`.
+(solo librería estándar de Python 3.10+). nginx los sirve desde `news/out`, montado como volumen en `docker-compose.yml`.
 Sin esos ficheros las tarjetas no se muestran.
+
+Los tres llaman a los modelos a través de `news/llm.py`, con una lista por orden de preferencia: si uno falla, se satura,
+agota el tiempo o su respuesta no supera la comprobación del script, se prueba el siguiente (los que no tienen clave se
+saltan). El principal es GLM-5.3 Flash, de la inferencia serverless de DigitalOcean (los de Anthropic y OpenAI exigen su
+nivel 3):
+
+| Script | Orden (variable para cambiarlo) |
+|---|---|
+| Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
+| Análisis | GLM-5.3 Flash → Qwen 3.5 → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`) |
+
+gpt-oss-120b no está en el análisis: sus datos superan los 8.000 tokens por minuto del nivel gratuito de Groq.
 
 - `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC
@@ -107,16 +118,15 @@ Sin esos ficheros las tarjetas no se muestran.
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
   de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), la hora y si la bolsa de EE. UU. está
   abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
-  económica de la semana del `calendar.json`. Usa
-  GLM-5.3 Flash de DigitalOcean y, si falla o su respuesta no se sostiene, el siguiente de `ANALYSIS_MODELS` (Gemini de
-  respaldo, con `GEMINI_API_KEY`). Cada análisis se guarda también en `news/state/analysis_log.jsonl`, para medir
-  después cuánto acierta.
+  económica de la semana del `calendar.json`. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
+  equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Cada análisis se guarda también en
+  `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 
 En el droplet, una vez:
 
 ```bash
 cd ~/isbtccheap && git pull && docker compose up -d --build
-cp news/.env.example news/.env && chmod 600 news/.env   # y pon la Model Access Key en DO_MODEL_ACCESS_KEY
+cp news/.env.example news/.env && chmod 600 news/.env   # y pon las claves: DO_MODEL_ACCESS_KEY, GROQ_API_KEY, GEMINI_API_KEY
 news/run.sh build_news.py && news/run.sh build_calendar.py && news/run.sh build_analysis.py   # primera ejecución
 crontab -e
 ```

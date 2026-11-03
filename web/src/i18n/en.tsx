@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { Messages } from "./es";
 
+/** "A", "A and B", "A, B and C" */
+const list = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : (xs[0] ?? ""));
+
 export const en: Messages = {
   loading: "Loading…",
   noData: "No data",
@@ -569,7 +572,8 @@ export const en: Messages = {
       flujos: "Flows",
       cripto: "Crypto",
     },
-    note: "Selected by AI.",
+    // Los titulares se muestran en inglés: solo cuenta la selección
+    note: (selection: string[], _translation: string[]) => (selection.length ? `Selected by ${list(selection)}.` : "Selected by AI."),
   },
 
   donate: {

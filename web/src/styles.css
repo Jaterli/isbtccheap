@@ -310,7 +310,8 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card svg { display: block; touch-action: pan-y; }
 /* Título y controles en una fila; si no caben (móvil), los controles bajan a la suya, a todo el ancho */
 .price-card header { flex-wrap: wrap; row-gap: 10px; align-items: center; }
-.price-card header h3 { flex: 1 0 auto; white-space: nowrap; }
+.price-card header h3 { flex: 1 0 auto; white-space: nowrap; line-height: 0; }
+
 .price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 8px; }
 .price-controls > .segmented:last-child { flex: none; }
 .price-card .price-tfs { flex: 1; grid-template-columns: repeat(4, 1fr); max-width: none; }
@@ -350,6 +351,12 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; }
 .chart-controls button:disabled { opacity: 0.4; cursor: default; }
 .chart-readout { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 4px; font-size: 0.9rem; }
+/* Cada dato (rayita de color, icono y cifra) en una pieza; en móvil, algo más juntos para que quepan en una línea */
+.legend { white-space: nowrap; }
+@media (max-width: 399px) { .chart-readout { column-gap: 12px; } }
+/* Logotipo de Bitcoin en lugar de "Precio": alineado con el texto (las reglas ".chart svg" y ".price-card svg" de los
+   gráficos lo pondrían en bloque) */
+.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: -0.15em; cursor: default; }
 .legend::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .legend-price::before { background: var(--price); }
 .legend-score::before { background: var(--accent); }

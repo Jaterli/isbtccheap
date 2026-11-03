@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { CategoryId, Timeframe } from "../types";
 
+/** "A", "A y B", "A, B y C" */
+const list = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : (xs[0] ?? ""));
+
 interface Description {
   /** Qué mide */
   what: string;
@@ -579,7 +582,13 @@ export const es = {
       flujos: "Flujos",
       cripto: "Cripto",
     } as Record<string, string>,
-    note: "Seleccionadas y traducidas con IA.",
+    // Modelos de más a menos noticias; si son los mismos para las dos tareas, una sola frase
+    note: (selection: string[], translation: string[]) =>
+      !selection.length
+        ? "Seleccionadas y traducidas con IA."
+        : selection.join() === translation.join() || !translation.length
+          ? `Seleccionadas y traducidas por ${list(selection)}.`
+          : `Seleccionadas por ${list(selection)}, y traducidas por ${list(translation)}.`,
   },
 
   donate: {

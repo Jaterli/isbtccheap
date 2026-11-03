@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { lang, locale, t } from "../i18n";
 import { InfoTip } from "./InfoTip";
+import { modelName } from "../lib/models";
 
 /** Salida de news/build_news.py */
+/** Modelos de IA que clasificaron y tradujeron las noticias publicadas, de más a menos noticias (news.json) */
+export interface NewsModels {
+  selection: string[];
+  translation: string[];
+}
+
 export interface NewsItem {
   title_es: string;
   title: string;
@@ -39,6 +46,7 @@ const level = (impact: number) => (impact >= 7 ? "high" : impact >= 5 ? "mid" : 
 /** Noticias del cron, recargadas tras cada regeneración; null hasta que llegan o si no hay. */
 export function useNews() {
   const [items, setItems] = useState<NewsItem[] | null>(null);
+  const [models, setModels] = useState<NewsModels | null>(null);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -46,7 +54,10 @@ export function useNews() {
     const load = () => {
       fetch(NEWS_URL, { cache: "no-cache" })
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-        .then((d: { items: NewsItem[] }) => setItems(d.items))
+        .then((d: { items: NewsItem[]; models?: NewsModels }) => {
+          setItems(d.items);
+          setModels(d.models ?? null);
+        })
         .catch(() => {
           /* sin noticias no se muestran; el resto de la web no depende de ellas */
         });
@@ -60,7 +71,7 @@ export function useNews() {
     };
   }, []);
 
-  return { items: items?.length ? items : null, now };
+  return { items: items?.length ? items : null, now, models };
 }
 
 export function NewsInfo() {
@@ -82,7 +93,7 @@ export function NewsInfo() {
   );
 }
 
-export function NewsList({ items, now, id }: { items: NewsItem[]; now: number; id?: string }) {
+export function NewsList({ items, now, models, id }: { items: NewsItem[]; now: number; models: NewsModels | null; id?: string }) {
   const tx = t.news;
   return (
     <>
@@ -102,7 +113,7 @@ export function NewsList({ items, now, id }: { items: NewsItem[]; now: number; i
           </li>
         ))}
       </ol>
-      <p className="muted small news-note">{tx.note}</p>
+      <p className="muted small news-note">{tx.note(models?.selection.map(modelName) ?? [], models?.translation.map(modelName) ?? [])}</p>
     </>
   );
 }

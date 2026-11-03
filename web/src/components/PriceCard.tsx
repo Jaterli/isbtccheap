@@ -4,6 +4,7 @@ import { fetchCandles } from "../lib/binance";
 import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
 import { RefreshStatus } from "./RefreshStatus";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 4;
 const PAD_T = 6;
@@ -190,7 +191,9 @@ export function PriceCard({ active }: { active: boolean }) {
     <article className="card price-card" id="precio">
       {/* Título y, en la misma fila, temporalidad y zoom (como en el histórico) */}
       <header>
-        <h3>{tx.title}</h3>
+        <h3>
+          <BtcIcon size={26} label={tx.title} />
+        </h3>
         <div className="price-controls">
           <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
             {PRICE_TFS.map((v) => (

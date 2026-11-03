@@ -60,7 +60,7 @@ export function Feed() {
             )}
             {tab === "news" ? <NewsInfo /> : <CalendarInfo />}
           </div>
-          {tab === "news" && news.items && <NewsList items={news.items} now={news.now} id={fold.bodyId} />}
+          {tab === "news" && news.items && <NewsList items={news.items} now={news.now} models={news.models} id={fold.bodyId} />}
           {tab === "calendar" && cal.events && <CalendarList events={cal.events} now={cal.now} id={fold.bodyId} />}
         </>
       )}

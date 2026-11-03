@@ -4,6 +4,7 @@ import { axisPad } from "../lib/chart";
 import { load4h } from "../lib/history4h";
 import type { History, Latest } from "../types";
 import { InfoTip } from "./InfoTip";
+import { BtcIcon } from "./BtcIcon";
 
 const RANGES = [
   { id: "6m", days: 182 },
@@ -376,7 +377,7 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
       <p className="chart-readout">
         <span className="muted num">{history.dates[h]?.replace("T", " ")}</span>
         <span className="legend legend-price num">
-          {t.history.price} <strong>{history.price[h]?.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
+          <BtcIcon size={14} label={t.history.price} /> <strong>{history.price[h]?.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>
         <span className="legend legend-score num">
           {is4h ? t.history.score4h : "Score"} <strong>{history.score[h]?.toFixed(0)}</strong>

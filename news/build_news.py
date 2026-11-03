@@ -2,13 +2,14 @@
 
 Cada ejecución (cron cada 15 min en el droplet):
   1. Descarga los feeds RSS de FEEDS y se queda con las noticias de las últimas WINDOW_HOURS horas.
-  2. Clasifica con GLM-5.3 Flash (inferencia serverless de DigitalOcean) solo los titulares que no ha visto antes:
-     categoría e impacto de 0 a 10.
+  2. Clasifica solo los titulares que no ha visto antes (categoría e impacto de 0 a 10) con el primer modelo de
+     NEWS_MODELS que responda (ver llm.py).
   3. Con las candidatas a publicarse, una segunda llamada agrupa las que cuentan el mismo hecho y deja una por grupo.
   4. Traduce al español solo las MAX_ITEMS que se publican y escribe news.json, que la web lee de su mismo dominio.
 Cada tarea va en su propia llamada: es más fiable con modelos abiertos y la traducción solo se paga para lo publicado.
 
-Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, NEWS_OUT_DIR, NEWS_STATE_DIR.
+Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GROQ_API_KEY y GEMINI_API_KEY (respaldo), NEWS_MODELS,
+NEWS_OUT_DIR, NEWS_STATE_DIR.
 Uso: python build_news.py [--dry-run]   (--dry-run no llama al modelo: sirve para probar feeds y salida)
 """
 
@@ -19,13 +20,14 @@ import os
 import re
 import sys
 import tempfile
-import time
-import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+
+import llm
 
 HERE = Path(__file__).resolve().parent
 OUT_DIR = Path(os.environ.get("NEWS_OUT_DIR", HERE / "out"))
@@ -42,9 +44,10 @@ FEEDS = [
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "banco central"),
 ]
 
-# Modelo abierto: disponible en todos los niveles de DigitalOcean (los de Anthropic y OpenAI exigen el nivel 3)
-MODEL = "glm-5.3-flash"
-API_URL = "https://inference.do-ai.run/v1/chat/completions"
+# Por orden de preferencia (llm.py). En las pruebas (3 nov 2026) GLM-5.3 Flash (DigitalOcean) puntuó mejor el impacto y
+# tradujo con un español más natural; gpt-oss-120b (Groq) fue 10 veces más rápido y detectó más duplicados, pero dejaba
+# casi todo en impacto 4-5: queda de primer respaldo, y Gemini detrás
+MODELS = llm.models_from_env("NEWS_MODELS", "glm-5.3-flash,groq:openai/gpt-oss-120b,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
 WINDOW_HOURS = 48  # antigüedad máxima de una noticia publicada
 SEEN_DAYS = 7  # cuánto se recuerda un titular ya clasificado, para no volver a pagar por él
 BATCH = 40  # titulares nuevos por llamada
@@ -206,45 +209,25 @@ def write_json(path: Path, data) -> None:
     os.replace(f.name, path)
 
 
-def chat(system: str, user: str, schema: dict, name: str, retries: int = 3, model: str = MODEL) -> dict:
-    """Llamada a la API de chat de DigitalOcean con respuesta JSON obligatoria según `schema`.
-    Reintenta los límites de peticiones y los errores del servidor."""
-    body = {
-        "model": model,
-        "max_tokens": 16000,
-        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},
-    }
-    req = urllib.request.Request(API_URL, data=json.dumps(body).encode(), method="POST", headers={
-        "Authorization": f"Bearer {os.environ['DO_MODEL_ACCESS_KEY']}", "Content-Type": "application/json"})
-    for attempt in range(retries + 1):
-        try:
-            with urllib.request.urlopen(req, timeout=180) as res:
-                data = json.loads(res.read())
-            break
-        except urllib.error.HTTPError as e:
-            if e.code not in (429, 500, 502, 503, 504) or attempt == retries:
-                raise RuntimeError(f"HTTP {e.code}: {e.read().decode(errors='replace')[:300]}") from None
-        except (urllib.error.URLError, TimeoutError):
-            if attempt == retries:
-                raise
-        time.sleep(5 * 2**attempt)
-    choice = data["choices"][0]
-    if choice.get("finish_reason") != "stop":
-        raise RuntimeError(f"respuesta incompleta del modelo: finish_reason={choice.get('finish_reason')}")
-    usage = data.get("usage", {})
-    log.info("%s: %s tokens de entrada, %s de salida", name, usage.get("prompt_tokens"), usage.get("completion_tokens"))
-    return json.loads(choice["message"]["content"])
+def chat(system: str, user: str, schema: dict, name: str) -> dict:
+    """Respuesta JSON según `schema` del primer modelo de MODELS que responda (también la usa build_calendar.py)."""
+    return chat_model(system, user, schema, name)[0]
+
+
+def chat_model(system: str, user: str, schema: dict, name: str) -> tuple[dict, str]:
+    """Como chat(), con el nombre del modelo que respondió ("glm-5.3-flash")."""
+    data, spec = llm.complete(system, user, schema, name, MODELS)
+    return data, llm.label(spec)
 
 
 def classify(new: list[dict]) -> dict[str, dict]:
     """{key: {category, impact}} para los titulares nuevos."""
     lines = [f"{i}. [{n['source']}, {n['topic']}] {n['title']}" for i, n in enumerate(new)]
-    data = chat(CLASSIFY_PROMPT, "\n".join(lines), CLASSIFY_SCHEMA, "clasificacion")
+    data, model = chat_model(CLASSIFY_PROMPT, "\n".join(lines), CLASSIFY_SCHEMA, "clasificacion")
     out = {}
     for r in data["items"]:
         if 0 <= r["id"] < len(new):
-            out[new[r["id"]]["key"]] = {"category": r["category"], "impact": max(0, min(10, r["impact"]))}
+            out[new[r["id"]]["key"]] = {"category": r["category"], "impact": max(0, min(10, r["impact"])), "model": model}
     return out
 
 
@@ -282,11 +265,13 @@ def translate(items: list[dict]) -> None:
     if not todo:
         return
     lines = [f"{i}. {v['title']}" for i, v in enumerate(todo)]
-    for r in chat(TRANSLATE_PROMPT, "\n".join(lines), TRANSLATE_SCHEMA, "traduccion")["items"]:
+    data, model = chat_model(TRANSLATE_PROMPT, "\n".join(lines), TRANSLATE_SCHEMA, "traduccion")
+    for r in data["items"]:
         if 0 <= r["id"] < len(todo):
             es = r["title_es"].strip()
             if es and es.casefold() != todo[r["id"]]["title"].strip().casefold():
                 todo[r["id"]]["title_es"] = es
+                todo[r["id"]]["model_es"] = model
     missing = sum(1 for v in todo if not v.get("title_es"))
     if missing:
         log.warning("Sin traducir: %d titulares (se reintentará)", missing)
@@ -365,7 +350,11 @@ def main() -> None:
 
     fields = ("title", "source", "link", "published", "category", "impact")
     news = [{"title_es": v.get("title_es") or v["title"], **{k: v[k] for k in fields}} for v in chosen]
-    write_json(OUT_DIR / "news.json", {"updated_at": now.isoformat(timespec="seconds"), "items": news})
+    # Modelos que clasificaron y tradujeron las publicadas (cada titular guarda el suyo: pueden venir de ejecuciones
+    # anteriores, y con el respaldo de llm.py no siempre es el mismo), de más a menos noticias
+    used = lambda field: [m for m, _ in Counter(v[field] for v in chosen if v.get(field)).most_common()]
+    write_json(OUT_DIR / "news.json", {"updated_at": now.isoformat(timespec="seconds"),
+                                       "models": {"selection": used("model"), "translation": used("model_es")}, "items": news})
     log.info("news.json: %d noticias", len(news))
 
 

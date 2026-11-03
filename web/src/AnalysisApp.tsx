@@ -9,6 +9,7 @@ import { ANALYSIS_URL, type Analysis } from "./lib/analysis";
 import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
+import { modelName } from "./lib/models";
 
 // Las velas se refrescan; el análisis cambia dos veces al día, basta con leerlo al cargar
 const CANDLES_MS = 5 * 60_000;
@@ -166,7 +167,7 @@ export function AnalysisApp() {
               </tbody>
             </table>
           </div>
-          <p className="muted small vol-note">{tx.note(analysis.model)}</p>
+          <p className="muted small vol-note">{tx.note(modelName(analysis.model))}</p>
         </section>
       )}
 
