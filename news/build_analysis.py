@@ -59,7 +59,10 @@ diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
 de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
 hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta, y la agenda económica de la semana (datos y \
-decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). Para cada temporalidad recibes \
+también indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y en el \
+mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
+mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -88,6 +91,8 @@ Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
 - Los precios y las direcciones deben coincidir con lo que dicen los textos.
+- Ajusta objetivos e invalidaciones a la volatilidad reciente (ATR): en las próximas horas el precio suele moverse unos \
+pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo mucho más lejano es poco probable en ese plazo.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
 la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). outlook: lo más probable en las próximas horas y qué \
 lo invalidaría, en 1 o 2 frases. outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves breves (25 palabras como \
@@ -134,11 +139,62 @@ def get(url: str):
         return json.loads(res.read())
 
 
+# Velas que se descargan por temporalidad: las que ve el modelo y, para las medias de 200, más hacia atrás
+CANDLES = {"1d": 180, "4h": 120, "1h": 72}
+CANDLES_FOR_INDICATORS = 250
+
+
 def klines(interval: str, limit: int) -> list[list]:
     """[hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], redondeado para gastar menos tokens."""
-    rows = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={interval}&limit={limit}")
+    return _rows(get(f"{SPOT}/klines?symbol=BTCUSDT&interval={interval}&limit={limit}"), interval)
+
+
+def _rows(raw: list[list], interval: str) -> list[list]:
     fmt = "%Y-%m-%d" if interval == "1d" else "%Y-%m-%d %H:%M"
-    return [[datetime.fromtimestamp(r[0] / 1000, timezone.utc).strftime(fmt), *(round(float(x)) for x in r[1:6])] for r in rows]
+    return [[datetime.fromtimestamp(r[0] / 1000, timezone.utc).strftime(fmt), *(round(float(x)) for x in r[1:6])] for r in raw]
+
+
+def _rma(values: list[float], period: int) -> list[float]:
+    """Media de Wilder (la del RSI y el ATR), como ewm(alpha=1/period) del pipeline."""
+    out, acc = [], values[0]
+    for v in values:
+        acc += (v - acc) / period
+        out.append(acc)
+    return out
+
+
+def indicators(raw: list[list]) -> dict:
+    """Indicadores de una temporalidad, calculados con sus velas (la última, en curso). Son cálculos, no conclusiones:
+    al modelo le cuesta hacer esta aritmética de cabeza con cientos de velas y la estimaba a ojo."""
+    high = [float(r[2]) for r in raw]
+    low = [float(r[3]) for r in raw]
+    close = [float(r[4]) for r in raw]
+    price = close[-1]
+    deltas = [b - a for a, b in zip(close, close[1:])]
+    gain = _rma([max(d, 0) for d in deltas], 14)
+    loss = _rma([max(-d, 0) for d in deltas], 14)
+    rsi = [None] + [100 - 100 / (1 + g / l) if l else 100.0 for g, l in zip(gain, loss)]
+    tr = [high[0] - low[0]] + [max(h - l, abs(h - c), abs(l - c)) for h, l, c in zip(high[1:], low[1:], close)]
+    atr = _rma(tr, 14)[-1]
+    last20 = close[-20:]
+    mean20 = sum(last20) / 20
+    sd20 = (sum((x - mean20) ** 2 for x in last20) / 20) ** 0.5
+    sma = lambda n: sum(close[-n:]) / n if len(close) >= n else None
+    pct = lambda ref: None if ref is None else round((price / ref - 1) * 100, 2)
+    # RSI en el máximo y en el mínimo de las últimas 50 velas: con el actual, deja ver las divergencias
+    i_hi = max(range(len(raw) - 50, len(raw)), key=lambda i: high[i])
+    i_lo = min(range(len(raw) - 50, len(raw)), key=lambda i: low[i])
+    return {
+        "rsi14": round(rsi[-1], 1),
+        "rsi14_at_high_50": round(rsi[i_hi], 1) if rsi[i_hi] is not None else None,
+        "rsi14_at_low_50": round(rsi[i_lo], 1) if rsi[i_lo] is not None else None,
+        "bollinger_pct_b": round((price - (mean20 - 2 * sd20)) / (4 * sd20), 2) if sd20 else None,
+        "pct_vs_sma50": pct(sma(50)),
+        "pct_vs_sma200": pct(sma(200)),
+        "high_20": round(max(high[-20:])), "low_20": round(min(low[-20:])),
+        "high_50": round(high[i_hi]), "low_50": round(low[i_lo]),
+        "atr14": round(atr), "atr14_pct": round(atr / price * 100, 2),
+    }
 
 
 def headlines() -> list[dict]:
@@ -184,9 +240,12 @@ def now_context() -> dict:
 
 
 def market() -> dict:
-    """Datos en bruto, sin indicadores ni niveles: el análisis lo hace el modelo."""
-    data: dict = {"context": now_context(), "candles_1d": klines("1d", 180), "candles_4h": klines("4h", 120),
-                  "candles_1h": klines("1h", 72)}
+    """Datos en bruto e indicadores calculados con ellos, sin niveles ni conclusiones: el análisis lo hace el modelo."""
+    data: dict = {"context": now_context()}
+    for tf, n in CANDLES.items():
+        raw = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={tf}&limit={CANDLES_FOR_INDICATORS}")
+        data[f"candles_{tf}"] = _rows(raw[-n:], tf)
+        data[f"indicators_{tf}"] = indicators(raw)
     try:
         fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
         data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]

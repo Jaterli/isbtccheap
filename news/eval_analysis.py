@@ -1,0 +1,155 @@
+"""Mide cuánto aciertan los análisis publicados (state/analysis_log.jsonl) con las velas de 1 h de Binance.
+
+Cada escenario se juzga en su plazo (el de las próximas horas en sus horizon_hours; el de 1-2 días, en 48 h):
+  acierta       el precio toca el objetivo antes que la invalidación
+  falla         toca antes la invalidación
+  dudoso        toca los dos en la misma vela de 1 h (no se sabe cuál fue antes)
+  sin resolver  no toca ninguno en el plazo (en un lateral, que no toque la invalidación cuenta como acierto)
+  pendiente     el plazo aún no ha terminado
+El alternativo solo se juzga por si toca su objetivo en el plazo de las próximas horas.
+
+Además compara la distancia a objetivos e invalidaciones con lo que de verdad se movió el precio (calibración) y
+cuenta los cambios de dirección entre análisis seguidos con el precio casi igual. No llama a ningún modelo ni modifica
+el registro.
+
+Uso: python eval_analysis.py [--log RUTA] [--since AAAA-MM-DD]
+"""
+
+import argparse
+import json
+import statistics
+import sys
+import urllib.request
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+
+from build_news import STATE_DIR
+
+KLINES = "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=1000&startTime={start}"
+UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
+HOUR = 3_600_000
+DAYS_HOURS = 48  # plazo del escenario de 1-2 días
+# Dos análisis seguidos "con el precio casi igual": separados menos de esto y con el precio a menos de un 0,5 %
+FLIP_HOURS = 8
+FLIP_PRICE = 0.005
+
+
+def candles(since_ms: int) -> list[tuple[int, float, float]]:
+    """(apertura, máximo, mínimo) de las velas de 1 h desde `since_ms`, paginando de 1000 en 1000."""
+    out: list[tuple[int, float, float]] = []
+    start = since_ms
+    while True:
+        req = urllib.request.Request(KLINES.format(start=start), headers=UA)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            rows = json.loads(r.read())
+        out += [(row[0], float(row[2]), float(row[3])) for row in rows]
+        if len(rows) < 1000:
+            return out
+        start = rows[-1][0] + 1
+
+
+def judge(bars, start: int, hours: float, price: float, direction: str, target: float, inval: float | None) -> str:
+    end = start + hours * HOUR
+    for t, high, low in bars:
+        if t + HOUR <= start:
+            continue
+        if t >= end:
+            break
+        if direction == "lateral":
+            if inval is not None and ((inval < price and low <= inval) or (inval > price and high >= inval)):
+                return "falla"
+            continue
+        up = direction == "alcista"
+        hit_target = high >= target if up else low <= target
+        hit_inval = inval is not None and (low <= inval if up else high >= inval)
+        if hit_target and hit_inval:
+            return "dudoso"
+        if hit_target:
+            return "acierta"
+        if hit_inval:
+            return "falla"
+    if end > bars[-1][0] + HOUR:
+        return "pendiente"
+    return "acierta" if direction == "lateral" else "sin resolver"
+
+
+def excursion(bars, start: int, hours: float, price: float) -> tuple[float, float] | None:
+    """Subida y bajada máximas (en % del precio) dentro del plazo, si ya ha terminado."""
+    end = start + hours * HOUR
+    if end > bars[-1][0] + HOUR:
+        return None
+    win = [b for b in bars if b[0] + HOUR > start and b[0] < end]
+    return (max(b[1] for b in win) / price - 1) * 100, (min(b[2] for b in win) / price - 1) * 100
+
+
+def summary(c: Counter) -> str:
+    resolved = c["acierta"] + c["falla"]
+    rate = f"{c['acierta'] / resolved * 100:.0f} % de acierto ({c['acierta']}/{resolved} resueltos)" if resolved else "sin resueltos"
+    rest = ", ".join(f"{k} {c[k]}" for k in ("sin resolver", "dudoso", "pendiente") if c[k])
+    return rate + (f"; {rest}" if rest else "")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--log", default=str(STATE_DIR / "analysis_log.jsonl"), help="registro de análisis")
+    ap.add_argument("--since", help="solo los análisis desde esta fecha (AAAA-MM-DD)")
+    args = ap.parse_args()
+
+    rows = [json.loads(line) for line in open(args.log, encoding="utf-8") if line.strip()]
+    rows = [r for r in rows if not args.since or r["generated_at"] >= args.since]
+    old = sum(1 for r in rows if "outlook" not in r)
+    rows = [r for r in rows if "outlook" in r]
+    if not rows:
+        sys.exit("No hay análisis que evaluar.")
+    when = lambda r: int(datetime.fromisoformat(r["generated_at"]).timestamp() * 1000)
+    bars = candles(when(rows[0]) - HOUR)
+    print(f"{len(rows)} análisis del {rows[0]['generated_at'][:10]} al {rows[-1]['generated_at'][:10]}"
+          + (f" ({old} de una versión antigua, sin escenarios, no se cuentan)" if old else "")
+          + f"; velas hasta {datetime.fromtimestamp(bars[-1][0] / 1000, timezone.utc):%Y-%m-%d %H:%M} UTC\n")
+
+    total = {"Próximas horas": Counter(), "1-2 días": Counter(), "Alternativo (toca su objetivo)": Counter()}
+    by_model: dict[str, Counter] = defaultdict(Counter)
+    by_week: dict[str, Counter] = defaultdict(Counter)
+    calib: dict[str, list[float]] = defaultdict(list)
+    for r in rows:
+        t, p, o, d, alt = when(r), r["price"], r["outlook"], r.get("outlook_days"), r["alternative"]
+        hours = o.get("horizon_hours") or 24
+        res = judge(bars, t, hours, p, o["direction"], o["target"], o.get("invalidation"))
+        total["Próximas horas"][res] += 1
+        by_model[r["model"]][res] += 1
+        by_week[datetime.fromisoformat(r["generated_at"]).strftime("%G-S%V")][res] += 1
+        if d:
+            total["1-2 días"][judge(bars, t, DAYS_HOURS, p, d["direction"], d["target"], d.get("invalidation"))] += 1
+        total["Alternativo (toca su objetivo)"][judge(bars, t, hours, p, alt["direction"], alt["target"], None)] += 1
+        if (ex := excursion(bars, t, hours, p)) and o["direction"] != "lateral":
+            calib["objetivo"].append(abs(o["target"] / p - 1) * 100)
+            if o.get("invalidation"):
+                calib["invalidación"].append(abs(o["invalidation"] / p - 1) * 100)
+            calib["movimiento real (mayor de subida o bajada)"].append(max(ex[0], -ex[1]))
+
+    print("Acierto por escenario:")
+    for name, c in total.items():
+        print(f"  {name:32} {summary(c)}")
+    print("\nPróximas horas, por modelo:")
+    for model, c in sorted(by_model.items(), key=lambda kv: -sum(kv[1].values())):
+        print(f"  {model:32} {summary(c)}")
+    print("\nPróximas horas, por semana:")
+    for week, c in sorted(by_week.items()):
+        print(f"  {week:32} {summary(c)}")
+
+    if calib["objetivo"]:
+        print("\nCalibración de las próximas horas (mediana, en % del precio, de los plazos ya terminados):")
+        for k, v in calib.items():
+            print(f"  {k:44} {statistics.median(v):.2f} %  ({len(v)} análisis)")
+        ratio = statistics.median(calib["objetivo"]) / max(statistics.median(calib["movimiento real (mayor de subida o bajada)"]), 1e-9)
+        print(f"  → los objetivos están a {ratio:.1f} veces lo que se movió el precio" + (" (demasiado lejos)" if ratio > 1.5 else ""))
+
+    flips = sum(1 for a, b in zip(rows, rows[1:])
+                if when(b) - when(a) < FLIP_HOURS * HOUR and abs(b["price"] / a["price"] - 1) < FLIP_PRICE
+                and a["outlook"]["direction"] != b["outlook"]["direction"])
+    pairs = sum(1 for a, b in zip(rows, rows[1:]) if when(b) - when(a) < FLIP_HOURS * HOUR and abs(b["price"] / a["price"] - 1) < FLIP_PRICE)
+    print(f"\nCambios de dirección entre análisis seguidos (< {FLIP_HOURS} h y precio a < {FLIP_PRICE:.1%}): {flips} de {pairs}")
+
+
+if __name__ == "__main__":
+    main()

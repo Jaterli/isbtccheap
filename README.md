@@ -116,11 +116,17 @@ Los modelos de Groq no están en el análisis: sus datos superan los 8.000 token
   preliminar de la zona euro y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
-  de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), la hora y si la bolsa de EE. UU. está
+  de mercado en bruto (velas, derivados, Fear & Greed y flujos de los ETF), indicadores calculados con las velas de cada
+  temporalidad (RSI, Bollinger, distancia a las medias de 50 y 200, máximos y mínimos y ATR: le cuesta hacer esa
+  aritmética de cabeza y ajusta los objetivos a la volatilidad), la hora y si la bolsa de EE. UU. está
   abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
   económica de la semana del `calendar.json`. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
   equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Cada análisis se guarda también en
   `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
+- `eval_analysis.py`: mide el acierto de los análisis del registro con las velas de 1 h de Binance (objetivo antes que
+  invalidación en su plazo), por modelo y por semana, si los objetivos guardan proporción con lo que se mueve el precio
+  y cuántas veces cambia de dirección sin motivo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
+  o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio).
 
 En el droplet, una vez:
 
