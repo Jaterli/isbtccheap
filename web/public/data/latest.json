@@ -1,132 +1,132 @@
 {
-  "updated_at": "2026-11-05T18:12:44+00:00",
-  "as_of": "2026-11-04",
-  "price": 80487.5876,
-  "score_1d": 34.7478,
+  "updated_at": "2026-11-06T08:03:51+00:00",
+  "as_of": "2026-11-05",
+  "price": 75803.1273,
+  "score_1d": 23.0631,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 46.0187,
+      "score": 35.1358,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.4902,
-          "score": 38.193
+          "value": 1.4044,
+          "score": 28.679
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 1.0457,
-          "score": 50.3765
+          "value": 0.91,
+          "score": 37.3717
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 1.0999,
-          "score": 49.4867
+          "value": 1.0358,
+          "score": 39.3566
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 19.4224,
+      "score": 15.7093,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 9.6703,
-          "score": 9.6703
+          "value": 9.7562,
+          "score": 9.7562
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.2559,
-          "score": 14.7844
+          "value": -0.2822,
+          "score": 10.13
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 1.1921,
-          "score": 33.8125
+          "value": 1.122,
+          "score": 27.2416
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 58.1537,
+      "score": 57.1869,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0259,
-          "score": 64.4764
+          "value": -0.0207,
+          "score": 60.5065
         },
         {
           "id": "m2_yoy",
           "name": "M2 EE. UU. (var. interanual)",
           "value": 0.0522,
-          "score": 12.6968
+          "score": 12.731
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
-          "value": 0.0191,
-          "score": 84.5996
+          "value": 0.018,
+          "score": 84.052
         },
         {
           "id": "stablecoin_roc",
           "name": "Oferta de stablecoins (var. 90 d)",
-          "value": -0.0129,
-          "score": 70.8419
+          "value": -0.0153,
+          "score": 71.4579
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 33.9377,
+      "score": 26.7968,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 50.0,
-          "score": 50.0
+          "value": 28.0,
+          "score": 28.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 0.9985,
-          "score": 31.5537
+          "value": 0.9986,
+          "score": 32.1013
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
           "value": -10788.8177,
-          "score": 20.2595
+          "score": 20.2891
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 55.9266,
+      "score": 24.6421,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 50.8507,
-          "score": 52.1266
+          "value": 38.2915,
+          "score": 20.7287
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": 53.4031,
-          "score": 53.4031
+          "value": 2.9475,
+          "score": 2.9475
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 1.0999,
-          "score": 62.25
+          "value": 1.0358,
+          "score": 50.25
         }
       ]
     }
