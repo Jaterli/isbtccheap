@@ -11,8 +11,28 @@ import { usd } from "./lib/chart";
 import type { Candle } from "./types";
 import { modelName } from "./lib/models";
 
-// Las velas se refrescan; el análisis cambia dos veces al día, basta con leerlo al cargar
-const CANDLES_MS = 5 * 60_000;
+const H4 = 4 * 3_600_000;
+
+/**
+ * Velas de 4 h tal como estaban al hacerse el análisis: hasta esa hora, y la última (a medias entonces) rehecha con las
+ * de 1 minuto desde su apertura, sin lo que pasó después. Así el gráfico no cambia hasta el siguiente análisis.
+ */
+async function candlesAt(at: number): Promise<Candle[]> {
+  const candles = await fetchCandles("4h", 120, at);
+  const last = candles.at(-1);
+  if (!last || at >= last.time + H4) return candles;
+  const minutes = await fetchCandles("1m", 240, at);
+  const inside = minutes.filter((m) => m.time >= last.time);
+  if (!inside.length) return candles;
+  const partial = {
+    time: last.time,
+    open: last.open,
+    high: Math.max(...inside.map((m) => m.high)),
+    low: Math.min(...inside.map((m) => m.low)),
+    close: inside.at(-1)!.close,
+  };
+  return [...candles.slice(0, -1), partial];
+}
 
 const signedPct = (v: number) =>
   `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(Math.abs(v).toLocaleString(locale, { maximumFractionDigits: 1 }))}`;
@@ -23,27 +43,21 @@ export function AnalysisApp() {
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [candleError, setCandleError] = useState(false);
 
+  // El análisis se lee al cargar (cambia dos veces al día) y las velas, las de su momento: no se refrescan
   useEffect(() => {
     fetch(ANALYSIS_URL, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then(setAnalysis, () => setMissing(true));
-    const load = () =>
-      fetchCandles("4h", 120).then(
-        (c) => {
-          setCandles(c);
-          setCandleError(false);
-        },
-        () => setCandleError(true),
-      );
-    load();
-    const id = setInterval(load, CANDLES_MS);
-    return () => clearInterval(id);
+      .then((a: Analysis) => {
+        setAnalysis(a);
+        candlesAt(Date.parse(a.generated_at)).then(setCandles, () => setCandleError(true));
+      }, () => setMissing(true));
   }, []);
 
   const tx = t.analysis;
   const seo = SEO_ANALYSIS[lang];
   const text = analysis?.[lang];
-  const price = candles?.at(-1)?.close ?? analysis?.price ?? null;
+  // Distancias a las zonas desde el precio del análisis, el mismo que cierra el gráfico
+  const price = analysis?.price ?? null;
 
   return (
     <main className="container">

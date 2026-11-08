@@ -7,7 +7,7 @@ const FUTURES = "https://fapi.binance.com/fapi/v1";
 const TIMEOUT_MS = 10_000;
 
 /** Últimas `limit` velas, o las anteriores a `endTime` (ms) si se indica. */
-export async function fetchCandles(tf: Timeframe | "15m", limit = 1000, endTime?: number): Promise<Candle[]> {
+export async function fetchCandles(tf: Timeframe | "15m" | "1m", limit = 1000, endTime?: number): Promise<Candle[]> {
   const end = endTime === undefined ? "" : `&endTime=${endTime}`;
   const res = await fetch(`${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${limit}${end}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`Binance klines ${res.status}`);
