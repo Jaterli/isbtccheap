@@ -55,14 +55,20 @@ MAX_SHORT = 0.15
 MAX_DAYS = 0.20
 
 PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas \
-diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
+semanales (el último año), diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
 de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
 hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta, y la agenda económica de la semana (datos y \
 decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). Para cada temporalidad recibes \
 también indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y en el \
 mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
-mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). En trend_context, el \
+máximo y el mínimo de los últimos 12 meses. En market_structure, para semanal y diario y calculado con sus velas: los \
+últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
+el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
+ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci del tramo más reciente que contiene el \
+precio. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
+no ha rellenado. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -76,8 +82,8 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
   "outlook": {"direction": "alcista" | "bajista" | "lateral", "target": número, "invalidation": número, "horizon_hours": número},
   "outlook_days": {"direction": "alcista" | "bajista" | "lateral", "target": número, "invalidation": número},
   "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número},
-  "es": {"headline": texto, "summary": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
-  "en": {"headline": texto, "summary": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
+  "es": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
+  "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
 }
 
 - supports y resistances: de 1 a 3 zonas de cada lado del precio actual, solo las realmente relevantes, como rangos \
@@ -93,8 +99,15 @@ outlook.
 - Los precios y las direcciones deben coincidir con lo que dicen los textos.
 - Ajusta objetivos e invalidaciones a la volatilidad reciente (ATR): en las próximas horas el precio suele moverse unos \
 pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo mucho más lejano es poco probable en ese plazo.
+- Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
+trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
+estructura, las divergencias, los niveles de Fibonacci y los imbalances sin rellenar son referencias posibles para el \
+sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
-la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). outlook: lo más probable en las próximas horas y qué \
+la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
+estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 1 o 2 frases (50 palabras como \
+máximo). outlook: lo más probable en las \
+próximas horas y qué \
 lo invalidaría, en 1 o 2 frases. outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves breves (25 palabras como \
 máximo) de lo que está moviendo el precio.
 
@@ -105,9 +118,10 @@ ZONE = {"type": "object", "properties": {"low": {"type": "number"}, "high": {"ty
         "required": ["low", "high", "strength"], "additionalProperties": False}
 DIRECTION = {"type": "string", "enum": ["alcista", "bajista", "lateral"]}
 TEXT = {"type": "object",
-        "properties": {"headline": {"type": "string"}, "summary": {"type": "string"}, "outlook": {"type": "string"},
-                       "outlook_days": {"type": "string"}, "points": {"type": "array", "items": {"type": "string"}}},
-        "required": ["headline", "summary", "outlook", "outlook_days", "points"], "additionalProperties": False}
+        "properties": {"headline": {"type": "string"}, "summary": {"type": "string"}, "trend": {"type": "string"},
+                       "outlook": {"type": "string"}, "outlook_days": {"type": "string"},
+                       "points": {"type": "array", "items": {"type": "string"}}},
+        "required": ["headline", "summary", "trend", "outlook", "outlook_days", "points"], "additionalProperties": False}
 MOVE = {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "invalidation": {"type": "number"}},
         "required": ["direction", "target", "invalidation"], "additionalProperties": False}
 # Esquema estricto (DigitalOcean, compatible con OpenAI, y Gemini): todos los campos obligatorios
@@ -139,9 +153,11 @@ def get(url: str):
         return json.loads(res.read())
 
 
-# Velas que se descargan por temporalidad: las que ve el modelo y, para las medias de 200, más hacia atrás
-CANDLES = {"1d": 180, "4h": 120, "1h": 72}
-CANDLES_FOR_INDICATORS = 250
+# Velas que ve el modelo por temporalidad (las semanales, para la tendencia de fondo) y las que se descargan para los
+# indicadores (medias de 200) y, en diario, para el contexto de los últimos 12 meses
+CANDLES = {"1w": 52, "1d": 180, "4h": 120, "1h": 72}
+CANDLES_FOR_INDICATORS = {"1d": 400}
+DEFAULT_FOR_INDICATORS = 250
 
 
 def klines(interval: str, limit: int) -> list[list]:
@@ -150,8 +166,183 @@ def klines(interval: str, limit: int) -> list[list]:
 
 
 def _rows(raw: list[list], interval: str) -> list[list]:
-    fmt = "%Y-%m-%d" if interval == "1d" else "%Y-%m-%d %H:%M"
+    fmt = "%Y-%m-%d" if interval in ("1d", "1w") else "%Y-%m-%d %H:%M"
     return [[datetime.fromtimestamp(r[0] / 1000, timezone.utc).strftime(fmt), *(round(float(x)) for x in r[1:6])] for r in raw]
+
+
+def trend_context(raw_1d: list[list]) -> dict:
+    """Máximo y mínimo de los últimos 12 meses, con su fecha y su distancia al precio."""
+    year = raw_1d[-365:]
+    i_hi = max(range(len(year)), key=lambda i: float(year[i][2]))
+    i_lo = min(range(len(year)), key=lambda i: float(year[i][3]))
+    hi, lo, price = float(year[i_hi][2]), float(year[i_lo][3]), float(year[-1][4])
+    return {"high_12m": {"price": round(hi), "date": _day(year[i_hi]), "pct_from_price": round((price / hi - 1) * 100, 1)},
+            "low_12m": {"price": round(lo), "date": _day(year[i_lo]), "pct_from_price": round((price / lo - 1) * 100, 1)}}
+
+
+def _day(row: list) -> str:
+    return datetime.fromtimestamp(row[0] / 1000, timezone.utc).strftime("%Y-%m-%d")
+
+
+def _hlc(raw: list[list]) -> tuple[list[float], list[float], list[float]]:
+    return [float(r[2]) for r in raw], [float(r[3]) for r in raw], [float(r[4]) for r in raw]
+
+
+def _rsi(close: list[float]) -> list[float | None]:
+    deltas = [b - a for a, b in zip(close, close[1:])]
+    gain = _rma([max(d, 0) for d in deltas], 14)
+    loss = _rma([max(-d, 0) for d in deltas], 14)
+    return [None] + [100 - 100 / (1 + g / l) if l else 100.0 for g, l in zip(gain, loss)]
+
+
+def _atr(high: list[float], low: list[float], close: list[float]) -> float:
+    tr = [high[0] - low[0]] + [max(h - l, abs(h - c), abs(l - c)) for h, l, c in zip(high[1:], low[1:], close)]
+    return _rma(tr, 14)[-1]
+
+
+def _zigzag(high: list[float], low: list[float], threshold: float) -> tuple[list[tuple[int, str, float]], tuple[int, str, float] | None]:
+    """Pivotes alternos (máximo, mínimo…) separados al menos por `threshold`: un extremo se confirma cuando el precio
+    se aleja de él esa distancia. Devuelve los confirmados y el extremo en curso (aún sin confirmar)."""
+    pivots: list[tuple[int, str, float]] = []
+    trend, ext, hi_i, lo_i = None, 0, 0, 0
+    for i in range(1, len(high)):
+        if trend is None:
+            hi_i = i if high[i] > high[hi_i] else hi_i
+            lo_i = i if low[i] < low[lo_i] else lo_i
+            if high[hi_i] - low[lo_i] >= threshold:
+                if hi_i > lo_i:
+                    pivots.append((lo_i, "low", low[lo_i]))
+                    trend, ext = "up", hi_i
+                else:
+                    pivots.append((hi_i, "high", high[hi_i]))
+                    trend, ext = "down", lo_i
+        elif trend == "up":
+            if high[i] >= high[ext]:
+                ext = i
+            elif high[ext] - low[i] >= threshold:
+                pivots.append((ext, "high", high[ext]))
+                trend, ext = "down", i
+        else:
+            if low[i] <= low[ext]:
+                ext = i
+            elif high[i] - low[ext] >= threshold:
+                pivots.append((ext, "low", low[ext]))
+                trend, ext = "up", i
+    current = None if trend is None else (ext, "high", high[ext]) if trend == "up" else (ext, "low", low[ext])
+    return pivots, current
+
+
+# Tamaño mínimo de un tramo para contar en la estructura, en ATR de la temporalidad: filtra el ruido
+STRUCTURE_ATR = {"1w": 1.5, "1d": 2.0}
+FIB_LEVELS = (0.382, 0.5, 0.618, 0.786)
+
+
+def structure(raw: list[list], tf: str) -> dict:
+    """Estructura de mercado de una temporalidad, calculada (no interpretada): los últimos pivotes con el RSI en cada uno
+    y si son máximos o mínimos más altos o más bajos que el anterior, la última ruptura de un pivote por un cierre, las
+    divergencias del RSI entre los dos últimos máximos y los dos últimos mínimos, y los niveles de Fibonacci del último
+    tramo completo. Sirve igual para tendencias alcistas y bajistas."""
+    high, low, close = _hlc(raw)
+    rsi = _rsi(close)
+    pivots, current = _zigzag(high, low, STRUCTURE_ATR[tf] * _atr(high, low, close))
+    labelled, last = [], {}
+    for i, kind, price in pivots:
+        prev = last.get(kind)
+        label = None if prev is None else ("HH" if price > prev else "LH") if kind == "high" else ("HL" if price > prev else "LL")
+        last[kind] = price
+        labelled.append({"date": _day(raw[i]), "type": kind, "price": round(price), "rsi14": None if rsi[i] is None else round(rsi[i], 1),
+                         "label": label, "_i": i})
+
+    # Última ruptura: el cierre más reciente que superó un máximo o perdió un mínimo de la estructura
+    brk = None
+    for p in labelled:
+        for j in range(p["_i"] + 1, len(close)):
+            if (close[j] > p["price"]) if p["type"] == "high" else (close[j] < p["price"]):
+                if brk is None or j > brk[0]:
+                    brk = (j, p)
+                break
+    last_break = None if brk is None else {"direction": "up" if brk[1]["type"] == "high" else "down", "broken_pivot_date": brk[1]["date"],
+                                           "level": brk[1]["price"], "close_date": _day(raw[brk[0]]), "close": round(close[brk[0]])}
+
+    # Divergencias entre los dos últimos pivotes del mismo tipo, y entre el último y el extremo en curso
+    def divergence(a: dict, b: dict, forming: bool) -> dict | None:
+        if a["rsi14"] is None or b["rsi14"] is None:
+            return None
+        hi = a["type"] == "high"
+        price_up, rsi_up = b["price"] > a["price"], b["rsi14"] > a["rsi14"]
+        if price_up == rsi_up:
+            return None
+        regular = price_up if hi else not price_up  # máximo más alto con RSI más bajo, o mínimo más bajo con RSI más alto
+        return {"type": ("regular" if regular else "hidden") + ("_bearish" if hi == regular else "_bullish"), "forming": forming,
+                "from": {"date": a["date"], "price": a["price"], "rsi14": a["rsi14"]},
+                "to": {"date": b["date"], "price": b["price"], "rsi14": b["rsi14"]}}
+
+    divergences = []
+    cur = None if current is None else {"date": _day(raw[current[0]]), "type": current[1], "price": round(current[2]),
+                                         "rsi14": None if rsi[current[0]] is None else round(rsi[current[0]], 1)}
+    for kind in ("high", "low"):
+        same = [p for p in labelled if p["type"] == kind]
+        if len(same) >= 2 and (d := divergence(same[-2], same[-1], False)):
+            divergences.append(d)
+        if cur and cur["type"] == kind and same and (d := divergence(same[-1], cur, True)):
+            divergences.append(d)
+
+    # Fibonacci del tramo más reciente entre dos pivotes que aún contiene el precio (si ya lo ha devuelto entero, sus
+    # niveles no sirven) y qué parte ha devuelto
+    fib = None
+    for a, b in reversed(list(zip(labelled, labelled[1:]))):
+        if min(a["price"], b["price"]) <= close[-1] <= max(a["price"], b["price"]):
+            move = b["price"] - a["price"]
+            fib = {"from": {"date": a["date"], "price": a["price"]}, "to": {"date": b["date"], "price": b["price"]},
+                   "retraced_pct": round((b["price"] - close[-1]) / move * 100, 1),
+                   "levels": {str(f): round(b["price"] - move * f) for f in FIB_LEVELS}}
+            break
+    for p in labelled:
+        del p["_i"]
+    return {"pivots": labelled[-8:], "current_extreme": cur, "last_break": last_break, "rsi_divergences": divergences,
+            "fibonacci_leg_containing_price": fib}
+
+
+# Imbalances: tamaño mínimo (en ATR), distancia máxima al precio y cuántos de cada lado
+IMBALANCE_ATR = 0.5
+IMBALANCE_RANGE = {"1w": 0.30, "1d": 0.15, "4h": 0.06}
+IMBALANCE_MAX = 3
+
+
+def imbalances(raw: list[list], tf: str) -> list[dict]:
+    """Imbalances (fair value gaps) sin rellenar: huecos entre el máximo de una vela y el mínimo de la que va dos después
+    (o al revés) que el precio no ha vuelto a cubrir. Si se ha cubierto en parte, queda solo lo que falta. Los más
+    cercanos al precio, por encima y por debajo."""
+    high, low, close = _hlc(raw)
+    price, min_size = close[-1], IMBALANCE_ATR * _atr(high, low, close)
+    gaps: list[dict] = []
+    for i in range(1, len(raw) - 1):
+        later = range(i + 2, len(raw))
+        if high[i - 1] < low[i + 1]:  # alcista: el precio subió dejando un hueco por debajo
+            bottom, top = high[i - 1], low[i + 1]
+            top = min([top, *(low[j] for j in later)])
+            kind = "bullish"
+        elif low[i - 1] > high[i + 1]:  # bajista: hueco por encima
+            bottom, top = high[i + 1], low[i - 1]
+            bottom = max([bottom, *(high[j] for j in later)])
+            kind = "bearish"
+        else:
+            continue
+        if top <= bottom:
+            continue  # ya rellenado
+        # Huecos en velas seguidas del mismo impulso: uno solo
+        prev = gaps[-1] if gaps else None
+        if prev and prev["type"] == kind and prev["_i"] == i - 1:
+            prev.update(low=min(prev["low"], bottom), high=max(prev["high"], top), _i=i)
+        else:
+            gaps.append({"type": kind, "date": _day(raw[i]), "low": bottom, "high": top, "_i": i})
+    for g in gaps:
+        g.update(low=round(g["low"]), high=round(g["high"]), side="above" if g["low"] > price else "below" if g["high"] < price else "at_price")
+    gaps = [g for g in gaps if g["high"] - g["low"] >= min_size and abs((g["low"] + g["high"]) / 2 / price - 1) <= IMBALANCE_RANGE[tf]]
+    for g in gaps:
+        del g["_i"]
+    near = lambda side: sorted((g for g in gaps if g["side"] == side), key=lambda g: abs((g["low"] + g["high"]) / 2 - price))[:IMBALANCE_MAX]
+    return near("above") + near("at_price") + near("below")
 
 
 def _rma(values: list[float], period: int) -> list[float]:
@@ -243,9 +434,15 @@ def market() -> dict:
     """Datos en bruto e indicadores calculados con ellos, sin niveles ni conclusiones: el análisis lo hace el modelo."""
     data: dict = {"context": now_context()}
     for tf, n in CANDLES.items():
-        raw = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={tf}&limit={CANDLES_FOR_INDICATORS}")
+        raw = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={tf}&limit={CANDLES_FOR_INDICATORS.get(tf, DEFAULT_FOR_INDICATORS)}")
         data[f"candles_{tf}"] = _rows(raw[-n:], tf)
         data[f"indicators_{tf}"] = indicators(raw)
+        if tf == "1d":
+            data["trend_context"] = trend_context(raw)
+        if tf in STRUCTURE_ATR:
+            data.setdefault("market_structure", {})[tf] = structure(raw, tf)
+        if tf in IMBALANCE_RANGE:
+            data.setdefault("imbalances", {})[tf] = imbalances(raw, tf)
     try:
         fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
         data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
@@ -336,9 +533,9 @@ def validate(a: dict, price: float) -> dict:
     }
     for lang in ("es", "en"):
         t = a[lang]
-        if not all(str(t.get(k, "")).strip() for k in ("headline", "summary", "outlook", "outlook_days")):
+        if not all(str(t.get(k, "")).strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")):
             raise ValueError(f"texto vacío ({lang})")
-        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "outlook", "outlook_days")}
+        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")}
         result[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
     return result
 
@@ -346,7 +543,7 @@ def validate(a: dict, price: float) -> dict:
 def dry_run(price: float) -> dict:
     """Sin modelo: zonas a distancias fijas del precio, para probar la salida y la web."""
     z = lambda f, s: {"low": price * f - 300, "high": price * f + 300, "strength": s}
-    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "outlook": "Sin modelo.",
+    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "trend": "Sin modelo.", "outlook": "Sin modelo.",
             "outlook_days": "Sin modelo.", "points": ["Sin modelo"]}
     return {"price": price, "supports": [z(0.985, 3), z(0.96, 2)], "resistances": [z(1.015, 2), z(1.04, 3)],
             "bias": "neutral", "confidence": 1,

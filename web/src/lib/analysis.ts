@@ -14,6 +14,8 @@ export type Direction = "alcista" | "bajista" | "lateral";
 export interface AnalysisText {
   headline: string;
   summary: string;
+  /** Tendencia de fondo (semanas y meses) y en qué punto está el precio (ausente en análisis anteriores) */
+  trend?: string;
   /** Lo más probable en las próximas horas y qué lo invalidaría */
   outlook: string;
   /** Lo mismo a 1-2 días (ausente en análisis anteriores) */

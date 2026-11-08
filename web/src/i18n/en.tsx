@@ -185,7 +185,7 @@ export const en: Messages = {
     rest: "BTC's situation today according to an AI analysis: support and resistance, market bias and what is most likely over the next hours and 1-2 days.",
     card: "Zones and outlook",
     info: [
-      "An AI model receives raw market data (daily, 4h and 1h candles with indicators computed from them —RSI, Bollinger, distance to moving averages and volatility—, funding, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
+      "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, funding, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
       "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. Candles are 4h and run up to the time of the analysis, as the model saw them: they do not change until the next one, which runs Monday to Friday at 10:00 and 17:00, on Saturdays at 12:00 and on Sundays at 18:00 (Madrid time).",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
@@ -205,6 +205,7 @@ export const en: Messages = {
     move: (d: "alcista" | "bajista" | "lateral", target: string) =>
       d === "alcista" ? `A rise toward ${target}.` : d === "bajista" ? `A drop toward ${target}.` : `Sideways around ${target}.`,
     invalidatedAt: (price: string) => `Invalidated if it reaches ${price}.`,
+    trend: "Underlying trend:",
     nextHours: "Next hours:",
     nextDays: "1-2 days:",
     points: "Key points",

@@ -122,6 +122,11 @@ export function AnalysisApp() {
         <section className="card an-text">
           <h2>{text.headline}</h2>
           <p>{text.summary}</p>
+          {text.trend && (
+            <p className="an-outlook">
+              <strong>{tx.trend}</strong> {text.trend}
+            </p>
+          )}
           <p className="an-outlook">
             <strong>{tx.nextHours}</strong> {text.outlook}
           </p>
