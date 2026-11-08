@@ -40,6 +40,10 @@ FEEDS = [
     ("Decrypt", "https://decrypt.co/feed", "cripto"),
     ("Investing.com", "https://www.investing.com/rss/news_14.rss", "macro"),
     ("CNBC", "https://www.cnbc.com/id/100003114/device/rss/rss.html", "mercados"),
+    # Bolsa: cómo cierran el S&P 500, el Nasdaq y el Dow y por qué (BTC se mueve a menudo con la tecnológica). La IA
+    # puntúa su impacto en BTC como el resto: lo de "¿compro esta acción?" queda fuera
+    ("CNBC", "https://www.cnbc.com/id/15839135/device/rss/rss.html", "bolsa"),
+    ("Investing.com", "https://www.investing.com/rss/news_285.rss", "bolsa"),
     ("BBC", "https://feeds.bbci.co.uk/news/world/rss.xml", "geopolítica"),
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "banco central"),
 ]

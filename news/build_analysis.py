@@ -20,6 +20,7 @@ Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: zonas
 import argparse
 import json
 import logging
+import math
 import os
 import sys
 import urllib.request
@@ -66,8 +67,8 @@ mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y 
 máximo y el mínimo de los últimos 12 meses. En market_structure, para semanal y diario y calculado con sus velas: los \
 últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
 el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
-ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci del tramo más reciente que contiene el \
-precio. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
+ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) del tramo más \
+reciente que contiene el precio: retrocesos dentro del tramo y extensiones 1,272 y 1,618 más allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
 no ha rellenado. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
@@ -234,7 +235,10 @@ def _zigzag(high: list[float], low: list[float], threshold: float) -> tuple[list
 
 # Tamaño mínimo de un tramo para contar en la estructura, en ATR de la temporalidad: filtra el ruido
 STRUCTURE_ATR = {"1w": 1.5, "1d": 2.0}
-FIB_LEVELS = (0.382, 0.5, 0.618, 0.786)
+# Fibonacci en escala logarítmica (BTC se mueve en porcentajes: en tramos grandes la lineal reparte mal los niveles):
+# retrocesos dentro del tramo y extensiones más allá de su final, en el mismo sentido
+FIB_RETRACEMENTS = (0.382, 0.5, 0.618, 0.786)
+FIB_EXTENSIONS = (1.272, 1.618)
 
 
 def structure(raw: list[list], tf: str) -> dict:
@@ -288,14 +292,15 @@ def structure(raw: list[list], tf: str) -> dict:
             divergences.append(d)
 
     # Fibonacci del tramo más reciente entre dos pivotes que aún contiene el precio (si ya lo ha devuelto entero, sus
-    # niveles no sirven) y qué parte ha devuelto
+    # niveles no sirven) y qué parte ha devuelto, todo en escala logarítmica
     fib = None
     for a, b in reversed(list(zip(labelled, labelled[1:]))):
-        if min(a["price"], b["price"]) <= close[-1] <= max(a["price"], b["price"]):
-            move = b["price"] - a["price"]
-            fib = {"from": {"date": a["date"], "price": a["price"]}, "to": {"date": b["date"], "price": b["price"]},
-                   "retraced_pct": round((b["price"] - close[-1]) / move * 100, 1),
-                   "levels": {str(f): round(b["price"] - move * f) for f in FIB_LEVELS}}
+        p0, p1 = a["price"], b["price"]
+        if min(p0, p1) <= close[-1] <= max(p0, p1) and p0 != p1:
+            fib = {"scale": "log", "from": {"date": a["date"], "price": p0}, "to": {"date": b["date"], "price": p1},
+                   "retraced_pct": round(math.log(p1 / close[-1]) / math.log(p1 / p0) * 100, 1),
+                   "retracements": {str(f): round(p1 * (p0 / p1) ** f) for f in FIB_RETRACEMENTS},
+                   "extensions": {str(f): round(p0 * (p1 / p0) ** f) for f in FIB_EXTENSIONS}}
             break
     for p in labelled:
         del p["_i"]

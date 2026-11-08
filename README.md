@@ -111,7 +111,7 @@ nivel 3):
 
 Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito.
 
-- `build_news.py`: titulares de 7 feeds RSS → clasificación e impacto, duplicados y traducción de los 10 publicados.
+- `build_news.py`: titulares de 9 feeds RSS (cripto, macro, bolsa, geopolítica y la Fed) → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC
   preliminar de la zona euro y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
@@ -120,7 +120,8 @@ Los modelos de Groq no están en el análisis: sus datos superan los 8.000 token
   indicadores calculados con las velas de cada temporalidad (RSI, Bollinger, distancia a las medias de 50 y 200, máximos
   y mínimos y ATR: le cuesta hacer esa aritmética de cabeza y ajusta los objetivos a la volatilidad), el máximo y el
   mínimo de los últimos 12 meses, la estructura de mercado en semanal y diario (pivotes con su RSI, máximos y mínimos
-  crecientes o decrecientes, última ruptura, divergencias del RSI y Fibonacci del tramo que contiene el precio) y los
+  crecientes o decrecientes, última ruptura, divergencias del RSI y Fibonacci en escala logarítmica, retrocesos y
+  extensiones, del tramo que contiene el precio) y los
   imbalances (fair value gaps) sin rellenar en semanal, diario y 4 h. Todo calculado, como referencias, no como
   conclusiones; el modelo resume la tendencia de fondo en el campo `trend`. Además, la hora y si la bolsa de EE. UU. está
   abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
