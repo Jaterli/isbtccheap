@@ -1,6 +1,6 @@
 import { locale, t } from "../i18n";
 import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
-import type { Category, CategoryId } from "../types";
+import type { Category, CategoryId, Timeframe } from "../types";
 import { InfoTip } from "./InfoTip";
 
 interface Props {
@@ -8,6 +8,10 @@ interface Props {
   weights: Record<CategoryId, number>;
   /** false mientras llegan los datos en vivo de Binance: técnico y sentimiento aún son los diarios del pipeline */
   live: boolean;
+  /** Temporalidad del score: se muestra junto al peso, que depende de ella */
+  tf: Timeframe;
+  /** Destello al cambiar la temporalidad (ver App.tsx) */
+  flash: boolean;
 }
 
 // Se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
@@ -84,7 +88,7 @@ export function colorFor(score: number) {
   return `var(--band-${Math.min(5, Math.floor(score / 20) + 1)})`;
 }
 
-export function Breakdown({ categories, weights, live }: Props) {
+export function Breakdown({ categories, weights, live, tf, flash }: Props) {
   const totalW = ORDER.reduce((a, id) => a + (categories[id]?.score !== null ? weights[id] : 0), 0);
   return (
     <>
@@ -94,7 +98,7 @@ export function Breakdown({ categories, weights, live }: Props) {
         const w = c.score === null ? 0 : (weights[id] / totalW) * 100;
         const info = t.categories[id];
         return (
-          <article key={id} className="card category">
+          <article key={id} className={flash ? "card category score-linked flash" : "card category score-linked"}>
             <header>
               <h3>
                 {info.name}
@@ -104,7 +108,9 @@ export function Breakdown({ categories, weights, live }: Props) {
                   <p className="muted">{t.scoreColumns}</p>
                 </InfoTip>
               </h3>
-              <span className="muted">{t.weight(w.toFixed(0))}</span>
+              <span className="muted">
+                <span className="tf-tag" title={t.timeframes[tf].label}>{t.timeframes[tf].short}</span> {t.weight(w.toFixed(0))}
+              </span>
               <strong className="num">{c.score === null ? "—" : Math.round(c.score)}</strong>
             </header>
             <Bar score={c.score} />

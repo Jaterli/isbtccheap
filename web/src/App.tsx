@@ -77,6 +77,18 @@ function loadTf(): Timeframe {
 
 export function App() {
   const [tf, setTf] = useState<Timeframe>(loadTf);
+  // Al cambiar la temporalidad, la tarjeta del score y las de las categorías destellan a la vez: cambian todas
+  const [flash, setFlash] = useState(false);
+  const firstTf = useRef(true);
+  useEffect(() => {
+    if (firstTf.current) {
+      firstTf.current = false;
+      return;
+    }
+    setFlash(true);
+    const id = setTimeout(() => setFlash(false), 900);
+    return () => clearTimeout(id);
+  }, [tf]);
   const wide = useMedia(WIDE);
   const [priceOpen, setPriceOpen] = useState(loadPriceOpen);
   const togglePrice = () => {
@@ -214,7 +226,7 @@ export function App() {
       <section className={priceOpen ? "dashboard price-open" : "dashboard"}>
         <PriceCard active={!wide || priceOpen} />
 
-        <article className="card status">
+        <article className={flash ? "card status score-linked flash" : "card status score-linked"}>
           <div className="hero-top">
             <TimeframeSelector value={tf} onChange={setTf} />
             <InfoTip label={t.timeframeInfo.label} title={t.timeframeInfo.title}>
@@ -264,7 +276,7 @@ export function App() {
           {liveError && <p className="notice">{t.liveError}</p>}
         </article>
 
-        <Breakdown categories={result.categories} weights={result.weights} live={!!shown} />
+        <Breakdown categories={result.categories} weights={result.weights} live={!!shown} tf={tf} flash={flash} />
 
         {/* Sin noticias ni agenda queda vacía y no ocupa sitio (:empty) */}
         <div className="side">
