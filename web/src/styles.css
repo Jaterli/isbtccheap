@@ -676,6 +676,11 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-zone.support text { fill: var(--band-1); }
 .an-zone.resistance text { fill: var(--band-5); }
 .an-ahead { fill: var(--fg); opacity: 0.03; }
+/* Liquidez pendiente (líneas discontinuas) e imbalances (bandas grises): discretos, por debajo de las zonas del modelo */
+.an-gap { fill: var(--fg); opacity: 0.06; }
+.an-liq line { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.45; }
+.an-liq text { fill: var(--muted); font-size: 10px; }
+.an-tf { margin-top: 10px; }
 .an-candle line { stroke-width: 1; }
 .an-candle.up line { stroke: var(--band-1); }
 .an-candle.up rect { fill: var(--band-1); }

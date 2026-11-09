@@ -5,13 +5,14 @@ import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
-import { ANALYSIS_URL, type Analysis } from "./lib/analysis";
+import { ANALYSIS_URL, type Analysis, type ChartTf } from "./lib/analysis";
 import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
 import { modelName } from "./lib/models";
 
 const H4 = 4 * 3_600_000;
+const DAY = 86_400_000;
 
 /**
  * Velas de 4 h tal como estaban al hacerse el análisis: hasta esa hora, y la última (a medias entonces) rehecha con las
@@ -34,13 +35,32 @@ async function candlesAt(at: number): Promise<Candle[]> {
   return [...candles.slice(0, -1), partial];
 }
 
+/** Velas diarias hasta el análisis (unos 6 meses): la del día, a medias entonces, rehecha con las de 4 h ya congeladas */
+async function dailyAt(at: number, h4: Candle[]): Promise<Candle[]> {
+  const candles = await fetchCandles("1d", 180, at);
+  const last = candles.at(-1);
+  const day = Math.floor(at / DAY) * DAY;
+  const inside = h4.filter((c) => c.time >= day);
+  if (!last || last.time !== day || !inside.length) return candles;
+  const partial = {
+    time: day,
+    open: last.open,
+    high: Math.max(...inside.map((c) => c.high)),
+    low: Math.min(...inside.map((c) => c.low)),
+    close: inside.at(-1)!.close,
+  };
+  return [...candles.slice(0, -1), partial];
+}
+
 const signedPct = (v: number) =>
   `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(Math.abs(v).toLocaleString(locale, { maximumFractionDigits: 1 }))}`;
 
 export function AnalysisApp() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [missing, setMissing] = useState(false);
-  const [candles, setCandles] = useState<Candle[] | null>(null);
+  const [candles, setCandles] = useState<Record<ChartTf, Candle[]> | null>(null);
+  // 4 h: las próximas horas y días, con los escenarios · 1D: unos 6 meses, para ver qué niveles se han superado o perdido
+  const [chartTf, setChartTf] = useState<ChartTf>("4h");
   const [candleError, setCandleError] = useState(false);
 
   // El análisis se lee al cargar (cambia dos veces al día) y las velas, las de su momento: no se refrescan
@@ -49,7 +69,10 @@ export function AnalysisApp() {
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((a: Analysis) => {
         setAnalysis(a);
-        candlesAt(Date.parse(a.generated_at)).then(setCandles, () => setCandleError(true));
+        const at = Date.parse(a.generated_at);
+        candlesAt(at)
+          .then(async (h4) => ({ "4h": h4, "1d": await dailyAt(at, h4) }))
+          .then(setCandles, () => setCandleError(true));
       }, () => setMissing(true));
   }, []);
 
@@ -87,7 +110,16 @@ export function AnalysisApp() {
         )}
 
         {analysis && candles ? (
-          <AnalysisChart analysis={analysis} candles={candles} />
+          <>
+            <div className="segmented small an-tf" role="radiogroup" aria-label={t.timeframeAria}>
+              {(["4h", "1d"] as const).map((v) => (
+                <button key={v} role="radio" aria-checked={chartTf === v} className={chartTf === v ? "active" : ""} onClick={() => setChartTf(v)}>
+                  {t.timeframes[v].short}
+                </button>
+              ))}
+            </div>
+            <AnalysisChart analysis={analysis} candles={candles[chartTf]} tf={chartTf} />
+          </>
         ) : (
           <p className="muted">{missing ? tx.unavailable : candleError ? t.charts.error : t.loading}</p>
         )}

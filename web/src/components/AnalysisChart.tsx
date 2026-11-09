@@ -1,6 +1,6 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
-import type { Analysis, Direction } from "../lib/analysis";
+import type { Analysis, ChartTf, Direction } from "../lib/analysis";
 import { axisPad, fmtTime, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { Candle } from "../types";
 
@@ -17,12 +17,14 @@ const HOURS_PART = 0.45;
  * días, y otra discontinua hacia el alternativo. La línea corta discontinua marca el precio que invalidaría el escenario
  * de las próximas horas.
  */
-export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; candles: Candle[] }) {
+export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis; candles: Candle[]; tf: ChartTf }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
   const tx = t.analysis;
 
-  const n = Math.min(candles.length, width < 520 ? 54 : 96);
+  // En diario, unos 6 meses (3 en móvil) y sin flechas: es para ver qué niveles se han superado o perdido
+  const daily = tf === "1d";
+  const n = Math.min(candles.length, daily ? (width < 520 ? 90 : 180) : width < 520 ? 54 : 96);
   const shown = candles.slice(-n);
   const H = width < 520 ? 300 : 400;
   const plotH = H - PAD_T - AXIS_H;
@@ -35,10 +37,9 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
     const vals = [
       ...shown.flatMap((c) => [c.high, c.low]),
       ...near.flatMap((l) => [l.low, l.high]),
-      a.outlook.target,
-      a.alternative.target,
-      ...(days ? [days.target] : []),
-      ...(a.outlook.invalidation ? [a.outlook.invalidation] : []),
+      ...(daily
+        ? []
+        : [a.outlook.target, a.alternative.target, ...(days ? [days.target] : []), ...(a.outlook.invalidation ? [a.outlook.invalidation] : [])]),
     ];
     const pad = (Math.max(...vals) - Math.min(...vals)) * 0.06;
     const lo = Math.min(...vals) - pad;
@@ -46,11 +47,11 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
     const y = (v: number) => PAD_T + plotH - ((v - lo) / (hi - lo)) * plotH;
     return { y, lo, hi, ticks: niceTicks(lo, hi, 5) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [a, shown[0]?.time, last.close, plotH]);
+  }, [a, shown[0]?.time, last.close, plotH, daily]);
 
   const { y } = chart;
   const plotW = width - PAD_L - axisPad(chart.ticks.map(shortUsd));
-  const candlesW = plotW * (1 - AHEAD);
+  const candlesW = plotW * (daily ? 1 : 1 - AHEAD);
   const step = candlesW / n;
   const x = (i: number) => PAD_L + (i + 0.5) * step;
   const xNow = x(n - 1);
@@ -58,6 +59,14 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
   // Sin valoración a 1-2 días (análisis anteriores), las flechas de las próximas horas llegan al final
   const xMid = days ? xNow + (xEnd - xNow) * HOURS_PART : xEnd;
   const bodyW = Math.max(1, step * 0.62);
+  // Liquidez pendiente e imbalances de la temporalidad del gráfico, solo los que caen dentro de la escala
+  const pools = (a.liquidity?.pools[tf] ?? []).filter((p) => p.price >= chart.lo && p.price <= chart.hi);
+  const gaps = (a.liquidity?.imbalances[tf] ?? []).filter((g) => g.high >= chart.lo && g.low <= chart.hi);
+  // x de la vela de un día (AAAA-MM-DD); si es anterior a las mostradas, el borde izquierdo
+  const xAt = (d: string) => {
+    const k = shown.findIndex((c) => c.time >= Date.parse(`${d}T00:00:00Z`));
+    return k <= 0 ? PAD_L : x(k);
+  };
   const h = hover ?? n - 1;
   const cls = (d: Direction) => (d === "alcista" ? "up" : d === "bajista" ? "down" : "flat");
 
@@ -78,11 +87,12 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
   return (
     <div className="an-chart" ref={ref}>
       <p className="chart-readout">
-        <span className="muted num">{fmtTime(shown[h].time, "4h", true)}</span>
+        <span className="muted num">{fmtTime(shown[h].time, tf, true)}</span>
         <span className="legend legend-price num">
           {tx.close} <strong>{usd(shown[h].close)}</strong>
         </span>
-        <span className="muted small">{tx.legendStyle}</span>
+        {!daily && <span className="muted small">{tx.legendStyle}</span>}
+        {(pools.length > 0 || gaps.length > 0) && <span className="muted small">{tx.legendLiquidity}</span>}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         <defs>
@@ -113,17 +123,40 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
             );
           })}
 
-        <rect x={PAD_L + candlesW} width={plotW - candlesW} y={PAD_T} height={plotH} className="an-ahead" />
-        {/* En pantallas estrechas los tramos no dan para la etiqueta larga */}
-        <text x={(xNow + xMid) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
-          {xMid - xNow < 90 ? tx.aheadShort(a.outlook.horizon_hours) : tx.ahead(a.outlook.horizon_hours)}
-        </text>
-        {days && (
+        {/* Imbalances sin rellenar (bandas) y liquidez pendiente (líneas discontinuas) de esta temporalidad, desde su vela */}
+        {gaps.map((g) => {
+          const top = y(Math.min(g.high, chart.hi));
+          const x0 = xAt(g.date);
+          return <rect key={`${g.date}-${g.low}`} x={x0} width={PAD_L + candlesW - x0} y={top} height={Math.max(2, y(Math.max(g.low, chart.lo)) - top)} className="an-gap" />;
+        })}
+        {pools.map((p) => {
+          const x0 = xAt(p.dates[0]);
+          const right = PAD_L + candlesW - 4;
+          return (
+            <g key={`${p.side}-${p.price}`} className="an-liq">
+              <line x1={x0} x2={right} y1={y(p.price)} y2={y(p.price)} />
+              <text x={right} y={y(p.price) + (p.side === "above" ? -4 : 11)} textAnchor="end">
+                {p.equal_levels ? (p.side === "above" ? tx.equalHighs : tx.equalLows) : tx.liquidityLabel}
+              </text>
+            </g>
+          );
+        })}
+
+        {!daily && (
           <>
-            <line x1={xMid} x2={xMid} y1={PAD_T} y2={PAD_T + plotH} className="grid grid-ref" />
-            <text x={(xMid + xEnd) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
-              {xEnd - xMid < 70 ? tx.daysShort : tx.days}
+            <rect x={PAD_L + candlesW} width={plotW - candlesW} y={PAD_T} height={plotH} className="an-ahead" />
+            {/* En pantallas estrechas los tramos no dan para la etiqueta larga */}
+            <text x={(xNow + xMid) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
+              {xMid - xNow < 90 ? tx.aheadShort(a.outlook.horizon_hours) : tx.ahead(a.outlook.horizon_hours)}
             </text>
+            {days && (
+              <>
+                <line x1={xMid} x2={xMid} y1={PAD_T} y2={PAD_T + plotH} className="grid grid-ref" />
+                <text x={(xMid + xEnd) / 2} y={PAD_T + 14} className="axis" textAnchor="middle">
+                  {xEnd - xMid < 70 ? tx.daysShort : tx.days}
+                </text>
+              </>
+            )}
           </>
         )}
 
@@ -137,7 +170,7 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
           );
         })}
 
-        {a.outlook.invalidation !== null && (
+        {!daily && a.outlook.invalidation !== null && (
           <g className="an-invalid">
             <line x1={xNow + 6} x2={xMid} y1={y(a.outlook.invalidation)} y2={y(a.outlook.invalidation)} />
             <text x={xMid} y={y(a.outlook.invalidation) + (a.outlook.invalidation > last.close ? -5 : 13)} textAnchor="end">
@@ -145,15 +178,19 @@ export function AnalysisChart({ analysis: a, candles }: { analysis: Analysis; ca
             </text>
           </g>
         )}
-        {arrow(xNow, last.close, xMid, a.alternative.target, a.alternative.direction, false)}
-        {days && arrow(xMid, a.outlook.target, xEnd, days.target, days.direction, true)}
-        {arrow(xNow, last.close, xMid, a.outlook.target, a.outlook.direction, true)}
-        {days && <circle cx={xMid} cy={y(a.outlook.target)} r="3" className={`an-node ${cls(a.outlook.direction)}`} />}
+        {!daily && (
+          <>
+            {arrow(xNow, last.close, xMid, a.alternative.target, a.alternative.direction, false)}
+            {days && arrow(xMid, a.outlook.target, xEnd, days.target, days.direction, true)}
+            {arrow(xNow, last.close, xMid, a.outlook.target, a.outlook.direction, true)}
+            {days && <circle cx={xMid} cy={y(a.outlook.target)} r="3" className={`an-node ${cls(a.outlook.direction)}`} />}
+          </>
+        )}
         <circle cx={xNow} cy={y(last.close)} r="4" className="dot-price" />
 
         {[0, Math.floor(n / 2), n - 1].map((i, k) => (
           <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : k === 2 ? "end" : "middle"}>
-            {fmtTime(shown[i].time, "4h", false)}
+            {fmtTime(shown[i].time, tf, false)}
           </text>
         ))}
 

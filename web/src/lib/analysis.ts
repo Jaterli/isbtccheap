@@ -24,6 +24,25 @@ export interface AnalysisText {
   points: string[];
 }
 
+/** Máximo o mínimo de la estructura que el precio no ha vuelto a superar (liquidez pendiente) */
+export interface LiquidityPool {
+  side: "above" | "below";
+  price: number;
+  dates: string[];
+  /** Varios máximos o mínimos casi al mismo precio: concentran más órdenes */
+  equal_levels: boolean;
+}
+
+/** Hueco sin rellenar (fair value gap) */
+export interface Imbalance {
+  type: "bullish" | "bearish";
+  date: string;
+  low: number;
+  high: number;
+}
+
+export type ChartTf = "4h" | "1d";
+
 export interface Analysis {
   generated_at: string;
   model: string;
@@ -38,6 +57,8 @@ export interface Analysis {
   alternative: { direction: Direction; target: number };
   es: AnalysisText;
   en: AnalysisText;
+  /** Calculado por el script (no por el modelo) en el momento del análisis; ausente en análisis anteriores */
+  liquidity?: { pools: Partial<Record<ChartTf, LiquidityPool[]>>; imbalances: Partial<Record<ChartTf, Imbalance[]>> };
 }
 
 export const ANALYSIS_URL = `${import.meta.env.BASE_URL}news/analysis.json`;

@@ -73,7 +73,9 @@ suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para s
 el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
 ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) del tramo más \
 reciente que contiene el precio: retrocesos dentro del tramo y extensiones 1,272 y 1,618 más allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
-no ha rellenado. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: máximos y mínimos de la estructura que \
+el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
+máximos o mínimos iguales, que concentran más órdenes. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -107,7 +109,9 @@ pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo much
 - Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
 trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
 estructura, las divergencias, los niveles de Fibonacci y los imbalances sin rellenar son referencias posibles para el \
-sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos. cycle_context \
+sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos. La liquidez \
+pendiente y los imbalances cercanos son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de \
+girar). cycle_context \
 sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
 predecir las próximas horas o días por analogía con otros ciclos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
@@ -352,6 +356,43 @@ def structure(raw: list[list], tf: str) -> dict:
             "fibonacci_leg_containing_price": fib}
 
 
+# Liquidez pendiente: tamaño mínimo de un tramo para que su extremo cuente (en ATR), tolerancia para dar por iguales dos
+# máximos o dos mínimos (en ATR), distancia máxima al precio y cuántos niveles de cada lado
+LIQUIDITY_ATR = {"1d": 2.0, "4h": 2.0}
+EQUAL_ATR = 0.3
+LIQUIDITY_RANGE = {"1d": 0.20, "4h": 0.08}
+LIQUIDITY_MAX = 3
+
+
+def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
+    """Liquidez pendiente: máximos y mínimos de la estructura que el precio no ha vuelto a superar. Por encima de un
+    máximo quedan los stops de los cortos y las compras por ruptura; por debajo de un mínimo, los stops de los largos.
+    Los que están casi al mismo precio (máximos o mínimos iguales) se agrupan: concentran más órdenes. Los más cercanos
+    al precio, por encima y por debajo. Se calcula con las velas, sin suponer nada del apalancamiento."""
+    high, low, close = _hlc(raw)
+    atr, price = _atr(high, low, close), close[-1]
+    pivots, _ = _zigzag(high, low, LIQUIDITY_ATR[tf] * atr)
+    pools: list[dict] = []
+    for i, kind, level in pivots:
+        later = range(i + 1, len(raw))
+        if any(high[j] > level for j in later) if kind == "high" else any(low[j] < level for j in later):
+            continue  # ya barrido
+        same = next((p for p in pools if p["kind"] == kind and abs(p["price"] - level) <= EQUAL_ATR * atr), None)
+        if same:
+            same["price"] = max(same["price"], level) if kind == "high" else min(same["price"], level)
+            same["dates"].append(_day(raw[i]))
+        else:
+            pools.append({"kind": kind, "price": level, "dates": [_day(raw[i])]})
+    out = []
+    for p in pools:
+        if abs(p["price"] / price - 1) > LIQUIDITY_RANGE[tf]:
+            continue
+        out.append({"side": "above" if p["kind"] == "high" else "below", "price": round(p["price"]), "dates": p["dates"],
+                    "equal_levels": len(p["dates"]) > 1, "pct_from_price": round((p["price"] / price - 1) * 100, 2)})
+    near = lambda side: sorted((p for p in out if p["side"] == side), key=lambda p: abs(p["pct_from_price"]))[:LIQUIDITY_MAX]
+    return near("above") + near("below")
+
+
 # Imbalances: tamaño mínimo (en ATR), distancia máxima al precio y cuántos de cada lado
 IMBALANCE_ATR = 0.5
 IMBALANCE_RANGE = {"1w": 0.30, "1d": 0.15, "4h": 0.06}
@@ -492,6 +533,8 @@ def market() -> dict:
             data.setdefault("market_structure", {})[tf] = structure(raw, tf)
         if tf in IMBALANCE_RANGE:
             data.setdefault("imbalances", {})[tf] = imbalances(raw, tf)
+        if tf in LIQUIDITY_RANGE:
+            data.setdefault("liquidity_pools", {})[tf] = liquidity_pools(raw, tf)
     try:
         fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
         data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
@@ -615,7 +658,8 @@ def main() -> None:
         price = float(get(PRICE_URL)["price"])
         result, model = validate(dry_run(price), price), "dry-run"
     else:
-        user = json.dumps(market(), separators=(",", ":"))
+        data = market()
+        user = json.dumps(data, separators=(",", ":"))
         prices: list[float] = []
 
         def check(raw: dict) -> dict:
@@ -630,6 +674,10 @@ def main() -> None:
         price, model = prices[-1], llm.label(spec)
 
     out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price), **result}
+    # Liquidez pendiente e imbalances del momento del análisis, para dibujarlos en su gráfico (calculados, no del modelo)
+    if not args.dry_run:
+        out["liquidity"] = {"pools": data.get("liquidity_pools", {}),
+                            "imbalances": {tf: v for tf, v in data.get("imbalances", {}).items() if tf in ("1d", "4h")}}
     write_json(OUT_DIR / "analysis.json", out)
     if not args.dry_run:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
