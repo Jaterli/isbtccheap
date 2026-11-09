@@ -124,7 +124,9 @@ Los modelos de Groq no están en el análisis: sus datos superan los 8.000 token
   extensiones, del tramo que contiene el precio) y los
   imbalances (fair value gaps) sin rellenar en semanal, diario y 4 h, la liquidez pendiente en diario y 4 h (máximos y
   mínimos que el precio no ha vuelto a superar, agrupando los iguales; se guarda también en `analysis.json` para dibujarla
-  en su gráfico, con un selector 4h / 1D), y el contexto de ciclo (máximo histórico, techos y
+  en su gráfico, con un selector 4h / 1D), las zonas de reacción en diario y 4 h (todos los pivotes cercanos agrupados,
+  con cuántas veces ha girado ahí el precio: los soportes y resistencias del modelo tienen que apoyarse en ellas, no en
+  Fibonacci, que queda para estimar hasta dónde llega el precio al cruzar un hueco), y el contexto de ciclo (máximo histórico, techos y
   suelos de los ciclos anteriores con el mismo criterio que la web, y el mínimo del ciclo actual). Todo calculado, como
   referencias, no como conclusiones; el modelo resume la tendencia de fondo en el campo `trend`. Además, la hora y si
   la bolsa de EE. UU. está

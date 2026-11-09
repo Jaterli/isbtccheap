@@ -75,7 +75,9 @@ ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacc
 reciente que contiene el precio: retrocesos dentro del tramo y extensiones 1,272 y 1,618 más allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
 no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: máximos y mínimos de la estructura que \
 el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
-máximos o mínimos iguales, que concentran más órdenes. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+máximos o mínimos iguales, que concentran más órdenes. En reaction_zones, para diario y 4 h, las zonas donde el precio \
+ha girado de verdad (todos los pivotes cercanos, agrupados): cuántas reacciones ha habido, cuántas como techo y cuántas \
+como suelo, y cuándo fue la última. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -95,7 +97,9 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 
 - supports y resistances: de 1 a 3 zonas de cada lado del precio actual, solo las realmente relevantes, como rangos \
 [low, high] de anchura realista, de la más cercana a la más lejana; strength de 1 (débil) a 3 (fuerte). Soportes por \
-debajo del precio y resistencias por encima.
+debajo del precio y resistencias por encima. Cada zona tiene que estar donde el precio haya reaccionado de verdad: \
+reaction_zones (da más fuerza a las de más reacciones y más recientes), los pivotes de market_structure o la liquidez \
+pendiente. Un nivel de Fibonacci por sí solo no es una zona.
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
 - outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): dirección, precio objetivo y precio que \
 invalidaría ese escenario (al otro lado del precio actual).
@@ -108,10 +112,10 @@ outlook.
 pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo mucho más lejano es poco probable en ese plazo.
 - Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
 trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
-estructura, las divergencias, los niveles de Fibonacci y los imbalances sin rellenar son referencias posibles para el \
-sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos. La liquidez \
-pendiente y los imbalances cercanos son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de \
-girar). cycle_context \
+estructura y las divergencias son referencias para el sesgo, no certezas. La liquidez pendiente y los imbalances cercanos \
+son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de girar). Fibonacci sirve para estimar \
+hasta dónde puede llegar el precio cuando atraviesa un tramo sin zonas de reacción, como un imbalance grande: úsalo \
+para los objetivos en ese caso, no para situar las zonas. cycle_context \
 sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
 predecir las próximas horas o días por analogía con otros ciclos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
@@ -393,6 +397,44 @@ def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
     return near("above") + near("below")
 
 
+# Zonas de reacción: pivotes de tramos de al menos REACTION_ATR (más sensible que la estructura, para no perder giros
+# intermedios), agrupados mientras la zona no pase de REACTION_WIDTH_ATR de ancho, y los más cercanos de cada lado
+REACTION_ATR = {"1d": 1.5, "4h": 2.0}
+REACTION_WIDTH_ATR = 1.0
+REACTION_RANGE = {"1d": 0.25, "4h": 0.10}
+REACTION_MAX = 5
+
+
+def reaction_zones(raw: list[list], tf: str) -> list[dict]:
+    """Zonas donde el precio ha girado de verdad: todos los pivotes (máximos y mínimos de tramos relevantes, se hayan
+    vuelto a tocar o no) agrupados por cercanía, con cuántas veces ha reaccionado ahí el precio, desde qué lado y cuándo
+    fue la última. Son la base de los soportes y resistencias; un mismo nivel puede haber sido soporte y luego
+    resistencia (o al revés)."""
+    high, low, close = _hlc(raw)
+    atr, price = _atr(high, low, close), close[-1]
+    pivots, _ = _zigzag(high, low, REACTION_ATR[tf] * atr)
+    zones: list[dict] = []
+    for i, kind, level in sorted(pivots, key=lambda p: p[2]):
+        z = zones[-1] if zones and level - zones[-1]["low"] <= REACTION_WIDTH_ATR * atr else None
+        if z:
+            z["high"] = level
+            z["touches"].append((i, kind))
+        else:
+            zones.append({"low": level, "high": level, "touches": [(i, kind)]})
+    out = []
+    for z in zones:
+        mid = (z["low"] + z["high"]) / 2
+        if abs(mid / price - 1) > REACTION_RANGE[tf]:
+            continue
+        last = max(i for i, _ in z["touches"])
+        out.append({"low": round(z["low"]), "high": round(z["high"]), "side": "above" if z["low"] > price else "below" if z["high"] < price else "at_price",
+                    "reactions": len(z["touches"]), "as_high": sum(k == "high" for _, k in z["touches"]),
+                    "as_low": sum(k == "low" for _, k in z["touches"]), "last": _day(raw[last]),
+                    "pct_from_price": round((mid / price - 1) * 100, 2)})
+    near = lambda side: sorted((z for z in out if z["side"] == side), key=lambda z: abs(z["pct_from_price"]))[:REACTION_MAX]
+    return near("above") + near("at_price") + near("below")
+
+
 # Imbalances: tamaño mínimo (en ATR), distancia máxima al precio y cuántos de cada lado
 IMBALANCE_ATR = 0.5
 IMBALANCE_RANGE = {"1w": 0.30, "1d": 0.15, "4h": 0.06}
@@ -535,6 +577,8 @@ def market() -> dict:
             data.setdefault("imbalances", {})[tf] = imbalances(raw, tf)
         if tf in LIQUIDITY_RANGE:
             data.setdefault("liquidity_pools", {})[tf] = liquidity_pools(raw, tf)
+        if tf in REACTION_RANGE:
+            data.setdefault("reaction_zones", {})[tf] = reaction_zones(raw, tf)
     try:
         fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
         data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
