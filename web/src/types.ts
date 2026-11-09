@@ -36,6 +36,8 @@ export interface History {
   dates: string[];
   price: number[];
   score: number[];
+  /** Fear & Greed diario (desde febrero de 2018; null antes). Ausente en un history.json anterior a añadirlo */
+  fear_greed?: (number | null)[];
 }
 
 export interface Candle {

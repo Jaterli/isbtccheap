@@ -453,6 +453,7 @@ export const en: Messages = {
     title: "Daily score history vs. price",
     title4h: "4h score history vs. price",
     score4h: "4h score",
+    fearGreed: "Fear & Greed Index (0 = extreme fear, 100 = extreme greed)",
     loading4h: "Loading 4h candles…",
     info4h: "In “6 months”, 4-hour candles are shown with that timeframe's score, recomputed with what was known at each candle. Binance only keeps 30 days of derivatives data: before roughly the last 3 weeks, sentiment is the daily one.",
     infoLabel: "the history",

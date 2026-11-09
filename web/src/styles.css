@@ -571,6 +571,12 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .etf-fg { --c: var(--cycle-2012); }
 .legend.etf-fg::before { background: var(--c); }
 .etf-fg-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.2; opacity: 0.85; }
+/* Fear & Greed en el histórico del score: fina y atenuada, para que el score siga siendo el protagonista */
+.line-fg { fill: none; stroke: var(--cycle-2012); stroke-width: 1; opacity: 0.4; }
+.legend-fg::before { background: var(--cycle-2012); opacity: 0.6; }
+.legend-fg strong { font-weight: 600; }
+/* En móvil, la línea de datos del histórico (fecha, precio y score) cabe en una fila: el valor del F&G no se muestra */
+@media (max-width: 399px) { .chart-readout .legend-fg { display: none; } }
 .legend.etf-in::before { background: var(--band-1); }
 .legend.etf-out::before { background: var(--band-5); }
 .etf-table td.up, .vol-stats .up { color: var(--band-1); }

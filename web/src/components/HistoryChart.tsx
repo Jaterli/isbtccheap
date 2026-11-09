@@ -153,13 +153,22 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
     const to = Math.min(N - 1, v1 + 1);
     let pricePath = "";
     let scorePath = "";
+    // Fear & Greed en el panel del score (misma escala 0-100), saltando los días sin dato
+    let fgPath = "";
+    let pen = false;
     for (let i = from; i <= to; i++) {
       const cmd = i === from ? "M" : "L";
       pricePath += `${cmd}${x(i).toFixed(1)},${yPrice(history.price[i]).toFixed(1)}`;
       scorePath += `${cmd}${x(i).toFixed(1)},${yScore(history.score[i]).toFixed(1)}`;
+      const fg = history.fear_greed?.[i];
+      if (fg === null || fg === undefined) pen = false;
+      else {
+        fgPath += `${pen ? "L" : "M"}${x(i).toFixed(1)},${yScore(fg).toFixed(1)}`;
+        pen = true;
+      }
     }
     const priceTicks = [0, 0.5, 1].map((t) => 10 ** (lo + (hi - lo) * t));
-    return { iMax, iMin, yPrice, pricePath, scorePath, priceTicks };
+    return { iMax, iMin, yPrice, pricePath, scorePath, fgPath, priceTicks };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [history, view, plotW, heights.price, heights.score]);
 
@@ -302,7 +311,14 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
     if (!want) return;
     load4h(latest).then(
       (d) => {
-        const series = { dates: d.time.map(localStamp), price: d.price, score: d.score };
+        // El Fear & Greed es diario (UTC): cada vela de 4 h lleva el de su día
+        const fgByDay = new Map(daily.dates.map((day, i) => [day, daily.fear_greed?.[i] ?? null]));
+        const series = {
+          dates: d.time.map(localStamp),
+          price: d.price,
+          score: d.score,
+          fear_greed: daily.fear_greed ? d.time.map((ms) => fgByDay.get(new Date(ms).toISOString().slice(0, 10)) ?? null) : undefined,
+        };
         if (series.dates.length < 2) return setH4Failed(true);
         setH4(series);
         if (want4hRef.current) setView(fullView(series.dates.length));
@@ -382,6 +398,11 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
         <span className="legend legend-score num">
           {is4h ? t.history.score4h : "Score"} <strong>{history.score[h]?.toFixed(0)}</strong>
         </span>
+        {history.fear_greed?.[h] != null && (
+          <span className="legend legend-fg num muted" title={t.history.fearGreed}>
+            F&amp;G <strong>{history.fear_greed[h]}</strong>
+          </span>
+        )}
         {want4h && !h4 && <span className="muted">{t.history.loading4h}</span>}
       </p>
 
@@ -423,6 +444,8 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
           ))}
           <rect x={PAD_L} width={plotW} y={yScore(100)} height={yScore(80) - yScore(100)} className="zone-hot" />
           <rect x={PAD_L} width={plotW} y={yScore(20)} height={yScore(0) - yScore(20)} className="zone-cold" />
+          {/* Debajo del score y atenuada: el protagonista es el score */}
+          {chart.fgPath && <path d={chart.fgPath} className="line-fg" clipPath={`url(#${uid}s)`} />}
           <path d={chart.scorePath} className="line-score" clipPath={`url(#${uid}s)`} />
 
           {/* Sin la marca que quedaría cortada por el borde izquierdo */}

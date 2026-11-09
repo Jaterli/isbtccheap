@@ -140,6 +140,9 @@ def main() -> None:
         "price": [_clean(m.at[d, "price"]) for d in hist.index],
         "score": [round(float(v), 1) for v in hist.values],
     }
+    # Fear & Greed diario (desde febrero de 2018), para dibujarlo atenuado junto al score
+    if "fear_greed" in m:
+        history["fear_greed"] = [None if pd.isna(m.at[d, "fear_greed"]) else int(m.at[d, "fear_greed"]) for d in hist.index]
 
     # Mismas fechas que history.json
     categories_hist = {
