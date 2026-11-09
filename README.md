@@ -107,6 +107,7 @@ nivel 3):
 | Script | Orden (variable para cambiarlo) |
 |---|---|
 | Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b → qwen3.8-27b → gpt-oss-20b (los tres en Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
+| Duplicados de noticias | Gemini 3.5 Flash → GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini Flash Latest (`DEDUPE_MODELS`); GLM se pasaba razonando hasta el límite de tokens |
 | Análisis | GLM-5.3 Flash → Qwen 3.5 → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`) |
 
 Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito.

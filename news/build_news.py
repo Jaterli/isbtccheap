@@ -4,12 +4,13 @@ Cada ejecución (cron cada 15 min en el droplet):
   1. Descarga los feeds RSS de FEEDS y se queda con las noticias de las últimas WINDOW_HOURS horas.
   2. Clasifica solo los titulares que no ha visto antes (categoría e impacto de 0 a 10) con el primer modelo de
      NEWS_MODELS que responda (ver llm.py).
-  3. Con las candidatas a publicarse, una segunda llamada agrupa las que cuentan el mismo hecho y deja una por grupo.
+  3. Con las candidatas a publicarse, una segunda llamada agrupa las que cuentan el mismo hecho y deja una por grupo
+     (con DEDUPE_MODELS, que empieza por Gemini).
   4. Traduce al español solo las MAX_ITEMS que se publican y escribe news.json, que la web lee de su mismo dominio.
 Cada tarea va en su propia llamada: es más fiable con modelos abiertos y la traducción solo se paga para lo publicado.
 
 Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GROQ_API_KEY y GEMINI_API_KEY (respaldo), NEWS_MODELS,
-NEWS_OUT_DIR, NEWS_STATE_DIR.
+DEDUPE_MODELS, NEWS_OUT_DIR, NEWS_STATE_DIR.
 Uso: python build_news.py [--dry-run]   (--dry-run no llama al modelo: sirve para probar feeds y salida)
 """
 
@@ -54,6 +55,11 @@ FEEDS = [
 # GLM en el impacto pero traduce con errores; gpt-oss-20b, como el 120b con un español más pobre. Y Gemini detrás
 MODELS = llm.models_from_env("NEWS_MODELS", "glm-5.3-flash,groq:openai/gpt-oss-120b,groq:qwen/qwen3.8-27b,groq:openai/gpt-oss-20b,"
                              "gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
+# Duplicados: Gemini 3.5 Flash primero. En una prueba con los mismos 32 titulares (10 nov 2026) fue el más fiable: agrupa
+# los casos claros sin juntar hechos distintos, en ~20 s y gratis. GLM agotó los 16.000 tokens razonando en 2 de 3
+# intentos (y se cobran), y gpt-oss-120b junta noticias distintas, lo que esconde alguna que debería publicarse
+DEDUPE_MODELS = llm.models_from_env("DEDUPE_MODELS", "gemini:gemini-3.5-flash,glm-5.3-flash,groq:openai/gpt-oss-120b,"
+                                    "gemini:gemini-flash-latest")
 WINDOW_HOURS = 48  # antigüedad máxima de una noticia publicada
 SEEN_DAYS = 7  # cuánto se recuerda un titular ya clasificado, para no volver a pagar por él
 BATCH = 40  # titulares nuevos por llamada
@@ -220,9 +226,9 @@ def chat(system: str, user: str, schema: dict, name: str) -> dict:
     return chat_model(system, user, schema, name)[0]
 
 
-def chat_model(system: str, user: str, schema: dict, name: str) -> tuple[dict, str]:
+def chat_model(system: str, user: str, schema: dict, name: str, models: list[str] = MODELS) -> tuple[dict, str]:
     """Como chat(), con el nombre del modelo que respondió ("glm-5.3-flash")."""
-    data, spec = llm.complete(system, user, schema, name, MODELS)
+    data, spec = llm.complete(system, user, schema, name, models)
     return data, llm.label(spec)
 
 
@@ -252,7 +258,7 @@ def dedupe(seen: dict, now: datetime) -> None:
     if len(pool) < 2:
         return
     lines = [f"{i}. {v['title']}" for i, v in enumerate(pool)]
-    groups = chat(DEDUPE_PROMPT, "\n".join(lines), DEDUPE_SCHEMA, "duplicados")["groups"]
+    groups = chat_model(DEDUPE_PROMPT, "\n".join(lines), DEDUPE_SCHEMA, "duplicados", DEDUPE_MODELS)[0]["groups"]
     for group in groups:
         members = [pool[i] for i in dict.fromkeys(group) if 0 <= i < len(pool)]
         if len(members) < 2:
