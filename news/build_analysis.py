@@ -45,6 +45,8 @@ FUTURES = "https://fapi.binance.com"
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
 LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubusercontent.com/Jaterli/isbtccheap/main/web/public/data/latest.json")
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
+# Histórico diario de la web (cierres desde 2011), para los techos y suelos de ciclo
+HISTORY_URL = LATEST_URL.rsplit("/", 1)[0] + "/history.json"
 
 # Titulares de news.json que se pasan como contexto: los de impacto medio y alto (naranja y rojo en la web) y recientes
 NEWS_MIN_IMPACT = 5
@@ -64,7 +66,9 @@ decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se
 también indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y en el \
 mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
 mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). En trend_context, el \
-máximo y el mínimo de los últimos 12 meses. En market_structure, para semanal y diario y calculado con sus velas: los \
+máximo y el mínimo de los últimos 12 meses. En cycle_context, con cierres diarios desde 2011: el máximo histórico (fecha, \
+días transcurridos y distancia del precio), los techos y suelos de los ciclos anteriores (caída y días del techo al \
+suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para semanal y diario y calculado con sus velas: los \
 últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
 el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
 ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) del tramo más \
@@ -103,7 +107,9 @@ pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo much
 - Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
 trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
 estructura, las divergencias, los niveles de Fibonacci y los imbalances sin rellenar son referencias posibles para el \
-sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos.
+sesgo, las zonas y los objetivos, no certezas: úsalos si encajan con el resto de los datos, sin forzarlos. cycle_context \
+sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
+predecir las próximas horas o días por analogía con otros ciclos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
 la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
 estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 1 o 2 frases (50 palabras como \
@@ -169,6 +175,44 @@ def klines(interval: str, limit: int) -> list[list]:
 def _rows(raw: list[list], interval: str) -> list[list]:
     fmt = "%Y-%m-%d" if interval in ("1d", "1w") else "%Y-%m-%d %H:%M"
     return [[datetime.fromtimestamp(r[0] / 1000, timezone.utc).strftime(fmt), *(round(float(x)) for x in r[1:6])] for r in raw]
+
+
+# Techo de ciclo, con el mismo criterio que la web (web/src/lib/drawdown.ts): un máximo histórico seguido de una caída de
+# más del 50 % que tardó más de medio año en tocar fondo (las correcciones bruscas, como la de mayo de 2021, no cuentan)
+CYCLE_DRAWDOWN = -0.5
+CYCLE_MIN_DAYS = 180
+
+
+def cycle_context(history: dict) -> dict:
+    """Máximo histórico, techos y suelos de los ciclos anteriores y el punto del actual, con los cierres diarios del
+    histórico de la web: los mismos que muestra su tabla de techos y suelos. Contexto de largo plazo, no predicción."""
+    dates = [datetime.fromisoformat(d).date() for d in history["dates"]]
+    price = history["price"]
+    episodes, cur = [], None  # de un máximo histórico al siguiente
+    ath = 0.0
+    for d, p in zip(dates, price):
+        if p >= ath:
+            ath = p
+            if cur:
+                episodes.append({**cur, "recovered": d})
+            cur = {"top": d, "top_price": p, "low": d, "low_price": p}
+        elif p < cur["low_price"]:
+            cur.update(low=d, low_price=p)
+    episodes.append({**cur, "recovered": None})
+    is_cycle = lambda e: e["low_price"] / e["top_price"] - 1 <= CYCLE_DRAWDOWN and (e["low"] - e["top"]).days > CYCLE_MIN_DAYS
+    today, last = dates[-1], price[-1]
+    row = lambda e: {"top_date": e["top"].isoformat(), "top_close": round(e["top_price"]), "bottom_date": e["low"].isoformat(),
+                     "bottom_close": round(e["low_price"]), "drawdown_pct": round((e["low_price"] / e["top_price"] - 1) * 100, 1),
+                     "days_top_to_bottom": (e["low"] - e["top"]).days}
+    current = episodes[-1]
+    return {
+        "all_time_high": {"date": current["top"].isoformat(), "close": round(current["top_price"]),
+                          "days_since": (today - current["top"]).days, "pct_from_ath": round((last / current["top_price"] - 1) * 100, 1)},
+        "previous_cycles": [row(e) for e in episodes[:-1] if is_cycle(e)],
+        # Ciclo en curso: su suelo es el mínimo hasta hoy (puede no ser el definitivo)
+        "current_cycle": {**row(current), "bottom_is_low_so_far": True, "days_since_bottom": (today - current["low"]).days},
+        "as_of": today.isoformat(),
+    }
 
 
 def trend_context(raw_1d: list[list]) -> dict:
@@ -470,6 +514,10 @@ def market() -> dict:
     agenda = calendar()
     if agenda:
         data["economic_calendar_week"] = agenda
+    try:
+        data["cycle_context"] = cycle_context(get(HISTORY_URL))
+    except Exception as e:  # sin el histórico, el análisis sigue sin el contexto de ciclo
+        log.warning("history.json no disponible: %s", e)
     try:
         metrics = {m["id"]: m["value"] for c in get(LATEST_URL)["categories"].values() for m in c["metrics"]}
         if metrics.get("etf_flows") is not None:
