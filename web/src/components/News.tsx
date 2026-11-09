@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { lang, locale, t } from "../i18n";
 import { InfoTip } from "./InfoTip";
 import { modelName } from "../lib/models";
+import { keepUnits } from "../lib/text";
 
 /** Salida de news/build_news.py */
 /** Modelos de IA que clasificaron y tradujeron las noticias publicadas, de más a menos noticias (news.json) */
@@ -103,7 +104,7 @@ export function NewsList({ items, now, models, id }: { items: NewsItem[]; now: n
             <span className={`news-dot ${level(n.impact)}`} title={tx.levels[level(n.impact)]} />
             <div>
               <a href={n.link} target="_blank" rel="noreferrer" lang={lang === "es" && n.title_es !== n.title ? "es" : "en"}>
-                {lang === "es" ? n.title_es : n.title}
+                {keepUnits(lang === "es" ? n.title_es : n.title)}
               </a>
               <p className="news-meta muted small">
                 <span className="news-tag">{tx.categories[n.category] ?? n.category}</span>

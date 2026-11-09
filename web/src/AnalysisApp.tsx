@@ -10,6 +10,7 @@ import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
 import { modelName } from "./lib/models";
+import { keepUnits } from "./lib/text";
 
 const H4 = 4 * 3_600_000;
 const DAY = 86_400_000;
@@ -152,19 +153,19 @@ export function AnalysisApp() {
 
       {analysis && text && (
         <section className="card an-text">
-          <h2>{text.headline}</h2>
-          <p>{text.summary}</p>
+          <h2>{keepUnits(text.headline)}</h2>
+          <p>{keepUnits(text.summary)}</p>
           {text.trend && (
             <p className="an-outlook">
-              <strong>{tx.trend}</strong> {text.trend}
+              <strong>{tx.trend}</strong> {keepUnits(text.trend)}
             </p>
           )}
           <p className="an-outlook">
-            <strong>{tx.nextHours}</strong> {text.outlook}
+            <strong>{tx.nextHours}</strong> {keepUnits(text.outlook)}
           </p>
           {text.outlook_days && (
             <p className="an-outlook">
-              <strong>{tx.nextDays}</strong> {text.outlook_days}
+              <strong>{tx.nextDays}</strong> {keepUnits(text.outlook_days)}
             </p>
           )}
           {!!text.points?.length && (
@@ -172,7 +173,7 @@ export function AnalysisApp() {
               <h3>{tx.points}</h3>
               <ul className="an-points">
                 {text.points.map((s) => (
-                  <li key={s}>{s}</li>
+                  <li key={s}>{keepUnits(s)}</li>
                 ))}
               </ul>
             </>

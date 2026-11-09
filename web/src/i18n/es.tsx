@@ -61,7 +61,7 @@ export const es = {
     card: "Precio y niveles de valoración",
     info: [
       "Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). Precio realizado de corto plazo: lo mismo solo para las monedas de menos de 150 días, el coste medio de los compradores recientes (de Bitview). Media de 200 semanas: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
-      "Power law: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
+      "Power law: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
     ],
     current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
       <>
@@ -103,14 +103,14 @@ export const es = {
     },
     chartAria: "Gráfico del precio de Bitcoin en la temporalidad elegida",
   },
-  movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
+  movesLink: { text: "¿Cuánto lleva BTC sin caer un 10 % o sin subir un 20 %? Compáralo con lo habitual.", cta: "Caídas y subidas" },
   drawdown: {
     title: "Caídas y subidas de Bitcoin",
-    rest: "Cuánto está BTC por debajo de su máximo histórico, cómo se compara con las grandes caídas anteriores y cuánto lleva sin caer o subir un 5 %, un 10 % o más.",
+    rest: "Cuánto está BTC por debajo de su máximo histórico, cómo se compara con las grandes caídas anteriores y cuánto lleva sin caer o subir un 5 %, un 10 % o más.",
     card: "Precio y caída desde el máximo histórico",
     info: [
-      "La caída (drawdown) es la distancia entre el precio de cada día y el máximo histórico alcanzado hasta entonces: 0 % en máximos, -50 % si el precio vale la mitad.",
-      "Se usa el precio diario desde 2010 más el precio actual. La tabla recoge las caídas de más del 50 % desde 2011 (antes el mercado era minúsculo) y la actual.",
+      "La caída (drawdown) es la distancia entre el precio de cada día y el máximo histórico alcanzado hasta entonces: 0 % en máximos, -50 % si el precio vale la mitad.",
+      "Se usa el precio diario desde 2010 más el precio actual. La tabla recoge las caídas de más del 50 % desde 2011 (antes el mercado era minúsculo) y la actual.",
     ],
     current: (dd: ReactNode, ath: ReactNode, athDate: ReactNode, days: ReactNode, maxDd: ReactNode, lowDate: ReactNode) => (
       <>
@@ -369,12 +369,12 @@ export const es = {
     mayer: {
       name: "Mayer Multiple (frente a MA200d)",
       what: "Mayer Multiple: cuánto está el precio por encima o por debajo de su media móvil de 200 días.",
-      read: "Más de un +140 % (el precio a 2,4 veces su media) ha coincidido con burbujas; por debajo de la media (valores negativos), con zonas baratas.",
+      read: "Más de un +140 % (el precio a 2,4 veces su media) ha coincidido con burbujas; por debajo de la media (valores negativos), con zonas baratas.",
     },
     halving_phase: {
       name: "Fase del ciclo de halving",
       what: "Parte del ciclo transcurrida desde el último halving (abril de 2024) hasta el siguiente, previsto para abril de 2028. En cada halving, cada ~4 años, se reduce a la mitad la emisión de nuevos bitcoins.",
-      read: "Históricamente los techos llegan hacia el 33 % del ciclo y los suelos hacia el 60 %. La puntuación sube al acercarse a la zona de techos y baja al acercarse a la de suelos.",
+      read: "Históricamente los techos llegan hacia el 33 % del ciclo y los suelos hacia el 60 %. La puntuación sube al acercarse a la zona de techos y baja al acercarse a la de suelos.",
     },
     power_law: {
       name: "Desviación de la power law",
@@ -384,7 +384,7 @@ export const es = {
     wma200_ratio: {
       name: "Precio frente a MA200 semanas",
       what: "Cuánto está el precio por encima o por debajo de su media móvil de 200 semanas (unos 4 años, un ciclo completo).",
-      read: "Esa media ha actuado como suelo en todos los ciclos: cerca del 0 % (el precio en la media) es zona muy barata; muy por encima, zona de euforia.",
+      read: "Esa media ha actuado como suelo en todos los ciclos: cerca del 0 % (el precio en la media) es zona muy barata; muy por encima, zona de euforia.",
     },
     global_liquidity_roc: {
       name: "Liquidez global (var. 13 sem.)",
@@ -413,7 +413,7 @@ export const es = {
     },
     sth_sopr: {
       name: "SOPR de corto plazo (7 d)",
-      what: "Spent Output Profit Ratio de los holders de corto plazo (monedas de menos de 150 días), media de 7 días: precio de venta entre precio de compra de las monedas que se movieron. +1 % es que vendieron de media con un 1 % de beneficio. Datos on-chain de Bitview.",
+      what: "Spent Output Profit Ratio de los holders de corto plazo (monedas de menos de 150 días), media de 7 días: precio de venta entre precio de compra de las monedas que se movieron. +1 % es que vendieron de media con un 1 % de beneficio. Datos on-chain de Bitview.",
       read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
     },
     etf_flows: {
@@ -424,7 +424,7 @@ export const es = {
     funding: {
       name: "Funding rate perpetuos (Binance)",
       what: "Funding rate de los futuros perpetuos de Binance: el pago periódico (cada 8 h) entre posiciones largas y cortas.",
-      read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
+      read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
     },
     open_interest: {
       name: "Open interest",
@@ -433,13 +433,13 @@ export const es = {
     },
     long_short: {
       name: "Cuentas en largo",
-      what: "De las cuentas de Binance con posición en futuros de BTC, qué parte apuesta al alza (en largo). El 50 % es el equilibrio entre largos y cortos.",
+      what: "De las cuentas de Binance con posición en futuros de BTC, qué parte apuesta al alza (en largo). El 50 % es el equilibrio entre largos y cortos.",
       read: "Puntúa por su percentil en los últimos 30 días. Se usa a la contra: cuando casi todos apuestan al alza, el mercado está saturado de compradores (suma); cuando dominan los cortos, al revés (resta).",
     },
     taker_ratio: {
       name: "Compras a mercado",
-      what: "Del volumen negociado con órdenes a mercado en los futuros de Binance, qué parte fueron compras (media de las 3 últimas velas). Mide quién tiene prisa por entrar o salir. El 50 % es el equilibrio.",
-      read: "Puntúa por su percentil en los últimos 30 días. Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
+      what: "Del volumen negociado con órdenes a mercado en los futuros de Binance, qué parte fueron compras (media de las 3 últimas velas). Mide quién tiene prisa por entrar o salir. El 50 % es el equilibrio.",
+      read: "Puntúa por su percentil en los últimos 30 días. Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
     },
     rsi_14: {
       name: "RSI 14",
@@ -540,9 +540,9 @@ export const es = {
     title: "Caídas y subidas desde máximo y mínimo",
     info: [
       "Cuenta los días desde la última caída y la última subida de cada tamaño, con precios de cierre diarios más el precio actual como último dato, y los compara con lo habitual en el periodo elegido: cuántos días solían llevar sin producirse en un día cualquiera (la mediana).",
-      "Una caída del 10 % se cuenta cuando el cierre queda un 10 % por debajo del máximo alcanzado desde la anterior caída de ese tamaño; desde ahí se vuelve a medir. Las subidas, igual desde el mínimo. Como Bitcoin cotiza 24 h, cada vela diaria abre en el cierre de la anterior, así que equivale a medir de apertura a cierre.",
-      "No se usa el tiempo medio entre dos casos porque estos movimientos llegan en rachas (varias caídas del 5 % en un mismo desplome) y esa media es engañosamente corta.",
-      "La barra indica qué parte de los días del periodo llevaban menos tiempo sin ese movimiento que hoy; la marca central es lo habitual. En naranja, los que superan al 90 % de los días.",
+      "Una caída del 10 % se cuenta cuando el cierre queda un 10 % por debajo del máximo alcanzado desde la anterior caída de ese tamaño; desde ahí se vuelve a medir. Las subidas, igual desde el mínimo. Como Bitcoin cotiza 24 h, cada vela diaria abre en el cierre de la anterior, así que equivale a medir de apertura a cierre.",
+      "No se usa el tiempo medio entre dos casos porque estos movimientos llegan en rachas (varias caídas del 5 % en un mismo desplome) y esa media es engañosamente corta.",
+      "La barra indica qué parte de los días del periodo llevaban menos tiempo sin ese movimiento que hoy; la marca central es lo habitual. En naranja, los que superan al 90 % de los días.",
     ],
     infoNote:
       "Llevar más tiempo que la media sin un movimiento no significa que vaya a producirse pronto: no siguen un calendario y las fases tranquilas tienden a alargarse.",

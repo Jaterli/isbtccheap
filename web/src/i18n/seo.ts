@@ -23,7 +23,7 @@ export const SEO_VOL: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "¿Qué es la volatilidad realizada?",
-        p: "Es la desviación típica de las variaciones del precio en las últimas velas, expresada en términos anuales. Un 50 % significa que, al ritmo actual, el precio suele moverse alrededor de un 50 % arriba o abajo en un año. Bitcoin ha bajado su volatilidad con los años: en sus primeros ciclos superaba a menudo el 100 %; en los últimos años se mueve entre el 25 % y el 80 %.",
+        p: "Es la desviación típica de las variaciones del precio en las últimas velas, expresada en términos anuales. Un 50 % significa que, al ritmo actual, el precio suele moverse alrededor de un 50 % arriba o abajo en un año. Bitcoin ha bajado su volatilidad con los años: en sus primeros ciclos superaba a menudo el 100 %; en los últimos años se mueve entre el 25 % y el 80 %.",
       },
       {
         h: "¿Para qué sirve?",
@@ -143,7 +143,7 @@ export const SEO_CYCLES: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué enseñan los ciclos anteriores?",
-        p: "En los tres ciclos completos el techo llegó entre 12 y 18 meses después del halving (en los días 371, 525 y 546), y después el precio cayó entre un 77 % y un 85 % hasta tocar fondo unos dos años y medio después del halving. Cada ciclo ha multiplicado menos el precio que el anterior: ×92 en 2012, ×30 en 2016 y ×7,9 en 2020. En el ciclo actual el máximo llegó en octubre de 2025, en el día 534, a ×1,9.",
+        p: "En los tres ciclos completos el techo llegó entre 12 y 18 meses después del halving (en los días 371, 525 y 546), y después el precio cayó entre un 77 % y un 85 % hasta tocar fondo unos dos años y medio después del halving. Cada ciclo ha multiplicado menos el precio que el anterior: ×92 en 2012, ×30 en 2016 y ×7,9 en 2020. En el ciclo actual el máximo llegó en octubre de 2025, en el día 534, a ×1,9.",
       },
       {
         h: "¿Se repetirá el patrón?",
@@ -180,19 +180,19 @@ export const SEO_VALUATION: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "¿Qué es el precio realizado de Bitcoin?",
-        p: "Es el precio medio al que se movieron por última vez todos los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños. Cuando el precio cae por debajo, el holder medio está en pérdidas, algo que solo ha ocurrido cerca de los suelos de cada ciclo: en 2015, 2018-2019, marzo de 2020 y 2022, cuando el precio llegó a estar entre un 12 % y un 44 % por debajo. En los techos, en cambio, el precio llegó a multiplicarlo por entre 2,3 y 4,7.",
+        p: "Es el precio medio al que se movieron por última vez todos los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños. Cuando el precio cae por debajo, el holder medio está en pérdidas, algo que solo ha ocurrido cerca de los suelos de cada ciclo: en 2015, 2018-2019, marzo de 2020 y 2022, cuando el precio llegó a estar entre un 12 % y un 44 % por debajo. En los techos, en cambio, el precio llegó a multiplicarlo por entre 2,3 y 4,7.",
       },
       {
         h: "¿Qué es el precio realizado de corto plazo?",
-        p: "Es el mismo cálculo, pero solo con las monedas que se movieron en los últimos 150 días: el coste medio de los compradores recientes. Se mueve mucho más rápido que el precio realizado total. En los años alcistas, como 2016, 2017, 2020, 2023 y 2024, el precio estuvo por encima la mayor parte del tiempo (entre el 77 % y el 98 % de los días); en los suelos de 2015, 2018, 2020 y 2022 llegó a estar entre un 22 % y un 48 % por debajo, con los compradores recientes en pérdidas.",
+        p: "Es el mismo cálculo, pero solo con las monedas que se movieron en los últimos 150 días: el coste medio de los compradores recientes. Se mueve mucho más rápido que el precio realizado total. En los años alcistas, como 2016, 2017, 2020, 2023 y 2024, el precio estuvo por encima la mayor parte del tiempo (entre el 77 % y el 98 % de los días); en los suelos de 2015, 2018, 2020 y 2022 llegó a estar entre un 22 % y un 48 % por debajo, con los compradores recientes en pérdidas.",
       },
       {
         h: "¿Por qué importa la media de 200 semanas?",
-        p: "Es la media del precio de unos cuatro años, aproximadamente un ciclo completo de halving. Ha funcionado como gran soporte de largo plazo: los suelos de 2015, 2018 y 2020 se formaron muy cerca de ella, y solo en 2022 el precio cayó claramente por debajo (un 34 %).",
+        p: "Es la media del precio de unos cuatro años, aproximadamente un ciclo completo de halving. Ha funcionado como gran soporte de largo plazo: los suelos de 2015, 2018 y 2020 se formaron muy cerca de ella, y solo en 2022 el precio cayó claramente por debajo (un 34 %).",
       },
       {
         h: "¿Qué es la power law de Bitcoin?",
-        p: "Es la recta que mejor se ajusta al precio de Bitcoin cuando se dibujan en escala logarítmica tanto el precio como los días transcurridos desde el bloque génesis. Describe un crecimiento que se va frenando con el tiempo. El corredor sombreado contiene el 95 % de los días desde 2013: los suelos de ciclo han quedado cerca de su borde inferior, a entre ×0,45 y ×0,6 de la tendencia, mientras que cada techo ha quedado más cerca de ella que el anterior.",
+        p: "Es la recta que mejor se ajusta al precio de Bitcoin cuando se dibujan en escala logarítmica tanto el precio como los días transcurridos desde el bloque génesis. Describe un crecimiento que se va frenando con el tiempo. El corredor sombreado contiene el 95 % de los días desde 2013: los suelos de ciclo han quedado cerca de su borde inferior, a entre ×0,45 y ×0,6 de la tendencia, mientras que cada techo ha quedado más cerca de ella que el anterior.",
       },
       {
         h: "¿Cómo usarlas?",
@@ -233,23 +233,23 @@ export const SEO_DRAWDOWN: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Caídas y subidas de Bitcoin",
     intro:
-      "Gráfico de la caída de Bitcoin desde su máximo histórico (drawdown) desde 2010, con la tabla de las grandes caídas, y los días que lleva el precio sin caer o subir un 5 %, 10 %, 20 % o 30 % comparados con lo habitual.",
+      "Gráfico de la caída de Bitcoin desde su máximo histórico (drawdown) desde 2010, con la tabla de las grandes caídas, y los días que lleva el precio sin caer o subir un 5 %, 10 %, 20 % o 30 % comparados con lo habitual.",
     sections: [
       {
         h: "¿Qué es el drawdown de Bitcoin?",
-        p: "Es cuánto está el precio por debajo del máximo histórico alcanzado hasta ese día. Un drawdown del 50 % significa que Bitcoin vale la mitad que en su máximo. Es la forma más directa de poner en contexto una caída: si es una corrección normal dentro de una tendencia alcista o un mercado bajista de los que marcan el final de un ciclo.",
+        p: "Es cuánto está el precio por debajo del máximo histórico alcanzado hasta ese día. Un drawdown del 50 % significa que Bitcoin vale la mitad que en su máximo. Es la forma más directa de poner en contexto una caída: si es una corrección normal dentro de una tendencia alcista o un mercado bajista de los que marcan el final de un ciclo.",
       },
       {
         h: "¿Cuánto han durado las grandes caídas?",
-        p: "Bitcoin ha sufrido cinco caídas de más del 70 % desde 2011: la de 2011 (93 %), la de 2013 (71 %) y las que siguieron a los techos de los ciclos de 2013, 2017 y 2021 (85 %, 84 % y 77 %). En estas tres últimas el precio tardó alrededor de un año en tocar fondo y entre dos años y medio y algo más de tres años en recuperar el máximo anterior.",
+        p: "Bitcoin ha sufrido cinco caídas de más del 70 % desde 2011: la de 2011 (93 %), la de 2013 (71 %) y las que siguieron a los techos de los ciclos de 2013, 2017 y 2021 (85 %, 84 % y 77 %). En estas tres últimas el precio tardó alrededor de un año en tocar fondo y entre dos años y medio y algo más de tres años en recuperar el máximo anterior.",
       },
       {
-        h: "¿Cuánto suele tardar Bitcoin en caer o subir un 10 %?",
-        p: "La tabla de caídas y subidas cuenta los días desde la última caída y la última subida de cada tamaño y los compara con lo habitual en el periodo elegido. Los tamaños que llevan más tiempo sin producirse que en el 90 % de los días del periodo se resaltan, para ver de un vistazo si el mercado está más tranquilo o más agitado de lo habitual.",
+        h: "¿Cuánto suele tardar Bitcoin en caer o subir un 10 %?",
+        p: "La tabla de caídas y subidas cuenta los días desde la última caída y la última subida de cada tamaño y los compara con lo habitual en el periodo elegido. Los tamaños que llevan más tiempo sin producirse que en el 90 % de los días del periodo se resaltan, para ver de un vistazo si el mercado está más tranquilo o más agitado de lo habitual.",
       },
       {
         h: "¿Qué indica la caída actual?",
-        p: "Cada gran mercado bajista ha sido algo menos profundo que el anterior, en línea con un mercado más grande y con más inversores institucionales. Las correcciones del 20 % al 35 % son habituales incluso en plena tendencia alcista. Nada garantiza que la historia se repita: el índice de Is BTC Cheap? combina el precio con la valoración on-chain, el ciclo, la liquidez y el sentimiento para estimar si Bitcoin está barato o caro.",
+        p: "Cada gran mercado bajista ha sido algo menos profundo que el anterior, en línea con un mercado más grande y con más inversores institucionales. Las correcciones del 20 % al 35 % son habituales incluso en plena tendencia alcista. Nada garantiza que la historia se repita: el índice de Is BTC Cheap? combina el precio con la valoración on-chain, el ciclo, la liquidez y el sentimiento para estimar si Bitcoin está barato o caro.",
       },
     ],
   },

@@ -116,7 +116,7 @@ const DRAWDOWN_META: Record<"es" | "en", PageMeta> = {
     URL: DRAWDOWN.URL_ES,
     TITLE: "Caídas y subidas de Bitcoin: caída desde máximos y drawdown | Is BTC Cheap?",
     DESCRIPTION:
-      "Cuánto está Bitcoin por debajo de su máximo histórico, comparado con las grandes caídas de 2011, 2014, 2018 y 2022, y cuántos días lleva sin caer o subir un 5 %, 10 %, 20 % o 30 %.",
+      "Cuánto está Bitcoin por debajo de su máximo histórico, comparado con las grandes caídas de 2011, 2014, 2018 y 2022, y cuántos días lleva sin caer o subir un 5 %, 10 %, 20 % o 30 %.",
   },
   en: {
     ...INDEX_META.en,

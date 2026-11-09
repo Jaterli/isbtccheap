@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { lang, locale, t } from "../i18n";
 import { InfoTip } from "./InfoTip";
+import { keepUnits } from "../lib/text";
 
 /** Salida de news/build_calendar.py */
 export interface CalendarEvent {
@@ -19,7 +20,7 @@ const CALENDAR_URL = `${import.meta.env.BASE_URL}news/calendar.json`;
 const REFRESH_MS = 30 * 60_000;
 
 /** Las cifras vienen en formato inglés ("4.00%") */
-const num = (v: string) => (lang === "es" ? v.replace(/(\d)\.(\d)/g, "$1,$2").replace(/(\d)%/g, "$1 %") : v);
+const num = (v: string) => (lang === "es" ? v.replace(/(\d)\.(\d)/g, "$1,$2").replace(/(\d)%/g, "$1\u00a0%") : v);
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
@@ -103,7 +104,7 @@ export function CalendarList({ events: shown, now, id }: { events: CalendarEvent
                     <div>
                       <span className="cal-title">
                         <span className="news-tag">{tx.countries[e.country] ?? e.country}</span>
-                        <span className="cal-name">{lang === "es" ? e.title_es : e.title}</span>
+                        <span className="cal-name">{keepUnits(lang === "es" ? e.title_es : e.title)}</span>
                       </span>
                       {(e.forecast || e.previous || e.actual) && (
                         <span className="cal-meta muted small num">
