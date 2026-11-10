@@ -10,3 +10,5 @@ web/dist/
 news/out/
 news/state/
 news/.env
+# Configuración local del editor
+.vscode/
