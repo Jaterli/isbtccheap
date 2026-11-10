@@ -110,7 +110,9 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 [low, high] de anchura realista, de la más cercana a la más lejana; strength de 1 (débil) a 3 (fuerte). Soportes por \
 debajo del precio y resistencias por encima. Cada zona tiene que estar donde el precio haya reaccionado de verdad: \
 reaction_zones (da más fuerza a las de más reacciones y más recientes), los pivotes de market_structure o la liquidez \
-pendiente. Un nivel de Fibonacci por sí solo no es una zona.
+pendiente. Un nivel de Fibonacci por sí solo no es una zona. Afina las zonas diarias con las de 4 h: si una zona de \
+reaction_zones de 4 h cae dentro de una diaria (o la solapa casi entera), usa el rango de la de 4 h, más preciso, con la \
+fuerza que le da la diaria; si no hay ninguna, deja la diaria.
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
 - outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): dirección, precio objetivo y precio que \
 invalidaría ese escenario (al otro lado del precio actual).
