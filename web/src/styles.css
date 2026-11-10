@@ -687,6 +687,9 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-gap { fill: var(--fg); opacity: 0.06; }
 .an-liq line { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.45; }
 .an-liq text { fill: var(--muted); font-size: 10px; }
+/* Fibonacci del que sale un objetivo o una invalidación: línea fina, no zona */
+.an-fib line { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 2 1 2; opacity: 0.8; }
+.an-fib text { fill: var(--accent); font-size: 10px; font-weight: 600; }
 .an-tf { margin-top: 10px; }
 .an-candle line { stroke-width: 1; }
 .an-candle.up line { stroke: var(--band-1); }

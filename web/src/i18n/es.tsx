@@ -193,7 +193,7 @@ export const es = {
     card: "Zonas y previsión",
     info: [
       "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
-      "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a viernes a las 10:00 y a las 17:00, los sábados a las 12:00 y los domingos a las 18:00 (hora de Madrid).",
+      "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las líneas naranjas son los niveles de Fibonacci de los que el modelo saca algún objetivo o invalidación: son niveles calculados, no zonas donde el precio haya reaccionado. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a viernes a las 10:00 y a las 17:00, los sábados a las 12:00 y los domingos a las 18:00 (hora de Madrid).",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
     confidence: ["confianza baja", "confianza media", "confianza alta"],
@@ -202,6 +202,9 @@ export const es = {
     unavailable: "El análisis aún no está disponible.",
     close: "Cierre",
     legendLiquidity: "– – liquidez pendiente · bandas grises: imbalances sin rellenar",
+    legendFib: "naranja: Fibonacci",
+    fibLabel: (ratio: string, tf: string, correction: boolean) =>
+      `Fib ${(Number(ratio) * 100).toLocaleString("es-ES", { maximumFractionDigits: 1 })} % ${tf === "1w" ? "semanal" : "diario"}${correction ? " (corrección)" : ""}`,
     liquidityLabel: "Liquidez",
     equalHighs: "Máx. iguales",
     equalLows: "Mín. iguales",

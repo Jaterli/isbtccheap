@@ -123,12 +123,17 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   y mínimos y ATR: le cuesta hacer esa aritmética de cabeza y ajusta los objetivos a la volatilidad), el máximo y el
   mínimo de los últimos 12 meses, la estructura de mercado en semanal y diario (pivotes con su RSI, máximos y mínimos
   crecientes o decrecientes, última ruptura, divergencias del RSI y Fibonacci en escala logarítmica, retrocesos y
-  extensiones, del tramo que contiene el precio) y los
+  extensiones, de dos tramos: el principal, desde el último mínimo que ningún cierre ha perdido hasta el máximo posterior
+  o al revés en bajada, el mayor de los dos, y su corrección, provisional mientras no se confirme su extremo) y los
   imbalances (fair value gaps) sin rellenar en semanal, diario y 4 h, la liquidez pendiente en diario y 4 h (máximos y
   mínimos que el precio no ha vuelto a superar, agrupando los iguales; se guarda también en `analysis.json` para dibujarla
   en su gráfico, con un selector 4h / 1D), las zonas de reacción en diario y 4 h (todos los pivotes cercanos agrupados,
-  con cuántas veces ha girado ahí el precio: los soportes y resistencias del modelo tienen que apoyarse en ellas, afinando
-  cada zona diaria con la de 4 h que caiga dentro, más estrecha, y no en Fibonacci, que queda para estimar hasta dónde llega el precio al cruzar un hueco), la pérdida no realizada y la realizada de los holders de corto plazo frente a su media de 90 días, con su
+  con cuántas veces ha girado ahí el precio y cuántas la han atravesado los cierres sin girar, en total y desde la
+  última reacción, que le restan fuerza: los soportes y resistencias del modelo tienen que apoyarse en ellas, afinando
+  cada zona diaria con la de 4 h que caiga dentro, más estrecha, y no en Fibonacci ni imbalances, que quedan para los
+  objetivos, como hasta dónde llega el precio al cruzar un hueco; la validación anota en el log, con `anchored: false`,
+  la zona que no solape una zona de reacción ni contenga un pivote o una liquidez, y guarda en `fibonacci` los niveles de
+  los que sale algún objetivo o invalidación, que el gráfico dibuja como líneas naranjas), la pérdida no realizada y la realizada de los holders de corto plazo frente a su media de 90 días, con su
   percentil de 4 años, y su SOPR diario (bitview.space: el estrés y si se convierte en ventas con pérdidas, una capitulación) y el contexto de ciclo (máximo histórico, techos y
   suelos de los ciclos anteriores con el mismo criterio que la web, y el mínimo del ciclo actual). Todo calculado, como
   referencias, no como conclusiones; el modelo resume la tendencia de fondo en el campo `trend`. Además, la hora y si

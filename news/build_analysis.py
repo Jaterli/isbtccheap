@@ -76,13 +76,17 @@ días transcurridos y distancia del precio), los techos y suelos de los ciclos a
 suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para semanal y diario y calculado con sus velas: los \
 últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
 el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
-ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) del tramo más \
-reciente que contiene el precio: retrocesos dentro del tramo y extensiones 1,272 y 1,618 más allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
+ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) de dos \
+tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
+máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo posterior \
+(provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y 1,618 más \
+allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
 no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: máximos y mínimos de la estructura que \
 el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
 máximos o mínimos iguales, que concentran más órdenes. En reaction_zones, para diario y 4 h, las zonas donde el precio \
 ha girado de verdad (todos los pivotes cercanos, agrupados): cuántas reacciones ha habido, cuántas como techo y cuántas \
-como suelo, y cuándo fue la última. En short_term_holders, con datos on-chain diarios (el último día completo), de \
+como suelo, cuándo fue la última, y cuántas veces la han atravesado los cierres de lado a lado sin girar (crossings, en \
+total, y crossings_since_last, desde la última reacción). En short_term_holders, con datos on-chain diarios (el último día completo), de \
 los holders de corto plazo (monedas movidas hace menos de 155 días): su pérdida no realizada y su pérdida realizada \
 del día, cada una en miles de millones de dólares, con su media de 90 días, el ratio entre ambas, su percentil frente \
 a los últimos 4 años y el ratio de los últimos 14 días, y su SOPR diario de los últimos 14 días (precio de venta entre \
@@ -109,8 +113,11 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 - supports y resistances: de 1 a 3 zonas de cada lado del precio actual, solo las realmente relevantes, como rangos \
 [low, high] de anchura realista, de la más cercana a la más lejana; strength de 1 (débil) a 3 (fuerte). Soportes por \
 debajo del precio y resistencias por encima. Cada zona tiene que estar donde el precio haya reaccionado de verdad: \
-reaction_zones (da más fuerza a las de más reacciones y más recientes), los pivotes de market_structure o la liquidez \
-pendiente. Un nivel de Fibonacci por sí solo no es una zona. Afina las zonas diarias con las de 4 h: si una zona de \
+reaction_zones (da más fuerza a las de más reacciones y más recientes, y menos a las que el precio ha atravesado \
+varias veces sin girar, sobre todo desde su última reacción: ya no las respeta; una sola ruptura seguida de una reacción \
+desde el otro lado no le resta, porque la confirma con el papel cambiado), los pivotes de market_structure o la liquidez \
+pendiente: cada zona tiene que contener al menos uno de ellos. Fibonacci e imbalances no bastan para una zona, aunque \
+coincidan varios: no la crean, solo pueden reforzar una que ya exista, y por sí solos sirven para objetivos. Afina las zonas diarias con las de 4 h: si una zona de \
 reaction_zones de 4 h cae dentro de una diaria (o la solapa casi entera), usa el rango de la de 4 h, más preciso, con la \
 fuerza que le da la diaria; si no hay ninguna, deja la diaria.
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
@@ -372,11 +379,54 @@ FIB_RETRACEMENTS = (0.382, 0.5, 0.618, 0.786)
 FIB_EXTENSIONS = (1.272, 1.618)
 
 
+def _fib(raw: list[list], i0: int, p0: float, i1: int, p1: float, price: float) -> dict:
+    """Niveles de Fibonacci de un tramo de p0 a p1 (escala logarítmica): retrocesos hacia p0 y extensiones más allá de p1,
+    y qué parte del tramo ha devuelto ya el precio."""
+    return {"from": {"date": _day(raw[i0]), "price": round(p0)}, "to": {"date": _day(raw[i1]), "price": round(p1)},
+            "direction": "up" if p1 > p0 else "down", "retraced_pct": round(math.log(p1 / price) / math.log(p1 / p0) * 100, 1),
+            "retracements": {str(f): round(p1 * (p0 / p1) ** f) for f in FIB_RETRACEMENTS},
+            "extensions": {str(f): round(p0 * (p1 / p0) ** f) for f in FIB_EXTENSIONS}}
+
+
+def fib_legs(raw: list[list], high: list[float], low: list[float], close: list[float], pivots: list) -> dict | None:
+    """Los dos tramos de Fibonacci que trazaría un analista:
+      main        el movimiento principal: desde el último mínimo de la estructura que ningún cierre ha perdido hasta el
+                  máximo posterior (o, en bajada, desde el último máximo que ningún cierre ha superado hasta el mínimo
+                  posterior); de los dos, el más grande
+      correction  la corrección desde el final de main hasta el extremo posterior, provisional mientras ese extremo no se
+                  confirme como pivote (el precio aún puede alargarla)
+    Así el tramo nace en el mínimo que protege la subida y llega a su punto más alto, sin cortarse en un pivote intermedio."""
+    price, n = close[-1], len(close)
+
+    def candidate(kind: str):
+        for i, k, level in reversed(pivots):
+            held = all(c >= level for c in close[i + 1:]) if kind == "low" else all(c <= level for c in close[i + 1:])
+            if k == kind and held:
+                j = max(range(i, n), key=lambda x: high[x]) if kind == "low" else min(range(i, n), key=lambda x: low[x])
+                end = high[j] if kind == "low" else low[j]
+                return (abs(math.log(end / level)), i, level, j, end) if j > i else None
+        return None
+
+    legs = [c for c in (candidate("low"), candidate("high")) if c]
+    if not legs:
+        return None
+    _, i0, p0, i1, p1 = max(legs)
+    out = {"scale": "log", "main": _fib(raw, i0, p0, i1, p1, price), "correction": None}
+    if i1 < n - 1:
+        up = p1 > p0
+        k = min(range(i1 + 1, n), key=lambda x: low[x]) if up else max(range(i1 + 1, n), key=lambda x: high[x])
+        ext = low[k] if up else high[k]
+        if ext != p1:
+            out["correction"] = {**_fib(raw, i1, p1, k, ext, price),
+                                 "provisional": not any(i == k for i, _, _ in pivots)}
+    return out
+
+
 def structure(raw: list[list], tf: str) -> dict:
     """Estructura de mercado de una temporalidad, calculada (no interpretada): los últimos pivotes con el RSI en cada uno
     y si son máximos o mínimos más altos o más bajos que el anterior, la última ruptura de un pivote por un cierre, las
-    divergencias del RSI entre los dos últimos máximos y los dos últimos mínimos, y los niveles de Fibonacci del último
-    tramo completo. Sirve igual para tendencias alcistas y bajistas."""
+    divergencias del RSI entre los dos últimos máximos y los dos últimos mínimos, y los niveles de Fibonacci del tramo
+    principal y de su corrección (fib_legs). Sirve igual para tendencias alcistas y bajistas."""
     high, low, close = _hlc(raw)
     rsi = _rsi(close)
     pivots, current = _zigzag(high, low, STRUCTURE_ATR[tf] * _atr(high, low, close))
@@ -422,21 +472,11 @@ def structure(raw: list[list], tf: str) -> dict:
         if cur and cur["type"] == kind and same and (d := divergence(same[-1], cur, True)):
             divergences.append(d)
 
-    # Fibonacci del tramo más reciente entre dos pivotes que aún contiene el precio (si ya lo ha devuelto entero, sus
-    # niveles no sirven) y qué parte ha devuelto, todo en escala logarítmica
-    fib = None
-    for a, b in reversed(list(zip(labelled, labelled[1:]))):
-        p0, p1 = a["price"], b["price"]
-        if min(p0, p1) <= close[-1] <= max(p0, p1) and p0 != p1:
-            fib = {"scale": "log", "from": {"date": a["date"], "price": p0}, "to": {"date": b["date"], "price": p1},
-                   "retraced_pct": round(math.log(p1 / close[-1]) / math.log(p1 / p0) * 100, 1),
-                   "retracements": {str(f): round(p1 * (p0 / p1) ** f) for f in FIB_RETRACEMENTS},
-                   "extensions": {str(f): round(p0 * (p1 / p0) ** f) for f in FIB_EXTENSIONS}}
-            break
+    fib = fib_legs(raw, high, low, close, pivots)
     for p in labelled:
         del p["_i"]
     return {"pivots": labelled[-8:], "current_extreme": cur, "last_break": last_break, "rsi_divergences": divergences,
-            "fibonacci_leg_containing_price": fib}
+            "fibonacci": fib}
 
 
 # Liquidez pendiente: tamaño mínimo de un tramo para que su extremo cuente (en ATR), tolerancia para dar por iguales dos
@@ -484,10 +524,23 @@ REACTION_RANGE = {"1d": 0.25, "4h": 0.10}
 REACTION_MAX = 5
 
 
+def _crossings(close: list[float], lo: float, hi: float) -> list[int]:
+    """Velas en las que el cierre atraviesa la zona de lado a lado: queda al otro lado del último cierre que estuvo fuera
+    de ella (los cierres dentro de la zona no cuentan como lado)."""
+    out, side = [], 0
+    for i, c in enumerate(close):
+        s = 1 if c > hi else -1 if c < lo else 0
+        if s:
+            if side and s != side:
+                out.append(i)
+            side = s
+    return out
+
+
 def reaction_zones(raw: list[list], tf: str) -> list[dict]:
     """Zonas donde el precio ha girado de verdad: todos los pivotes (máximos y mínimos de tramos relevantes, se hayan
     vuelto a tocar o no) agrupados por cercanía, con cuántas veces ha reaccionado ahí el precio, desde qué lado y cuándo
-    fue la última. Son la base de los soportes y resistencias; un mismo nivel puede haber sido soporte y luego
+    fue la última, y cuántas veces la han atravesado los cierres sin girar (en total y desde la última reacción). Son la base de los soportes y resistencias; un mismo nivel puede haber sido soporte y luego
     resistencia (o al revés)."""
     high, low, close = _hlc(raw)
     atr, price = _atr(high, low, close), close[-1]
@@ -506,9 +559,11 @@ def reaction_zones(raw: list[list], tf: str) -> list[dict]:
         if abs(mid / price - 1) > REACTION_RANGE[tf]:
             continue
         last = max(i for i, _ in z["touches"])
+        crossed = _crossings(close, z["low"], z["high"])
         out.append({"low": round(z["low"]), "high": round(z["high"]), "side": "above" if z["low"] > price else "below" if z["high"] < price else "at_price",
                     "reactions": len(z["touches"]), "as_high": sum(k == "high" for _, k in z["touches"]),
                     "as_low": sum(k == "low" for _, k in z["touches"]), "last": _day(raw[last]),
+                    "crossings": len(crossed), "crossings_since_last": sum(i > last for i in crossed),
                     "pct_from_price": round((mid / price - 1) * 100, 2)})
     near = lambda side: sorted((z for z in out if z["side"] == side), key=lambda z: abs(z["pct_from_price"]))[:REACTION_MAX]
     return near("above") + near("at_price") + near("below")
@@ -793,9 +848,34 @@ def basis_levels(data: dict) -> list[tuple[str, str, float, float]]:
         out += [("imbalance", tf, g["low"], g["high"]) for g in gaps]
     for tf, ms in data.get("market_structure", {}).items():
         out += [("pivot", tf, p["price"], p["price"]) for p in ms.get("pivots", []) + [ms.get("current_extreme") or {}] if p]
-        fib = ms.get("fibonacci_leg_containing_price") or {}
-        out += [("fibonacci", tf, v, v) for v in {**fib.get("retracements", {}), **fib.get("extensions", {})}.values()]
+        for leg in fib_legs_of(ms):
+            out += [("fibonacci", tf, v, v) for v in {**leg.get("retracements", {}), **leg.get("extensions", {})}.values()]
     return out
+
+
+def fib_legs_of(ms: dict) -> list[dict]:
+    """Los tramos de Fibonacci de una estructura, con leg: "main" o "correction"."""
+    fib = ms.get("fibonacci") or {}
+    return [{**fib[k], "leg": k} for k in ("main", "correction") if fib.get(k)]
+
+
+def fib_levels(data: dict) -> list[dict]:
+    """Los niveles de Fibonacci de los datos, con su temporalidad, su tramo, su ratio ("0.5", "1.272"...) y el día en
+    que empieza el tramo (from: desde ahí se dibuja la línea)."""
+    out = []
+    for tf, ms in data.get("market_structure", {}).items():
+        for leg in fib_legs_of(ms):
+            out += [{"timeframe": tf, "leg": leg["leg"], "ratio": r, "price": round(v), "from": leg["from"]["date"]}
+                    for r, v in {**leg.get("retracements", {}), **leg.get("extensions", {})}.items()]
+    return out
+
+
+def cited_fib(price: float, basis: dict, fibs: list[dict], tolerance: float) -> dict | None:
+    """El nivel de Fibonacci del que sale un precio, si el modelo dice que sale de uno y lo hay cerca en esa temporalidad."""
+    if basis.get("kind") != "fibonacci" or not basis.get("found"):
+        return None
+    near = [f for f in fibs if f["timeframe"] == basis.get("timeframe") and abs(f["price"] - price) <= tolerance]
+    return min(near, key=lambda f: abs(f["price"] - price)) if near else None
 
 
 def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> dict:
@@ -812,10 +892,33 @@ def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> di
                           "distance": round(gap((k, tf, lo, hi)))}
     return out
 
+# Lo que puede sostener una zona: una reacción real del precio, un pivote o liquidez pendiente (Fibonacci o un
+# imbalance solos, no). La zona tiene que solapar una zona de reacción, o contener un pivote o una liquidez con un margen
+# de ZONE_ATR (ATR diario) por redondeos
+ZONE_ANCHORS = ("reaction_zone", "pivot", "liquidity_pool")
+ZONE_ATR = 0.1
+
+
+def check_zone(z: dict, levels: list, tolerance: float) -> None:
+    """Marca la zona con anchored: si solapa una zona de reacción de los datos o contiene (con `tolerance` de margen) un
+    pivote o una liquidez. Solo se registra: no descarta el análisis."""
+    def touches(lv: tuple) -> bool:
+        tol = tolerance if lv[2] == lv[3] else 0  # los puntos, con margen; las zonas tienen que solaparse de verdad
+        return lv[2] <= z["high"] + tol and lv[3] >= z["low"] - tol
+    near = [lv for lv in levels if lv[0] in ZONE_ANCHORS and touches(lv)]
+    z["anchored"] = bool(near)
+    if not near:
+        inside = sorted({f"{lv[0]} {lv[1]}" for lv in levels if touches(lv)})
+        log.warning("Zona sin reacción, pivote ni liquidez (%s %s-%s); solo coincide con: %s", z["id"], z["low"], z["high"],
+                    ", ".join(inside) or "nada")
+
+
 def validate(a: dict, price: float, data: dict | None = None) -> dict:
     """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene. Con `data`
     (los datos que recibió el modelo), comprueba también de qué nivel salen objetivos e invalidaciones."""
     levels = basis_levels(data) if data else []
+    fibs = fib_levels(data) if data else []
+    cited: list[dict] = []  # niveles de Fibonacci de los que salen objetivos o invalidaciones, para dibujarlos
     atr_1d = (data or {}).get("indicators_1d", {}).get("atr14") or price * 0.03
     said = float(a.get("price") or 0)
     if not said or abs(said / price - 1) > 0.03:
@@ -839,6 +942,9 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     sup, res = zones(a["supports"], "support"), zones(a["resistances"], "resistance")
     if not sup or not res:
         raise ValueError(f"faltan zonas: {len(sup)} soportes, {len(res)} resistencias")
+    if levels:
+        for z in sup + res:
+            check_zone(z, levels, ZONE_ATR * atr_1d)
 
     def move(m: dict, limit: float) -> dict:
         target = float(m["target"])
@@ -849,6 +955,7 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         out = {"direction": m.get("direction") if m.get("direction") == d or d == "lateral" else d, "target": round(target)}
         if m.get("target_basis"):
             out["target_basis"] = check_basis(target, m["target_basis"], levels, BASIS_ATR * atr_1d)
+            cited.append(cited_fib(target, out["target_basis"], fibs, BASIS_ATR * atr_1d))
         if out["direction"] not in ("alcista", "bajista", "lateral"):
             out["direction"] = d
         if "invalidation" in m:
@@ -857,6 +964,7 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
             out["invalidation"] = round(inv) if inv and other_side and abs(inv / price - 1) <= limit else None
             if out["invalidation"] and m.get("invalidation_basis"):
                 out["invalidation_basis"] = check_basis(inv, m["invalidation_basis"], levels, BASIS_ATR * atr_1d)
+                cited.append(cited_fib(inv, out["invalidation_basis"], fibs, BASIS_ATR * atr_1d))
         return out
 
     short, days, alt = move(a["outlook"], MAX_SHORT), move(a["outlook_days"], MAX_DAYS), move(a["alternative"], MAX_SHORT)
@@ -877,6 +985,9 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         "outlook": short,
         "outlook_days": days,
         "alternative": alt,
+        # Se dibujan como líneas, no como zonas: son niveles calculados, no sitios donde el precio haya reaccionado
+        # Una línea por precio: la corrección semanal y la diaria pueden ser el mismo tramo
+        "fibonacci": list({f["price"]: f for f in cited if f}.values()),
     }
     for lang in ("es", "en"):
         t = a[lang]

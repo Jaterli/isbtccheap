@@ -62,6 +62,8 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
   // Liquidez pendiente e imbalances de la temporalidad del gráfico, solo los que caen dentro de la escala
   const pools = (a.liquidity?.pools[tf] ?? []).filter((p) => p.price >= chart.lo && p.price <= chart.hi);
   const gaps = (a.liquidity?.imbalances[tf] ?? []).filter((g) => g.high >= chart.lo && g.low <= chart.hi);
+  // Niveles de Fibonacci de los que sale algún objetivo o invalidación: líneas, no zonas
+  const fibs = (a.fibonacci ?? []).filter((f) => f.price >= chart.lo && f.price <= chart.hi);
   // x de la vela de un día (AAAA-MM-DD); si es anterior a las mostradas, el borde izquierdo
   const xAt = (d: string) => {
     const k = shown.findIndex((c) => c.time >= Date.parse(`${d}T00:00:00Z`));
@@ -93,6 +95,7 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
         </span>
         {!daily && <span className="muted small">{tx.legendStyle}</span>}
         {(pools.length > 0 || gaps.length > 0) && <span className="muted small">{tx.legendLiquidity}</span>}
+        {fibs.length > 0 && <span className="muted small">{tx.legendFib}</span>}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         <defs>
@@ -141,6 +144,14 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
             </g>
           );
         })}
+
+        {fibs.map((f) => (
+          <g key={`${f.timeframe}-${f.leg}-${f.ratio}`} className="an-fib">
+            {/* Desde el día en que empieza el tramo (o el borde izquierdo, si es anterior a las velas mostradas) */}
+            <line x1={f.from ? xAt(f.from) : PAD_L} x2={PAD_L + plotW} y1={y(f.price)} y2={y(f.price)} />
+            <text x={PAD_L + plotW - 4} y={y(f.price) - 4} textAnchor="end">{tx.fibLabel(f.ratio, f.timeframe, f.leg === "correction")}</text>
+          </g>
+        ))}
 
         {!daily && (
           <>

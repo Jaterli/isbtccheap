@@ -43,6 +43,18 @@ export interface Imbalance {
 
 export type ChartTf = "4h" | "1d";
 
+/** Nivel de Fibonacci del que sale un objetivo o una invalidación (se dibuja como línea, no como zona) */
+export interface FibLevel {
+  timeframe: "1w" | "1d";
+  /** main: el movimiento principal; correction: su corrección (ausente en análisis anteriores: main) */
+  leg?: "main" | "correction";
+  /** Retroceso o extensión del tramo: "0.5", "0.618", "1.272"… */
+  ratio: string;
+  price: number;
+  /** Día (AAAA-MM-DD) del precio en que empieza el tramo: la línea se dibuja desde ahí (ausente en análisis anteriores) */
+  from?: string;
+}
+
 export interface Analysis {
   generated_at: string;
   model: string;
@@ -58,6 +70,8 @@ export interface Analysis {
   es: AnalysisText;
   en: AnalysisText;
   /** Calculado por el script (no por el modelo) en el momento del análisis; ausente en análisis anteriores */
+  /** Ausente en análisis anteriores y cuando ningún objetivo sale de Fibonacci */
+  fibonacci?: FibLevel[];
   liquidity?: { pools: Partial<Record<ChartTf, LiquidityPool[]>>; imbalances: Partial<Record<ChartTf, Imbalance[]>> };
 }
 
