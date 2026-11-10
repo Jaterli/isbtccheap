@@ -65,7 +65,10 @@ semanales (el último año), diarias, de 4 h y de 1 h ([hora UTC, apertura, máx
 reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
 de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
 hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta, y la agenda económica de la semana (datos y \
-decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). Para cada temporalidad recibes \
+decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). En fed_decision_odds, las \
+probabilidades de cada resultado de las próximas reuniones de la Fed según el mercado de predicción Kalshi, ahora, \
+hace 24 h y hace 7 días: sus cambios muestran cómo ha reinterpretado el mercado los datos y discursos recientes, y \
+cuánto está ya descontado antes de la reunión. Para cada temporalidad recibes \
 también indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y en el \
 mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
 mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). En trend_context, el \
@@ -628,6 +631,79 @@ def calendar() -> list[dict]:
     return out
 
 
+KALSHI = "https://api.elections.kalshi.com/trade-api/v2"  # datos de mercado públicos, sin clave
+FED_SERIES = "KXFEDDECISION"  # un evento por reunión del FOMC, con un mercado por resultado
+FED_MEETINGS = 2  # la próxima reunión y la siguiente
+
+
+def _kalshi_price(obj: dict, field: str) -> float | None:
+    """Precio (probabilidad 0-1) de un campo de Kalshi, en dólares ("x_dollars": "0.4200") o en céntimos ("x": 42)."""
+    for key, scale in ((f"{field}_dollars", 1), (field, 100)):
+        v = obj.get(key)
+        if v not in (None, ""):
+            return float(v) / scale
+    return None
+
+
+def _kalshi_prob(obj: dict, prefix: str = "") -> float | None:
+    """Mitad de la horquilla compra/venta si la hay (más fiable que el último cruce en mercados poco activos); si no, el
+    último precio."""
+    bid, ask = _kalshi_price(obj, f"{prefix}yes_bid"), _kalshi_price(obj, f"{prefix}yes_ask")
+    if bid and ask and ask >= bid:
+        return (bid + ask) / 2
+    return _kalshi_price(obj, f"{prefix}price" if prefix else "last_price")
+
+
+def _kalshi_7d(ticker: str) -> float | None:
+    """Probabilidad de hace 7 días: cierre de la vela diaria de ese día."""
+    now = int(datetime.now(timezone.utc).timestamp())
+    data = get(f"{KALSHI}/series/{FED_SERIES}/markets/{ticker}/candlesticks?period_interval=1440"
+               f"&start_ts={now - 9 * 86400}&end_ts={now - 7 * 86400}")
+    candles = data.get("candlesticks") or []
+    if not candles:
+        return None
+    c = candles[-1]
+    bid, ask = _kalshi_price(c.get("yes_bid") or {}, "close"), _kalshi_price(c.get("yes_ask") or {}, "close")
+    if bid and ask and ask >= bid:
+        return (bid + ask) / 2
+    return _kalshi_price(c.get("price") or {}, "close")
+
+
+def fed_odds() -> list[dict]:
+    """Probabilidades de cada resultado de las próximas reuniones del FOMC según el mercado de predicción Kalshi: ahora,
+    hace 24 h y hace 7 días (normalizadas a 100 %). Los cambios muestran cómo reinterpreta el mercado los datos macro."""
+    events = get(f"{KALSHI}/events?series_ticker={FED_SERIES}&status=open&with_nested_markets=true&limit=10")["events"]
+    meetings = []
+    for e in events:
+        markets = e.get("markets") or []
+        when = min((m.get("close_time") or "" for m in markets), default="")
+        if markets and when:
+            meetings.append((when, e, markets))
+    out = []
+    for when, e, markets in sorted(meetings, key=lambda x: x[0])[:FED_MEETINGS]:
+        rows = []
+        for m in markets:
+            name = m.get("yes_sub_title") or " ".join(f"{k} {v}" for k, v in (m.get("custom_strike") or {}).items()) \
+                or m["ticker"]
+            try:
+                week = _kalshi_7d(m["ticker"])
+            except Exception as ex:  # sin la vela de hace 7 días se envía el resto
+                log.warning("Kalshi: sin histórico de %s: %s", m["ticker"], ex)
+                week = None
+            rows.append((name, _kalshi_prob(m), _kalshi_price(m, "previous_price"), week))
+
+        def norm(i: int) -> list[float | None]:
+            vals = [r[i] for r in rows]
+            total = sum(v for v in vals if v)
+            return [round(v / total * 100) if v is not None and total else None for v in vals]
+
+        now, day, week = norm(1), norm(2), norm(3)
+        outcomes = [{"outcome": r[0], "prob_now_pct": n, "prob_24h_ago_pct": d, "prob_7d_ago_pct": w}
+                    for r, n, d, w in zip(rows, now, day, week) if max(x or 0 for x in (n, d, w)) >= 1]
+        out.append({"decision_date_utc": when[:10], "title": e.get("title"), "outcomes": outcomes})
+    return out
+
+
 def now_context() -> dict:
     """Día y hora, y si la bolsa de EE. UU. está abierta: fuera de su horario (sobre todo en fin de semana) hay menos
     liquidez, sin flujos de los ETF. Es un dato, no una conclusión: el modelo decide si le da importancia."""
@@ -680,6 +756,10 @@ def market() -> dict:
     agenda = calendar()
     if agenda:
         data["economic_calendar_week"] = agenda
+    try:
+        data["fed_decision_odds"] = fed_odds()
+    except Exception as e:  # sin Kalshi el análisis sigue sin este dato
+        log.warning("Kalshi no disponible: %s", e)
     try:
         data["cycle_context"] = cycle_context(get(HISTORY_URL))
     except Exception as e:  # sin el histórico, el análisis sigue sin el contexto de ciclo

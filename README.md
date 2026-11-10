@@ -134,7 +134,9 @@ salió de la cadena al dejar de estar disponible en DigitalOcean.
   referencias, no como conclusiones; el modelo resume la tendencia de fondo en el campo `trend`. Además, la hora y si
   la bolsa de EE. UU. está
   abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
-  económica de la semana del `calendar.json`. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
+  económica de la semana del `calendar.json`, y las probabilidades de cada
+  resultado de las dos próximas reuniones de la Fed según Kalshi (API pública sin clave), ahora, hace 24 h y hace 7 días.
+  Kalshi está bloqueado desde España: en local, el análisis sale sin ese dato. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
   equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Los textos dicen qué nivel es cada
   precio que citan y por qué importa, y cada objetivo e invalidación lleva su base (`target_basis`: zona de reacción,
   liquidez, imbalance, pivote, Fibonacci o ATR, y temporalidad); el script comprueba que haya un nivel así a menos de
