@@ -56,14 +56,14 @@ def _post(url: str, body: dict, headers: dict, timeout: int) -> dict:
     raise AssertionError("inalcanzable")
 
 
-def _openai(provider: str, model: str, system: str, user: str, schema: dict, name: str) -> dict:
+def _openai(provider: str, model: str, system: str, user: str, schema: dict, name: str, max_tokens: int) -> dict:
     url, key = OPENAI_COMPATIBLE[provider]
     data = _post(url, {
         "model": model,
-        "max_tokens": 16000,
+        "max_tokens": max_tokens,
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},
-    }, {"Authorization": f"Bearer {os.environ[key]}"}, timeout=180)
+    }, {"Authorization": f"Bearer {os.environ[key]}"}, timeout=max(180, max_tokens // 100))
     choice = data["choices"][0]
     if choice.get("finish_reason") != "stop":
         raise RuntimeError(f"respuesta incompleta: finish_reason={choice.get('finish_reason')}")
@@ -97,9 +97,10 @@ def label(spec: str) -> str:
 
 
 def complete(system: str, user: str, schema: dict, name: str, models: list[str],
-             check: Callable[[dict], Any] | None = None) -> tuple[Any, str]:
+             check: Callable[[dict], Any] | None = None, max_tokens: int = 16000) -> tuple[Any, str]:
     """Respuesta JSON del primer modelo de `models` que responda y, si se indica, supere `check` (que la devuelve
-    transformada o lanza una excepción). Devuelve (respuesta, modelo usado)."""
+    transformada o lanza una excepción). Devuelve (respuesta, modelo usado). `max_tokens` (salida, razonamiento
+    incluido) solo se aplica a los modelos compatibles con OpenAI; el tiempo de espera crece con él."""
     for spec in models:
         provider, model = _split(spec)
         if provider not in OPENAI_COMPATIBLE and provider != "gemini":
@@ -110,7 +111,7 @@ def complete(system: str, user: str, schema: dict, name: str, models: list[str],
             continue
         try:
             data = _gemini(model, system, user, schema, name) if provider == "gemini" \
-                else _openai(provider, model, system, user, schema, name)
+                else _openai(provider, model, system, user, schema, name, max_tokens)
             return (check(data) if check else data), spec
         except Exception as e:  # el modelo siguiente puede servir
             log.warning("%s: %s falló: %s", name, spec, e)

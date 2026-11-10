@@ -8,6 +8,7 @@ Cada escenario se juzga en su plazo (el de las próximas horas en sus horizon_ho
   pendiente     el plazo aún no ha terminado
 El alternativo solo se juzga por si toca su objetivo en el plazo de las próximas horas.
 
+También agrupa el acierto por la base del objetivo (zona de reacción, liquidez, imbalance, pivote, Fibonacci o ATR).
 Además compara la distancia a objetivos e invalidaciones con lo que de verdad se movió el precio (calibración) y
 cuenta los cambios de dirección entre análisis seguidos con el precio casi igual. No llama a ningún modelo ni modifica
 el registro.
@@ -110,6 +111,7 @@ def main() -> None:
     total = {"Próximas horas": Counter(), "1-2 días": Counter(), "Alternativo (toca su objetivo)": Counter()}
     by_model: dict[str, Counter] = defaultdict(Counter)
     by_week: dict[str, Counter] = defaultdict(Counter)
+    by_basis: dict[str, Counter] = defaultdict(Counter)
     calib: dict[str, list[float]] = defaultdict(list)
     for r in rows:
         t, p, o, d, alt = when(r), r["price"], r["outlook"], r.get("outlook_days"), r["alternative"]
@@ -118,6 +120,8 @@ def main() -> None:
         total["Próximas horas"][res] += 1
         by_model[r["model"]][res] += 1
         by_week[datetime.fromisoformat(r["generated_at"]).strftime("%G-S%V")][res] += 1
+        if b := o.get("target_basis"):  # de qué nivel sale el objetivo (desde el 10 nov 2026)
+            by_basis[f"{b['kind']} {b['timeframe']}" + (" (sin nivel cerca)" if b.get("found") is False else "")][res] += 1
         if d:
             total["1-2 días"][judge(bars, t, DAYS_HOURS, p, d["direction"], d["target"], d.get("invalidation"))] += 1
         total["Alternativo (toca su objetivo)"][judge(bars, t, hours, p, alt["direction"], alt["target"], None)] += 1
@@ -136,6 +140,11 @@ def main() -> None:
     print("\nPróximas horas, por semana:")
     for week, c in sorted(by_week.items()):
         print(f"  {week:32} {summary(c)}")
+
+    if by_basis:
+        print("\nPróximas horas, por la base del objetivo:")
+        for basis, c in sorted(by_basis.items(), key=lambda kv: -sum(kv[1].values())):
+            print(f"  {basis:32} {summary(c)}")
 
     if calib["objetivo"]:
         print("\nCalibración de las próximas horas (mediana, en % del precio, de los plazos ya terminados):")

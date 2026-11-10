@@ -3,6 +3,7 @@ const NAMES: Record<string, string> = {
   "glm-5.3-flash": "GLM-5.3 Flash",
   "qwen3.5-397b-a17b": "Qwen 3.5",
   "gpt-oss-120b": "gpt-oss-120b",
+  "openai-gpt-oss-120b": "gpt-oss-120b",
   "gpt-oss-20b": "gpt-oss-20b",
   "qwen3.8-27b": "Qwen 3.8",
   "gemini-3.5-flash": "Gemini 3.5 Flash",

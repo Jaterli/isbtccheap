@@ -108,9 +108,10 @@ nivel 3):
 |---|---|
 | Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b → qwen3.8-27b → gpt-oss-20b (los tres en Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
 | Duplicados de noticias | Gemini 3.5 Flash → GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini Flash Latest (`DEDUPE_MODELS`); GLM se pasaba razonando hasta el límite de tokens |
-| Análisis | GLM-5.3 Flash → Qwen 3.5 → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`) |
+| Análisis | GLM-5.3 Flash → Gemini 3.5 Flash → Gemini Flash Latest → gpt-oss-120b (DigitalOcean, último recurso) (`ANALYSIS_MODELS`) |
 
-Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito.
+Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito. Qwen 3.5
+salió de la cadena al dejar de estar disponible en DigitalOcean.
 
 - `build_news.py`: titulares de 9 feeds RSS (cripto, macro, bolsa, geopolítica y la Fed) → clasificación e impacto, duplicados y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC
@@ -133,10 +134,13 @@ Los modelos de Groq no están en el análisis: sus datos superan los 8.000 token
   la bolsa de EE. UU. está
   abierta y, como contexto, los titulares de impacto medio y alto (5 o más) de las últimas 48 h del `news.json` y la agenda
   económica de la semana del `calendar.json`. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
-  equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Cada análisis se guarda también en
+  equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Los textos dicen qué nivel es cada
+  precio que citan y por qué importa, y cada objetivo e invalidación lleva su base (`target_basis`: zona de reacción,
+  liquidez, imbalance, pivote, Fibonacci o ATR, y temporalidad); el script comprueba que haya un nivel así a menos de
+  0,3 ATR diarios y, si no, lo avisa en el log con el nivel más cercano (solo lo registra, no descarta). Cada análisis se guarda también en
   `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 - `eval_analysis.py`: mide el acierto de los análisis del registro con las velas de 1 h de Binance (objetivo antes que
-  invalidación en su plazo), por modelo y por semana, si los objetivos guardan proporción con lo que se mueve el precio
+  invalidación en su plazo), por modelo, por semana y por la base del objetivo, si los objetivos guardan proporción con lo que se mueve el precio
   y cuántas veces cambia de dirección sin motivo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
   o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio).
 
@@ -150,11 +154,14 @@ crontab -e
 ```
 
 ```cron
-# Horas en UTC (la zona del droplet: compruébalo con `date`). Noticias cada 15 min, 5 min después de las horas en punto
-# y las medias, de lunes a viernes de 06:00 a 20:59 UTC: datos de la eurozona (desde las 07:00), BCE (12:15-13:45),
-# datos de EE. UU. (12:30-15:00) y Fed (18:00-19:30). El resto del tiempo y los fines de semana, cada hora
-5,20,35,50 6-20 * * 1-5 /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
-5 0-5,21-23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
+# Horas en UTC (la zona del droplet: compruébalo con `date`); en invierno, todo lo de Europa y EE. UU. va una hora más
+# tarde que en verano. Noticias cada 15 min (minutos 5, 20, 35 y 50) de lunes a viernes de 06:00 a 21:59 UTC, que cubre
+# en las dos estaciones (verano/invierno): datos de Alemania (06:00/07:00), bolsas europeas (07:00-15:30/08:00-16:30),
+# BCE (12:15-13:30/13:15-14:30), datos de EE. UU. (12:30-14:00/13:30-15:00), Wall Street (13:30-20:00/14:30-21:00),
+# Fed (18:00-19:30/19:00-20:30) y los resultados empresariales tras el cierre. El resto del tiempo y los fines de semana,
+# cada hora
+5,20,35,50 6-21 * * 1-5 /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
+5 0-5,22,23 * * 1-5     /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 5 * * * 0,6             /root/isbtccheap/news/run.sh build_news.py >> /var/log/isbtccheap-news.log 2>&1
 # Agenda: cada 30 min (minutos 2 y 32) cuando salen los datos de EE. UU. (12:00-15:59 UTC: 8:30 y 10:00 en Nueva York
 # con horario de verano o de invierno) y la Fed (18:00-20:59 UTC); cada hora en el resto del horario europeo, de lunes a
@@ -170,7 +177,7 @@ crontab -e
 0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
-Coste orientativo: 1-2 $/mes, más el análisis (unas 52 consultas al mes: unos 0,20 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
+Coste orientativo: menos de 1 $/mes en noticias y agenda (los duplicados, la tarea que más tokens gasta, van con el nivel gratuito de Gemini), más el análisis (unas 52 consultas al mes: unos 0,50 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
 sirve `news/out` en `/news/`.
 
 ## Estructura

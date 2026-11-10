@@ -37,9 +37,12 @@ log = logging.getLogger("analysis")
 
 # Por orden de preferencia (llm.py). En las pruebas (31 oct 2026), GLM-5.3 Flash dio el análisis más completo y preciso;
 # Gemini 3.5 Flash acertó también pero con menos detalle (queda de respaldo, en el nivel gratuito), y DeepSeek V4 Flash
-# confundía tendencias de los derivados. gpt-oss-120b (Groq) no cabe: los datos superan los 8.000 tokens por minuto de su
-# nivel gratuito
-MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,qwen3.5-397b-a17b,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
+# confundía tendencias de los derivados. Qwen 3.5, el primer respaldo, dejó de estar en DigitalOcean (10 nov 2026). Y
+# gpt-oss-120b, último recurso en DigitalOcean (en Groq no cabe: los datos superan los 8.000 tokens por minuto de su
+# nivel gratuito): en 3 pruebas (10 nov 2026) dio análisis válidos y baratos, pero leyó mal la estructura semanal y el
+# tipo de los huecos, y no respeta el formato de los precios
+MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,gemini:gemini-3.5-flash,gemini:gemini-flash-latest,"
+                             "openai-gpt-oss-120b")
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
@@ -88,9 +91,11 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
   "resistances": [{"low": número, "high": número, "strength": 1 a 3}, ...],
   "bias": "alcista" | "bajista" | "neutral",
   "confidence": 1 a 3,
-  "outlook": {"direction": "alcista" | "bajista" | "lateral", "target": número, "invalidation": número, "horizon_hours": número},
-  "outlook_days": {"direction": "alcista" | "bajista" | "lateral", "target": número, "invalidation": número},
-  "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número},
+  "outlook": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base, "invalidation": número, \
+"invalidation_basis": base, "horizon_hours": número},
+  "outlook_days": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base, "invalidation": número, \
+"invalidation_basis": base},
+  "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base},
   "es": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
   "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
 }
@@ -107,6 +112,10 @@ invalidaría ese escenario (al otro lado del precio actual).
 Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
+- target_basis e invalidation_basis (base: {"kind": ..., "timeframe": "1w" | "1d" | "4h" | "1h"}): de qué nivel de los \
+datos sale ese precio. kind: "reaction_zone", "liquidity_pool", "imbalance", "pivot" (de market_structure), "fibonacci" \
+o, si no hay un nivel cerca y lo estimas por la volatilidad, "atr". Elige el precio en el nivel, no un número redondo \
+cercano.
 - Los precios y las direcciones deben coincidir con lo que dicen los textos.
 - Ajusta objetivos e invalidaciones a la volatilidad reciente (ATR): en las próximas horas el precio suele moverse unos \
 pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo mucho más lejano es poco probable en ese plazo.
@@ -119,12 +128,16 @@ para los objetivos en ese caso, no para situar las zonas. cycle_context \
 sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
 predecir las próximas horas o días por analogía con otros ciclos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
-la situación de BTC hoy en 2 o 3 frases (70 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
-estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 1 o 2 frases (50 palabras como \
-máximo). outlook: lo más probable en las \
-próximas horas y qué \
-lo invalidaría, en 1 o 2 frases. outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves breves (25 palabras como \
-máximo) de lo que está moviendo el precio.
+la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
+estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 2 o 3 frases (80 palabras como \
+máximo). outlook: lo más probable en las próximas horas, hacia dónde y qué lo invalidaría, en 2 o 3 frases (70 palabras \
+como máximo). outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves (35 palabras como máximo cada una) de lo \
+que está moviendo el precio.
+- Cada precio que cites en los textos, salvo el actual, debe decir en pocas palabras qué nivel es y por qué importa, \
+con los datos que lo respaldan: por ejemplo "los mínimos iguales de 4 h en 73.500 $, donde se acumulan stops de \
+largos", "el 50 % de Fibonacci del tramo diario (71.200 $), dentro de una zona con 6 reacciones" o "el hueco de 4 h \
+entre 77.000 y 80.200 $ que el precio no ha rellenado". Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
+menciones: di su precio. Nombra los datos con palabras normales, no con sus nombres en el JSON.
 
 Precios en dólares redondeados en los textos (78.500 $ en español, $78,500 en inglés). Habla de probabilidades y \
 escenarios, nunca de certezas, y no des recomendaciones de compra o venta."""
@@ -137,8 +150,14 @@ TEXT = {"type": "object",
                        "outlook": {"type": "string"}, "outlook_days": {"type": "string"},
                        "points": {"type": "array", "items": {"type": "string"}}},
         "required": ["headline", "summary", "trend", "outlook", "outlook_days", "points"], "additionalProperties": False}
-MOVE = {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "invalidation": {"type": "number"}},
-        "required": ["direction", "target", "invalidation"], "additionalProperties": False}
+# De qué nivel de los datos sale un objetivo o una invalidación (se comprueba en check_basis)
+BASIS_KINDS = ["reaction_zone", "liquidity_pool", "imbalance", "pivot", "fibonacci", "atr"]
+BASIS = {"type": "object", "properties": {"kind": {"type": "string", "enum": BASIS_KINDS},
+                                          "timeframe": {"type": "string", "enum": ["1w", "1d", "4h", "1h"]}},
+         "required": ["kind", "timeframe"], "additionalProperties": False}
+MOVE = {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "target_basis": BASIS,
+                                         "invalidation": {"type": "number"}, "invalidation_basis": BASIS},
+        "required": ["direction", "target", "target_basis", "invalidation", "invalidation_basis"], "additionalProperties": False}
 # Esquema estricto (DigitalOcean, compatible con OpenAI, y Gemini): todos los campos obligatorios
 SCHEMA = {
     "type": "object",
@@ -151,8 +170,8 @@ SCHEMA = {
         "outlook": {**MOVE, "properties": {**MOVE["properties"], "horizon_hours": {"type": "integer"}},
                     "required": [*MOVE["required"], "horizon_hours"]},
         "outlook_days": MOVE,
-        "alternative": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}},
-                        "required": ["direction", "target"], "additionalProperties": False},
+        "alternative": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "target_basis": BASIS},
+                        "required": ["direction", "target", "target_basis"], "additionalProperties": False},
         "es": TEXT,
         "en": TEXT,
     },
@@ -618,8 +637,45 @@ def market() -> dict:
 
 # ---------- Validación ----------
 
-def validate(a: dict, price: float) -> dict:
-    """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene."""
+# Distancia máxima, en ATR diarios, entre un objetivo o invalidación y el nivel de los datos que el modelo dice usar
+BASIS_ATR = 0.3
+
+
+def basis_levels(data: dict) -> list[tuple[str, str, float, float]]:
+    """Niveles de los datos como (kind, timeframe, desde, hasta): las zonas e imbalances son rangos; el resto, puntos."""
+    out = []
+    for tf, zones in data.get("reaction_zones", {}).items():
+        out += [("reaction_zone", tf, z["low"], z["high"]) for z in zones]
+    for tf, pools in data.get("liquidity_pools", {}).items():
+        out += [("liquidity_pool", tf, p["price"], p["price"]) for p in pools]
+    for tf, gaps in data.get("imbalances", {}).items():
+        out += [("imbalance", tf, g["low"], g["high"]) for g in gaps]
+    for tf, ms in data.get("market_structure", {}).items():
+        out += [("pivot", tf, p["price"], p["price"]) for p in ms.get("pivots", []) + [ms.get("current_extreme") or {}] if p]
+        fib = ms.get("fibonacci_leg_containing_price") or {}
+        out += [("fibonacci", tf, v, v) for v in {**fib.get("retracements", {}), **fib.get("extensions", {})}.values()]
+    return out
+
+
+def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> dict:
+    """La base que da el modelo, con found: si hay un nivel de ese tipo y temporalidad cerca del precio (si no lo hay,
+    nearest: el nivel más cercano de cualquier tipo). Solo se registra: no descarta el análisis."""
+    out = {"kind": basis.get("kind"), "timeframe": basis.get("timeframe")}
+    if out["kind"] == "atr" or not levels:
+        return out
+    gap = lambda lv: max(lv[2] - price, price - lv[3], 0)
+    out["found"] = any(gap(lv) <= tolerance for lv in levels if lv[0] == out["kind"] and lv[1] == out["timeframe"])
+    if not out["found"]:
+        k, tf, lo, hi = min(levels, key=gap)
+        out["nearest"] = {"kind": k, "timeframe": tf, "level": round(lo) if lo == hi else [round(lo), round(hi)],
+                          "distance": round(gap((k, tf, lo, hi)))}
+    return out
+
+def validate(a: dict, price: float, data: dict | None = None) -> dict:
+    """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene. Con `data`
+    (los datos que recibió el modelo), comprueba también de qué nivel salen objetivos e invalidaciones."""
+    levels = basis_levels(data) if data else []
+    atr_1d = (data or {}).get("indicators_1d", {}).get("atr14") or price * 0.03
     said = float(a.get("price") or 0)
     if not said or abs(said / price - 1) > 0.03:
         raise ValueError(f"el modelo da un precio de {said} y en Binance está a {price:.0f}")
@@ -650,16 +706,26 @@ def validate(a: dict, price: float) -> dict:
         # La dirección la marca el objetivo: un "alcista" con objetivo por debajo no se sostiene
         d = "lateral" if abs(target / price - 1) < 0.004 else "alcista" if target > price else "bajista"
         out = {"direction": m.get("direction") if m.get("direction") == d or d == "lateral" else d, "target": round(target)}
+        if m.get("target_basis"):
+            out["target_basis"] = check_basis(target, m["target_basis"], levels, BASIS_ATR * atr_1d)
         if out["direction"] not in ("alcista", "bajista", "lateral"):
             out["direction"] = d
         if "invalidation" in m:
             inv = float(m["invalidation"] or 0)
             other_side = (inv - price) * (target - price) < 0
             out["invalidation"] = round(inv) if inv and other_side and abs(inv / price - 1) <= limit else None
+            if out["invalidation"] and m.get("invalidation_basis"):
+                out["invalidation_basis"] = check_basis(inv, m["invalidation_basis"], levels, BASIS_ATR * atr_1d)
         return out
 
     short, days, alt = move(a["outlook"], MAX_SHORT), move(a["outlook_days"], MAX_DAYS), move(a["alternative"], MAX_SHORT)
     short["horizon_hours"] = max(1, min(24, int(a["outlook"].get("horizon_hours") or 12)))
+    for name, m in (("horas", short), ("1-2 días", days), ("alternativo", alt)):
+        for field in ("target", "invalidation"):
+            b = m.get(f"{field}_basis")
+            if b and b.get("found") is False:
+                log.warning("Base no encontrada (%s, %s %s): dice %s de %s; lo más cercano: %s", name, field, m[field],
+                            b["kind"], b["timeframe"], b["nearest"])
     if short["direction"] == alt["direction"]:
         raise ValueError(f"el escenario alternativo va en la misma dirección que el principal ({short['direction']})")
 
@@ -708,11 +774,12 @@ def main() -> None:
 
         def check(raw: dict) -> dict:
             prices.append(float(get(PRICE_URL)["price"]))  # el del momento de la respuesta
-            return validate(raw, prices[-1])
+            return validate(raw, prices[-1], data)
 
         try:
             # Si la respuesta no se sostiene (zonas al lado equivocado, precio que no cuadra…), se prueba el siguiente
-            result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis", MODELS, check)
+            # GLM razona unos 13.000 tokens con los textos largos: con el límite general (16.000) fallaba 1 de cada 2
+            result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis", MODELS, check, max_tokens=32000)
         except RuntimeError:
             raise SystemExit("ningún modelo dio un análisis válido: se mantiene el anterior")
         price, model = prices[-1], llm.label(spec)
