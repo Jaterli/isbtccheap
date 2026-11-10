@@ -323,7 +323,7 @@ def main() -> None:
     new = sorted((it for k, it in items.items() if k not in seen), key=lambda it: it["published"])
     log.info("Titulares nuevos: %d (ya clasificados: %d)", len(new), len(seen))
 
-    classified = 0
+    classified = publishable = 0
     for i in range(0, len(new), BATCH):
         batch = new[i : i + BATCH]
         if args.dry_run:
@@ -338,9 +338,12 @@ def main() -> None:
             if it["key"] in result:
                 seen[it["key"]] = it | result[it["key"]]
                 classified += 1
+                r = result[it["key"]]
+                publishable += r["impact"] >= FILL_IMPACT and r["category"] != "irrelevante"
 
-    # Los duplicados solo pueden aparecer cuando entran noticias nuevas
-    if classified and not args.dry_run:
+    # Los duplicados solo pueden aparecer cuando entra una noticia que puede publicarse (un tercio de los titulares): las
+    # demás no llegan a la tarjeta. Así se gastan menos llamadas del nivel gratuito de Gemini, que comparte con el análisis
+    if publishable and not args.dry_run:
         try:
             dedupe(seen, now)
         except Exception as e:

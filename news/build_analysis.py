@@ -37,12 +37,11 @@ log = logging.getLogger("analysis")
 
 # Por orden de preferencia (llm.py). En las pruebas (31 oct 2026), GLM-5.3 Flash dio el análisis más completo y preciso;
 # Gemini 3.5 Flash acertó también pero con menos detalle (queda de respaldo, en el nivel gratuito), y DeepSeek V4 Flash
-# confundía tendencias de los derivados. Qwen 3.5, el primer respaldo, dejó de estar en DigitalOcean (10 nov 2026). Y
-# gpt-oss-120b, último recurso en DigitalOcean (en Groq no cabe: los datos superan los 8.000 tokens por minuto de su
-# nivel gratuito): en 3 pruebas (10 nov 2026) dio análisis válidos y baratos, pero leyó mal la estructura semanal y el
-# tipo de los huecos, y no respeta el formato de los precios
-MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,gemini:gemini-3.5-flash,gemini:gemini-flash-latest,"
-                             "openai-gpt-oss-120b")
+# confundía tendencias de los derivados. Qwen 3.5, el primer respaldo, dejó de estar en DigitalOcean (10 nov 2026).
+# gpt-oss-120b (DigitalOcean; en Groq no cabe: los datos superan los 8.000 tokens por minuto de su nivel gratuito) se
+# descartó: en las pruebas y en un análisis publicado (10 nov 2026) leyó mal la estructura semanal, inventó niveles y no
+# respeta el formato de los precios. Si fallan todos, la web mantiene el análisis anterior, mejor que uno erróneo
+MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"

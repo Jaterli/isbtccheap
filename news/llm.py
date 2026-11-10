@@ -65,9 +65,12 @@ def _openai(provider: str, model: str, system: str, user: str, schema: dict, nam
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},
     }, {"Authorization": f"Bearer {os.environ[key]}"}, timeout=max(180, max_tokens // 100))
     choice = data["choices"][0]
-    if choice.get("finish_reason") != "stop":
-        raise RuntimeError(f"respuesta incompleta: finish_reason={choice.get('finish_reason')}")
     usage = data.get("usage", {})
+    if choice.get("finish_reason") != "stop":
+        # Con los tokens gastados se distingue si agotó el límite (razonamiento en bucle) o se cortó por otra causa
+        raise RuntimeError(f"respuesta incompleta: finish_reason={choice.get('finish_reason')}, "
+                           f"{usage.get('prompt_tokens')} tokens de entrada, {usage.get('completion_tokens')} de salida "
+                           f"(límite {max_tokens})")
     log.info("%s (%s): %s tokens de entrada, %s de salida", name, model, usage.get("prompt_tokens"), usage.get("completion_tokens"))
     return json.loads(choice["message"]["content"])
 
