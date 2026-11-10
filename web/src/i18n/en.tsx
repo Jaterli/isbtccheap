@@ -566,7 +566,7 @@ export const en: Messages = {
   news: {
     title: "Latest market news",
     info: [
-      "Recent headlines from Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC and the Federal Reserve. Every 15 minutes during market hours (hourly otherwise), an AI model rates them by their likely short-term impact on the BTC price and drops duplicates.",
+      "Recent headlines from Cointelegraph, CoinDesk, Investing.com, CNBC, BBC and the Federal Reserve. Every 15 minutes during market hours (hourly otherwise), an AI model rates them by their likely short-term impact on the BTC price and drops duplicates.",
       "It shows the 10 with the most impact over the last 48 hours, giving priority to the most recent. Each headline links to the original story; the automatic selection may contain errors. The colour dot shows the estimated impact:",
     ],
     levels: { high: "High impact", mid: "Medium impact", low: "Moderate impact" },

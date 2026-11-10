@@ -113,7 +113,7 @@ nivel 3):
 Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito. Qwen 3.5
 salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b, por leer mal la estructura del mercado.
 
-- `build_news.py`: titulares de 9 feeds RSS (cripto, macro, bolsa, geopolítica y la Fed) → clasificación e impacto, duplicados (solo cuando entra un titular que puede publicarse) y traducción de los 10 publicados.
+- `build_news.py`: titulares de 7 feeds RSS (cripto, macro, bolsa, geopolítica y la Fed) → clasificación e impacto, duplicados (solo cuando entra un titular que puede publicarse) y traducción de los 10 publicados.
 - `build_calendar.py`: calendario semanal de Forex Factory → eventos de impacto alto y medio de EE. UU., el ADP, el IPC
   preliminar de la zona euro y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las

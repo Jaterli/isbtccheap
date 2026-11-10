@@ -576,7 +576,7 @@ export const es = {
   news: {
     title: "Últimas noticias del mercado",
     info: [
-      "Titulares recientes de Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC, BBC y la Reserva Federal. Cada 15 minutos en horario de mercado (cada hora el resto del tiempo), un modelo de IA los clasifica según su posible impacto en el precio de BTC a corto plazo, descarta los repetidos y traduce los titulares.",
+      "Titulares recientes de Cointelegraph, CoinDesk, Investing.com, CNBC, BBC y la Reserva Federal. Cada 15 minutos en horario de mercado (cada hora el resto del tiempo), un modelo de IA los clasifica según su posible impacto en el precio de BTC a corto plazo, descarta los repetidos y traduce los titulares.",
       "Se muestran las 10 de más impacto de las últimas 48 horas, con prioridad para las más recientes. Cada titular enlaza a la noticia original; la selección y la traducción automáticas pueden contener errores. El indicador de color muestra el impacto estimado:",
     ],
     levels: { high: "Impacto alto", mid: "Impacto medio", low: "Impacto moderado" },

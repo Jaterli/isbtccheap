@@ -85,7 +85,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿De dónde salen los datos?",
-        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker de TFTC, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC y BBC.",
+        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker de TFTC, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Investing.com, CNBC y BBC.",
       },
       {
         q: "¿Es una recomendación de inversión?",
@@ -121,7 +121,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Where does the data come from?",
-        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker by TFTC, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Decrypt, Investing.com, CNBC and BBC.",
+        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker by TFTC, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Investing.com, CNBC and BBC.",
       },
       {
         q: "Is this investment advice?",
