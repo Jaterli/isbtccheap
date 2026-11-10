@@ -143,7 +143,8 @@ salió de la cadena al dejar de estar disponible en DigitalOcean.
   0,3 ATR diarios y, si no, lo avisa en el log con el nivel más cercano (solo lo registra, no descarta). Cada análisis se guarda también en
   `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
 - `eval_analysis.py`: mide el acierto de los análisis del registro con las velas de 1 h de Binance (objetivo antes que
-  invalidación en su plazo), por modelo, por semana y por la base del objetivo, si los objetivos guardan proporción con lo que se mueve el precio
+  invalidación en su plazo), frente al que tendría un precio que se moviera al azar con esos objetivos e invalidaciones,
+  por modelo, por semana y por la base del objetivo, si los objetivos guardan proporción con lo que se mueve el precio
   y cuántas veces cambia de dirección sin motivo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
   o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio).
 

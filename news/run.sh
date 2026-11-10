@@ -7,4 +7,5 @@ set -a
 set +a
 echo "== $(date -u +%FT%TZ) $1"
 # -n: si la ejecución anterior aún no ha terminado, se salta esta
-exec flock -n "/tmp/isbtccheap-${1%.py}.lock" python3 "$DIR/$1"
+# El resto de argumentos pasan al script (p. ej. eval_analysis.py --since AAAA-MM-DD)
+exec flock -n "/tmp/isbtccheap-${1%.py}.lock" python3 "$DIR/$1" "${@:2}"

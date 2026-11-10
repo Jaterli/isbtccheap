@@ -8,6 +8,8 @@ Cada escenario se juzga en su plazo (el de las próximas horas en sus horizon_ho
   pendiente     el plazo aún no ha terminado
 El alternativo solo se juzga por si toca su objetivo en el plazo de las próximas horas.
 
+Junto a cada acierto da la referencia del azar: el que tendría un precio que se moviera al azar con esas mismas
+distancias al objetivo y a la invalidación (con la invalidación más lejos que el objetivo, acertar es más fácil).
 También agrupa el acierto por la base del objetivo (zona de reacción, liquidez, imbalance, pivote, Fibonacci o ATR).
 Además compara la distancia a objetivos e invalidaciones con lo que de verdad se movió el precio (calibración) y
 cuenta los cambios de dirección entre análisis seguidos con el precio casi igual. No llama a ningún modelo ni modifica
@@ -83,9 +85,33 @@ def excursion(bars, start: int, hours: float, price: float) -> tuple[float, floa
     return (max(b[1] for b in win) / price - 1) * 100, (min(b[2] for b in win) / price - 1) * 100
 
 
+def chance(price: float, direction: str, target: float, inval: float | None) -> float | None:
+    """Probabilidad de tocar antes el objetivo que la invalidación si el precio se moviera al azar (paseo aleatorio sin
+    tendencia): distancia a la invalidación / (distancia al objetivo + distancia a la invalidación). Un objetivo cerca
+    y una invalidación lejos aciertan a menudo sin saber nada; el acierto solo aporta si supera esta referencia."""
+    if direction == "lateral" or not inval:
+        return None
+    up, down = abs(target - price), abs(inval - price)
+    return down / (up + down) if up + down else None
+
+
+def count(c: Counter, res: str, base: float | None) -> None:
+    """Suma el resultado y, si está resuelto, la referencia del azar de ese escenario."""
+    c[res] += 1
+    if res in ("acierta", "falla") and base is not None:
+        c["_azar"] += base
+        c["_azar_n"] += 1
+
+
+def total_of(c: Counter) -> int:
+    return sum(c[k] for k in ("acierta", "falla", "sin resolver", "dudoso", "pendiente"))
+
+
 def summary(c: Counter) -> str:
     resolved = c["acierta"] + c["falla"]
     rate = f"{c['acierta'] / resolved * 100:.0f} % de acierto ({c['acierta']}/{resolved} resueltos)" if resolved else "sin resueltos"
+    if c["_azar_n"]:
+        rate += f", azar {c['_azar'] / c['_azar_n'] * 100:.0f} %"
     rest = ", ".join(f"{k} {c[k]}" for k in ("sin resolver", "dudoso", "pendiente") if c[k])
     return rate + (f"; {rest}" if rest else "")
 
@@ -117,13 +143,15 @@ def main() -> None:
         t, p, o, d, alt = when(r), r["price"], r["outlook"], r.get("outlook_days"), r["alternative"]
         hours = o.get("horizon_hours") or 24
         res = judge(bars, t, hours, p, o["direction"], o["target"], o.get("invalidation"))
-        total["Próximas horas"][res] += 1
-        by_model[r["model"]][res] += 1
-        by_week[datetime.fromisoformat(r["generated_at"]).strftime("%G-S%V")][res] += 1
+        base = chance(p, o["direction"], o["target"], o.get("invalidation"))
+        count(total["Próximas horas"], res, base)
+        count(by_model[r["model"]], res, base)
+        count(by_week[datetime.fromisoformat(r["generated_at"]).strftime("%G-S%V")], res, base)
         if b := o.get("target_basis"):  # de qué nivel sale el objetivo (desde el 10 nov 2026)
-            by_basis[f"{b['kind']} {b['timeframe']}" + (" (sin nivel cerca)" if b.get("found") is False else "")][res] += 1
+            count(by_basis[f"{b['kind']} {b['timeframe']}" + (" (sin nivel cerca)" if b.get("found") is False else "")], res, base)
         if d:
-            total["1-2 días"][judge(bars, t, DAYS_HOURS, p, d["direction"], d["target"], d.get("invalidation"))] += 1
+            count(total["1-2 días"], judge(bars, t, DAYS_HOURS, p, d["direction"], d["target"], d.get("invalidation")),
+                  chance(p, d["direction"], d["target"], d.get("invalidation")))
         total["Alternativo (toca su objetivo)"][judge(bars, t, hours, p, alt["direction"], alt["target"], None)] += 1
         if (ex := excursion(bars, t, hours, p)) and o["direction"] != "lateral":
             calib["objetivo"].append(abs(o["target"] / p - 1) * 100)
@@ -131,11 +159,12 @@ def main() -> None:
                 calib["invalidación"].append(abs(o["invalidation"] / p - 1) * 100)
             calib["movimiento real (mayor de subida o bajada)"].append(max(ex[0], -ex[1]))
 
-    print("Acierto por escenario:")
+    print("Acierto por escenario (azar: el que tendría el precio moviéndose al azar con esos objetivos e invalidaciones;"
+          " el análisis solo aporta si lo supera):")
     for name, c in total.items():
         print(f"  {name:32} {summary(c)}")
     print("\nPróximas horas, por modelo:")
-    for model, c in sorted(by_model.items(), key=lambda kv: -sum(kv[1].values())):
+    for model, c in sorted(by_model.items(), key=lambda kv: -total_of(kv[1])):
         print(f"  {model:32} {summary(c)}")
     print("\nPróximas horas, por semana:")
     for week, c in sorted(by_week.items()):
@@ -143,7 +172,7 @@ def main() -> None:
 
     if by_basis:
         print("\nPróximas horas, por la base del objetivo:")
-        for basis, c in sorted(by_basis.items(), key=lambda kv: -sum(kv[1].values())):
+        for basis, c in sorted(by_basis.items(), key=lambda kv: -total_of(kv[1])):
             print(f"  {basis:32} {summary(c)}")
 
     if calib["objetivo"]:
