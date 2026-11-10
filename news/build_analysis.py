@@ -24,7 +24,7 @@ import math
 import os
 import sys
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -80,7 +80,11 @@ no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: m
 el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
 máximos o mínimos iguales, que concentran más órdenes. En reaction_zones, para diario y 4 h, las zonas donde el precio \
 ha girado de verdad (todos los pivotes cercanos, agrupados): cuántas reacciones ha habido, cuántas como techo y cuántas \
-como suelo, y cuándo fue la última. Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
+como suelo, y cuándo fue la última. En short_term_holders, con datos on-chain diarios (el último día completo), de \
+los holders de corto plazo (monedas movidas hace menos de 155 días): su pérdida no realizada y su pérdida realizada \
+del día, cada una en miles de millones de dólares, con su media de 90 días, el ratio entre ambas, su percentil frente \
+a los últimos 4 años y el ratio de los últimos 14 días, y su SOPR diario de los últimos 14 días (precio de venta entre \
+precio de compra de lo que se movió: por debajo de 1, venden con pérdidas). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
 contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
 factores pesan más.
 
@@ -126,7 +130,12 @@ son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes 
 hasta dónde puede llegar el precio cuando atraviesa un tramo sin zonas de reacción, como un imbalance grande: úsalo \
 para los objetivos en ese caso, no para situar las zonas. cycle_context \
 sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
-predecir las próximas horas o días por analogía con otros ciclos.
+predecir las próximas horas o días por analogía con otros ciclos. short_term_holders mide el estrés de los que \
+compraron en los últimos meses: una pérdida no realizada muy alta (ratio y percentil altos) indica que muchos están en \
+pérdidas fuertes y pueden vender; una capitulación es cuando venden de verdad: pérdida realizada disparada frente a su \
+media y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open interest y miedo extremo, y \
+suele quedar cerca de un suelo. Sin ventas realizadas, el estrés solo es riesgo de más presión vendedora. Son datos \
+diarios con un día de retraso: contexto para el sesgo, no una señal de giro por sí solos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
 la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
 estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 2 o 3 frases (80 palabras como \
@@ -240,6 +249,53 @@ def cycle_context(history: dict) -> dict:
         "current_cycle": {**row(current), "bottom_is_low_so_far": True, "days_since_bottom": (today - current["low"]).days},
         "as_of": today.isoformat(),
     }
+
+
+BITVIEW = "https://bitview.space/api/series/{series}/day1?start=-{days}"  # Bitcoin Research Kit público, sin clave
+STH_LOSS_MEAN = 90
+STH_LOSS_PCT_DAYS = 1460  # el percentil de los ratios, frente a los últimos 4 años (como el score)
+
+
+def _bitview(series: str, days: int) -> tuple[date, list[float]]:
+    """Valores diarios de una serie de bitview hasta el último día completo (el de hoy está en curso) y su fecha."""
+    d = get(BITVIEW.format(series=series, days=days + 1))
+    values = [float(x or 0) for x in d["data"]][:-1]
+    return date(2009, 1, 1) + timedelta(days=d["start"] + len(values) - 1), values
+
+
+def _vs_mean(values: list[float]) -> dict:
+    """El último valor (en miles de millones de dólares) frente a su media de STH_LOSS_MEAN días: el ratio, su
+    percentil en STH_LOSS_PCT_DAYS días y el ratio de los últimos 14."""
+    ratios = []
+    for i in range(STH_LOSS_MEAN - 1, len(values)):
+        mean = sum(values[i - STH_LOSS_MEAN + 1:i + 1]) / STH_LOSS_MEAN
+        ratios.append(values[i] / mean if mean else None)
+    valid = [r for r in ratios[-STH_LOSS_PCT_DAYS:] if r is not None]
+    now = ratios[-1]
+    return {
+        "usd_bn": round(values[-1] / 1e9, 2),
+        "mean_90d_usd_bn": round(sum(values[-STH_LOSS_MEAN:]) / STH_LOSS_MEAN / 1e9, 2),
+        "ratio_to_90d_mean": None if now is None else round(now, 2),
+        "ratio_percentile_4y": None if now is None else round(sum(r < now for r in valid) / len(valid) * 100),
+        "ratio_last_14d": [None if r is None else round(r, 2) for r in ratios[-14:]],
+    }
+
+
+def sth_context() -> dict:
+    """Holders de corto plazo (monedas movidas hace menos de 155 días): la pérdida no realizada (lo que pierden las que
+    aún tienen) y la realizada (lo que perdieron las que vendieron ese día), cada una frente a su media de 90 días, y el
+    SOPR diario (precio de venta / precio de compra de lo que se movió: por debajo de 1, venden con pérdidas)."""
+    days = STH_LOSS_PCT_DAYS + STH_LOSS_MEAN
+    last, unrealized = _bitview("sth_unrealized_loss", days)
+    out = {"date": last.isoformat(), "unrealized_loss": _vs_mean(unrealized)}
+    try:
+        _, realized = _bitview("sth_realized_loss_sum_24h", days)
+        out["realized_loss_24h"] = _vs_mean(realized)
+        _, sopr = _bitview("sth_sopr_24h", 14)
+        out["sopr_24h_last_14d"] = [round(x, 4) if x else None for x in sopr[-14:]]
+    except Exception as e:  # la pérdida no realizada sirve sola
+        log.warning("bitview: sin pérdida realizada o SOPR: %s", e)
+    return out
 
 
 def trend_context(raw_1d: list[list]) -> dict:
@@ -609,6 +665,10 @@ def market() -> dict:
         data["taker_buy_sell_ratio_4h"] = [round(float(x["buySellRatio"]), 3) for x in tk]
     except Exception as e:  # sin derivados el análisis sigue, con menos datos
         log.warning("derivados no disponibles: %s", e)
+    try:
+        data["short_term_holders"] = sth_context()
+    except Exception as e:  # sin bitview el análisis sigue sin este dato
+        log.warning("bitview no disponible: %s", e)
     try:
         fg = get("https://api.alternative.me/fng/?limit=14")["data"]
         data["fear_greed_14d"] = [int(x["value"]) for x in reversed(fg)]
