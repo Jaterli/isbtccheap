@@ -155,12 +155,16 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   parte (`text_model` dice qué modelo los redactó). Los textos dicen qué nivel es cada precio que citan y por qué importa, y cada objetivo e invalidación lleva su base (`target_basis`: zona de reacción,
   liquidez, imbalance, pivote, Fibonacci o ATR, y temporalidad); el script comprueba que haya un nivel así a menos de
   0,3 ATR diarios y, si no, lo avisa en el log con el nivel más cercano (solo lo registra, no descarta). Cada análisis se guarda también en
-  `news/state/analysis_log.jsonl`, para medir después cuánto acierta.
+  `news/state/analysis_log.jsonl`, para medir después cuánto acierta. Tras publicar, el mismo análisis se repite en
+  sombra con otra configuración (`ANALYSIS_SHADOW_MODELS`, ahora GLM con esfuerzo `high`, que razona unas 6 veces
+  menos), con los mismos datos, sin textos ni publicación: solo se guarda en `news/state/analysis_shadow_log.jsonl`
+  para comparar su acierto. Si falla, no afecta a lo publicado; vacío, no se hace.
 - `eval_analysis.py`: mide el acierto de los análisis del registro con las velas de 1 h de Binance (objetivo antes que
   invalidación en su plazo), frente al que tendría un precio que se moviera al azar con esos objetivos e invalidaciones,
   por modelo, por semana y por la base del objetivo, si los objetivos guardan proporción con lo que se mueve el precio
   y cuántas veces cambia de dirección sin motivo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
-  o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio).
+  o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio). Con `--shadow`, compara el
+  publicado con la sombra de la misma ejecución: el acierto de cada uno y en cuántas coinciden las direcciones.
 
 En el droplet, una vez:
 

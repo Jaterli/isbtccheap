@@ -15,7 +15,10 @@ Además compara la distancia a objetivos e invalidaciones con lo que de verdad s
 cuenta los cambios de dirección entre análisis seguidos con el precio casi igual. No llama a ningún modelo ni modifica
 el registro.
 
-Uso: python eval_analysis.py [--log RUTA] [--since AAAA-MM-DD]
+Con --shadow compara el análisis publicado con el análisis en sombra de la misma ejecución (state/analysis_shadow_log.jsonl:
+otra configuración con los mismos datos, que no se publica), solo en los pares que tienen los dos.
+
+Uso: python eval_analysis.py [--log RUTA] [--since AAAA-MM-DD] [--shadow]
 """
 
 import argparse
@@ -116,11 +119,45 @@ def summary(c: Counter) -> str:
     return rate + (f"; {rest}" if rest else "")
 
 
+def when(r: dict) -> int:
+    return int(datetime.fromisoformat(r["generated_at"]).timestamp() * 1000)
+
+
+def compare_shadow(main_log: str, since: str | None) -> None:
+    """El publicado frente a la sombra de la misma ejecución: acierto de cada uno y en cuántas coinciden las direcciones."""
+    load = lambda path: [json.loads(line) for line in open(path, encoding="utf-8") if line.strip()]
+    published = {r["generated_at"]: r for r in load(main_log) if "outlook" in r}
+    pairs = [(published[s["published_at"]], s) for s in load(str(STATE_DIR / "analysis_shadow_log.jsonl"))
+             if s.get("published_at") in published and (not since or s["published_at"] >= since)]
+    if not pairs:
+        sys.exit("No hay análisis en sombra con su publicado que comparar.")
+    bars = candles(min(when(p) for p, _ in pairs) - HOUR)
+    print(f"{len(pairs)} pares (publicado y sombra con los mismos datos), del {pairs[0][0]['generated_at'][:10]} al "
+          f"{pairs[-1][0]['generated_at'][:10]}\n")
+    for label, horizon in (("Próximas horas", "outlook"), ("1-2 días", "outlook_days")):
+        print(f"{label}:")
+        for side in (0, 1):
+            c, names = Counter(), Counter()
+            for pair in pairs:
+                r = pair[side]
+                o = r[horizon]
+                hours = (o.get("horizon_hours") or 24) if horizon == "outlook" else DAYS_HOURS
+                count(c, judge(bars, when(r), hours, r["price"], o["direction"], o["target"], o.get("invalidation")),
+                      chance(r["price"], o["direction"], o["target"], o.get("invalidation")))
+                names[r["model"]] += 1
+            print(f"  {'publicado' if side == 0 else 'sombra':10} {', '.join(names):34} {summary(c)}")
+        same = sum(p[horizon]["direction"] == s[horizon]["direction"] for p, s in pairs)
+        print(f"  misma dirección en {same} de {len(pairs)}\n")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--log", default=str(STATE_DIR / "analysis_log.jsonl"), help="registro de análisis")
     ap.add_argument("--since", help="solo los análisis desde esta fecha (AAAA-MM-DD)")
+    ap.add_argument("--shadow", action="store_true", help="compara el publicado con el análisis en sombra")
     args = ap.parse_args()
+    if args.shadow:
+        return compare_shadow(args.log, args.since)
 
     rows = [json.loads(line) for line in open(args.log, encoding="utf-8") if line.strip()]
     rows = [r for r in rows if not args.since or r["generated_at"] >= args.since]
@@ -128,7 +165,6 @@ def main() -> None:
     rows = [r for r in rows if "outlook" in r]
     if not rows:
         sys.exit("No hay análisis que evaluar.")
-    when = lambda r: int(datetime.fromisoformat(r["generated_at"]).timestamp() * 1000)
     bars = candles(when(rows[0]) - HOUR)
     print(f"{len(rows)} análisis del {rows[0]['generated_at'][:10]} al {rows[-1]['generated_at'][:10]}"
           + (f" ({old} de una versión antigua, sin escenarios, no se cuentan)" if old else "")

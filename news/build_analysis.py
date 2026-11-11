@@ -1245,6 +1245,44 @@ def dry_run(price: float) -> dict:
             "alternative": {"direction": "alcista", "target": price * 1.015}, "es": text, "en": text}
 
 
+# Análisis en sombra (desde el 11 nov 2026): tras publicar, el mismo análisis con otra configuración, que solo se guarda en
+# SHADOW_LOG (sin textos ni publicación) para que eval_analysis compare su acierto con el publicado. Ahora, GLM con
+# esfuerzo "high": razona unas 6 veces menos, y falta saber si acierta lo mismo. Vacío (ANALYSIS_SHADOW_MODELS=), no se hace
+SHADOW_MODELS = llm.models_from_env("ANALYSIS_SHADOW_MODELS", "glm-5.3-flash@high")
+SHADOW_LOG = "analysis_shadow_log.jsonl"
+LOG_FIELDS = ("generated_at", "model", "price", "levels", "bias", "confidence", "outlook", "outlook_days", "alternative")
+
+
+def model_name(spec: str) -> str:
+    """El modelo con su esfuerzo, si lo lleva ("glm-5.3-flash@high"): eval_analysis los compara por separado."""
+    return llm.label(spec) + (f"@{spec.partition('@')[2]}" if "@" in spec else "")
+
+
+def shadow(data: dict, user: str, published: dict) -> None:
+    """El análisis en sombra con los mismos datos que el publicado. Si falla, solo se avisa: no afecta a lo publicado."""
+    if not SHADOW_MODELS or published["model"] in map(model_name, SHADOW_MODELS):
+        return  # sin sombra, o lo publicado ya salió con esa configuración (el principal falló)
+    prices: list[float] = []
+
+    def check(raw: dict) -> dict:
+        prices.append(float(get(PRICE_URL)["price"]))
+        return validate(raw, prices[-1], data)
+
+    try:
+        result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis-sombra", SHADOW_MODELS, check, max_tokens=32000)
+    except RuntimeError as e:
+        log.warning("Análisis en sombra no disponible: %s", e)
+        return
+    row = {**result, "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model_name(spec),
+           "price": round(prices[-1])}
+    with open(STATE_DIR / SHADOW_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps({**{k: row[k] for k in LOG_FIELDS}, "published_at": published["generated_at"],
+                            "notes": result.get("notes")}) + "\n")
+    log.info("Sombra (%s): %s; horas: %s hacia %s; 1-2 días: %s hacia %s", row["model"], result["bias"],
+             result["outlook"]["direction"], result["outlook"]["target"], result["outlook_days"]["direction"],
+             result["outlook_days"]["target"])
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     ap = argparse.ArgumentParser()
@@ -1270,15 +1308,13 @@ def main() -> None:
             result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis", MODELS, check, max_tokens=32000)
         except RuntimeError:
             raise SystemExit("ningún modelo dio un análisis válido: se mantiene el anterior")
-        # Con el esfuerzo, si lo lleva ("glm-5.3-flash@high"): eval_analysis compara así el principal con el respaldo
-        name = lambda spec: llm.label(spec) + (f"@{spec.partition('@')[2]}" if "@" in spec else "")
-        price, model = prices[-1], name(spec)
+        price, model = prices[-1], model_name(spec)
         try:
             texts, spec = llm.complete(TEXT_PROMPT, text_input(result, data, price), TEXT_SCHEMA, "analisis-textos", TEXT_MODELS,
                                        check_texts, max_tokens=16000)
         except RuntimeError:
             raise SystemExit("ningún modelo redactó los textos: se mantiene el análisis anterior")
-        result, text_model = {**result, **texts}, name(spec)
+        result, text_model = {**result, **texts}, model_name(spec)
 
     # notes (las claves del analista para la redacción) no se publica: solo se guarda en el registro
     out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "text_model": text_model,
@@ -1291,12 +1327,12 @@ def main() -> None:
     if not args.dry_run:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         with open(STATE_DIR / "analysis_log.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps({**{k: out[k] for k in ("generated_at", "model", "text_model", "price", "levels", "bias",
-                                                       "confidence", "outlook", "outlook_days", "alternative")},
-                                "notes": result.get("notes")}) + "\n")
+            f.write(json.dumps({**{k: out[k] for k in LOG_FIELDS}, "text_model": text_model, "notes": result.get("notes")}) + "\n")
     log.info("analysis.json: %s; horas: %s hacia %s; 1-2 días: %s hacia %s (%s; textos, %s)", result["bias"],
              result["outlook"]["direction"], result["outlook"]["target"], result["outlook_days"]["direction"],
              result["outlook_days"]["target"], model, text_model)
+    if not args.dry_run:  # después de publicar: no retrasa lo publicado
+        shadow(data, user, out)
 
 
 if __name__ == "__main__":
