@@ -63,7 +63,9 @@ def _openai(provider: str, model: str, system: str, user: str, schema: dict, nam
         "max_tokens": max_tokens,
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},
-    }, {"Authorization": f"Bearer {os.environ[key]}"}, timeout=max(180, max_tokens // 100))
+    # Hasta ~50 tokens por segundo: GLM en DigitalOcean va a menudo por debajo de 100 y, con 32.000 de límite, el análisis
+    # agotaba los 320 s de espera razonando
+    }, {"Authorization": f"Bearer {os.environ[key]}"}, timeout=max(180, max_tokens // 50))
     choice = data["choices"][0]
     usage = data.get("usage", {})
     if choice.get("finish_reason") != "stop":

@@ -59,43 +59,58 @@ MAX_LEVELS = 3
 MAX_SHORT = 0.15
 MAX_DAYS = 0.20
 
-PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT: velas \
-semanales (el último año), diarias, de 4 h y de 1 h ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], de la más antigua a la más \
-reciente; la última está en curso y su cierre es el precio actual), funding de los perpetuos, open interest, porcentaje \
-de cuentas en largo, ratio de compras/ventas a mercado, Fear & Greed, flujos netos de los ETF al contado, y la fecha y \
-hora actuales con si la bolsa de EE. UU. (y con ella los ETF) está abierta, y la agenda económica de la semana (datos y \
-decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se publicó). En fed_decision_odds, las \
-probabilidades de cada resultado de las próximas reuniones de la Fed según el mercado de predicción Kalshi, ahora, \
-hace 24 h y hace 7 días: sus cambios muestran cómo ha reinterpretado el mercado los datos y discursos recientes, y \
-cuánto está ya descontado antes de la reunión. Para cada temporalidad recibes \
-también indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y en el \
-mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
-mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio). En trend_context, el \
-máximo y el mínimo de los últimos 12 meses. En cycle_context, con cierres diarios desde 2011: el máximo histórico (fecha, \
-días transcurridos y distancia del precio), los techos y suelos de los ciclos anteriores (caída y días del techo al \
-suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para semanal y diario y calculado con sus velas: los \
-últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
-el extremo en curso (current_extreme: el máximo o mínimo desde el último pivote, aún sin confirmar, porque el precio \
-no se ha alejado lo bastante de él para que lo sea), la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
-ocultas, alcistas o bajistas, y si se están formando) y, solo en diario, los niveles de Fibonacci (en escala \
-logarítmica) de dos tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
-máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo posterior \
-(provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y 1,618 más \
-allá de su final (la corrección provisional no las lleva: su final aún se mueve). En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
-no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: máximos y mínimos de la estructura que \
-el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
-máximos o mínimos iguales, que concentran más órdenes. En reaction_zones, para diario y 4 h, las zonas donde el precio \
-ha girado de verdad (todos los pivotes cercanos, agrupados): cuántas reacciones ha habido, cuántas como techo y cuántas \
-como suelo, cuándo fue la última, y cuántas veces la han atravesado los cierres de lado a lado sin girar (crossings, en \
-total, y crossings_since_last, desde la última reacción). En short_term_holders, con datos on-chain diarios (el último día completo), de \
-los holders de corto plazo (monedas movidas hace menos de 155 días): su pérdida no realizada y su pérdida realizada \
-del día, cada una en miles de millones de dólares, con su media de 90 días, el ratio entre ambas, su percentil frente \
-a los últimos 4 años y el ratio de los últimos 14 días, y su SOPR diario de los últimos 14 días (precio de venta entre \
-precio de compra de lo que se movió: por debajo de 1, venden con pérdidas). Si hay noticias recientes de impacto medio o alto, también recibes sus titulares (con hora UTC, medio e impacto estimado de 0 a 10) como \
-contexto de lo que puede estar moviendo el precio. Haz tu propio análisis de la situación actual de BTC: tú decides qué \
-factores pesan más.
+# Ordenado de más a menos importante: primero las reglas que más se saltaban los modelos (zonas, niveles exactos,
+# bases), después el formato y al final cómo leer los datos, que es material de consulta. Repetir las reglas en una lista
+# de comprobación después de los datos (11 nov 2026) hizo que GLM agotara los 32.000 tokens revisándolas: sin ella, ~22.000
+PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT (descritos al \
+final) y haces tu propio análisis de la situación actual de BTC: tú decides qué factores pesan más. Respondes solo con \
+un objeto JSON con las zonas de soporte y resistencia, el sesgo, los escenarios más probables y sus textos.
 
-Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
+REGLAS PRINCIPALES
+
+1. Zonas (supports y resistances): de 1 a 3 de cada lado del precio actual, solo las realmente relevantes, de la más \
+cercana a la más lejana, como rangos [low, high] con strength de 1 (débil) a 3 (fuerte). Soportes por debajo del precio \
+y resistencias por encima.
+- Cada zona tiene que contener al menos una zona de reacción (reaction_zones), un pivote confirmado de market_structure \
+o una liquidez pendiente (liquidity_pools): donde el precio haya reaccionado de verdad. No bastan el extremo en curso \
+(aún no se ha visto un rebote desde él; sí sirve como objetivo, invalidación o referencia en el texto), ni Fibonacci ni \
+imbalances, aunque coincidan varios: solo pueden reforzar una zona que ya exista.
+- Afina todas las zonas diarias con las de 4 h: si una zona de reacción de 4 h cae dentro de una diaria (o la solapa \
+casi entera), usa el rango de la de 4 h, más preciso, con la fuerza que le da la diaria; si no hay ninguna, deja la diaria.
+- Si el precio está dentro de una zona (side "at_price"), esa zona no es un soporte ni una resistencia entera: solo lo \
+es la parte de cada lado del precio.
+- Fuerza: más a las zonas con más reacciones y más recientes; menos a las que los cierres han atravesado varias veces \
+sin girar (crossings), sobre todo desde su última reacción (crossings_since_last): el precio ya no las respeta. Una \
+sola ruptura seguida de una reacción desde el otro lado no resta, porque confirma la zona con el papel cambiado.
+
+2. Precios exactos: en los campos numéricos (zonas, objetivos e invalidaciones) usa los precios de los niveles de los \
+datos, sin redondearlos. Solo se redondean en los textos.
+
+3. Cada objetivo e invalidación sale de un nivel de los datos, y lo indicas en su base (target_basis e \
+invalidation_basis: {"kind": ..., "timeframe": ...}). kind: "reaction_zone" o "liquidity_pool" (en 1d o 4h), \
+"imbalance" (en 1w, 1d o 4h), "pivot" (de market_structure, en 1w o 1d, incluido el extremo en curso), "fibonacci" (en \
+1d) o, si no hay un nivel cerca y lo estimas por la volatilidad, "atr" (en cualquier temporalidad).
+
+4. Escenarios realistas: ajusta objetivos e invalidaciones a la volatilidad reciente (ATR). En las próximas horas el \
+precio suele moverse unos pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios: un objetivo mucho más lejano es \
+poco probable en ese plazo. Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus \
+indicadores, market_structure y trend_context): un movimiento de pocas horas no la cambia por sí solo. La liquidez \
+pendiente y los imbalances cercanos son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de \
+girar), y Fibonacci sirve para los objetivos, sobre todo cuando el precio atraviesa un tramo sin zonas de reacción, \
+como un imbalance grande.
+
+5. Los textos cuadran con los números: los precios y las direcciones de los textos son los de los campos. Cada precio \
+que cites en los textos, salvo el actual, debe decir en pocas palabras qué nivel es y por qué importa, con los datos \
+que lo respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", "el 50 % de \
+Fibonacci del tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco de 4 h entre X e Y $ que \
+el precio no ha rellenado" (X, Y y N son los de los datos). Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
+menciones: di su precio.
+
+6. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
+
+FORMATO DE LA RESPUESTA
+
+Solo un objeto JSON, sin texto antes ni después, con esta forma:
 {
   "price": precio actual de BTC en dólares (número),
   "supports": [{"low": número, "high": número, "strength": 1 a 3}, ...],
@@ -111,17 +126,6 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
   "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
 }
 
-- supports y resistances: de 1 a 3 zonas de cada lado del precio actual, solo las realmente relevantes, como rangos \
-[low, high] de anchura realista, de la más cercana a la más lejana; strength de 1 (débil) a 3 (fuerte). Soportes por \
-debajo del precio y resistencias por encima. Cada zona tiene que estar donde el precio haya reaccionado de verdad: \
-reaction_zones (da más fuerza a las de más reacciones y más recientes, y menos a las que el precio ha atravesado \
-varias veces sin girar, sobre todo desde su última reacción: ya no las respeta; una sola ruptura seguida de una reacción \
-desde el otro lado no le resta, porque la confirma con el papel cambiado), los pivotes de market_structure o la liquidez \
-pendiente: cada zona tiene que contener al menos uno de ellos. El extremo en curso no basta: aún no se ha visto un \
-rebote desde él (sí sirve como objetivo, invalidación o referencia en el texto). Fibonacci e imbalances tampoco bastan, \
-aunque coincidan varios: solo pueden reforzar una zona que ya exista. Afina las zonas diarias con las de 4 h: si una zona de \
-reaction_zones de 4 h cae dentro de una diaria (o la solapa casi entera), usa el rango de la de 4 h, más preciso, con la \
-fuerza que le da la diaria; si no hay ninguna, deja la diaria.
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
 - outlook: lo más probable en las próximas horas (horizon_hours entre 4 y 24): dirección, precio objetivo y precio que \
 invalidaría ese escenario (al otro lado del precio actual).
@@ -129,41 +133,63 @@ invalidaría ese escenario (al otro lado del precio actual).
 Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
-- target_basis e invalidation_basis (base: {"kind": ..., "timeframe": "1w" | "1d" | "4h" | "1h"}): de qué nivel de los \
-datos sale ese precio. kind: "reaction_zone" o "liquidity_pool" (en 1d o 4h), "imbalance" (en 1w, 1d o 4h), "pivot" \
-(de market_structure, incluido el extremo en curso) o "fibonacci" (en 1d) o, si no hay un nivel cerca y lo estimas \
-por la volatilidad, "atr" (en cualquier temporalidad). Elige el precio en el nivel, no un número redondo \
-cercano.
-- Los precios y las direcciones deben coincidir con lo que dicen los textos.
-- Ajusta objetivos e invalidaciones a la volatilidad reciente (ATR): en las próximas horas el precio suele moverse unos \
-pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo mucho más lejano es poco probable en ese plazo.
-- Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
-trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
-estructura y las divergencias son referencias para el sesgo, no certezas. La liquidez pendiente y los imbalances cercanos \
-son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de girar). Fibonacci sirve para los \
-objetivos (sobre todo cuando el precio atraviesa un tramo sin zonas de reacción, como un imbalance grande) y para \
-reforzar una zona con la que coincida. cycle_context \
-sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
-predecir las próximas horas o días por analogía con otros ciclos. short_term_holders mide el estrés de los que \
-compraron en los últimos meses: una pérdida no realizada muy alta (ratio y percentil altos) indica que muchos están en \
-pérdidas fuertes y pueden vender; una capitulación es cuando venden de verdad: pérdida realizada disparada frente a su \
-media y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open interest y miedo extremo, y \
-suele quedar cerca de un suelo. Sin ventas realizadas, el estrés solo es riesgo de más presión vendedora. Son datos \
-diarios con un día de retraso: contexto para el sesgo, no una señal de giro por sí solos.
 - es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
 la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
 estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 2 o 3 frases (80 palabras como \
 máximo). outlook: lo más probable en las próximas horas, hacia dónde y qué lo invalidaría, en 2 o 3 frases (70 palabras \
 como máximo). outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves (35 palabras como máximo cada una) de lo \
-que está moviendo el precio.
-- Cada precio que cites en los textos, salvo el actual, debe decir en pocas palabras qué nivel es y por qué importa, \
-con los datos que lo respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", \
-"el 50 % de Fibonacci del tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco de 4 h entre \
-X e Y $ que el precio no ha rellenado" (X, Y y N son los de los datos). Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
-menciones: di su precio. Nombra los datos con palabras normales, no con sus nombres en el JSON.
+que está moviendo el precio. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Nombra los datos \
+con palabras normales, no con sus nombres en el JSON.
 
-Precios en dólares redondeados en los textos (78.500 $ en español, $78,500 en inglés). Habla de probabilidades y \
-escenarios, nunca de certezas, y no des recomendaciones de compra o venta."""
+CÓMO LEER LOS DATOS
+
+- Velas semanales (el último año), diarias, de 4 h y de 1 h: [hora UTC, apertura, máximo, mínimo, cierre, volumen en \
+BTC], de la más antigua a la más reciente; la última está en curso y su cierre es el precio actual. Para cada \
+temporalidad, indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y \
+en el mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
+mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio).
+- reaction_zones, para diario y 4 h: las zonas donde el precio ha girado de verdad (todos los pivotes cercanos, \
+agrupados), con su lado respecto al precio (side), cuántas reacciones ha habido, cuántas como techo y cuántas como suelo, \
+cuándo fue la última, y cuántas veces la han atravesado los cierres de lado a lado sin girar (crossings, en total, y \
+crossings_since_last, desde la última reacción).
+- market_structure, para semanal y diario: los últimos pivotes de la estructura (con el RSI en cada uno y si son más \
+altos o más bajos que el anterior: HH, LH, HL, LL), el extremo en curso (current_extreme: el máximo o mínimo desde el \
+último pivote, aún sin confirmar, porque el precio no se ha alejado lo bastante de él para que lo sea), la última \
+ruptura de un pivote por un cierre y las divergencias del RSI entre pivotes (clásicas u ocultas, alcistas o bajistas, y \
+si se están formando): son referencias para el sesgo, no certezas. Solo en diario, los niveles de Fibonacci (en escala \
+logarítmica) de dos tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha \
+perdido hasta el máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo \
+posterior (provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y \
+1,618 más allá de su final (la corrección provisional no las lleva: su final aún se mueve).
+- liquidity_pools, para diario y 4 h: la liquidez pendiente, máximos y mínimos de la estructura que el precio no ha \
+vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los máximos o \
+mínimos iguales, que concentran más órdenes.
+- imbalances, para semanal, diario y 4 h: los huecos de liquidez (fair value gaps) cercanos que el precio aún no ha \
+rellenado.
+- trend_context: el máximo y el mínimo de los últimos 12 meses. cycle_context, con cierres diarios desde 2011: el máximo \
+histórico (fecha, días transcurridos y distancia del precio), los techos y suelos de los ciclos anteriores (caída y días \
+del techo al suelo) y el ciclo en curso con su mínimo hasta hoy. Sirve para encuadrar la tendencia de fondo, no para \
+predecir las próximas horas o días por analogía con otros ciclos.
+- Derivados y flujos: funding de los perpetuos, open interest, porcentaje de cuentas en largo, ratio de compras/ventas a \
+mercado, Fear & Greed y flujos netos de los ETF al contado. Y la fecha y hora actuales, con si la bolsa de EE. UU. (y \
+con ella los ETF) está abierta.
+- Agenda económica de la semana: datos y decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se \
+publicó. fed_decision_odds: las probabilidades de cada resultado de las próximas reuniones de la Fed según el mercado de \
+predicción Kalshi, ahora, hace 24 h y hace 7 días; sus cambios muestran cómo ha reinterpretado el mercado los datos y \
+discursos recientes, y cuánto está ya descontado antes de la reunión.
+- short_term_holders, con datos on-chain diarios (el último día completo) de los holders de corto plazo (monedas movidas \
+hace menos de 155 días): su pérdida no realizada y su pérdida realizada del día, cada una en miles de millones de \
+dólares, con su media de 90 días, el ratio entre ambas, su percentil frente a los últimos 4 años y el ratio de los \
+últimos 14 días, y su SOPR diario de los últimos 14 días (precio de venta entre precio de compra de lo que se movió: por \
+debajo de 1, venden con pérdidas). Miden el estrés de los que compraron en los últimos meses: una pérdida no realizada \
+muy alta (ratio y percentil altos) indica que muchos están en pérdidas fuertes y pueden vender; una capitulación es \
+cuando venden de verdad: pérdida realizada disparada frente a su media y SOPR claramente por debajo de 1, a menudo con \
+pico de volumen, caída del open interest y miedo extremo, y suele quedar cerca de un suelo. Sin ventas realizadas, el \
+estrés solo es riesgo de más presión vendedora. Con un día de retraso: contexto para el sesgo, no una señal de giro por \
+sí solos.
+- Si hay noticias recientes de impacto medio o alto, sus titulares (con hora UTC, medio e impacto estimado de 0 a 10), \
+como contexto de lo que puede estar moviendo el precio."""
+
 
 ZONE = {"type": "object", "properties": {"low": {"type": "number"}, "high": {"type": "number"}, "strength": {"type": "integer"}},
         "required": ["low", "high", "strength"], "additionalProperties": False}
@@ -927,6 +953,21 @@ def check_zone(z: dict, levels: list, tolerance: float) -> None:
                     ", ".join(inside) or "nada")
 
 
+# Lo mínimo que puede quedar de una zona recortada al precio (en ATR diario)
+ZONE_MIN_ATR = 0.15
+
+
+def check_refined(z: dict, zones_4h: list[dict], tolerance: float) -> None:
+    """Avisa si la zona contiene una zona de reacción de 4 h (de al menos 2 reacciones) mucho más estrecha que ella: el
+    prompt pide afinar la diaria con la de 4 h. Solo se registra: no descarta el análisis."""
+    inside = [q for q in zones_4h if q["reactions"] >= 2 and q["low"] >= z["low"] - tolerance and q["high"] <= z["high"] + tolerance
+              and (z["high"] - z["low"]) > 1.5 * (q["high"] - q["low"]) + tolerance]
+    if inside:
+        z["refined"] = False
+        log.warning("Zona sin afinar (%s %s-%s): contiene la de 4 h %s", z["id"], z["low"], z["high"],
+                    ", ".join(f"{q['low']}-{q['high']} ({q['reactions']} reacciones)" for q in inside))
+
+
 def validate(a: dict, price: float, data: dict | None = None) -> dict:
     """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene. Con `data`
     (los datos que recibió el modelo), comprueba también de qué nivel salen objetivos e invalidaciones."""
@@ -942,10 +983,17 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         out = []
         for z in raw:
             lo, hi = sorted((float(z["low"]), float(z["high"])))
+            # Si el precio está dentro de la zona, solo la parte de su lado es soporte o resistencia; si lo que queda es
+            # demasiado estrecho, el precio está en la zona y no es ninguna de las dos
+            if kind == "support" and hi > price or kind == "resistance" and lo < price:
+                clipped = (lo, price) if kind == "support" else (price, hi)
+                log.info("Zona recortada al precio (%s %.0f-%.0f → %.0f-%.0f)", kind, lo, hi, *clipped)
+                lo, hi = clipped
+                if hi - lo < ZONE_MIN_ATR * atr_1d:
+                    continue
             mid = (lo + hi) / 2
             near = abs(mid / price - 1) <= 0.25
-            side = mid < price * 1.005 if kind == "support" else mid > price * 0.995
-            if near and side and hi - lo < price * 0.06:
+            if near and hi - lo < price * 0.06:
                 out.append({"kind": kind, "low": round(lo), "high": round(hi), "mid": round(mid),
                             "strength": max(1, min(3, int(z.get("strength", 2))))})
         out.sort(key=lambda z: abs(z["mid"] - price))
@@ -959,6 +1007,7 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     if levels:
         for z in sup + res:
             check_zone(z, levels, ZONE_ATR * atr_1d)
+            check_refined(z, (data or {}).get("reaction_zones", {}).get("4h", []), ZONE_ATR * atr_1d)
 
     def move(m: dict, limit: float) -> dict:
         target = float(m["target"])

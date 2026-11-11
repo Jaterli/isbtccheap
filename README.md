@@ -133,7 +133,8 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   cada zona diaria con la de 4 h que caiga dentro, más estrecha, y no en Fibonacci ni imbalances, que quedan para los
   objetivos, como hasta dónde llega el precio al cruzar un hueco; la validación anota en el log, con `anchored: false`,
   la zona que no solape una zona de reacción ni contenga un pivote confirmado o una liquidez (el extremo en curso
-  no basta), y guarda en `fibonacci` los niveles de
+  no basta), y con `refined: false` la que contenga una zona de 4 h mucho más estrecha sin afinarse con ella; la parte
+  de una zona que quede al otro lado del precio se recorta, y si lo que queda es muy estrecho se descarta, y guarda en `fibonacci` los niveles de
   los que sale algún objetivo o invalidación, que el gráfico dibuja como líneas naranjas), la pérdida no realizada y la realizada de los holders de corto plazo frente a su media de 90 días, con su
   percentil de 4 años, y su SOPR diario (bitview.space: el estrés y si se convierte en ventas con pérdidas, una capitulación) y el contexto de ciclo (máximo histórico, techos y
   suelos de los ciclos anteriores con el mismo criterio que la web, y el mínimo del ciclo actual). Todo calculado, como
