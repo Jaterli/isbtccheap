@@ -38,6 +38,12 @@ export interface CandleSeriesState {
   intraday: boolean;
   /** Completos: los indicadores necesitan las velas previas al periodo mostrado */
   base: PriceSeries | null;
+  /**
+   * Lo que se dibuja: las velas de `tf` o, mientras llegan (al cambiar a 1 h o 4 h), las últimas que se vieron, con su
+   * temporalidad y su periodo; `pending` dice que son las anteriores.
+   */
+  shown: { tf: CandleTf; base: PriceSeries; days: number } | null;
+  pending: boolean;
   days: number;
   error: boolean;
 }
@@ -77,6 +83,14 @@ export function useCandleSeries(key: string): CandleSeriesState {
     if (intraday) return candles?.tf === tf ? priceSeries(tf, { candles: candles.data }) : null;
     return history ? priceSeries(tf, { history, live }) : null;
   }, [tf, intraday, candles, history, live]);
+  const daysOf = (x: CandleTf) => (isIntraday(x) ? Infinity : RANGES.find((r) => r.id === range)!.days);
+
+  // La última serie lista, para seguir viéndola mientras llega la de otra temporalidad
+  const [last, setLast] = useState<{ tf: CandleTf; base: PriceSeries } | null>(null);
+  useEffect(() => {
+    if (base) setLast({ tf, base });
+  }, [tf, base]);
+  const view = base ? { tf, base } : last;
 
   return {
     tf,
@@ -85,7 +99,9 @@ export function useCandleSeries(key: string): CandleSeriesState {
     setRange: (r) => (setRangeState(r), save(`${key}-range`, r)),
     intraday,
     base,
-    days: intraday ? Infinity : RANGES.find((r) => r.id === range)!.days,
+    days: daysOf(tf),
+    shown: view ? { ...view, days: daysOf(view.tf) } : null,
+    pending: !base && view !== null,
     error,
   };
 }

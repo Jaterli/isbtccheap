@@ -186,7 +186,7 @@ export function SentimentApp() {
           </p>
         )}
         {shown && shown.time.length > 1 ? (
-          <div className={updating ? "sent-chart updating" : "sent-chart"} aria-busy={updating}>
+          <div className={updating ? "chart-wrap updating" : "chart-wrap"} aria-busy={updating}>
             <SentimentChart
               data={shown}
               k={shownK}
@@ -199,8 +199,8 @@ export function SentimentApp() {
               }}
             />
             {updating && (
-              <div className="sent-loading" role="status">
-                <span className="sent-spinner" aria-hidden="true" />
+              <div className="chart-updating" role="status">
+                <span className="chart-spinner" aria-hidden="true" />
                 {t.refresh.updating}
               </div>
             )}

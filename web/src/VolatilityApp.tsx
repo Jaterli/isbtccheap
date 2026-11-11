@@ -13,8 +13,10 @@ const pct = (v: number) => t.percent(Math.round(v * 100).toLocaleString(locale))
 
 export function VolatilityApp() {
   const cs = useCandleSeries("isbtccheap:vol");
-  const { tf, base, days } = cs;
-  const series = useMemo(() => (base ? lastDays(volSeries(tf, base), days) : null), [tf, base, days]);
+  // Lo que se dibuja: al cambiar a 1 h o 4 h, el gráfico anterior hasta que llegan sus velas
+  const { shown, pending } = cs;
+  const tf = shown?.tf ?? cs.tf;
+  const series = useMemo(() => (shown ? lastDays(volSeries(shown.tf, shown.base), shown.days) : null), [shown]);
 
   const stats = useMemo(() => {
     const vols = series?.vol.filter((v): v is number => v !== null) ?? [];
@@ -57,7 +59,15 @@ export function VolatilityApp() {
           </p>
         )}
         {series && series.time.length > 1 ? (
-          <VolChart data={series} tf={tf} />
+          <div className={pending ? "chart-wrap updating" : "chart-wrap"} aria-busy={pending}>
+            <VolChart data={series} tf={tf} />
+            {pending && (
+              <div className="chart-updating" role="status">
+                <span className="chart-spinner" aria-hidden="true" />
+                {t.refresh.updating}
+              </div>
+            )}
+          </div>
         ) : (
           <p className="muted">{cs.error ? t.charts.error : t.loading}</p>
         )}
