@@ -77,8 +77,8 @@ suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para s
 últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
 el extremo en curso (current_extreme: el máximo o mínimo desde el último pivote, aún sin confirmar, porque el precio \
 no se ha alejado lo bastante de él para que lo sea), la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
-ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) de dos \
-tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
+ocultas, alcistas o bajistas, y si se están formando) y, solo en diario, los niveles de Fibonacci (en escala \
+logarítmica) de dos tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
 máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo posterior \
 (provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y 1,618 más \
 allá de su final (la corrección provisional no las lleva: su final aún se mueve). En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
@@ -131,7 +131,7 @@ Puede coincidir o no con el de las próximas horas.
 outlook.
 - target_basis e invalidation_basis (base: {"kind": ..., "timeframe": "1w" | "1d" | "4h" | "1h"}): de qué nivel de los \
 datos sale ese precio. kind: "reaction_zone" o "liquidity_pool" (en 1d o 4h), "imbalance" (en 1w, 1d o 4h), "pivot" \
-(de market_structure, incluido el extremo en curso) o "fibonacci" (en 1w o 1d) o, si no hay un nivel cerca y lo estimas \
+(de market_structure, incluido el extremo en curso) o "fibonacci" (en 1d) o, si no hay un nivel cerca y lo estimas \
 por la volatilidad, "atr" (en cualquier temporalidad). Elige el precio en el nivel, no un número redondo \
 cercano.
 - Los precios y las direcciones deben coincidir con lo que dicen los textos.
@@ -379,6 +379,9 @@ STRUCTURE_ATR = {"1w": 1.5, "1d": 2.0}
 # Fibonacci en escala logarítmica (BTC se mueve en porcentajes: en tramos grandes la lineal reparte mal los niveles):
 # retrocesos dentro del tramo y extensiones más allá de su final, en el mismo sentido
 FIB_RETRACEMENTS = (0.382, 0.5, 0.618, 0.786)
+# Solo en diario: el análisis mira horas y 1-2 días, y con fib_legs el tramo diario ya llega al origen del semanal cuando
+# el precio pierde su mínimo (en semanal, el modelo se anclaba en objetivos demasiado lejanos y la corrección era la misma)
+FIB_TIMEFRAMES = ("1d",)
 FIB_EXTENSIONS = (1.272, 1.618)
 
 
@@ -479,11 +482,11 @@ def structure(raw: list[list], tf: str) -> dict:
         if cur and cur["type"] == kind and same and (d := divergence(same[-1], cur, True)):
             divergences.append(d)
 
-    fib = fib_legs(raw, high, low, close, pivots)
+    fib = fib_legs(raw, high, low, close, pivots) if tf in FIB_TIMEFRAMES else None
     for p in labelled:
         del p["_i"]
-    return {"pivots": labelled[-8:], "current_extreme": cur, "last_break": last_break, "rsi_divergences": divergences,
-            "fibonacci": fib}
+    out = {"pivots": labelled[-8:], "current_extreme": cur, "last_break": last_break, "rsi_divergences": divergences}
+    return {**out, "fibonacci": fib} if tf in FIB_TIMEFRAMES else out
 
 
 # Liquidez pendiente: tamaño mínimo de un tramo para que su extremo cuente (en ATR), tolerancia para dar por iguales dos

@@ -202,7 +202,6 @@ export const es = {
     unavailable: "El análisis aún no está disponible.",
     close: "Cierre",
     legendLiquidity: "– – liquidez pendiente · bandas grises: imbalances sin rellenar",
-    legendFib: "naranja: Fibonacci",
     fibLabel: (ratio: string, tf: string, correction: boolean) =>
       `Fib ${(Number(ratio) * 100).toLocaleString("es-ES", { maximumFractionDigits: 1 })} % ${tf === "1w" ? "semanal" : "diario"}${correction ? " (corrección)" : ""}`,
     liquidityLabel: "Liquidez",

@@ -95,7 +95,6 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
         </span>
         {!daily && <span className="muted small">{tx.legendStyle}</span>}
         {(pools.length > 0 || gaps.length > 0) && <span className="muted small">{tx.legendLiquidity}</span>}
-        {fibs.length > 0 && <span className="muted small">{tx.legendFib}</span>}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         <defs>

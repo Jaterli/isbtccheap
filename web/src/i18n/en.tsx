@@ -195,7 +195,6 @@ export const en: Messages = {
     unavailable: "The analysis is not available yet.",
     close: "Close",
     legendLiquidity: "– – resting liquidity · grey bands: unfilled imbalances",
-    legendFib: "orange: Fibonacci",
     fibLabel: (ratio: string, tf: string, correction: boolean) =>
       `Fib ${(Number(ratio) * 100).toLocaleString("en-US", { maximumFractionDigits: 1 })}% ${tf === "1w" ? "weekly" : "daily"}${correction ? " (pullback)" : ""}`,
     liquidityLabel: "Liquidity",
