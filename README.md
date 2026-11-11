@@ -101,14 +101,16 @@ Sin esos ficheros las tarjetas no se muestran.
 
 Los tres llaman a los modelos a través de `news/llm.py`, con una lista por orden de preferencia: si uno falla, se satura,
 agota el tiempo o su respuesta no supera la comprobación del script, se prueba el siguiente (los que no tienen clave se
-saltan). El principal es GLM-5.3 Flash, de la inferencia serverless de DigitalOcean (los de Anthropic y OpenAI exigen su
+saltan). Si agota los tokens razonando sin terminar, antes se reintenta una vez con el mismo modelo: ese bucle es
+aleatorio y el segundo intento suele terminar. El principal es GLM-5.3 Flash, de la inferencia serverless de DigitalOcean (los de Anthropic y OpenAI exigen su
 nivel 3):
 
 | Script | Orden (variable para cambiarlo) |
 |---|---|
 | Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b → qwen3.8-27b → gpt-oss-20b (los tres en Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
 | Duplicados de noticias | Gemini 3.5 Flash → GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini Flash Latest (`DEDUPE_MODELS`); GLM se pasaba razonando hasta el límite de tokens |
-| Análisis | GLM-5.3 Flash → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`); si fallan todos, se mantiene el anterior |
+| Análisis | GLM-5.3 Flash → GLM-5.3 Flash con esfuerzo `high` (razona unas 6 veces menos: 30 s en vez de 3-4 min, con textos algo menos precisos) → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`); si fallan todos, se mantiene el anterior |
+| Textos del análisis | GLM-5.3 Flash con esfuerzo `high` → GLM-5.3 Flash → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_TEXT_MODELS`): redactar el análisis ya decidido apenas necesita razonar |
 
 Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito. Qwen 3.5
 salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b, por leer mal la estructura del mercado.
@@ -127,14 +129,15 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   o al revés en bajada, el mayor de los dos, y su corrección, provisional mientras no se confirme su extremo y, entonces, sin extensiones) y los
   imbalances (fair value gaps) sin rellenar en semanal, diario y 4 h, la liquidez pendiente en diario y 4 h (máximos y
   mínimos que el precio no ha vuelto a superar, agrupando los iguales; se guarda también en `analysis.json` para dibujarla
-  en su gráfico, con un selector 4h / 1D), las zonas de reacción en diario y 4 h (todos los pivotes cercanos agrupados,
-  con cuántas veces ha girado ahí el precio y cuántas la han atravesado los cierres sin girar, en total y desde la
-  última reacción, que le restan fuerza: los soportes y resistencias del modelo tienen que apoyarse en ellas, afinando
-  cada zona diaria con la de 4 h que caiga dentro, más estrecha, y no en Fibonacci ni imbalances, que quedan para los
-  objetivos, como hasta dónde llega el precio al cruzar un hueco; la validación anota en el log, con `anchored: false`,
-  la zona que no solape una zona de reacción ni contenga un pivote confirmado o una liquidez (el extremo en curso
-  no basta), y con `refined: false` la que contenga una zona de 4 h mucho más estrecha sin afinarse con ella; la parte
-  de una zona que quede al otro lado del precio se recorta, y si lo que queda es muy estrecho se descarta, y guarda en `fibonacci` los niveles de
+  en su gráfico, con un selector 4h / 1D), las zonas candidatas (`zone_candidates`): las zonas de reacción en diario y 4 h
+  (todos los pivotes cercanos agrupados, con cuántas veces ha girado ahí el precio y cuántas la han atravesado los
+  cierres sin girar, en total y desde la última reacción, que le restan fuerza), con cada diaria entera o, si caen dentro
+  zonas de 4 h sólidas (3 reacciones o más, o como mucho un cruce desde la última), esas en su lugar, como mucho 4 de
+  cada lado, partidas en el precio si lo contienen y con los niveles que caen
+  dentro (`confluences`: Fibonacci, pivotes, liquidez e imbalances). El script hace lo mecánico y el modelo solo elige
+  por su id hasta 3 de cada lado y les da su fuerza: no puede construir zonas propias ni cambiar sus bordes. La
+  validación descarta las desconocidas, las del lado equivocado y las que se solapan con otra elegida, recorta lo que
+  quede al otro lado del precio si se ha movido desde los datos y guarda en `fibonacci` los niveles de
   los que sale algún objetivo o invalidación, que el gráfico dibuja como líneas naranjas), la pérdida no realizada y la realizada de los holders de corto plazo frente a su media de 90 días, con su
   percentil de 4 años, y su SOPR diario (bitview.space: el estrés y si se convierte en ventas con pérdidas, una capitulación) y el contexto de ciclo (máximo histórico, techos y
   suelos de los ciclos anteriores con el mismo criterio que la web, y el mínimo del ciclo actual). Todo calculado, como
@@ -144,8 +147,11 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   económica de la semana del `calendar.json`, y las probabilidades de cada
   resultado de las dos próximas reuniones de la Fed según Kalshi (API pública sin clave), ahora, hace 24 h y hace 7 días.
   Kalshi está bloqueado desde España: en local, el análisis sale sin ese dato. Una respuesta que no se sostiene (precio que no cuadra, zonas al lado
-  equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. Los textos dicen qué nivel es cada
-  precio que citan y por qué importa, y cada objetivo e invalidación lleva su base (`target_basis`: zona de reacción,
+  equivocado, escenarios incoherentes) cuenta como fallo y pasa al siguiente modelo. El análisis se hace en dos
+  llamadas: la primera, con todos los datos, decide zonas, sesgo y escenarios y resume sus claves (`notes`, que solo se
+  guardan en el registro); tras validarla, la segunda redacta los textos en español e inglés con ese análisis y los
+  datos citables (sin las velas), así que los textos nunca contradicen lo que se publica y cada llamada razona solo su
+  parte (`text_model` dice qué modelo los redactó). Los textos dicen qué nivel es cada precio que citan y por qué importa, y cada objetivo e invalidación lleva su base (`target_basis`: zona de reacción,
   liquidez, imbalance, pivote, Fibonacci o ATR, y temporalidad); el script comprueba que haya un nivel así a menos de
   0,3 ATR diarios y, si no, lo avisa en el log con el nivel más cercano (solo lo registra, no descarta). Cada análisis se guarda también en
   `news/state/analysis_log.jsonl`, para medir después cuánto acierta.

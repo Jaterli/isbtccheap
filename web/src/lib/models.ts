@@ -8,6 +8,11 @@ const NAMES: Record<string, string> = {
   "qwen3.8-27b": "Qwen 3.8",
   "gemini-3.5-flash": "Gemini 3.5 Flash",
   "gemini-flash-latest": "Gemini Flash",
+  "claude-haiku-5-5": "Claude Haiku 5.5",
 };
 
-export const modelName = (id: string) => NAMES[id] ?? id;
+/** El esfuerzo de razonamiento ("glm-5.3-flash@high") no se muestra: es el mismo modelo */
+export const modelName = (id: string) => {
+  const base = id.split("@")[0];
+  return NAMES[base] ?? base;
+};

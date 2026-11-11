@@ -40,8 +40,13 @@ log = logging.getLogger("analysis")
 # confundía tendencias de los derivados. Qwen 3.5, el primer respaldo, dejó de estar en DigitalOcean (10 nov 2026).
 # gpt-oss-120b (DigitalOcean; en Groq no cabe: los datos superan los 8.000 tokens por minuto de su nivel gratuito) se
 # descartó: en las pruebas y en un análisis publicado (10 nov 2026) leyó mal la estructura semanal, inventó niveles y no
-# respeta el formato de los precios. Si fallan todos, la web mantiene el análisis anterior, mejor que uno erróneo
-MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,gemini:gemini-3.5-flash,gemini:gemini-flash-latest")
+# respeta el formato de los precios. Si fallan todos, la web mantiene el análisis anterior, mejor que uno erróneo.
+# glm-5.3-flash@high, de respaldo si GLM agota dos veces los tokens razonando (11 nov 2026, mismos datos): sin parámetro
+# GLM razona al máximo (20.000-26.000 tokens, 3-4 min) y da los textos más detallados y estables; con reasoning_effort
+# "high" o "medium" razona unos 3.000 (30-45 s) con zonas y escenarios parecidos, pero textos algo menos precisos y una
+# dirección menos estable entre intentos. "high" salió algo mejor que "medium"; con "low" o "none" no razona y falla
+MODELS = llm.models_from_env("ANALYSIS_MODELS", "glm-5.3-flash,glm-5.3-flash@high,gemini:gemini-3.5-flash,"
+                             "gemini:gemini-flash-latest")
 SPOT = "https://data-api.binance.vision/api/v3"
 FUTURES = "https://fapi.binance.com"
 PRICE_URL = f"{SPOT}/ticker/price?symbol=BTCUSDT"
@@ -64,30 +69,26 @@ MAX_DAYS = 0.20
 # de comprobación después de los datos (11 nov 2026) hizo que GLM agotara los 32.000 tokens revisándolas: sin ella, ~22.000
 PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT (descritos al \
 final) y haces tu propio análisis de la situación actual de BTC: tú decides qué factores pesan más. Respondes solo con \
-un objeto JSON con las zonas de soporte y resistencia, el sesgo, los escenarios más probables y sus textos.
+un objeto JSON con las zonas de soporte y resistencia, el sesgo, los escenarios más probables y las claves que los \
+explican; otro modelo redactará después los textos a partir de tu análisis.
 
 REGLAS PRINCIPALES
 
-1. Zonas (supports y resistances): de 1 a 3 de cada lado del precio actual, solo las realmente relevantes, de la más \
-cercana a la más lejana, como rangos [low, high] con strength de 1 (débil) a 3 (fuerte). Soportes por debajo del precio \
-y resistencias por encima.
-- Cada zona tiene que contener al menos una zona de reacción (reaction_zones), un pivote confirmado de market_structure \
-o una liquidez pendiente (liquidity_pools): donde el precio haya reaccionado de verdad. No bastan el extremo en curso \
-(aún no se ha visto un rebote desde él; sí sirve como objetivo, invalidación o referencia en el texto), ni Fibonacci ni \
-imbalances, aunque coincidan varios: solo pueden reforzar una zona que ya exista.
-- Afina todas las zonas diarias con las de 4 h: si una zona de reacción de 4 h cae dentro de una diaria (o la solapa \
-casi entera), usa el rango de la de 4 h, más preciso, con la fuerza que le da la diaria; si no hay ninguna, deja la diaria.
-- Si el precio está dentro de una zona (side "at_price"), esa zona no es un soporte ni una resistencia entera: solo lo \
-es la parte de cada lado del precio.
+1. Zonas (supports y resistances): elige de zone_candidates de 1 a 3 de cada lado del precio actual, solo las \
+realmente relevantes, y da su id con strength de 1 (débil) a 3 (fuerte): los soportes, entre las de side "below"; las \
+resistencias, entre las de side "above". Las candidatas ya están calculadas desde las zonas donde el precio ha girado de \
+verdad (afinadas con las de 4 h sólidas y partidas en el precio si lo contienen): no construyas zonas propias.
 - Fuerza: más a las zonas con más reacciones y más recientes; menos a las que los cierres han atravesado varias veces \
 sin girar (crossings), sobre todo desde su última reacción (crossings_since_last): el precio ya no las respeta. Una \
-sola ruptura seguida de una reacción desde el otro lado no resta, porque confirma la zona con el papel cambiado.
+sola ruptura seguida de una reacción desde el otro lado no resta, porque confirma la zona con el papel cambiado. Las \
+confluencias (confluences: niveles de Fibonacci, pivotes, liquidez o imbalances dentro de la zona) la refuerzan.
 
-2. Precios exactos: en los campos numéricos (zonas, objetivos e invalidaciones) usa los precios de los niveles de los \
-datos, sin redondearlos. Solo se redondean en los textos.
+2. Precios exactos: en los objetivos y las invalidaciones usa los precios de los niveles de los datos, sin redondearlos. \
+Solo se redondean en los textos.
 
 3. Cada objetivo e invalidación sale de un nivel de los datos, y lo indicas en su base (target_basis e \
-invalidation_basis: {"kind": ..., "timeframe": ...}). kind: "reaction_zone" o "liquidity_pool" (en 1d o 4h), \
+invalidation_basis: {"kind": ..., "timeframe": ...}). kind: "reaction_zone" (un borde de una zona de zone_candidates, \
+en 1d o 4h), "liquidity_pool" (en 1d o 4h), \
 "imbalance" (en 1w, 1d o 4h), "pivot" (de market_structure, en 1w o 1d, incluido el extremo en curso), "fibonacci" (en \
 1d) o, si no hay un nivel cerca y lo estimas por la volatilidad, "atr" (en cualquier temporalidad).
 
@@ -99,22 +100,17 @@ pendiente y los imbalances cercanos son objetivos habituales del precio (suele i
 girar), y Fibonacci sirve para los objetivos, sobre todo cuando el precio atraviesa un tramo sin zonas de reacción, \
 como un imbalance grande.
 
-5. Los textos cuadran con los números: los precios y las direcciones de los textos son los de los campos. Cada precio \
-que cites en los textos, salvo el actual, debe decir en pocas palabras qué nivel es y por qué importa, con los datos \
-que lo respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", "el 50 % de \
-Fibonacci del tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco de 4 h entre X e Y $ que \
-el precio no ha rellenado" (X, Y y N son los de los datos). Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
-menciones: di su precio.
-
-6. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
+5. Las claves (notes) son lo único que verá quien redacte los textos, además de tus zonas y escenarios: cada una con \
+sus cifras exactas de los datos y bien interpretada (por ejemplo, si un dato salió por encima o por debajo de la \
+previsión y qué implica para BTC, o qué indica un dato on-chain, sin exagerarlo).
 
 FORMATO DE LA RESPUESTA
 
 Solo un objeto JSON, sin texto antes ni después, con esta forma:
 {
   "price": precio actual de BTC en dólares (número),
-  "supports": [{"low": número, "high": número, "strength": 1 a 3}, ...],
-  "resistances": [{"low": número, "high": número, "strength": 1 a 3}, ...],
+  "supports": [{"id": id de zone_candidates, "strength": 1 a 3}, ...],
+  "resistances": [{"id": id de zone_candidates, "strength": 1 a 3}, ...],
   "bias": "alcista" | "bajista" | "neutral",
   "confidence": 1 a 3,
   "outlook": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base, "invalidation": número, \
@@ -122,8 +118,7 @@ Solo un objeto JSON, sin texto antes ni después, con esta forma:
   "outlook_days": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base, "invalidation": número, \
 "invalidation_basis": base},
   "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base},
-  "es": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
-  "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
+  "notes": {"trend": texto, "drivers": [texto, ...]}
 }
 
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
@@ -133,13 +128,9 @@ invalidaría ese escenario (al otro lado del precio actual).
 Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
-- es y en: el mismo análisis en español de España y en inglés. headline: una frase de 12 palabras como máximo. summary: \
-la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo). trend: la tendencia de fondo (semanas y meses: \
-estructura, rupturas, divergencias) y en qué punto está el precio dentro de ella, en 2 o 3 frases (80 palabras como \
-máximo). outlook: lo más probable en las próximas horas, hacia dónde y qué lo invalidaría, en 2 o 3 frases (70 palabras \
-como máximo). outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves (35 palabras como máximo cada una) de lo \
-que está moviendo el precio. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Nombra los datos \
-con palabras normales, no con sus nombres en el JSON.
+- notes, en español: trend, la tendencia de fondo (semanas y meses: estructura, rupturas, divergencias) y en qué \
+punto está el precio dentro de ella, en 2 o 3 frases con sus precios; drivers, de 3 a 6 claves de lo que está moviendo \
+el precio y de por qué esperas cada escenario, una frase cada una con sus cifras.
 
 CÓMO LEER LOS DATOS
 
@@ -148,10 +139,13 @@ BTC], de la más antigua a la más reciente; la última está en curso y su cier
 temporalidad, indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y \
 en el mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
 mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio).
-- reaction_zones, para diario y 4 h: las zonas donde el precio ha girado de verdad (todos los pivotes cercanos, \
-agrupados), con su lado respecto al precio (side), cuántas reacciones ha habido, cuántas como techo y cuántas como suelo, \
-cuándo fue la última, y cuántas veces la han atravesado los cierres de lado a lado sin girar (crossings, en total, y \
-crossings_since_last, desde la última reacción).
+- zone_candidates: las zonas donde el precio ha girado de verdad (todos los pivotes cercanos, agrupados, en diario y \
+4 h), de la más alta a la más baja. Cada una con su id, sus bordes (low, high), su lado respecto al precio (side) y su \
+distancia en %; timeframe: "1d", "4h" o "1d+4h" (una zona de 4 h dentro de una diaria, con los datos de las dos; \
+daily_range, la diaria entera); split_at_price si es la parte de una zona que contenía el precio; para cada temporalidad, cuántas \
+reacciones ha habido, cuántas como techo y cuántas como suelo, cuándo fue la última y cuántas veces la han atravesado \
+los cierres de lado a lado sin girar (crossings, en total, y crossings_since_last, desde la última reacción); y \
+confluences, los niveles de los datos que caen dentro.
 - market_structure, para semanal y diario: los últimos pivotes de la estructura (con el RSI en cada uno y si son más \
 altos o más bajos que el anterior: HH, LH, HL, LL), el extremo en curso (current_extreme: el máximo o mínimo desde el \
 último pivote, aún sin confirmar, porque el precio no se ha alejado lo bastante de él para que lo sea), la última \
@@ -191,8 +185,9 @@ sí solos.
 como contexto de lo que puede estar moviendo el precio."""
 
 
-ZONE = {"type": "object", "properties": {"low": {"type": "number"}, "high": {"type": "number"}, "strength": {"type": "integer"}},
-        "required": ["low", "high", "strength"], "additionalProperties": False}
+# Las zonas se eligen de zone_candidates por su id: el modelo no copia bordes (los redondeaba o los cambiaba)
+ZONE = {"type": "object", "properties": {"id": {"type": "string"}, "strength": {"type": "integer"}},
+        "required": ["id", "strength"], "additionalProperties": False}
 DIRECTION = {"type": "string", "enum": ["alcista", "bajista", "lateral"]}
 TEXT = {"type": "object",
         "properties": {"headline": {"type": "string"}, "summary": {"type": "string"}, "trend": {"type": "string"},
@@ -221,12 +216,54 @@ SCHEMA = {
         "outlook_days": MOVE,
         "alternative": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "target_basis": BASIS},
                         "required": ["direction", "target", "target_basis"], "additionalProperties": False},
-        "es": TEXT,
-        "en": TEXT,
+        "notes": {"type": "object", "properties": {"trend": {"type": "string"}, "drivers": {"type": "array", "items": {"type": "string"}}},
+                  "required": ["trend", "drivers"], "additionalProperties": False},
     },
-    "required": ["price", "supports", "resistances", "bias", "confidence", "outlook", "outlook_days", "alternative", "es", "en"],
+    "required": ["price", "supports", "resistances", "bias", "confidence", "outlook", "outlook_days", "alternative", "notes"],
     "additionalProperties": False,
 }
+
+
+# Los textos, en una segunda llamada con el análisis ya validado: así nunca contradicen lo que se publica (la
+# validación recorta zonas, corrige direcciones o descarta invalidaciones) y cada llamada razona solo su parte
+TEXT_SCHEMA = {"type": "object", "properties": {"es": TEXT, "en": TEXT}, "required": ["es", "en"], "additionalProperties": False}
+TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,glm-5.3-flash,gemini:gemini-3.5-flash,"
+                                  "gemini:gemini-flash-latest")
+TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de un analista ya \
+revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, sesgo, confianza y escenarios con \
+su objetivo, su invalidación y de qué nivel sale cada uno; notes: sus claves y la tendencia de fondo) y los datos de \
+mercado que puedes citar (data). Redactas sus textos para la web, en español de España y en inglés, sin cambiar el \
+análisis.
+
+REGLAS
+
+1. Los textos cuentan este análisis: las mismas zonas, direcciones, objetivos e invalidaciones, con sus precios. No \
+añadas escenarios, niveles ni cifras que no estén en analysis, notes o data.
+2. Cada precio que cites, salvo el actual, dice en pocas palabras qué nivel es y por qué importa, con los datos que lo \
+respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", "el 50 % de Fibonacci del \
+tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco de 4 h entre X e Y $ que el precio no ha \
+rellenado" (X, Y y N son los de los datos).
+3. Interpreta bien los datos: un dato por encima de la previsión no es "mejor de lo previsto" si es malo para el \
+mercado (una inflación más alta, por ejemplo); una pérdida no realizada alta de los holders de corto plazo es estrés, y \
+solo es capitulación si venden de verdad con pérdidas (pérdida realizada disparada y SOPR claramente por debajo de 1).
+4. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
+
+Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
+{
+  "es": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
+  "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
+}
+
+- headline: una frase de 12 palabras como máximo.
+- summary: la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo).
+- trend: la tendencia de fondo (semanas y meses: estructura, rupturas, divergencias) y en qué punto está el precio dentro \
+de ella, en 2 o 3 frases (80 palabras como máximo).
+- outlook: lo más probable en las próximas horas (analysis.outlook), hacia dónde y qué lo invalidaría, en 2 o 3 frases \
+(70 palabras como máximo).
+- outlook_days: lo mismo para 1-2 días (analysis.outlook_days).
+- points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio.
+- Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Nombra los datos con palabras normales, no con \
+sus nombres en el JSON."""
 
 
 # ---------- Datos ----------
@@ -647,6 +684,97 @@ def imbalances(raw: list[list], tf: str) -> list[dict]:
     return near("above") + near("at_price") + near("below")
 
 
+# Zonas candidatas: el script hace lo mecánico (afinar con 4 h, partir en el precio, ver qué niveles caen dentro) y el
+# modelo solo elige cuáles importan y su fuerza. Una de 4 h afina una diaria si cae dentro de ella en al menos
+# CANDIDATE_INSIDE de su ancho; las de 4 h, con al menos CANDIDATE_MIN_4H reacciones (con una sola no hay zona)
+CANDIDATE_INSIDE = 0.7
+CANDIDATE_MIN_4H = 2
+# Una de 4 h sustituye a la diaria en la que cae solo si es sólida: con al menos REFINE_MIN_REACTIONS reacciones o como
+# mucho REFINE_MAX_CROSSINGS cruces desde la última (una débil afinaría mal). Elegirlo el modelo le hacía razonar en bucle
+REFINE_MIN_REACTIONS = 3
+REFINE_MAX_CROSSINGS = 1
+CANDIDATES_PER_SIDE = 4  # las más cercanas al precio: menos opciones, menos razonamiento
+ZONE_MIN_ATR = 0.15  # lo mínimo (en ATR diario) que puede quedar de una zona partida en el precio
+CONFLUENCE_ATR = 0.1  # margen (en ATR diario) para que un nivel puntual cuente como dentro de una zona
+
+
+def _zone_stats(z: dict) -> dict:
+    return {k: z[k] for k in ("reactions", "as_high", "as_low", "last", "crossings", "crossings_since_last")}
+
+
+def _inside(q: dict, d: dict) -> bool:
+    width = q["high"] - q["low"]
+    if not width:
+        return d["low"] <= q["low"] <= d["high"]
+    return max(0, min(q["high"], d["high"]) - max(q["low"], d["low"])) >= CANDIDATE_INSIDE * width
+
+
+def _confluences(lo: float, hi: float, data: dict, tol: float) -> list[str]:
+    """Los niveles de los datos que caen dentro de la zona: Fibonacci, pivotes, liquidez e imbalances."""
+    near = lambda p: lo - tol <= p <= hi + tol
+    out = [f"fibonacci {f['leg']} {float(f['ratio']) * 100:g} %: {f['price']}" for f in fib_levels(data) if near(f["price"])]
+    for tf, ms in data.get("market_structure", {}).items():
+        out += [f"pivot {tf} ({p['type']}, {p['date']}): {p['price']}" for p in ms.get("pivots", []) if near(p["price"])]
+        if (cur := ms.get("current_extreme")) and near(cur["price"]):
+            out.append(f"current_extreme {tf} (sin confirmar): {cur['price']}")
+    for tf, pools in data.get("liquidity_pools", {}).items():
+        out += [f"liquidity_pool {tf}{' (iguales)' if p['equal_levels'] else ''}: {p['price']}" for p in pools if near(p["price"])]
+    for tf, gaps in data.get("imbalances", {}).items():
+        out += [f"imbalance {tf} {g['type']}: {g['low']}-{g['high']}" for g in gaps if g["low"] <= hi and g["high"] >= lo]
+    return out
+
+
+def zone_candidates(data: dict, price: float, atr_1d: float) -> list[dict]:
+    """Las zonas entre las que elige el modelo, de la más alta a la más baja, con id Z1, Z2…:
+      - cada zona de reacción diaria o, si caen dentro de ella zonas de 4 h sólidas, esas en su lugar (afinadas, con los
+        datos de las dos y daily_range, la diaria entera)
+      - las de 4 h que no caen dentro de ninguna diaria
+      - las que contienen el precio, partidas en él (si lo que queda de un lado es muy estrecho, ese lado no cuenta)
+    con su lado respecto al precio y los niveles que caen dentro (confluences); como mucho CANDIDATES_PER_SIDE de cada
+    lado, las más cercanas."""
+    zones = data.get("reaction_zones", {})
+    daily, h4 = zones.get("1d", []), [q for q in zones.get("4h", []) if q["reactions"] >= CANDIDATE_MIN_4H]
+    solid = lambda q: q["reactions"] >= REFINE_MIN_REACTIONS or q["crossings_since_last"] <= REFINE_MAX_CROSSINGS
+    raw, used = [], set()
+    for d in daily:
+        inner = [q for q in h4 if _inside(q, d)]
+        used.update(id(q) for q in inner)  # dentro de una diaria: no van solas aunque sean débiles
+        if refined := [q for q in inner if solid(q)]:
+            raw += [{"low": q["low"], "high": q["high"], "timeframe": "1d+4h", "daily_range": [d["low"], d["high"]],
+                     "1d": _zone_stats(d), "4h": _zone_stats(q)} for q in refined]
+        else:
+            raw.append({"low": d["low"], "high": d["high"], "timeframe": "1d", "1d": _zone_stats(d)})
+    raw += [{"low": q["low"], "high": q["high"], "timeframe": "4h", "4h": _zone_stats(q)} for q in h4 if id(q) not in used]
+
+    out = []
+    for c in raw:
+        if c["low"] < price < c["high"]:
+            parts = [(c["low"], round(price)), (round(price), c["high"])]
+            out += [{**c, "low": lo, "high": hi, "split_at_price": True} for lo, hi in parts if hi - lo >= ZONE_MIN_ATR * atr_1d]
+        else:
+            out.append(c)
+    tol = CONFLUENCE_ATR * atr_1d
+    side = lambda c: (c["low"] + c["high"]) / 2 > price
+    near = lambda up: sorted((c for c in out if side(c) == up), key=lambda c: abs((c["low"] + c["high"]) / 2 - price))
+    out = sorted(near(True)[:CANDIDATES_PER_SIDE] + near(False)[:CANDIDATES_PER_SIDE], key=lambda c: -c["high"])
+    for i, c in enumerate(out):
+        mid = (c["low"] + c["high"]) / 2
+        c.update({"id": f"Z{i + 1}", "side": "above" if mid > price else "below",
+                  "pct_from_price": round((mid / price - 1) * 100, 2),
+                  "confluences": _confluences(c["low"], c["high"], data, tol)})
+    # El id, los bordes y el lado primero: es lo que el modelo usa para elegir
+    first = ("id", "low", "high", "side", "pct_from_price", "timeframe")
+    return [{**{k: c[k] for k in first}, **{k: v for k, v in c.items() if k not in first}} for c in out]
+
+
+# Lo que se calcula para la validación pero no se envía al modelo: las zonas de reacción ya van en zone_candidates
+MODEL_HIDDEN = ("reaction_zones",)
+
+
+def model_view(data: dict) -> dict:
+    return {k: v for k, v in data.items() if k not in MODEL_HIDDEN}
+
+
 def _rma(values: list[float], period: int) -> list[float]:
     """Media de Wilder (la del RSI y el ATR), como ewm(alpha=1/period) del pipeline."""
     out, acc = [], values[0]
@@ -862,6 +990,7 @@ def market() -> dict:
             data["spot_etf_net_flows_20_sessions_btc"] = round(metrics["etf_flows"])
     except Exception as e:
         log.warning("latest.json no disponible: %s", e)
+    data["zone_candidates"] = zone_candidates(data, float(data["candles_1h"][-1][4]), data["indicators_1d"]["atr14"])
     return data
 
 
@@ -878,6 +1007,8 @@ def basis_levels(data: dict) -> list[tuple[str, str, float, float]]:
     out = []
     for tf, zones in data.get("reaction_zones", {}).items():
         out += [("reaction_zone", tf, z["low"], z["high"]) for z in zones]
+    for c in data.get("zone_candidates", []):  # incluidas las partidas en el precio y las afinadas ("1d+4h": de las dos)
+        out += [("reaction_zone", tf, c["low"], c["high"]) for tf in c["timeframe"].split("+")]
     for tf, pools in data.get("liquidity_pools", {}).items():
         out += [("liquidity_pool", tf, p["price"], p["price"]) for p in pools]
     for tf, gaps in data.get("imbalances", {}).items():
@@ -932,44 +1063,9 @@ def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> di
                           "distance": round(gap((k, tf, lo, hi)))}
     return out
 
-# Lo que puede sostener una zona: una reacción real del precio, un pivote o liquidez pendiente (Fibonacci o un
-# imbalance solos, no, ni el extremo en curso, aún sin confirmar). La zona tiene que solapar una zona de reacción, o contener un pivote o una liquidez con un margen
-# de ZONE_ATR (ATR diario) por redondeos
-ZONE_ANCHORS = ("reaction_zone", "pivot", "liquidity_pool")
-ZONE_ATR = 0.1
-
-
-def check_zone(z: dict, levels: list, tolerance: float) -> None:
-    """Marca la zona con anchored: si solapa una zona de reacción de los datos o contiene (con `tolerance` de margen) un
-    pivote o una liquidez. Solo se registra: no descarta el análisis."""
-    def touches(lv: tuple) -> bool:
-        tol = tolerance if lv[2] == lv[3] else 0  # los puntos, con margen; las zonas tienen que solaparse de verdad
-        return lv[2] <= z["high"] + tol and lv[3] >= z["low"] - tol
-    near = [lv for lv in levels if lv[0] in ZONE_ANCHORS and touches(lv)]
-    z["anchored"] = bool(near)
-    if not near:
-        inside = sorted({f"{lv[0]} {lv[1]}" for lv in levels if touches(lv)})
-        log.warning("Zona sin reacción, pivote ni liquidez (%s %s-%s); solo coincide con: %s", z["id"], z["low"], z["high"],
-                    ", ".join(inside) or "nada")
-
-
-# Lo mínimo que puede quedar de una zona recortada al precio (en ATR diario)
-ZONE_MIN_ATR = 0.15
-
-
-def check_refined(z: dict, zones_4h: list[dict], tolerance: float) -> None:
-    """Avisa si la zona contiene una zona de reacción de 4 h (de al menos 2 reacciones) mucho más estrecha que ella: el
-    prompt pide afinar la diaria con la de 4 h. Solo se registra: no descarta el análisis."""
-    inside = [q for q in zones_4h if q["reactions"] >= 2 and q["low"] >= z["low"] - tolerance and q["high"] <= z["high"] + tolerance
-              and (z["high"] - z["low"]) > 1.5 * (q["high"] - q["low"]) + tolerance]
-    if inside:
-        z["refined"] = False
-        log.warning("Zona sin afinar (%s %s-%s): contiene la de 4 h %s", z["id"], z["low"], z["high"],
-                    ", ".join(f"{q['low']}-{q['high']} ({q['reactions']} reacciones)" for q in inside))
-
-
 def validate(a: dict, price: float, data: dict | None = None) -> dict:
-    """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene. Con `data`
+    """Ordena y filtra las zonas, corrige lo que se puede y lanza ValueError si el análisis no se sostiene (sin los
+    textos: van en la segunda llamada, con check_texts). Con `data`
     (los datos que recibió el modelo), comprueba también de qué nivel salen objetivos e invalidaciones."""
     levels = basis_levels(data) if data else []
     fibs = fib_levels(data) if data else []
@@ -979,12 +1075,23 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     if not said or abs(said / price - 1) > 0.03:
         raise ValueError(f"el modelo da un precio de {said} y en Binance está a {price:.0f}")
 
+    candidates = {c["id"]: c for c in (data or {}).get("zone_candidates", [])}
+
     def zones(raw: list[dict], kind: str) -> list[dict]:
         out = []
         for z in raw:
-            lo, hi = sorted((float(z["low"]), float(z["high"])))
-            # Si el precio está dentro de la zona, solo la parte de su lado es soporte o resistencia; si lo que queda es
-            # demasiado estrecho, el precio está en la zona y no es ninguna de las dos
+            if "low" in z:  # --dry-run: zonas sin candidatas
+                lo, hi, source = *sorted((float(z["low"]), float(z["high"]))), None
+            elif (c := candidates.get(str(z.get("id")))):
+                lo, hi, source = c["low"], c["high"], c["id"]
+                if c["side"] != ("below" if kind == "support" else "above"):
+                    log.warning("Zona del lado equivocado, se descarta: %s (%s) como %s", c["id"], c["side"], kind)
+                    continue
+            else:
+                log.warning("Zona desconocida: %s", z.get("id"))
+                continue
+            # El precio puede haberse movido desde los datos: lo que quede al otro lado no es soporte o resistencia, y si
+            # lo que queda es muy estrecho, el precio está en la zona y no es ninguna de las dos
             if kind == "support" and hi > price or kind == "resistance" and lo < price:
                 clipped = (lo, price) if kind == "support" else (price, hi)
                 log.info("Zona recortada al precio (%s %.0f-%.0f → %.0f-%.0f)", kind, lo, hi, *clipped)
@@ -995,8 +1102,15 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
             near = abs(mid / price - 1) <= 0.25
             if near and hi - lo < price * 0.06:
                 out.append({"kind": kind, "low": round(lo), "high": round(hi), "mid": round(mid),
-                            "strength": max(1, min(3, int(z.get("strength", 2))))})
-        out.sort(key=lambda z: abs(z["mid"] - price))
+                            "strength": max(1, min(3, int(z.get("strength", 2))))} | ({"candidate": source} if source else {}))
+        # Una afinada y su diaria se solapan: si el modelo elige las dos, cuenta la primera que dio
+        kept: list[dict] = []
+        for z in out:
+            if any(z["low"] < k["high"] and k["low"] < z["high"] for k in kept):
+                log.warning("Zona solapada con otra elegida, se descarta: %s %s-%s", z.get("candidate"), z["low"], z["high"])
+            else:
+                kept.append(z)
+        out = sorted(kept, key=lambda z: abs(z["mid"] - price))
         for i, z in enumerate(out[:MAX_LEVELS]):
             z["id"] = f"{'S' if kind == 'support' else 'R'}{i + 1}"
         return out[:MAX_LEVELS]
@@ -1004,10 +1118,6 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     sup, res = zones(a["supports"], "support"), zones(a["resistances"], "resistance")
     if not sup or not res:
         raise ValueError(f"faltan zonas: {len(sup)} soportes, {len(res)} resistencias")
-    if levels:
-        for z in sup + res:
-            check_zone(z, levels, ZONE_ATR * atr_1d)
-            check_refined(z, (data or {}).get("reaction_zones", {}).get("4h", []), ZONE_ATR * atr_1d)
 
     def move(m: dict, limit: float) -> dict:
         target = float(m["target"])
@@ -1052,18 +1162,37 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         # Una línea por precio: la corrección semanal y la diaria pueden ser el mismo tramo
         "fibonacci": list({f["price"]: f for f in cited if f}.values()),
     }
+    notes = a.get("notes") or {}
+    result["notes"] = {"trend": str(notes.get("trend", "")).strip(), "drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}
+    return result
+
+
+def check_texts(a: dict) -> dict:
+    """Los textos de la segunda llamada, sin campos vacíos; como mucho 4 claves."""
+    out = {}
     for lang in ("es", "en"):
         t = a[lang]
         if not all(str(t.get(k, "")).strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")):
             raise ValueError(f"texto vacío ({lang})")
-        result[lang] = {k: t[k].strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")}
-        result[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
-    return result
+        out[lang] = {k: t[k].strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")}
+        out[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
+    return out
+
+
+def text_input(result: dict, data: dict) -> str:
+    """Lo que recibe la redacción: el análisis validado (cada zona con los datos de su candidata) y los datos citables,
+    sin las velas ni las candidatas (lo que se necesita de ellas ya va en las zonas elegidas)."""
+    candidates = {c["id"]: c for c in data.get("zone_candidates", [])}
+    analysis = {k: v for k, v in result.items() if k != "notes"}
+    analysis["levels"] = [{**z, "zone": {k: v for k, v in candidates.get(z.get("candidate"), {}).items() if k not in ("id", "side")}}
+                          for z in result["levels"]]
+    facts = {k: v for k, v in model_view(data).items() if not k.startswith("candles_") and k != "zone_candidates"}
+    return json.dumps({"analysis": analysis, "notes": result.get("notes", {}), "data": facts}, separators=(",", ":"), ensure_ascii=False)
 
 
 def dry_run(price: float) -> dict:
     """Sin modelo: zonas a distancias fijas del precio, para probar la salida y la web."""
-    z = lambda f, s: {"low": price * f - 300, "high": price * f + 300, "strength": s}
+    z = lambda f, s: {"low": price * f - 300, "high": price * f + 300, "strength": s}  # sin candidatas: con bordes
     text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "trend": "Sin modelo.", "outlook": "Sin modelo.",
             "outlook_days": "Sin modelo.", "points": ["Sin modelo"]}
     return {"price": price, "supports": [z(0.985, 3), z(0.96, 2)], "resistances": [z(1.015, 2), z(1.04, 3)],
@@ -1081,10 +1210,11 @@ def main() -> None:
 
     if args.dry_run:
         price = float(get(PRICE_URL)["price"])
-        result, model = validate(dry_run(price), price), "dry-run"
+        raw = dry_run(price)
+        result, model, text_model = {**validate(raw, price), **check_texts(raw)}, "dry-run", "dry-run"
     else:
         data = market()
-        user = json.dumps(data, separators=(",", ":"))
+        user = json.dumps(model_view(data), separators=(",", ":"))
         prices: list[float] = []
 
         def check(raw: dict) -> dict:
@@ -1093,13 +1223,23 @@ def main() -> None:
 
         try:
             # Si la respuesta no se sostiene (zonas al lado equivocado, precio que no cuadra…), se prueba el siguiente
-            # GLM razona unos 13.000 tokens con los textos largos: con el límite general (16.000) fallaba 1 de cada 2
+            # GLM sin límite de esfuerzo razona hasta 20.000-26.000 tokens: con el límite general (16.000) fallaba a menudo
             result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis", MODELS, check, max_tokens=32000)
         except RuntimeError:
             raise SystemExit("ningún modelo dio un análisis válido: se mantiene el anterior")
-        price, model = prices[-1], llm.label(spec)
+        # Con el esfuerzo, si lo lleva ("glm-5.3-flash@high"): eval_analysis compara así el principal con el respaldo
+        name = lambda spec: llm.label(spec) + (f"@{spec.partition('@')[2]}" if "@" in spec else "")
+        price, model = prices[-1], name(spec)
+        try:
+            texts, spec = llm.complete(TEXT_PROMPT, text_input(result, data), TEXT_SCHEMA, "analisis-textos", TEXT_MODELS,
+                                       check_texts, max_tokens=16000)
+        except RuntimeError:
+            raise SystemExit("ningún modelo redactó los textos: se mantiene el análisis anterior")
+        result, text_model = {**result, **texts}, name(spec)
 
-    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "price": round(price), **result}
+    # notes (las claves del analista para la redacción) no se publica: solo se guarda en el registro
+    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model, "text_model": text_model,
+           "price": round(price), **{k: v for k, v in result.items() if k != "notes"}}
     # Liquidez pendiente e imbalances del momento del análisis, para dibujarlos en su gráfico (calculados, no del modelo)
     if not args.dry_run:
         out["liquidity"] = {"pools": data.get("liquidity_pools", {}),
@@ -1108,10 +1248,12 @@ def main() -> None:
     if not args.dry_run:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         with open(STATE_DIR / "analysis_log.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps({k: out[k] for k in ("generated_at", "model", "price", "levels", "bias", "confidence", "outlook",
-                                                    "outlook_days", "alternative")}) + "\n")
-    log.info("analysis.json: %s; horas: %s hacia %s; 1-2 días: %s hacia %s (%s)", result["bias"], result["outlook"]["direction"],
-             result["outlook"]["target"], result["outlook_days"]["direction"], result["outlook_days"]["target"], model)
+            f.write(json.dumps({**{k: out[k] for k in ("generated_at", "model", "text_model", "price", "levels", "bias",
+                                                       "confidence", "outlook", "outlook_days", "alternative")},
+                                "notes": result.get("notes")}) + "\n")
+    log.info("analysis.json: %s; horas: %s hacia %s; 1-2 días: %s hacia %s (%s; textos, %s)", result["bias"],
+             result["outlook"]["direction"], result["outlook"]["target"], result["outlook_days"]["direction"],
+             result["outlook_days"]["target"], model, text_model)
 
 
 if __name__ == "__main__":

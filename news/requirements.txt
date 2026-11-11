@@ -1,1 +1,3 @@
-# El script solo usa la librería estándar de Python (3.10 o superior)
+# Los scripts solo usan la librería estándar de Python (3.10 o superior). Para los modelos "anthropic:" de llm.py hace
+# falta además el SDK oficial de Anthropic (se carga solo si se usan):
+# anthropic
