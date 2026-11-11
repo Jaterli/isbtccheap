@@ -2,7 +2,7 @@ import { en } from "./en";
 import { es, type Messages } from "./es";
 
 export type Lang = "es" | "en";
-export type Page = "index" | "volatility" | "cycles" | "valuation" | "drawdown" | "categories" | "etf" | "liquidity" | "analysis" | "legal" | "privacy" | "cookies";
+export type Page = "index" | "volatility" | "cycles" | "valuation" | "drawdown" | "categories" | "etf" | "liquidity" | "sentiment" | "analysis" | "legal" | "privacy" | "cookies";
 
 /** El español en la raíz y el inglés bajo /en/, cada página con su index.html (vite.config.ts) */
 export const PAGE_PATH: Record<Page, Record<Lang, string>> = {
@@ -14,6 +14,7 @@ export const PAGE_PATH: Record<Page, Record<Lang, string>> = {
   categories: { es: "/categorias/", en: "/en/categories/" },
   etf: { es: "/etf/", en: "/en/etf/" },
   liquidity: { es: "/liquidez/", en: "/en/liquidity/" },
+  sentiment: { es: "/sentimiento/", en: "/en/sentiment/" },
   analysis: { es: "/analisis/", en: "/en/analysis/" },
   legal: { es: "/aviso-legal/", en: "/en/legal-notice/" },
   privacy: { es: "/privacidad/", en: "/en/privacy/" },

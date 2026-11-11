@@ -24,6 +24,7 @@ const DRAWDOWN = { URL_ES: `${SITE}/caidas/`, URL_EN: `${SITE}/en/drawdown/` };
 const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categories/` };
 const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
 const LIQUIDITY = { URL_ES: `${SITE}/liquidez/`, URL_EN: `${SITE}/en/liquidity/` };
+const SENTIMENT = { URL_ES: `${SITE}/sentimiento/`, URL_EN: `${SITE}/en/sentiment/` };
 const ANALYSIS = { URL_ES: `${SITE}/analisis/`, URL_EN: `${SITE}/en/analysis/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
@@ -228,6 +229,25 @@ const legalMeta = (p: LegalPage): Record<"es" | "en", PageMeta> => ({
   },
 });
 
+const SENTIMENT_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...SENTIMENT,
+    URL: SENTIMENT.URL_ES,
+    TITLE: "Sentimiento de Bitcoin: Fear & Greed, SOPR y flujos de ETF | Is BTC Cheap?",
+    DESCRIPTION:
+      "Evolución del Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF de Bitcoin, las métricas de sentimiento del índice, frente al precio, en un mapa de calor de 0 a 100.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...SENTIMENT,
+    URL: SENTIMENT.URL_EN,
+    TITLE: "Bitcoin sentiment: Fear & Greed, SOPR and ETF flows | Is BTC Cheap?",
+    DESCRIPTION:
+      "How the Fear & Greed Index, short-term SOPR and Bitcoin ETF flows, the index's sentiment metrics, have evolved against the price, in a 0 to 100 heatmap.",
+  },
+};
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -237,6 +257,7 @@ export const META = {
   categories: CATEGORIES_META,
   etf: ETF_META,
   liquidity: LIQUIDITY_META,
+  sentiment: SENTIMENT_META,
   analysis: ANALYSIS_META,
   legal: legalMeta("legal"),
   privacy: legalMeta("privacy"),

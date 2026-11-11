@@ -441,3 +441,44 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
     ],
   },
 };
+
+export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Sentimiento del mercado de Bitcoin",
+    intro:
+      "Mapa de calor con la evolución diaria del Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF de Bitcoin al contado, puntuados de 0 a 100, frente al precio de BTC.",
+    sections: [
+      {
+        h: "¿Qué mide el sentimiento?",
+        p: "El estado de ánimo de los inversores: si dominan el miedo o la euforia. En los suelos de mercado suele haber miedo, ventas con pérdidas y salidas de dinero; en los techos, codicia, beneficios y entradas fuertes. Por eso el índice lo puntúa como el resto de categorías: 0 es miedo, que suele coincidir con precios baratos, y 100 euforia, con precios caros.",
+      },
+      {
+        h: "¿Qué métricas lo forman?",
+        p: "Tres. El Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018. El SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron: por debajo de 1 venden con pérdidas, algo típico de las capitulaciones. Y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. El SOPR y los flujos se puntúan con su percentil frente a sus últimos 4 años.",
+      },
+      {
+        h: "¿Cómo lo usa el índice?",
+        p: "La categoría de sentimiento es la media de las tres métricas y pesa más en las temporalidades cortas (un 28 % en la de 1 hora) que en las largas (un 3 % en la mensual), porque el sentimiento cambia rápido. En los extremos sirve de aviso a la contra: el miedo extremo suele acompañar a los suelos y la euforia, a los techos, aunque puede durar semanas.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin market sentiment",
+    intro:
+      "Heatmap of the daily evolution of the Fear & Greed Index, short-term SOPR and spot Bitcoin ETF flows, scored from 0 to 100, against the BTC price.",
+    sections: [
+      {
+        h: "What does sentiment measure?",
+        p: "The mood of investors: whether fear or euphoria dominates. Market bottoms usually come with fear, selling at a loss and outflows; tops, with greed, profits and strong inflows. That is why the index scores it like the other categories: 0 is fear, which tends to coincide with cheap prices, and 100 is euphoria, with expensive ones.",
+      },
+      {
+        h: "Which metrics make it up?",
+        p: "Three. Alternative.me's Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed), since 2018. Short-term SOPR, which compares the price at which those who bought in the last 5 months sell with the price they paid: below 1 they sell at a loss, typical of capitulations. And US spot ETF flows over the last 20 sessions, since 2024. SOPR and flows are scored by their percentile against their last 4 years.",
+      },
+      {
+        h: "How does the index use it?",
+        p: "The sentiment category is the average of the three metrics and weighs more in short timeframes (28% in the 1-hour one) than in long ones (3% in the monthly one), because sentiment changes quickly. At extremes it works as a contrarian warning: extreme fear tends to come with bottoms and euphoria with tops, although it can last for weeks.",
+      },
+    ],
+  },
+};

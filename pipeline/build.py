@@ -1,12 +1,14 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json, bands.json, etf.json y liquidity.json.
+Genera web/public/data/latest.json, history.json, categories.json, sentiment.json, bands.json, etf.json y liquidity.json
+(en otra carpeta con PIPELINE_OUT_DIR, para probar sin tocar los datos de la web).
 """
 
 import json
 import logging
 import math
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,7 +19,9 @@ import scoring
 import sources
 from config import CATEGORIES, LABELS, METRICS, SCORE_STRETCH, TIMEFRAME_WEIGHTS
 
-OUT_DIR = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
+OUT_DIR = Path(os.environ.get("PIPELINE_OUT_DIR") or Path(__file__).resolve().parent.parent / "web" / "public" / "data")
+# Decimales del valor de cada métrica en sentiment.json (el resto, 4)
+SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
 FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS"]
 
@@ -152,10 +156,27 @@ def main() -> None:
         },
     }
 
+    # sentiment.json: cada métrica de sentimiento, con su valor y su puntuación de 0 a 100, y la de la categoría, con las
+    # mismas fechas que history.json (para la página de sentimiento)
+    num = lambda v, d: None if pd.isna(v) else (int(round(float(v))) if d == 0 else round(float(v), d))
+    sentiment = {
+        "start": categories_hist["start"],
+        "category": categories_hist["categories"].get("sentimiento"),
+        "metrics": {
+            spec["id"]: {
+                "value": [num(v, SENTIMENT_DECIMALS.get(spec["id"], 4)) for v in m[spec["id"]].reindex(hist.index)],
+                "score": [num(v, 0) for v in scores[spec["id"]].reindex(hist.index)],
+            }
+            for spec in METRICS
+            if spec["category"] == "sentimiento" and spec["id"] in m and spec["id"] in scores
+        },
+    }
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
     (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
+    (OUT_DIR / "sentiment.json").write_text(json.dumps(sentiment, separators=(",", ":")), encoding="utf-8")
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución

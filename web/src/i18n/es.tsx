@@ -18,7 +18,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", sentiment: "Sentimiento", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -159,6 +159,28 @@ export const es = {
     kinds: { today: "Hoy", top: "Techo", bottom: "Suelo", lowSoFar: "Mínimo actual" },
     note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin y mapa de calor del score y de sus cinco categorías desde 2011",
+  },
+  sentiment: {
+    title: "Sentimiento del mercado de Bitcoin",
+    rest: "Cómo han evolucionado el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF, las métricas de sentimiento del índice, frente al precio.",
+    card: "Métricas de sentimiento en el tiempo",
+    info: [
+      "Cada fila es la puntuación diaria (cierre del día) de una métrica, de 0 (miedo: barato, verde) a 100 (euforia: caro, rojo), con los mismos tramos de color que el medidor. La primera es la categoría de sentimiento del índice, la media de las tres. Al pasar por el gráfico se ve también el valor de cada métrica. Con periodos largos, cada columna es la media de varios días.",
+      "Fear & Greed Index (Alternative.me, desde 2018): de 0, miedo extremo, a 100, codicia extrema; se usa tal cual. SOPR de corto plazo (media de 7 días, desde 2011): el precio de venta entre el de compra de las monedas que mueven quienes compraron hace menos de 155 días; por debajo de 1, venden con pérdidas. Flujos de los ETF al contado (desde 2024): lo que entró menos lo que salió en las últimas 20 sesiones, en BTC. El SOPR y los flujos se puntúan con su percentil frente a sus últimos 4 años.",
+    ],
+    current: (day: ReactNode, cat: ReactNode, fg: ReactNode, sopr: ReactNode, etf: ReactNode) => (
+      <>
+        Al cierre del {day}, la categoría de sentimiento está en {cat}: Fear & Greed {fg}, SOPR de corto plazo {sopr} y flujos de
+        los ETF {etf}.
+      </>
+    ),
+    short: { sentimiento: "Sentimiento", fear_greed: "Fear & Greed", sth_sopr: "SOPR CP", etf_flows: "ETF 20 ses." },
+    names: { fear_greed: "Fear & Greed Index", sth_sopr: "SOPR de corto plazo (7 días)", etf_flows: "Flujos de los ETF (20 sesiones)" },
+    btc: (v: string) => `${v} BTC`,
+    tableTitle: "Hoy y antes",
+    cols: { metric: "Métrica", value: "Valor hoy", now: "Hoy", d30: "Hace 30 días", y1: "Hace 1 año" },
+    note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin y mapa de calor de sus métricas de sentimiento",
   },
   etf: {
     title: "Flujos de los ETF de Bitcoin",
