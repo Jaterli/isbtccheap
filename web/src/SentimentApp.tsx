@@ -3,17 +3,18 @@ import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
-import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
+import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
 import { SentimentChart } from "./components/SentimentChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
 import { getJson } from "./lib/data";
 import {
-  DAILY_METRICS,
+  INFO_METRICS,
   SENTIMENT_TFS,
   TF_METRICS,
   fromFirstScore,
   indexAgo,
+  lastCandles,
   lastDaysOf,
   loadSentiment,
   type SentimentJson,
@@ -35,7 +36,17 @@ const FORMAT: Record<SentimentMetric, (v: number) => string> = {
   open_interest: (v) => t.sentiment.btc(Math.round(v).toLocaleString(locale)),
   long_pct: (v) => pct(v),
   taker_pct: (v) => pct(v),
+  spot_buy_pct: (v) => pct(v),
+  sth_loss_pct: (v) => pct(v),
 };
+
+// Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D no hay periodo a elegir)
+const MAX_CANDLES: Partial<Record<SentimentKey, Record<SentimentTf, number>>> = {
+  taker_pct: { "1h": 120, "4h": 60, "1d": 30 },
+  spot_buy_pct: { "1h": 120, "4h": 60, "1d": 90 },
+};
+// Derivados en 1D: solo sus ~30 días; tampoco hay periodo a elegir
+const NO_RANGE: SentimentKey[] = ["open_interest", "long_pct", "taker_pct", "spot_buy_pct"];
 
 /** La elección guardada en el navegador (si se puede) */
 function useStored<T extends string>(key: string, fallback: T, valid: readonly T[]) {
@@ -67,7 +78,8 @@ function Chip({ v }: { v: number | null | undefined }) {
   );
 }
 
-const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct"];
+const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct"];
+const isInfo = (k: SentimentKey) => (INFO_METRICS as readonly string[]).includes(k);
 
 export function SentimentApp() {
   const [history, setHistory] = useState<History | null>(null);
@@ -79,10 +91,11 @@ export function SentimentApp() {
   const [error, setError] = useState(false);
   const [tf, setTf] = useStored<SentimentTf>("isbtccheap:sentiment-tf", "1h", SENTIMENT_TFS);
   const [stored, setKey] = useStored<SentimentKey>("isbtccheap:sentiment-key", "sentimiento", KEYS);
-  const range = useRange("isbtccheap:sentiment-range", "1y", LIQUIDITY_RANGES);
+  const range = useRange("isbtccheap:sentiment-range", "1y", SENTIMENT_RANGES);
 
   // Lo que se puede elegir en esta temporalidad: la categoría y las métricas que usa en ella el índice
-  const optionsFor = (x: SentimentTf): SentimentKey[] => ["sentimiento", ...TF_METRICS[x]];
+  // y, al final, las informativas (el índice no las usa)
+  const optionsFor = (x: SentimentTf): SentimentKey[] => ["sentimiento", ...TF_METRICS[x], ...INFO_METRICS];
   const keyFor = (x: SentimentTf): SentimentKey => (optionsFor(x).includes(stored) ? stored : "sentimiento");
   const options = optionsFor(tf);
   const k = keyFor(tf);
@@ -122,7 +135,9 @@ export function SentimentApp() {
   // En 1D, el periodo elegido; desde la primera puntuación de lo elegido
   const shown = useMemo(() => {
     if (!series) return null;
-    const cut = fromFirstScore(shownTf === "1d" ? lastDaysOf(series, range.days) : series, shownK);
+    const ranged = shownTf === "1d" && !NO_RANGE.includes(shownK) ? lastDaysOf(series, range.days) : series;
+    const max = MAX_CANDLES[shownK]?.[shownTf];
+    const cut = fromFirstScore(max ? lastCandles(ranged, max) : ranged, shownK);
     return cut.scores[shownK].some((v) => v !== null) ? cut : null;
   }, [series, shownTf, shownK, range.days]);
 
@@ -130,7 +145,7 @@ export function SentimentApp() {
     if (!hourly || !hourly.time.length) return null;
     const cols = [0, 4, 24].map((hours) => indexAgo(hourly, hours * HOUR));
     const row = (key: SentimentKey) => ({ key, scores: cols.map((i) => (i >= 0 ? hourly.scores[key][i] : null)) });
-    return { now: hourly.time.at(-1)!, hourlyRows: ["sentimiento" as const, ...TF_METRICS["1h"]].map(row), dailyRows: DAILY_METRICS.map(row) };
+    return { now: hourly.time.at(-1)!, indexRows: ["sentimiento" as const, ...TF_METRICS["1h"]].map(row), infoRows: INFO_METRICS.map(row) };
   }, [hourly]);
 
   const tx = t.sentiment;
@@ -152,6 +167,10 @@ export function SentimentApp() {
               ))}
             </InfoTip>
           </h2>
+        </header>
+
+        {/* Una línea con la temporalidad (y, en 1D, el periodo) y otra con las métricas */}
+        <div className="sent-controls">
           <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
             {SENTIMENT_TFS.map((x) => (
               <button
@@ -165,19 +184,24 @@ export function SentimentApp() {
               </button>
             ))}
           </div>
-        </header>
-
-        {/* Segunda fila: las métricas y, en 1D, el periodo */}
+          {/* Los periodos son de velas diarias: con el color del botón 1D */}
+          {tf === "1d" && !NO_RANGE.includes(k) && <div className="sent-daily">{range.control}</div>}
+        </div>
         <div className="sent-controls">
           <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
             {options.map((o) => (
-              <button key={o} role="radio" aria-checked={k === o} className={k === o ? "active" : ""} onClick={() => setKey(o)}>
+              <button
+                key={o}
+                role="radio"
+                aria-checked={k === o}
+                className={[isInfo(o) && "info-metric", k === o && "active"].filter(Boolean).join(" ")}
+                title={isInfo(o) ? tx.infoMetric : undefined}
+                onClick={() => setKey(o)}
+              >
                 {label(o)}
               </button>
             ))}
           </div>
-          {/* Los periodos son de velas diarias: con el color del botón 1D */}
-          {tf === "1d" && <div className="sent-daily">{range.control}</div>}
         </div>
 
         {series && (
@@ -223,7 +247,7 @@ export function SentimentApp() {
                   </tr>
                 </thead>
                 <tbody>
-                  {table.hourlyRows.map((r) => (
+                  {table.indexRows.map((r) => (
                     <tr key={r.key}>
                       <th scope="row">{tx.names[r.key]}</th>
                       {r.scores.map((v, i) => (
@@ -235,10 +259,10 @@ export function SentimentApp() {
                   ))}
                   <tr>
                     <th scope="rowgroup" colSpan={4} className="muted small">
-                      {tx.dailyGroup}
+                      {tx.infoGroup}
                     </th>
                   </tr>
-                  {table.dailyRows.map((r) => (
+                  {table.infoRows.map((r) => (
                     <tr key={r.key}>
                       <th scope="row">{tx.names[r.key]}</th>
                       {r.scores.map((v, i) => (

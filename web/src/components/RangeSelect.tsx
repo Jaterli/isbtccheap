@@ -7,6 +7,8 @@ export const RANGES = [
   { id: "all", days: Infinity },
 ];
 export const LIQUIDITY_RANGES = [{ id: "6m", days: 182 }, ...RANGES];
+// Sentimiento: sin "Todo"
+export const SENTIMENT_RANGES = LIQUIDITY_RANGES.filter((r) => r.id !== "all");
 // Para series cortas (flujos de ETF, desde 2024)
 export const SHORT_RANGES = [
   { id: "3m", days: 91 },

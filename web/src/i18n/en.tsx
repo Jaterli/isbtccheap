@@ -159,8 +159,10 @@ export const en: Messages = {
     card: "Sentiment and price",
     info: [
       "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value.",
-      "The index does not use the same metrics in every timeframe: in 1h and 4h, Binance derivatives (open interest, accounts long and market buys, scored by their percentile against their last 30 days); in 1D, the Fear & Greed Index, short-term SOPR and ETF flows (scored against their last 4 years). That is why each timeframe shows its own.",
-      "Binance only keeps 30 days of derivatives, so in 1h and 4h the chart covers about 3 or 4 weeks. The first candles have no score until 50 data points are available, as in the index.",
+      "The index uses the same daily metrics in every timeframe: the Fear & Greed Index, short-term SOPR and ETF flows (scored against their last 4 years). In 1h and 4h, each candle shows its day's value.",
+      "Informational (not used by the index): Binance derivatives (open interest, accounts long and market buys, scored against their last 30 days, which is all Binance keeps) stopped counting in 1h and 4h because there is no history to test whether they lead the price, and with a month of data accounts long pointed the opposite way to how the index scored them. They are being stored for a backtest. Their first candles have no score until 50 data points are available.",
+      "Spot buys (informational, not used by the index): the share of BTC/USDT spot volume on Binance that was market buying, over the last 3 candles; 50% is balance. Binance keeps its whole history (since 2017): in 1D it is scored against its previous 4 years and in 1h and 4h against what is downloaded. It helps compare spot with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Market buys and spot buys change a lot from one candle to the next: the latest ones are shown (5 days in 1h, 10 in 4h and 1 or 3 months in 1D) so they read better.",
+      "Short-term supply in loss (informational): the share of short-term holders' coins (moved less than 155 days ago) worth less than when bought, from Bitview. It is scored the other way round from the rest: many losses is fear, a low score. It marks cycle tops and bottoms better than the Fear & Greed Index, but in the index backtest it led slightly worse and measures almost the same, so it does not replace Fear & Greed.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
@@ -175,6 +177,8 @@ export const en: Messages = {
       open_interest: "Open interest",
       long_pct: "Accounts long",
       taker_pct: "Market buys",
+      spot_buy_pct: "Spot buys",
+      sth_loss_pct: "STH in loss",
     },
     names: {
       sentimiento: "Sentiment category (1h)",
@@ -184,13 +188,16 @@ export const en: Messages = {
       open_interest: "Open interest",
       long_pct: "Accounts long",
       taker_pct: "Market buys",
+      spot_buy_pct: "Spot buys (informational)",
+      sth_loss_pct: "Short-term supply in loss (informational)",
     },
     btc: (v: string) => `${v} BTC`,
     tfAria: "Timeframe",
     metricAria: "Score overlaid on the price",
     noData: "No data: Binance is not responding.",
+    infoMetric: "Informational: the index does not use it (yet)",
+    infoGroup: "Informational: the index does not use them (yet)",
     tableTitle: "Score now and before, in 1h",
-    dailyGroup: "Daily metrics (used by the index in 1D and above): they change once a day",
     scoreNote: "From 0 (fear: cheap) to 100 (euphoria: expensive), as in the 1h index. 4 hours and 1 day ago, in the 1h candle of then.",
     cols: { metric: "Metric", now: "Now", h4: "4h ago", d1: "1 day ago" },
     note: "Historical data computed without looking ahead, not a forecast or investment advice.",
@@ -204,7 +211,7 @@ export const en: Messages = {
     info: [
       "Each bar is a session's net flow: inflows minus outflows across all US spot bitcoin ETFs (IBIT, FBTC, GBTC…), in dollars. Green, inflows; red, outflows. The x axis is trading sessions, without weekends or holidays.",
       "The index uses the sum of the last 20 sessions in BTC as a sentiment metric: strong inflows, typical of tops, add; outflows, typical of lows, subtract. The data is updated once a day.",
-      "The purple line is Alternative.me's Fear & Greed Index (left axis, from 0 = extreme fear to 100 = extreme greed), to compare flows with market sentiment.",
+      "The purple line is the flows' score in the index (left axis, from 0 to 100): the percentile of the sum of the last 20 sessions in BTC against its whole history (up to 4 years). High means strong inflows (euphoria, raises the score); low, outflows (fear, lowers it). It starts in 2025, when there is enough data for the percentile.",
     ],
     money: (v: number) =>
       v >= 1e9
@@ -216,7 +223,7 @@ export const en: Messages = {
         2024: {total}.
       </>
     ),
-    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative", fearGreed: "Fear & Greed" },
+    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative", score: "Score" },
     tableTitle: "By fund",
     cols: { fund: "Fund", last: (d: string) => `${d} session`, d20: (n: number) => `Last ${n} sessions`, total: "Since launch" },
     source: "Source:",
@@ -377,7 +384,7 @@ export const en: Messages = {
     },
     sentimiento: {
       name: "Sentiment",
-      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data) and spot ETF flows.",
+      what: "Measures investor fear or euphoria with the Fear & Greed Index, short-term holders' SOPR (daily on-chain data) and spot ETF flows, in every timeframe. They are daily data: on 1h and 4h they do not change within the day, so there they weigh as on 1 day.",
       read: "Extreme greed tends to coincide with tops and extreme fear with bottoms, so greed raises the score.",
     },
     tecnico: {
@@ -500,7 +507,7 @@ export const en: Messages = {
     score4h: "4h score",
     fearGreed: "Fear & Greed Index (0 = extreme fear, 100 = extreme greed)",
     loading4h: "Loading 4h candles…",
-    info4h: "In “6 months”, 4-hour candles are shown with that timeframe's score, recomputed with what was known at each candle. Binance only keeps 30 days of derivatives data: before roughly the last 3 weeks, sentiment is the daily one.",
+    info4h: "In “6 months”, 4-hour candles are shown with that timeframe's score, recomputed with what was known at each candle.",
     infoLabel: "the history",
     infoTitle: "History",
     info1: "Top: Bitcoin's price on a log scale; bottom: the daily score. The green and red bands mark the very cheap (≤20) and very expensive (≥80) zones.",

@@ -1,5 +1,4 @@
 import type { Candle, Category, CategoryId, History, Latest, MetricScore, Timeframe } from "../types";
-import type { Derivatives } from "./binance";
 import { bollingerPctB, clamp, percentileOfLast, rsi, sma } from "./indicators";
 
 // En mensual, 200 velas serían 16 años: se usan 48 (un ciclo de halving)
@@ -54,28 +53,6 @@ export function withHistory(binance: Candle[], history: History | null, tf: "1w"
   return [...[...candles.values()].filter((c) => c.time < first), ...binance];
 }
 
-/** En 1 h y 4 h el sentimiento sale de los derivados: las métricas diarias apenas cambian a ese ritmo */
-export const DERIVATIVES_TFS: Timeframe[] = ["1h", "4h"];
-
-/**
- * Percentil del último valor de cada serie frente a los últimos 30 días. Alto = más apalancamiento, más largos o más
- * compras agresivas que de costumbre (mercado recalentado, suma al score).
- */
-export function derivativesMetrics(d: Derivatives): MetricScore[] {
-  // Ratios como parte del total (50 % = equilibrio): misma ordenación, el percentil no cambia
-  const share = (r: number) => r / (1 + r);
-  const longs = d.longShort.map(share);
-  // Una sola vela es muy ruidosa: media de las 3 últimas
-  const buys = d.takerRatio
-    .map((_, i, xs) => (i < 2 ? null : share((xs[i] + xs[i - 1] + xs[i - 2]) / 3)))
-    .filter((x): x is number => x !== null);
-  return [
-    { id: "open_interest", name: "Open interest", value: d.openInterest.at(-1) ?? null, score: percentileOfLast(d.openInterest) },
-    { id: "long_short", name: "Cuentas en largo", value: longs.at(-1) ?? null, score: percentileOfLast(longs) },
-    { id: "taker_ratio", name: "Compras a mercado", value: buys.at(-1) ?? null, score: percentileOfLast(buys) },
-  ];
-}
-
 export interface ScoreResult {
   score: number | null;
   categories: Record<CategoryId, Category>;
@@ -86,18 +63,14 @@ export function computeScore(
   latest: Latest,
   tf: Timeframe,
   technical: Category | null,
-  /** Solo en 1 h y 4 h; null si Binance no respondió (se quedan las métricas diarias) */
-  derivatives: MetricScore[] | null = null,
 ): ScoreResult {
+  // El sentimiento es el diario del pipeline en todas las temporalidades (11 nov 2026). Antes, en 1 h y 4 h lo formaban
+  // los derivados de Binance (open interest, cuentas en largo y compras a mercado) y, en todas, el funding: sin histórico
+  // para comprobarlos (Binance guarda 30 días) y con indicios de signo contrario en las cuentas en largo; el funding,
+  // casi siempre neutro y sin relación con el precio. Los derivados quedan como informativos en la página de sentimiento
+  // y news/collect_derivatives.py va guardando su histórico para un backtest
   const categories = { ...latest.categories };
   if (technical) categories.tecnico = technical;
-
-  // Sin funding desde el 11 nov 2026: casi siempre en el 0,01 % neutro (puntuación 29-50 de mayo a noviembre), sin
-  // relación con el precio, arrastraba la categoría hacia 44; y el pipeline calibra el índice diario sin él
-  if (derivatives) {
-    const sent = latest.categories.sentimiento;
-    categories.sentimiento = { ...sent, metrics: derivatives, score: mean(derivatives.map((m) => m.score)) };
-  }
 
   const weights = latest.weights[tf] ?? latest.weights["1w"];
   let total = 0;

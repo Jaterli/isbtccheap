@@ -133,17 +133,17 @@
   },
   "weights": {
     "1h": {
-      "tecnico": 41,
-      "sentimiento": 28,
-      "valoracion": 20,
-      "ciclo": 10,
+      "tecnico": 43,
+      "sentimiento": 19,
+      "valoracion": 24,
+      "ciclo": 13,
       "liquidez": 1
     },
     "4h": {
-      "tecnico": 31,
-      "sentimiento": 21,
-      "valoracion": 27,
-      "ciclo": 19,
+      "tecnico": 28,
+      "sentimiento": 17,
+      "valoracion": 31,
+      "ciclo": 22,
       "liquidez": 2
     },
     "1d": {

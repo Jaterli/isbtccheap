@@ -6,7 +6,7 @@ import { InfoTip } from "./InfoTip";
 interface Props {
   categories: Record<CategoryId, Category>;
   weights: Record<CategoryId, number>;
-  /** false mientras llegan los datos en vivo de Binance: técnico y sentimiento aún son los diarios del pipeline */
+  /** false mientras llegan los datos en vivo de Binance: el técnico aún es el diario del pipeline */
   live: boolean;
   /** Temporalidad del score: se muestra junto al peso, que depende de ella */
   tf: Timeframe;
@@ -14,10 +14,12 @@ interface Props {
   flash: boolean;
 }
 
-// Se recalculan en vivo: hasta tenerlas, su marca de zona extrema aparecería y desaparecería
-const LIVE: CategoryId[] = ["tecnico", "sentimiento"];
+// Se recalcula en vivo: hasta tenerla, su marca de zona extrema aparecería y desaparecería
+const LIVE: CategoryId[] = ["tecnico"];
 
-const ORDER: CategoryId[] = ["sentimiento", "tecnico", "valoracion", "ciclo", "liquidez"];
+// Por frecuencia de actualización: técnico en vivo; sentimiento con el dato del día; valoración con un día de retraso;
+// ciclo diario pero lento; liquidez semanal o mensual
+const ORDER: CategoryId[] = ["tecnico", "sentimiento", "valoracion", "ciclo", "liquidez"];
 // Zona extrema: el 10 % más bajo o más alto de su historia reciente
 const EXTREME = 10;
 

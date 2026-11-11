@@ -5,11 +5,9 @@ import { HistoryChart } from "./components/HistoryChart";
 import { PriceCard } from "./components/PriceCard";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
-import { fetchCandles, fetchDerivatives } from "./lib/binance";
+import { fetchCandles } from "./lib/binance";
 import {
   computeScore,
-  DERIVATIVES_TFS,
-  derivativesMetrics,
   labelIndex,
   technicalFromCandles,
   withHistory,
@@ -23,7 +21,7 @@ import { InfoTip } from "./components/InfoTip";
 import { Faq } from "./components/Faq";
 import { Feed } from "./components/Feed";
 import { Outlook } from "./components/Outlook";
-import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type MetricScore, type Timeframe } from "./types";
+import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, type Timeframe } from "./types";
 
 
 const TF_KEY = "isbtccheap:tf";
@@ -31,7 +29,6 @@ const REFRESH_MS: Record<Timeframe, number> = { "1h": 120_000, "4h": 300_000, "1
 
 interface LiveEntry {
   technical: Category;
-  derivatives: MetricScore[] | null;
   price: number | null;
   /** Cierre de la vela anterior: la variación se mide desde ahí */
   prevClose: number | null;
@@ -103,7 +100,7 @@ export function App() {
   const [latest, setLatest] = useState<Latest | null>(null);
   const [history, setHistory] = useState<History | null>(null);
   // null: Binance no respondió y se usa lo diario del pipeline
-  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
+  const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
@@ -141,7 +138,7 @@ export function App() {
     const load = async () => {
       const cached = cache.current.get(tf);
       if (cached && Date.now() - cached.at < ms) {
-        setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
+        setLive({ tf, technical: cached.technical });
         setPrice(cached.price);
         setPrevClose(cached.prevClose);
         setLiveError(false);
@@ -149,31 +146,28 @@ export function App() {
         return;
       }
       // Mientras se refresca se muestra la caché de esta temporalidad, no la de otra
-      if (cached) setLive({ tf, technical: cached.technical, derivatives: cached.derivatives });
+      if (cached) setLive({ tf, technical: cached.technical });
       // Hasta tener velas de esta temporalidad no se muestra la variación de otra
       else setPrevClose(null);
       setLoading(true);
-      const [candles, derivs] = await Promise.allSettled([
+      const [candles] = await Promise.allSettled([
         tf === "1w" || tf === "1M" ? fetchCandles(tf).then((c) => withHistory(c, history, tf)) : fetchCandles(tf),
-        DERIVATIVES_TFS.includes(tf) ? fetchDerivatives(tf).then(derivativesMetrics) : Promise.resolve(null),
       ]);
       if (cancelled) return;
       const now = Date.now();
-      const derivatives = derivs.status === "fulfilled" ? derivs.value : (cached?.derivatives ?? null);
       if (candles.status === "fulfilled") {
         const entry = {
           technical: technicalFromCandles(candles.value, tf),
-          derivatives,
           price: candles.value.at(-1)?.close ?? null,
           prevClose: candles.value.at(-2)?.close ?? null,
           at: now,
         };
         cache.current.set(tf, entry);
-        setLive({ tf, technical: entry.technical, derivatives });
+        setLive({ tf, technical: entry.technical });
         setPrice(entry.price);
         setPrevClose(entry.prevClose);
       } else {
-        setLive({ tf, technical: cached?.technical ?? null, derivatives });
+        setLive({ tf, technical: cached?.technical ?? null });
       }
       setLiveError(candles.status === "rejected");
       setLoading(false);
@@ -193,7 +187,7 @@ export function App() {
   const liveTf = live?.tf === tf ? live : cachedTf ?? null;
   const ready = liveTf !== null;
   const computed = useMemo(
-    () => (latest ? computeScore(latest, tf, liveTf?.technical ?? null, liveTf?.derivatives ?? null) : null),
+    () => (latest ? computeScore(latest, tf, liveTf?.technical ?? null) : null),
     [latest, tf, liveTf],
   );
   const shown = ready ? computed : null;

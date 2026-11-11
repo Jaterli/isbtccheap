@@ -69,7 +69,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -81,7 +81,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Cada cuánto se actualiza?",
-        a: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día. El precio, el análisis técnico y los datos de derivados se actualizan en vivo cada pocos minutos. Las noticias se renuevan cada 15 minutos en horario de mercado y la agenda económica, cada hora.",
+        a: "Las métricas on-chain, de ciclo y de liquidez se recalculan una vez al día. El precio y el análisis técnico se actualizan en vivo cada pocos minutos. Las noticias se renuevan cada 15 minutos en horario de mercado y la agenda económica, cada hora.",
       },
       {
         q: "¿De dónde salen los datos?",
@@ -105,7 +105,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -117,7 +117,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "How often is it updated?",
-        a: "On-chain, cycle and liquidity metrics are recalculated once a day. Price, technical analysis and derivatives data update live every few minutes. News refreshes every 15 minutes during market hours and the economic calendar every hour.",
+        a: "On-chain, cycle and liquidity metrics are recalculated once a day. Price and technical analysis update live every few minutes. News refreshes every 15 minutes during market hours and the economic calendar every hour.",
       },
       {
         q: "Where does the data come from?",
@@ -454,11 +454,11 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué métricas lo forman?",
-        p: "En el día a día, tres: el Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018; el SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron (por debajo de 1 venden con pérdidas, algo típico de las capitulaciones); y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. En 1 hora y 4 horas, el índice usa además los derivados de Binance: el open interest, el porcentaje de cuentas en largo y el de compras a mercado, comparados con sus últimos 30 días.",
+        p: "En el día a día, tres: el Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018; el SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron (por debajo de 1 venden con pérdidas, algo típico de las capitulaciones); y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. Son las mismas en todas las temporalidades. La página muestra además, como informativos, los derivados de Binance (open interest, cuentas en largo y compras a mercado) y las compras al contado, que el índice no usa porque no se ha podido comprobar que anticipen el precio.",
       },
       {
         h: "¿Cómo lo usa el índice?",
-        p: "La categoría de sentimiento es la media de las tres métricas y pesa más en las temporalidades cortas (un 28 % en la de 1 hora) que en las largas (un 3 % en la mensual), porque el sentimiento cambia rápido. En los extremos sirve de aviso a la contra: el miedo extremo suele acompañar a los suelos y la euforia, a los techos, aunque puede durar semanas.",
+        p: "La categoría de sentimiento es la media de las tres métricas y pesa más en las temporalidades cortas (un 19 % en la de 1 hora) que en las largas (un 3 % en la mensual), porque el sentimiento cambia rápido. En los extremos sirve de aviso a la contra: el miedo extremo suele acompañar a los suelos y la euforia, a los techos, aunque puede durar semanas.",
       },
     ],
   },
@@ -473,11 +473,11 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "Which metrics make it up?",
-        p: "Day to day, three: Alternative.me's Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed), since 2018; short-term SOPR, which compares the price at which those who bought in the last 5 months sell with the price they paid (below 1 they sell at a loss, typical of capitulations); and US spot ETF flows over the last 20 sessions, since 2024. In 1 hour and 4 hours, the index also uses Binance derivatives: open interest and the share of accounts long and of market buys, compared with their last 30 days.",
+        p: "Day to day, three: Alternative.me's Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed), since 2018; short-term SOPR, which compares the price at which those who bought in the last 5 months sell with the price they paid (below 1 they sell at a loss, typical of capitulations); and US spot ETF flows over the last 20 sessions, since 2024. They are the same in every timeframe. The page also shows, as informational, Binance derivatives (open interest, accounts long and market buys) and spot buys, which the index does not use because it has not been possible to show that they lead the price.",
       },
       {
         h: "How does the index use it?",
-        p: "The sentiment category is the average of the three metrics and weighs more in short timeframes (28% in the 1-hour one) than in long ones (3% in the monthly one), because sentiment changes quickly. At extremes it works as a contrarian warning: extreme fear tends to come with bottoms and euphoria with tops, although it can last for weeks.",
+        p: "The sentiment category is the average of the three metrics and weighs more in short timeframes (19% in the 1-hour one) than in long ones (3% in the monthly one), because sentiment changes quickly. At extremes it works as a contrarian warning: extreme fear tends to come with bottoms and euphoria with tops, although it can last for weeks.",
       },
     ],
   },

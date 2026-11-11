@@ -166,8 +166,10 @@ export const es = {
     card: "Sentimiento y precio",
     info: [
       "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica.",
-      "El índice no usa las mismas métricas en todas las temporalidades: en 1 h y 4 h, los derivados de Binance (open interest, cuentas en largo y compras a mercado, puntuados con su percentil frente a sus últimos 30 días); en 1D, el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF (puntuados frente a sus últimos 4 años). Por eso cada temporalidad muestra las suyas.",
-      "Binance solo guarda 30 días de los derivados, así que en 1 h y 4 h el gráfico cubre unas 3 o 4 semanas. Las primeras velas no tienen puntuación hasta reunir 50 datos, como en el índice.",
+      "El índice usa en todas las temporalidades las mismas métricas diarias: el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF (puntuados frente a sus últimos 4 años). En 1 h y 4 h, cada vela muestra el dato de su día.",
+      "Informativas (el índice no las usa): los derivados de Binance (open interest, cuentas en largo y compras a mercado, puntuados frente a sus últimos 30 días, que es lo que guarda Binance) dejaron de contar en 1 h y 4 h porque no hay histórico con el que comprobar si anticipan el precio, y con un mes de datos las cuentas en largo apuntaban al revés de como las puntuaba el índice. Se van guardando para un backtest. Sus primeras velas no tienen puntuación hasta reunir 50 datos.",
+      "Compras al contado (informativa, el índice no la usa): la parte del volumen al contado de BTC/USDT en Binance que fueron compras a mercado, en las 3 últimas velas; 50 % es equilibrio. Binance guarda todo su histórico (desde 2017): en 1D se puntúa frente a sus 4 años anteriores y en 1 h y 4 h frente a lo descargado. Sirve para comparar el contado con los futuros: si el contado compra mientras los futuros venden, alguien está absorbiendo las ventas apalancadas. Las compras a mercado y al contado cambian mucho de una vela a otra: se muestran las últimas (5 días en 1 h, 10 en 4 h y 1 o 3 meses en 1D) para que se lean mejor.",
+      "Oferta en pérdidas de corto plazo (informativa): el porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) que valen menos que cuando se compraron, de Bitview. Se puntúa al revés que el resto: muchas pérdidas es miedo, puntuación baja. Marca mejor que el Fear & Greed los techos y suelos de ciclo, pero en el backtest del índice anticipaba algo peor y mide casi lo mismo, así que no sustituye al Fear & Greed.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
@@ -182,6 +184,8 @@ export const es = {
       open_interest: "Open interest",
       long_pct: "Cuentas en largo",
       taker_pct: "Compras a mercado",
+      spot_buy_pct: "Compras al contado",
+      sth_loss_pct: "Pérdidas CP",
     },
     names: {
       sentimiento: "Categoría de sentimiento (1 h)",
@@ -191,13 +195,16 @@ export const es = {
       open_interest: "Open interest",
       long_pct: "Cuentas en largo",
       taker_pct: "Compras a mercado",
+      spot_buy_pct: "Compras al contado (informativa)",
+      sth_loss_pct: "Oferta en pérdidas de corto plazo (informativa)",
     },
     btc: (v: string) => `${v} BTC`,
     tfAria: "Temporalidad",
     metricAria: "Puntuación superpuesta al precio",
     noData: "Sin datos: Binance no responde.",
+    infoMetric: "Informativa: el índice no la usa (todavía)",
+    infoGroup: "Informativas: el índice no las usa (todavía)",
     tableTitle: "Puntuación ahora y antes, en 1 h",
-    dailyGroup: "Métricas diarias (las usa el índice en 1D y más): cambian una vez al día",
     scoreNote: "De 0 (miedo: barato) a 100 (euforia: caro), como en el índice de 1 h. Hace 4 horas y hace 1 día, en la vela de 1 h de entonces.",
     cols: { metric: "Métrica", now: "Ahora", h4: "Hace 4 h", d1: "Hace 1 día" },
     note: "Datos históricos sin mirar al futuro, no una predicción ni una recomendación de inversión.",
@@ -211,7 +218,7 @@ export const es = {
     info: [
       "Cada barra es el flujo neto de una sesión: lo que entró menos lo que salió del conjunto de ETF de bitcoin al contado de EE. UU. (IBIT, FBTC, GBTC…), en dólares. Verde, entradas; rojo, salidas. El eje x son sesiones de mercado, sin fines de semana ni festivos.",
       "El índice usa la suma de las últimas 20 sesiones en BTC como métrica de sentimiento: entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Los datos se actualizan una vez al día.",
-      "La línea lila es el Fear & Greed Index de Alternative.me (eje izquierdo, de 0 = miedo extremo a 100 = codicia extrema), para comparar los flujos con el sentimiento del mercado.",
+      "La línea lila es la puntuación de los flujos en el índice (eje izquierdo, de 0 a 100): el percentil de la suma de las últimas 20 sesiones en BTC frente a toda su historia (hasta 4 años). Alta, entradas fuertes (euforia, suma al score); baja, salidas (miedo, resta). Empieza en 2025, cuando hay datos suficientes para el percentil.",
     ],
     money: (v: number) =>
       v >= 1e9
@@ -223,7 +230,7 @@ export const es = {
         enero de 2024: {total}.
       </>
     ),
-    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado", fearGreed: "Fear & Greed" },
+    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado", score: "Puntuación" },
     tableTitle: "Por fondo",
     cols: { fund: "Fondo", last: (d: string) => `Sesión del ${d}`, d20: (n: number) => `Últimas ${n} sesiones`, total: "Desde el lanzamiento" },
     source: "Fuente:",
@@ -387,7 +394,7 @@ export const es = {
     },
     sentimiento: {
       name: "Sentimiento",
-      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios) y los flujos de los ETF al contado.",
+      what: "Mide el miedo o la euforia de los inversores con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios) y los flujos de los ETF al contado, en todas las temporalidades. Son datos diarios: en 1 hora y 4 horas no cambian dentro del día, y por eso ahí pesan como en 1 día.",
       read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
     },
     tecnico: {
@@ -510,7 +517,7 @@ export const es = {
     score4h: "Score 4 h",
     fearGreed: "Fear & Greed Index (0 = miedo extremo, 100 = codicia extrema)",
     loading4h: "Cargando velas de 4 h…",
-    info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela. Binance solo guarda 30 días de derivados: antes de las últimas 3 semanas, aproximadamente, el sentimiento es el diario.",
+    info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela.",
     infoLabel: "el histórico",
     infoTitle: "Histórico",
     info1: "Arriba, el precio de Bitcoin en escala logarítmica; abajo, el score diario. Las franjas verde y roja marcan las zonas de muy barato (≤20) y muy caro (≥80).",

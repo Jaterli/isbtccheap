@@ -27,7 +27,6 @@ METRICS = [
     {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True},
     {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile"},
     {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True},
-    # En 1 h y 4 h, los derivados de Binance sustituyen en vivo (en el frontend) a estas métricas diarias
     {"id": "fear_greed", "name": "Fear & Greed Index", "category": "sentimiento", "method": "raw"},
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum): solo
     # se muestra en la página de valoración
@@ -47,10 +46,17 @@ METRICS = [
 # del técnico (backtest desde 2018, 1 M: rentabilidad a un año −0,567 → −0,577; 1 d con un punto menos para el ciclo:
 # −0,401 → −0,404 y suelos más bajos). En 1 M la valoración no baja de la de 1 semana: 2 puntos del sentimiento (sus
 # métricas son de días u horas) mejoran la anticipación con el técnico mensual (1 año desde 2018: −0,594 → −0,599).
-# En 1 h el ciclo es casi constante y cede peso al sentimiento (derivados en vivo); sin datos para un backtest.
+# En 1 h y 4 h el sentimiento es el diario, el mismo de 1 d (desde el 11 nov 2026; antes, los derivados de Binance en
+# vivo, sin histórico para comprobarlos, con 28 y 21): no cambia dentro del día, así que pesa poco más que en 1 d, bajando
+# de forma escalonada (19, 17, 15), y el resto va al técnico, que es lo que se mueve a ese ritmo. Sin datos para un
+# backtest de 1 h y 4 h. La valoración y el ciclo suben de 1 h a 1 d en pasos iguales (24, 31, 38 y 13, 22, 31: antes 20,
+# 27, 38 y 10, 19, 31, con el salto mayor de 4 h a 1 d), a costa del técnico; 1 d, 1 semana y 1 mes salen del backtest y
+# no se tocan. Aproximación desde 2018 (las categorías diarias con estos pesos y el técnico diario en lugar del de 1 h o
+# 4 h) al suavizar el ciclo: la anticipación mejora en todos los plazos (1 año, 1 h: −0,054 → −0,084; 4 h: −0,193 →
+# −0,227) y los techos y suelos quedan igual.
 TIMEFRAME_WEIGHTS = {
-    "1h": {"tecnico": 41, "sentimiento": 28, "valoracion": 20, "ciclo": 10, "liquidez": 1},
-    "4h": {"tecnico": 31, "sentimiento": 21, "valoracion": 27, "ciclo": 19, "liquidez": 2},
+    "1h": {"tecnico": 43, "sentimiento": 19, "valoracion": 24, "ciclo": 13, "liquidez": 1},
+    "4h": {"tecnico": 28, "sentimiento": 17, "valoracion": 31, "ciclo": 22, "liquidez": 2},
     "1d": {"tecnico": 12, "sentimiento": 15, "valoracion": 38, "ciclo": 31, "liquidez": 4},
     "1w": {"tecnico": 6, "sentimiento": 12, "valoracion": 41, "ciclo": 33, "liquidez": 8},
     "1M": {"tecnico": 3, "sentimiento": 3, "valoracion": 41, "ciclo": 38, "liquidez": 15},

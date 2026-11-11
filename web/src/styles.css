@@ -201,7 +201,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
   .dashboard.price-open .status { grid-column: 1; }
 }
 @media (min-width: 1000px) {
-  .top { margin-top: 0; }
+  /* Sin scroll, el menú va arriba a la derecha (absoluto, a 24 px): el encabezado empieza por debajo para que los enlaces
+     no queden pegados al texto */
+  .top { margin-top: 36px; }
 }
 
 @media (min-width: 1024px) {
@@ -757,7 +759,12 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
   background: color-mix(in srgb, var(--cycle-2016) 10%, var(--bg));
   border-color: color-mix(in srgb, var(--cycle-2016) 45%, var(--border));
 }
-.sent-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+/* Métrica informativa (el índice no la usa): borde discontinuo, separada de las del índice */
+.sent-controls .segmented button.info-metric { box-shadow: inset 0 0 0 1px var(--border); border: 1px dashed var(--tag-border); }
+.sent-controls .segmented button.info-metric.active { box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+.sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+/* Las tres temporalidades, siempre juntas en su línea */
+.segmented.sent-tfs { flex-wrap: nowrap; }
 /* Al cambiar de temporalidad, el gráfico anterior atenuado y un aviso encima hasta que llega el nuevo (volatilidad y
    sentimiento; el del precio tiene el suyo, .price-loading) */
 .chart-wrap { position: relative; }

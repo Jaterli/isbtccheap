@@ -8,6 +8,7 @@ import { lang, locale, t } from "./i18n";
 import { SEO_ETF } from "./i18n/seo";
 import { getJson } from "./lib/data";
 import { ETF_WINDOW, etfSeries, windowStats, type EtfJson } from "./lib/etf";
+import type { SentimentJson } from "./lib/sentiment";
 import { lastDays } from "./lib/series";
 
 const date = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
@@ -15,14 +16,17 @@ const flowClass = (v: number) => (v > 0 ? "num up" : v < 0 ? "num down" : "num")
 
 export function EtfApp() {
   const [etf, setEtf] = useState<EtfJson | null>(null);
+  // La puntuación de los flujos en el índice; si no llega, el gráfico sale sin su línea
+  const [sent, setSent] = useState<SentimentJson | null>(null);
   const [error, setError] = useState(false);
   const range = useRange("isbtccheap:etf-range", "1y", SHORT_RANGES);
 
   useEffect(() => {
     getJson("etf.json").then(setEtf, () => setError(true));
+    getJson("sentiment.json").then(setSent, () => {});
   }, []);
 
-  const full = useMemo(() => (etf ? etfSeries(etf) : null), [etf]);
+  const full = useMemo(() => (etf ? etfSeries(etf, sent) : null), [etf, sent]);
   const series = useMemo(() => (full ? lastDays(full, range.days) : null), [full, range.days]);
   const stats = useMemo(() => (etf ? windowStats(etf) : null), [etf]);
 

@@ -20,6 +20,35 @@ export async function fetchCandles(tf: Timeframe | "15m" | "1m", limit = 1000, e
   }));
 }
 
+/** Volumen al contado de cada vela (BTC) y la parte que fueron compras a mercado (las agresivas) */
+export interface SpotFlow {
+  time: number[];
+  volume: number[];
+  takerBuy: number[];
+}
+
+/**
+ * Las últimas `count` velas al contado de `tf` con su volumen comprador, paginando de 1000 en 1000 hacia atrás (Binance
+ * guarda todo el histórico de BTCUSDT, desde agosto de 2017).
+ */
+export async function fetchSpotFlow(tf: Timeframe, count: number): Promise<SpotFlow> {
+  const out: unknown[][] = [];
+  let end: number | undefined;
+  while (out.length < count) {
+    const q = end === undefined ? "" : `&endTime=${end}`;
+    const res = await fetch(`${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${Math.min(1000, count - out.length)}${q}`, {
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) throw new Error(`Binance klines ${res.status}`);
+    const rows: unknown[][] = await res.json();
+    if (!rows.length) break;
+    out.unshift(...rows);
+    end = Number(rows[0][0]) - 1;
+    if (rows.length < 1000) break;
+  }
+  return { time: out.map((r) => Number(r[0])), volume: out.map((r) => Number(r[5])), takerBuy: out.map((r) => Number(r[9])) };
+}
+
 // Estadísticas de los futuros: solo guardan los últimos 30 días
 const FUTURES_DATA = "https://fapi.binance.com/futures/data";
 
@@ -49,9 +78,4 @@ export async function fetchDerivativesSeries(period: Timeframe): Promise<Derivat
     futuresData("takerlongshortRatio", "buySellRatio", period),
   ]);
   return { openInterest, longShort, takerRatio };
-}
-
-export async function fetchDerivatives(period: Timeframe): Promise<Derivatives> {
-  const s = await fetchDerivativesSeries(period);
-  return { openInterest: s.openInterest.value, longShort: s.longShort.value, takerRatio: s.takerRatio.value };
 }

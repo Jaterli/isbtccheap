@@ -3,7 +3,7 @@ import { t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { EtfSeries } from "../lib/etf";
 
-const FG_TICKS = [25, 50, 75]; // eje del Fear & Greed (0-100), a la izquierda
+const FG_TICKS = [25, 50, 75]; // eje de la puntuación de los flujos en el índice (0-100), a la izquierda
 const PAD_T = 10;
 const GAP = 18;
 const AXIS_H = 22;
@@ -14,7 +14,8 @@ export const flowUsd = (v: number, signed = true) => {
   return `${sign}${t.etf.money(Math.abs(v))}`;
 };
 
-/** El eje x son sesiones de mercado, sin huecos en fines de semana. En el panel del precio, el Fear & Greed (0-100). */
+/** El eje x son sesiones de mercado, sin huecos en fines de semana. En el panel del precio, la puntuación de los flujos
+ * en el índice (0-100). */
 export function EtfChart({ data }: { data: EtfSeries }) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
@@ -40,7 +41,7 @@ export function EtfChart({ data }: { data: EtfSeries }) {
     const { y, ticks, max, flowTicks } = scale;
     const yFlow = (v: number) => flowTop + flowH / 2 - (v / max) * (flowH / 2 - 4);
     const yFg = (v: number) => PAD_T + priceH - (v / 100) * priceH;
-    return { y, ticks, yFlow, flowTicks, yFg, price: linePath(data.price, x, y), fg: linePath(data.fearGreed, x, yFg) };
+    return { y, ticks, yFlow, flowTicks, yFg, price: linePath(data.price, x, y), fg: linePath(data.score, x, yFg) };
   }, [data, scale, plotW, priceH, flowH, flowTop]);
 
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
@@ -65,9 +66,9 @@ export function EtfChart({ data }: { data: EtfSeries }) {
         <span className={`legend num ${data.flow[h] >= 0 ? "etf-in" : "etf-out"}`}>
           {tx.legend.flow} <strong>{flowUsd(data.flow[h])}</strong>
         </span>
-        {data.fearGreed[h] !== null && (
+        {data.score[h] !== null && (
           <span className="legend etf-fg num">
-            {tx.legend.fearGreed} <strong>{data.fearGreed[h]}</strong>
+            {tx.legend.score} <strong>{Math.round(data.score[h]!)}</strong>
           </span>
         )}
         <span className="muted num">

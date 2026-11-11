@@ -21,17 +21,16 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
                  │ commit → despliegue automático
 ┌──────────────── En el navegador (en vivo) ──────────────────────┐
 │ Velas de Binance de la temporalidad elegida → categoría técnica  │
-│ En 1 h y 4 h: open interest y ratios long/short y compra/venta   │
-│   → sustituyen al Fear & Greed y al SOPR (diarios) en el sentim. │
 │ Pesos por temporalidad → score final 1-100                       │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 - Las métricas lentas (on-chain, ciclo y liquidez) solo cambian una vez al día. Las calcula el pipeline y la web
   las lee de un JSON estático, así que las visitas nunca consumen las cuotas de las APIs.
-- Las métricas rápidas (RSI, Bollinger %B, precio / MA200 y, en 1 h y 4 h, open interest y ratios
-  long/short y compra/venta de los futuros) las calcula el navegador con la API pública de Binance, que no
-  necesita clave.
+- Las métricas rápidas (RSI, Bollinger %B y precio / MA200) las calcula el navegador con la API pública de Binance,
+  que no necesita clave. El sentimiento es el diario en todas las temporalidades: los derivados de Binance (open
+  interest y ratios long/short y compra/venta), que lo formaban en 1 h y 4 h hasta el 11 nov 2026, solo se muestran
+  como informativos en la página de sentimiento mientras `news/collect_derivatives.py` reúne histórico para un backtest.
 - En temporalidades cortas pesa más el técnico y el sentimiento; en las largas, la valoración y el ciclo.
   Los pesos están en `pipeline/config.py` → `TIMEFRAME_WEIGHTS`.
 

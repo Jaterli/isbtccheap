@@ -1,3 +1,4 @@
+import type { SentimentJson } from "./sentiment";
 import type { PriceSeries } from "./series";
 
 /** etf.json del pipeline: una fila por sesión desde 2024-01-11 */
@@ -7,8 +8,6 @@ export interface EtfJson {
   dates: string[];
   flow: number[];
   price: number[];
-  /** Fear & Greed Index de Alternative.me del día de cada sesión; ausente en ficheros anteriores */
-  fear_greed?: (number | null)[] | null;
   funds: { ticker: string; last: number; d20: number; total: number }[];
 }
 
@@ -18,17 +17,24 @@ export const ETF_WINDOW = 20;
 export interface EtfSeries extends PriceSeries {
   flow: number[];
   cumulative: number[];
-  fearGreed: (number | null)[];
+  /** Puntuación de 0 a 100 de los flujos en el índice (etf_flows de sentiment.json) el día de cada sesión */
+  score: (number | null)[];
 }
 
-export function etfSeries(e: EtfJson): EtfSeries {
+const DAY = 86_400_000;
+
+/** `sent`: sentiment.json, con un valor por día consecutivo desde `start`; sin él, sin puntuación */
+export function etfSeries(e: EtfJson, sent: SentimentJson | null): EtfSeries {
   let acc = 0;
+  const start = sent ? Date.parse(`${sent.start}T00:00:00Z`) : 0;
+  const scores = sent?.metrics.etf_flows?.score;
+  const time = e.dates.map((d) => Date.parse(`${d}T00:00:00Z`));
   return {
-    time: e.dates.map((d) => Date.parse(`${d}T00:00:00Z`)),
+    time,
     price: e.price,
     flow: e.flow,
     cumulative: e.flow.map((f) => (acc += f)),
-    fearGreed: e.fear_greed ?? e.dates.map(() => null),
+    score: time.map((t) => (scores ? (scores[Math.round((t - start) / DAY)] ?? null) : null)),
   };
 }
 

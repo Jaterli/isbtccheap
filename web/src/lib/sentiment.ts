@@ -1,12 +1,20 @@
 import type { History, Timeframe } from "../types";
-import { fetchCandles, fetchDerivativesSeries } from "./binance";
+import { fetchCandles, fetchDerivativesSeries, fetchSpotFlow } from "./binance";
 import { percentileOfLast } from "./indicators";
 
 /** Métricas diarias del índice (sentiment.json, del pipeline) */
 export const DAILY_METRICS = ["fear_greed", "sth_sopr", "etf_flows"] as const;
 /** Derivados de Binance (solo guarda 30 días), en directo desde el navegador */
 export const DERIV_METRICS = ["open_interest", "long_pct", "taker_pct"] as const;
-export const SENTIMENT_METRICS = [...DAILY_METRICS, ...DERIV_METRICS] as const;
+/**
+ * Informativas: se muestran pero el índice no las usa (todavía). Los derivados de Binance (formaban el sentimiento de 1 h
+ * y 4 h hasta el 11 nov 2026: sin histórico para comprobarlos) y las compras al contado (la parte del volumen al contado
+ * que fueron compras a mercado, con todo su histórico desde 2017; en el backtest no anticipaban el precio) y la oferta en
+ * pérdidas de los holders de corto plazo (Bitview: marca mejor que el Fear & Greed los techos y suelos, pero en el
+ * backtest del índice anticipaba algo peor y es redundante con él).
+ */
+export const INFO_METRICS = [...DERIV_METRICS, "spot_buy_pct", "sth_loss_pct"] as const;
+export const SENTIMENT_METRICS = [...DAILY_METRICS, ...DERIV_METRICS, ...INFO_METRICS] as const;
 export type DailyMetric = (typeof DAILY_METRICS)[number];
 export type SentimentMetric = (typeof SENTIMENT_METRICS)[number];
 /** Lo que se puede dibujar: la categoría (media de las métricas de la temporalidad) o una métrica */
@@ -15,13 +23,10 @@ export type SentimentKey = "sentimiento" | SentimentMetric;
 export const SENTIMENT_TFS = ["1h", "4h", "1d"] as const;
 export type SentimentTf = (typeof SENTIMENT_TFS)[number];
 
-/**
- * Las métricas que usa el índice en cada temporalidad (lib/score.ts): en 1 h y 4 h, los derivados; en 1D, las diarias
- * del pipeline.
- */
+/** Las métricas que usa el índice en cada temporalidad (lib/score.ts): las diarias del pipeline en todas */
 export const TF_METRICS: Record<SentimentTf, readonly SentimentMetric[]> = {
-  "1h": DERIV_METRICS,
-  "4h": DERIV_METRICS,
+  "1h": DAILY_METRICS,
+  "4h": DAILY_METRICS,
   "1d": DAILY_METRICS,
 };
 
@@ -116,19 +121,27 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
   const at = time.map((t) => idx.get(dayKey(t)));
   const daily = (m: DailyMetric, k: "value" | "score") => at.map((i) => (i === undefined ? null : (s.metrics[m]?.[k][i] ?? null)));
 
-  const derivs = tf === "1d" ? null : await derivativeColumns(tf, time).catch(() => null);
+  const [derivs, spot, sthLoss] = await Promise.all([
+    derivativeColumns(tf, time).catch(() => null),
+    spotColumns(tf, time).catch(() => null),
+    sthLossColumns(time).catch(() => null),
+  ]);
 
   const values = {
     ...(Object.fromEntries(DAILY_METRICS.map((m) => [m, daily(m, "value")])) as Record<DailyMetric, Col>),
     open_interest: derivs?.values.open_interest ?? none(),
     long_pct: derivs?.values.long_pct ?? none(),
     taker_pct: derivs?.values.taker_pct ?? none(),
+    spot_buy_pct: spot?.value ?? none(),
+    sth_loss_pct: sthLoss?.value ?? none(),
   };
   const metricScores = {
     ...(Object.fromEntries(DAILY_METRICS.map((m) => [m, daily(m, "score")])) as Record<DailyMetric, Col>),
     open_interest: derivs?.scores.open_interest ?? none(),
     long_pct: derivs?.scores.long_pct ?? none(),
     taker_pct: derivs?.scores.taker_pct ?? none(),
+    spot_buy_pct: spot?.score ?? none(),
+    sth_loss_pct: sthLoss?.score ?? none(),
   };
   // La categoría: la media de las métricas de la temporalidad que tengan dato, como en el índice
   const used = TF_METRICS[tf];
@@ -141,6 +154,66 @@ function sliceFrom(s: SentimentSeries, i: number): SentimentSeries {
   return { time: s.time.slice(i), price: s.price.slice(i), values: cut(s.values), scores: cut(s.scores) };
 }
 
+// Compras al contado: media de 3 velas, como las compras a mercado de los futuros; en 1D, percentil frente a los 4 años
+// anteriores (como las diarias del pipeline) y en 1 h y 4 h frente a lo descargado (como los derivados)
+const SPOT_SMOOTH = 3;
+const SPOT_DAILY_WINDOW = 1461;
+const SPOT_DAILY_CANDLES = 4000; // todo el histórico (agosto de 2017)
+
+/** Percentil de cada punto frente a los `window` anteriores (él incluido), con un mínimo de 50, como percentileOfLast */
+function rollingPercentileWindow(xs: Col, window: number): Col {
+  return xs.map((x, i) => {
+    if (x === null) return null;
+    const w = xs.slice(Math.max(0, i - window + 1), i + 1).filter((v): v is number => v !== null);
+    return w.length < 50 ? null : (w.filter((v) => v <= x).length / w.length) * 100;
+  });
+}
+
+// Oferta en pérdidas de los holders de corto plazo (Bitview, sin clave y con CORS): % de su oferta en pérdidas,
+// puntuado como lo haría el pipeline (percentil frente a los 4 años anteriores, invertido: muchas pérdidas = miedo =
+// barato)
+const BITVIEW = "https://bitview.space/api/series/{s}/day1?start=0";
+const BITVIEW_START = Date.UTC(2009, 0, 1);
+
+async function bitview(series: string): Promise<Map<string, number>> {
+  const res = await fetch(BITVIEW.replace("{s}", series), { signal: AbortSignal.timeout(15_000) });
+  if (!res.ok) throw new Error(`Bitview ${series} ${res.status}`);
+  const d: { start: number; data: (number | null)[] } = await res.json();
+  const out = new Map<string, number>();
+  // El último día de Bitview está aún en curso: no se usa
+  d.data.slice(0, -1).forEach((v, i) => {
+    if (v && v > 0) out.set(dayKey(BITVIEW_START + (d.start + i) * 86_400_000), v);
+  });
+  return out;
+}
+
+async function sthLossColumns(time: number[]) {
+  const [loss, profit] = await Promise.all([bitview("sth_supply_in_loss"), bitview("sth_supply_in_profit")]);
+  const days = [...loss.keys()].filter((d) => profit.has(d)).sort();
+  const share: Col = days.map((d) => (loss.get(d)! / (loss.get(d)! + profit.get(d)!)) * 100);
+  const pct = rollingPercentileWindow(share, SPOT_DAILY_WINDOW);
+  const at = new Map(days.map((d, i) => [d, i]));
+  const pick = (c: Col) => time.map((t) => c[at.get(dayKey(t)) ?? -1] ?? null);
+  return { value: pick(share), score: pick(pct.map((p) => (p === null ? null : 100 - p))) };
+}
+
+async function spotColumns(tf: SentimentTf, time: number[]) {
+  const f = await fetchSpotFlow(tf as Timeframe, tf === "1d" ? SPOT_DAILY_CANDLES : INTRADAY_CANDLES[tf]);
+  const share: Col = f.time.map((_, i) => {
+    if (i < SPOT_SMOOTH - 1) return null;
+    let buy = 0;
+    let vol = 0;
+    for (let j = i - SPOT_SMOOTH + 1; j <= i; j++) {
+      buy += f.takerBuy[j];
+      vol += f.volume[j];
+    }
+    return vol ? (buy / vol) * 100 : null;
+  });
+  const score = tf === "1d" ? rollingPercentileWindow(share, SPOT_DAILY_WINDOW) : rollingPercentileWindow(share, share.length);
+  const at = new Map(f.time.map((t, i) => [t, i]));
+  return { value: time.map((t) => share[at.get(t) ?? -1] ?? null), score: time.map((t) => score[at.get(t) ?? -1] ?? null) };
+}
+
 /** Desde la primera puntuación de lo elegido: el Fear & Greed empieza en 2018, los ETF en 2024… */
 export function fromFirstScore(s: SentimentSeries, k: SentimentKey): SentimentSeries {
   return sliceFrom(s, Math.max(0, s.scores[k].findIndex((v) => v !== null)));
@@ -151,6 +224,11 @@ export function lastDaysOf(s: SentimentSeries, days: number): SentimentSeries {
   if (!Number.isFinite(days) || !s.time.length) return s;
   const from = s.time.at(-1)! - days * 86_400_000;
   return sliceFrom(s, Math.max(0, s.time.findIndex((x) => x >= from)));
+}
+
+/** Las últimas `n` velas */
+export function lastCandles(s: SentimentSeries, n: number): SentimentSeries {
+  return s.time.length > n ? sliceFrom(s, s.time.length - n) : s;
 }
 
 /** Índice de la última vela con hora igual o anterior a `ms` antes de la última (-1 si no la hay) */
