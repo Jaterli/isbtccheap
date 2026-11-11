@@ -103,7 +103,11 @@ como un imbalance grande.
 
 5. Las claves (notes) son lo único que verá quien redacte los textos, además de tus zonas y escenarios: cada una con \
 sus cifras exactas de los datos y bien interpretada (por ejemplo, si un dato salió por encima o por debajo de la \
-previsión y qué implica para BTC, o qué indica un dato on-chain, sin exagerarlo).
+previsión y qué implica para BTC, o qué indica un dato on-chain, sin exagerarlo). Escríbelas en lenguaje llano, como \
+para un lector que no es especialista: el redactor tiende a copiar tus palabras. Nada de abreviaturas ni de los nombres \
+de los campos del JSON (%B, HH, LL, m/m, current_extreme, crossings, imbalance…): "el mínimo de ayer en X $", "la parte \
+baja de su rango habitual", "el hueco que el precio dejó sin rellenar entre X e Y $", "máximos cada vez más bajos". \
+Soporte, resistencia, Fibonacci o liquidez sí valen.
 
 FORMATO DE LA RESPUESTA
 
@@ -135,55 +139,35 @@ el precio y de por qué esperas cada escenario, una frase cada una con sus cifra
 
 CÓMO LEER LOS DATOS
 
-- Velas semanales (el último año), diarias, de 4 h y de 1 h: [hora UTC, apertura, máximo, mínimo, cierre, volumen en \
-BTC], de la más antigua a la más reciente; la última está en curso y su cierre es el precio actual. Para cada \
-temporalidad, indicadores ya calculados con sus velas (incluida la que está en curso): RSI 14 y su valor en el máximo y \
-en el mínimo de las últimas 50 velas, %B de Bollinger (20, 2), distancia en % a las medias de 50 y 200 velas, máximos y \
-mínimos de 20 y 50 velas, y ATR 14 (el rango medio de cada vela, en dólares y en % del precio).
-- zone_candidates: las zonas donde el precio ha girado de verdad (todos los pivotes cercanos, agrupados, en diario y \
-4 h), de la más alta a la más baja. Cada una con su id, sus bordes (low, high), su lado respecto al precio (side) y su \
-distancia en %; timeframe: "1d", "4h" o "1d+4h" (una zona de 4 h dentro de una diaria, con los datos de las dos; \
-daily_range, la diaria entera); split_at_price si es la parte de una zona que contenía el precio; para cada temporalidad, cuántas \
-reacciones ha habido, cuántas como techo y cuántas como suelo, cuándo fue la última y cuántas veces la han atravesado \
-los cierres de lado a lado sin girar (crossings, en total, y crossings_since_last, desde la última reacción); y \
-confluences, los niveles de los datos que caen dentro.
-- market_structure, para semanal y diario: los últimos pivotes de la estructura (con el RSI en cada uno y si son más \
-altos o más bajos que el anterior: HH, LH, HL, LL), el extremo en curso (current_extreme: el máximo o mínimo desde el \
-último pivote, aún sin confirmar, porque el precio no se ha alejado lo bastante de él para que lo sea), la última \
-ruptura de un pivote por un cierre y las divergencias del RSI entre pivotes (clásicas u ocultas, alcistas o bajistas, y \
-si se están formando): son referencias para el sesgo, no certezas. Solo en diario, los niveles de Fibonacci (en escala \
-logarítmica) de dos tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha \
-perdido hasta el máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo \
-posterior (provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y \
-1,618 más allá de su final (la corrección provisional no las lleva: su final aún se mueve).
-- liquidity_pools, para diario y 4 h: la liquidez pendiente, máximos y mínimos de la estructura que el precio no ha \
-vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los máximos o \
-mínimos iguales, que concentran más órdenes.
-- imbalances, para semanal, diario y 4 h: los huecos de liquidez (fair value gaps) cercanos que el precio aún no ha \
-rellenado.
-- trend_context: el máximo y el mínimo de los últimos 12 meses. cycle_context, con cierres diarios desde 2011: el máximo \
-histórico (fecha, días transcurridos y distancia del precio), los techos y suelos de los ciclos anteriores (caída y días \
-del techo al suelo) y el ciclo en curso con su mínimo hasta hoy. Sirve para encuadrar la tendencia de fondo, no para \
-predecir las próximas horas o días por analogía con otros ciclos.
-- Derivados y flujos: funding de los perpetuos, open interest, porcentaje de cuentas en largo, ratio de compras/ventas a \
-mercado, Fear & Greed y flujos netos de los ETF al contado. Y la fecha y hora actuales, con si la bolsa de EE. UU. (y \
-con ella los ETF) está abierta.
-- Agenda económica de la semana: datos y decisiones de tipos con hora UTC, previsión, dato anterior y dato real si ya se \
-publicó. fed_decision_odds: las probabilidades de cada resultado de las próximas reuniones de la Fed según el mercado de \
-predicción Kalshi, ahora, hace 24 h y hace 7 días; sus cambios muestran cómo ha reinterpretado el mercado los datos y \
-discursos recientes, y cuánto está ya descontado antes de la reunión.
-- short_term_holders, con datos on-chain diarios (el último día completo) de los holders de corto plazo (monedas movidas \
-hace menos de 155 días): su pérdida no realizada y su pérdida realizada del día, cada una en miles de millones de \
-dólares, con su media de 90 días, el ratio entre ambas, su percentil frente a los últimos 4 años y el ratio de los \
-últimos 14 días, y su SOPR diario de los últimos 14 días (precio de venta entre precio de compra de lo que se movió: por \
-debajo de 1, venden con pérdidas). Miden el estrés de los que compraron en los últimos meses: una pérdida no realizada \
-muy alta (ratio y percentil altos) indica que muchos están en pérdidas fuertes y pueden vender; una capitulación es \
-cuando venden de verdad: pérdida realizada disparada frente a su media y SOPR claramente por debajo de 1, a menudo con \
-pico de volumen, caída del open interest y miedo extremo, y suele quedar cerca de un suelo. Sin ventas realizadas, el \
-estrés solo es riesgo de más presión vendedora. Con un día de retraso: contexto para el sesgo, no una señal de giro por \
-sí solos.
-- Si hay noticias recientes de impacto medio o alto, sus titulares (con hora UTC, medio e impacto estimado de 0 a 10), \
-como contexto de lo que puede estar moviendo el precio."""
+- Velas semanales (un año), diarias (6 meses), de 4 h (20 días) y de 1 h (3 días) ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], la \
+última en curso: su cierre es el precio actual) e indicadores de cada temporalidad, calculados con un histórico más \
+largo: RSI 14 (y en el máximo y el mínimo de 50 velas), %B de Bollinger, distancia a las medias de 50 y 200 velas, \
+máximos y mínimos de 20 y 50 velas, y ATR 14.
+- zone_candidates: las zonas donde el precio ha girado de verdad, de la más alta a la más baja (ver la regla 1), con las \
+reacciones de cada temporalidad (cuántas, como techo o como suelo, la última y los cruces sin girar), daily_range si es \
+una de 4 h dentro de una diaria, split_at_price si es parte de una zona partida en el precio, y confluences, los niveles \
+que caen dentro.
+- market_structure, semanal y diaria: los últimos pivotes (HH, LH, HL, LL, con su RSI), el extremo en curso \
+(current_extreme, aún sin confirmar), la última ruptura de un pivote por un cierre y las divergencias del RSI: \
+referencias para el sesgo, no certezas. Solo en diario, Fibonacci en escala logarítmica de dos tramos: main (desde el \
+último mínimo que el precio no ha perdido hasta el máximo posterior, o al revés en bajada) y correction (desde su final; \
+si es provisional, sin extensiones).
+- liquidity_pools (diario y 4 h): máximos y mínimos que el precio no ha vuelto a superar, donde se acumulan stops; los \
+iguales concentran más. imbalances (semanal, diario y 4 h): huecos que el precio no ha rellenado.
+- trend_context (máximo y mínimo de 12 meses) y cycle_context (máximo histórico y ciclos anteriores): para encuadrar la \
+tendencia de fondo, no para predecir por analogía.
+- Derivados, en series de la más antigua a la más reciente: open interest, porcentaje de cuentas en largo y ratio de \
+compras/ventas a mercado (cada 4 h, 7 días), funding de los perpetuos (cada 8 h) y Fear & Greed (14 días); flujos netos \
+de los ETF en 20 sesiones; la fecha y hora, y si la bolsa de EE. UU. está abierta.
+- Agenda económica de la semana (previsión, dato anterior y real) y fed_decision_odds: probabilidades de cada decisión \
+de las próximas reuniones de la Fed según Kalshi, ahora, hace 24 h y hace 7 días (sus cambios muestran cómo ha \
+reinterpretado el mercado los datos recientes).
+- short_term_holders (holders de corto plazo, monedas movidas hace menos de 155 días; datos diarios con un día de \
+retraso): pérdida no realizada y realizada frente a su media de 90 días y su percentil de 4 años, y SOPR (por debajo de \
+1, venden con pérdidas). Una pérdida no realizada alta es estrés y riesgo de más ventas; capitulación es cuando venden de \
+verdad (pérdida realizada disparada y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open \
+interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo.
+- news_headlines: titulares de impacto medio y alto (hora UTC, medio, impacto de 0 a 10), como contexto."""
 
 
 # Las zonas se eligen de zone_candidates por su id: el modelo no copia bordes (los redondeaba o los cambiaba)
@@ -290,6 +274,9 @@ def get(url: str):
 
 # Velas que ve el modelo por temporalidad (las semanales, para la tendencia de fondo) y las que se descargan para los
 # indicadores (medias de 200) y, en diario, para el contexto de los últimos 12 meses
+# Velas que ve el modelo (los niveles los calcula el script con CANDLES_FOR_INDICATORS). Reducirlas a 26/60/60/48 y
+# resumir las series de derivados (11 nov 2026, mismos datos) no bajó el razonamiento (~19.000 tokens igual) y cambió el
+# escenario de las próximas horas en 2 de 3 pruebas: el corto plazo sí las usa
 CANDLES = {"1w": 52, "1d": 180, "4h": 120, "1h": 72}
 CANDLES_FOR_INDICATORS = {"1d": 400}
 DEFAULT_FOR_INDICATORS = 250
@@ -1211,6 +1198,7 @@ def _fix_languages(a: dict) -> None:
 
 # Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
 TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 80, "outlook": 70, "outlook_days": 70, "points": 35}
+POINT_MAX_WORDS = 50
 
 
 def check_texts(a: dict) -> dict:
@@ -1228,6 +1216,9 @@ def check_texts(a: dict) -> dict:
         long += [f"points {len(p.split())}/{TEXT_WORDS['points']}" for p in out[lang]["points"] if len(p.split()) > TEXT_WORDS["points"]]
         if long:
             log.warning("Texto demasiado largo (%s): %s", lang, ", ".join(long))
+        # Una clave de casi el doble es otro texto, no una clave: se pide a otro redactor
+        if any(len(p.split()) > POINT_MAX_WORDS for p in out[lang]["points"]):
+            raise ValueError(f"claves de más de {POINT_MAX_WORDS} palabras ({lang})")
     return out
 
 

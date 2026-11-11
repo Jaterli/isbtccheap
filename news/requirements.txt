@@ -1,3 +1,4 @@
 # Los scripts solo usan la librería estándar de Python (3.10 o superior). Para los modelos "anthropic:" de llm.py hace
-# falta además el SDK oficial de Anthropic (se carga solo si se usan):
-# anthropic
+# falta además el SDK oficial de Anthropic (se carga solo si se usan). En el droplet, en un entorno virtual en news/.venv,
+# que run.sh usa si existe:  python3 -m venv news/.venv && news/.venv/bin/pip install -r news/requirements.txt
+anthropic

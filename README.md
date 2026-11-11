@@ -120,7 +120,8 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   preliminar de la zona euro y decisiones de tipos.
 - `build_analysis.py`: análisis de BTC hecho por IA (de 1 a 3 soportes y resistencias, sesgo, lo más probable en las
   próximas horas y en 1-2 días, y un escenario alternativo), sin niveles ni conclusiones nuestras. El modelo recibe datos
-  de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h, derivados, Fear & Greed y flujos de los ETF),
+  de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h, derivados, Fear & Greed y flujos de los ETF; reducir
+  las velas y resumir los derivados no bajó el razonamiento y cambió el escenario de las próximas horas),
   indicadores calculados con las velas de cada temporalidad (RSI, Bollinger, distancia a las medias de 50 y 200, máximos
   y mínimos y ATR: le cuesta hacer esa aritmética de cabeza y ajusta los objetivos a la volatilidad), el máximo y el
   mínimo de los últimos 12 meses, la estructura de mercado en semanal y diario (pivotes con su RSI, máximos y mínimos

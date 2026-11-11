@@ -123,6 +123,9 @@ def _gemini(model: str, system: str, user: str, schema: dict, name: str) -> dict
 def _anthropic(model: str, system: str, user: str, schema: dict, name: str, max_tokens: int) -> dict:
     import anthropic  # solo si se usa: el resto de proveedores no lo necesitan
 
+    for noisy in ("httpx", "httpx2", "anthropic"):  # registran cada petición en INFO: al log solo van sus avisos
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
     model, _, effort = model.partition("@")
     # En streaming: con un max_tokens tan alto, el SDK no admite la petición sin él (podría superar su tiempo de espera)
     with anthropic.Anthropic().messages.stream(
