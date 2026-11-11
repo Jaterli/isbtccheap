@@ -31,7 +31,7 @@ ATTRIBUTION = [
     {"name": "FRED, Federal Reserve Bank of St. Louis", "url": "https://fred.stlouisfed.org/"},
     {"name": "DefiLlama", "url": "https://defillama.com/stablecoins"},
     {"name": "Bitview (Bitcoin Research Kit)", "url": "https://bitview.space"},
-    {"name": "Binance (precio y funding en vivo)", "url": "https://www.binance.com/"},
+    {"name": "Binance (precio y derivados en vivo)", "url": "https://www.binance.com/"},
 ]
 
 log = logging.getLogger("isbtccheap")

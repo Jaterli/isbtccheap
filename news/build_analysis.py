@@ -157,7 +157,7 @@ iguales concentran más. imbalances (semanal, diario y 4 h): huecos que el preci
 - trend_context (máximo y mínimo de 12 meses) y cycle_context (máximo histórico y ciclos anteriores): para encuadrar la \
 tendencia de fondo, no para predecir por analogía.
 - Derivados, en series de la más antigua a la más reciente: open interest, porcentaje de cuentas en largo y ratio de \
-compras/ventas a mercado (cada 4 h, 7 días), funding de los perpetuos (cada 8 h) y Fear & Greed (14 días); flujos netos \
+compras/ventas a mercado (cada 4 h, 7 días) y Fear & Greed (14 días); flujos netos \
 de los ETF en 20 sesiones; la fecha y hora, y si la bolsa de EE. UU. está abierta.
 - Agenda económica de la semana (previsión, dato anterior y real) y fed_decision_odds: probabilidades de cada decisión \
 de las próximas reuniones de la Fed según Kalshi, ahora, hace 24 h y hace 7 días (sus cambios muestran cómo ha \
@@ -953,8 +953,8 @@ def market() -> dict:
         if tf in REACTION_RANGE:
             data.setdefault("reaction_zones", {})[tf] = reaction_zones(raw, tf)
     try:
-        fr = get(f"{FUTURES}/fapi/v1/fundingRate?symbol=BTCUSDT&limit=21")
-        data["funding_rate_8h_pct"] = [round(float(x["fundingRate"]) * 100, 4) for x in fr]
+        # Sin funding (11 nov 2026): casi siempre en el 0,01 % neutro de Binance y sin relación con el precio; también se
+        # retiró del índice
         oi = get(f"{FUTURES}/futures/data/openInterestHist?symbol=BTCUSDT&period=4h&limit=42")
         data["open_interest_btc_4h"] = [round(float(x["sumOpenInterest"])) for x in oi]
         ls = get(f"{FUTURES}/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=4h&limit=42")

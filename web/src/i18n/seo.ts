@@ -69,7 +69,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado, funding rate y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado y, en 1 h y 4 h, apalancamiento y posiciones en los futuros de Binance. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -105,7 +105,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows, funding rate and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows and, on 1h and 4h, leverage and positioning in Binance futures. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -409,7 +409,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "¿Cómo se hace el análisis?",
-        p: "Un modelo de IA recibe datos de mercado en bruto de Bitcoin: velas diarias, de 4 horas y de 1 hora, el funding de los futuros perpetuos, el open interest, el porcentaje de cuentas en largo, el ratio de compras y ventas a mercado, el Fear & Greed Index y los flujos de los ETF al contado, además de los titulares de impacto medio y alto de las últimas 48 horas y la agenda económica de la semana. Con ellos hace su propio análisis y decide qué factores pesan más, sin niveles ni conclusiones de esta web.",
+        p: "Un modelo de IA recibe datos de mercado en bruto de Bitcoin: velas diarias, de 4 horas y de 1 hora, el open interest, el porcentaje de cuentas en largo, el ratio de compras y ventas a mercado, el Fear & Greed Index y los flujos de los ETF al contado, además de los titulares de impacto medio y alto de las últimas 48 horas y la agenda económica de la semana. Con ellos hace su propio análisis y decide qué factores pesan más, sin niveles ni conclusiones de esta web.",
       },
       {
         h: "¿Qué muestra?",
@@ -428,7 +428,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
     sections: [
       {
         h: "How is the analysis made?",
-        p: "An AI model receives raw Bitcoin market data: daily, 4-hour and 1-hour candles, perpetual futures funding, open interest, the share of accounts long, the taker buy/sell ratio, the Fear & Greed Index and spot ETF flows, plus the medium- and high-impact headlines of the last 48 hours and this week's economic calendar. From them it makes its own analysis and decides which factors weigh most, with no levels or conclusions from this site.",
+        p: "An AI model receives raw Bitcoin market data: daily, 4-hour and 1-hour candles, open interest, the share of accounts long, the taker buy/sell ratio, the Fear & Greed Index and spot ETF flows, plus the medium- and high-impact headlines of the last 48 hours and this week's economic calendar. From them it makes its own analysis and decides which factors weigh most, with no levels or conclusions from this site.",
       },
       {
         h: "What does it show?",
@@ -446,7 +446,7 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Sentimiento del mercado de Bitcoin",
     intro:
-      "Mapa de calor con la evolución diaria del Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF de Bitcoin al contado, puntuados de 0 a 100, frente al precio de BTC.",
+      "Gráfico del precio de Bitcoin con la puntuación de 0 a 100 del sentimiento y de cada una de sus métricas superpuesta: Fear & Greed Index, SOPR de corto plazo, flujos de los ETF, open interest, cuentas en largo y compras a mercado de los futuros, en temporalidades de 1 hora, 4 horas y 1 día.",
     sections: [
       {
         h: "¿Qué mide el sentimiento?",
@@ -454,7 +454,7 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué métricas lo forman?",
-        p: "Tres. El Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018. El SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron: por debajo de 1 venden con pérdidas, algo típico de las capitulaciones. Y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. El SOPR y los flujos se puntúan con su percentil frente a sus últimos 4 años.",
+        p: "En el día a día, tres: el Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018; el SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron (por debajo de 1 venden con pérdidas, algo típico de las capitulaciones); y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. En 1 hora y 4 horas, el índice usa además los derivados de Binance: el open interest, el porcentaje de cuentas en largo y el de compras a mercado, comparados con sus últimos 30 días.",
       },
       {
         h: "¿Cómo lo usa el índice?",
@@ -465,7 +465,7 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
   en: {
     title: "Bitcoin market sentiment",
     intro:
-      "Heatmap of the daily evolution of the Fear & Greed Index, short-term SOPR and spot Bitcoin ETF flows, scored from 0 to 100, against the BTC price.",
+      "Chart of the Bitcoin price with the 0 to 100 score of sentiment and each of its metrics overlaid: Fear & Greed Index, short-term SOPR, ETF flows, and futures open interest, accounts long and market buys, in 1-hour, 4-hour and 1-day timeframes.",
     sections: [
       {
         h: "What does sentiment measure?",
@@ -473,7 +473,7 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "Which metrics make it up?",
-        p: "Three. Alternative.me's Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed), since 2018. Short-term SOPR, which compares the price at which those who bought in the last 5 months sell with the price they paid: below 1 they sell at a loss, typical of capitulations. And US spot ETF flows over the last 20 sessions, since 2024. SOPR and flows are scored by their percentile against their last 4 years.",
+        p: "Day to day, three: Alternative.me's Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed), since 2018; short-term SOPR, which compares the price at which those who bought in the last 5 months sell with the price they paid (below 1 they sell at a loss, typical of capitulations); and US spot ETF flows over the last 20 sessions, since 2024. In 1 hour and 4 hours, the index also uses Binance derivatives: open interest and the share of accounts long and of market buys, compared with their last 30 days.",
       },
       {
         h: "How does the index use it?",

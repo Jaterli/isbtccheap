@@ -743,3 +743,27 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .legal-links a { text-underline-offset: 3px; }
 .legal-links a:not(:hover) { text-decoration-color: transparent; }
 .legal-links a[aria-current="page"] { color: var(--fg); }
+
+/* Página de sentimiento: la métrica superpuesta al precio */
+.sent-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.6; }
+.sent-dot { fill: var(--cycle-2012); }
+/* Temporalidad: botones del mismo tamaño que el resto. 1D, en turquesa, el mismo fondo que los periodos (velas diarias) */
+.sent-tfs button.daily.active, .sent-daily .segmented button.active {
+  background: color-mix(in srgb, var(--cycle-2016) 22%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--cycle-2016);
+  color: var(--fg);
+}
+.sent-daily .segmented {
+  background: color-mix(in srgb, var(--cycle-2016) 10%, var(--bg));
+  border-color: color-mix(in srgb, var(--cycle-2016) 45%, var(--border));
+}
+.sent-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+/* Al cambiar de temporalidad, el gráfico anterior atenuado y un aviso encima hasta que llega el nuevo */
+.sent-chart { position: relative; }
+.sent-chart.updating .vol-chart { opacity: 0.35; transition: opacity 0.2s; pointer-events: none; }
+.sent-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--fg); font-size: 0.9rem; }
+.sent-spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .sent-spinner { animation: none; } }
+/* Enlace a la página de la categoría, con icono de gráfica, junto a la i de información */
+.info-btn.chart-link { cursor: pointer; }
+.info-btn.chart-link + .info-btn { margin-left: 0.25em; }

@@ -1,27 +1,61 @@
 import { useEffect, useMemo, useState } from "react";
-import { HeatmapChart } from "./components/CategoriesChart";
 import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
+import { SentimentChart } from "./components/SentimentChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
 import { getJson } from "./lib/data";
-import { SENTIMENT_METRICS, SENTIMENT_ROWS, sentimentSeries, type SentimentJson, type SentimentMetric } from "./lib/sentiment";
-import { lastDays } from "./lib/series";
+import {
+  DAILY_METRICS,
+  SENTIMENT_TFS,
+  TF_METRICS,
+  fromFirstScore,
+  indexAgo,
+  lastDaysOf,
+  loadSentiment,
+  type SentimentJson,
+  type SentimentKey,
+  type SentimentMetric,
+  type SentimentSeries,
+  type SentimentTf,
+} from "./lib/sentiment";
 import type { History } from "./types";
 
-const DAY = 86_400_000;
+const HOUR = 3_600_000;
 
-const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+// Valor real de cada métrica, con su formato
+const pct = (v: number, d = 1) => `${v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
+const FORMAT: Record<SentimentMetric, (v: number) => string> = {
+  fear_greed: (v) => Math.round(v).toLocaleString(locale),
+  sth_sopr: (v) => v.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+  etf_flows: (v) => t.sentiment.btc(`${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Math.round(v)).toLocaleString(locale)}`),
+  open_interest: (v) => t.sentiment.btc(Math.round(v).toLocaleString(locale)),
+  long_pct: (v) => pct(v),
+  taker_pct: (v) => pct(v),
+};
 
-/** Valor de una métrica con su formato: Fear & Greed entero, SOPR con 3 decimales y flujos en BTC con signo */
-function fmtValue(m: SentimentMetric, v: number | null): string | null {
-  if (v === null) return null;
-  if (m === "sth_sopr") return v.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-  if (m === "etf_flows") return t.sentiment.btc(`${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Math.round(v)).toLocaleString(locale)}`);
-  return Math.round(v).toLocaleString(locale);
+/** La elección guardada en el navegador (si se puede) */
+function useStored<T extends string>(key: string, fallback: T, valid: readonly T[]) {
+  const [v, setV] = useState<T>(() => {
+    try {
+      const s = localStorage.getItem(key) as T | null;
+      return s && valid.includes(s) ? s : fallback;
+    } catch {
+      return fallback;
+    }
+  });
+  const set = (x: T) => {
+    setV(x);
+    try {
+      localStorage.setItem(key, x);
+    } catch {
+      /* sin almacenamiento: no pasa nada */
+    }
+  };
+  return [v, set] as const;
 }
 
 function Chip({ v }: { v: number | null | undefined }) {
@@ -33,32 +67,76 @@ function Chip({ v }: { v: number | null | undefined }) {
   );
 }
 
+const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct"];
+
 export function SentimentApp() {
   const [history, setHistory] = useState<History | null>(null);
   const [sent, setSent] = useState<SentimentJson | null>(null);
+  // La última serie cargada, con su temporalidad: al cambiar de temporalidad se sigue viendo hasta que llega la nueva
+  const [loaded, setLoaded] = useState<{ tf: SentimentTf; s: SentimentSeries } | null>(null);
+  // La tabla, siempre en 1 h: el sentimiento pesa más en las temporalidades cortas
+  const [hourly, setHourly] = useState<SentimentSeries | null>(null);
   const [error, setError] = useState(false);
+  const [tf, setTf] = useStored<SentimentTf>("isbtccheap:sentiment-tf", "1h", SENTIMENT_TFS);
+  const [stored, setKey] = useStored<SentimentKey>("isbtccheap:sentiment-key", "sentimiento", KEYS);
   const range = useRange("isbtccheap:sentiment-range", "1y", LIQUIDITY_RANGES);
+
+  // Lo que se puede elegir en esta temporalidad: la categoría y las métricas que usa en ella el índice
+  const optionsFor = (x: SentimentTf): SentimentKey[] => ["sentimiento", ...TF_METRICS[x]];
+  const keyFor = (x: SentimentTf): SentimentKey => (optionsFor(x).includes(stored) ? stored : "sentimiento");
+  const options = optionsFor(tf);
+  const k = keyFor(tf);
+  const series = loaded?.s ?? null;
+  // Lo que se dibuja: la serie cargada, con su temporalidad y su elección, aunque ya se haya pedido otra
+  const shownTf = loaded?.tf ?? tf;
+  const shownK = keyFor(shownTf);
+  const updating = loaded !== null && loaded.tf !== tf;
 
   useEffect(() => {
     getJson("history.json").then(setHistory, () => setError(true));
     getJson("sentiment.json").then(setSent, () => setError(true));
   }, []);
 
-  const full = useMemo(() => (history && sent ? sentimentSeries(history, sent) : null), [history, sent]);
-  const series = useMemo(() => {
-    if (!full) return null;
-    const cut = lastDays(full, range.days);
-    // lastDays recorta las filas del mapa; los valores, con el mismo número de días
-    const n = cut.time.length;
-    return { ...cut, values: Object.fromEntries(SENTIMENT_METRICS.map((m) => [m, full.values[m].slice(-n)])) as typeof full.values };
-  }, [full, range.days]);
+  useEffect(() => {
+    if (!history || !sent) return;
+    let alive = true;
+    loadSentiment(tf, history, sent).then(
+      (s) => {
+        if (!alive) return;
+        setLoaded({ tf, s });
+        if (tf === "1h") setHourly(s);
+      },
+      () => alive && setError(true),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [tf, history, sent]);
+
+  // La tabla necesita la serie de 1 h aunque se esté viendo otra temporalidad
+  useEffect(() => {
+    if (!history || !sent || hourly || tf === "1h") return;
+    loadSentiment("1h", history, sent).then(setHourly, () => {});
+  }, [history, sent, hourly, tf]);
+
+  // En 1D, el periodo elegido; desde la primera puntuación de lo elegido
+  const shown = useMemo(() => {
+    if (!series) return null;
+    const cut = fromFirstScore(shownTf === "1d" ? lastDaysOf(series, range.days) : series, shownK);
+    return cut.scores[shownK].some((v) => v !== null) ? cut : null;
+  }, [series, shownTf, shownK, range.days]);
+
+  const table = useMemo(() => {
+    if (!hourly || !hourly.time.length) return null;
+    const cols = [0, 4, 24].map((hours) => indexAgo(hourly, hours * HOUR));
+    const row = (key: SentimentKey) => ({ key, scores: cols.map((i) => (i >= 0 ? hourly.scores[key][i] : null)) });
+    return { now: hourly.time.at(-1)!, hourlyRows: ["sentimiento" as const, ...TF_METRICS["1h"]].map(row), dailyRows: DAILY_METRICS.map(row) };
+  }, [hourly]);
 
   const tx = t.sentiment;
   const seo = SEO_SENTIMENT[lang];
-  const last = full ? full.time.length - 1 : -1;
-  // Índice del último día con dato a `days` días de hoy
-  const ago = (days: number) => (full ? full.time.findIndex((x) => x >= full.time[last] - days * DAY) : -1);
-  const cols = full ? [last, ago(30), ago(365)] : [];
+  const label = (key: SentimentKey) => tx.short[key];
+  const lastScore = shown ? [...shown.scores.sentimiento].reverse().find((v) => v !== null) : undefined;
 
   return (
     <main className="container">
@@ -74,34 +152,64 @@ export function SentimentApp() {
               ))}
             </InfoTip>
           </h2>
-          {range.control}
+          <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
+            {SENTIMENT_TFS.map((x) => (
+              <button
+                key={x}
+                role="radio"
+                aria-checked={tf === x}
+                className={[x === "1d" && "daily", tf === x && "active"].filter(Boolean).join(" ")}
+                onClick={() => setTf(x)}
+              >
+                {t.timeframes[x].short}
+              </button>
+            ))}
+          </div>
         </header>
 
-        {full && last >= 0 && (
+        {/* Segunda fila: las métricas y, en 1D, el periodo */}
+        <div className="sent-controls">
+          <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
+            {options.map((o) => (
+              <button key={o} role="radio" aria-checked={k === o} className={k === o ? "active" : ""} onClick={() => setKey(o)}>
+                {label(o)}
+              </button>
+            ))}
+          </div>
+          {/* Los periodos son de velas diarias: con el color del botón 1D */}
+          {tf === "1d" && <div className="sent-daily">{range.control}</div>}
+        </div>
+
+        {series && (
           <p className="vol-stats">
-            {tx.current(
-              <strong className="num">{date(full.time[last])}</strong>,
-              <Chip v={full.sentimiento[last]} />,
-              <strong className="num">{fmtValue("fear_greed", full.values.fear_greed[last]) ?? "—"}</strong>,
-              <strong className="num">{fmtValue("sth_sopr", full.values.sth_sopr[last]) ?? "—"}</strong>,
-              <strong className="num">{fmtValue("etf_flows", full.values.etf_flows[last]) ?? "—"}</strong>,
-            )}
+            {tx.current(t.timeframes[shownTf].label, <Chip v={lastScore} />, TF_METRICS[shownTf].map((m) => tx.short[m]).join(", "))}
           </p>
         )}
-        {series && series.time.length > 1 ? (
-          <HeatmapChart
-            data={series}
-            rows={SENTIMENT_ROWS}
-            labels={tx.short}
-            bold="sentimiento"
-            detail={(row, i) => (row === "sentimiento" ? null : fmtValue(row as SentimentMetric, series.values[row as SentimentMetric][i]))}
-            aria={tx.chartAria}
-          />
+        {shown && shown.time.length > 1 ? (
+          <div className={updating ? "sent-chart updating" : "sent-chart"} aria-busy={updating}>
+            <SentimentChart
+              data={shown}
+              k={shownK}
+              tf={shownTf}
+              label={label(shownK)}
+              detail={(i) => {
+                if (shownK === "sentimiento") return null;
+                const v = shown.values[shownK][i];
+                return v === null ? null : FORMAT[shownK](v);
+              }}
+            />
+            {updating && (
+              <div className="sent-loading" role="status">
+                <span className="sent-spinner" aria-hidden="true" />
+                {t.refresh.updating}
+              </div>
+            )}
+          </div>
         ) : (
-          <p className="muted">{error || (history && sent && !full) ? t.charts.error : t.loading}</p>
+          <p className="muted">{error ? t.charts.error : series && !updating ? tx.noData : t.loading}</p>
         )}
 
-        {full && (
+        {table && (
           <>
             <h3 className="dd-table-title">{tx.tableTitle}</h3>
             <div className="outlook-table-wrap">
@@ -109,29 +217,33 @@ export function SentimentApp() {
                 <thead>
                   <tr>
                     <th scope="col">{tx.cols.metric}</th>
-                    <th scope="col">{tx.cols.value}</th>
                     <th scope="col">{tx.cols.now}</th>
-                    <th scope="col">{tx.cols.d30}</th>
-                    <th scope="col">{tx.cols.y1}</th>
+                    <th scope="col">{tx.cols.h4}</th>
+                    <th scope="col">{tx.cols.d1}</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {table.hourlyRows.map((r) => (
+                    <tr key={r.key}>
+                      <th scope="row">{tx.names[r.key]}</th>
+                      {r.scores.map((v, i) => (
+                        <td key={i}>
+                          <Chip v={v} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                   <tr>
-                    <th scope="row">{tx.short.sentimiento}</th>
-                    <td className="num muted">—</td>
-                    {cols.map((i, k) => (
-                      <td key={k}>
-                        <Chip v={i >= 0 ? full.sentimiento[i] : null} />
-                      </td>
-                    ))}
+                    <th scope="rowgroup" colSpan={4} className="muted small">
+                      {tx.dailyGroup}
+                    </th>
                   </tr>
-                  {SENTIMENT_METRICS.map((m) => (
-                    <tr key={m}>
-                      <th scope="row">{tx.names[m]}</th>
-                      <td className="num">{fmtValue(m, full.values[m][last]) ?? "—"}</td>
-                      {cols.map((i, k) => (
-                        <td key={k}>
-                          <Chip v={i >= 0 ? full[m][i] : null} />
+                  {table.dailyRows.map((r) => (
+                    <tr key={r.key}>
+                      <th scope="row">{tx.names[r.key]}</th>
+                      {r.scores.map((v, i) => (
+                        <td key={i}>
+                          <Chip v={v} />
                         </td>
                       ))}
                     </tr>
@@ -139,6 +251,7 @@ export function SentimentApp() {
                 </tbody>
               </table>
             </div>
+            <p className="muted small">{tx.scoreNote}</p>
           </>
         )}
         <p className="muted small vol-note">{tx.note}</p>

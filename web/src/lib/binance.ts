@@ -2,7 +2,6 @@ import type { Candle, Timeframe } from "../types";
 
 // Dominio público de solo datos de mercado: sin clave y con CORS
 const SPOT = "https://data-api.binance.vision/api/v3";
-const FUTURES = "https://fapi.binance.com/fapi/v1";
 // Sin límite, una petición colgada dejaría el score en "Cargando…"
 const TIMEOUT_MS = 10_000;
 
@@ -19,22 +18,6 @@ export async function fetchCandles(tf: Timeframe | "15m" | "1m", limit = 1000, e
     low: Number(r[3]),
     close: Number(r[4]),
   }));
-}
-
-/** Último funding rate del perpetuo BTCUSDT (p. ej. 0.0001 = 0,01 % cada 8 h). */
-export async function fetchFundingRate(): Promise<number> {
-  const res = await fetch(`${FUTURES}/premiumIndex?symbol=BTCUSDT`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`Binance funding ${res.status}`);
-  const data = await res.json();
-  return Number(data.lastFundingRate);
-}
-
-/** Funding rates liquidados (cada 8 h), del más antiguo al más reciente. */
-export async function fetchFundingHistory(limit = 120): Promise<{ time: number; rate: number }[]> {
-  const res = await fetch(`${FUTURES}/fundingRate?symbol=BTCUSDT&limit=${limit}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`Binance funding history ${res.status}`);
-  const rows: { fundingTime: number; fundingRate: string }[] = await res.json();
-  return rows.map((r) => ({ time: Number(r.fundingTime), rate: Number(r.fundingRate) }));
 }
 
 // Estadísticas de los futuros: solo guardan los últimos 30 días

@@ -21,7 +21,6 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
                  │ commit → despliegue automático
 ┌──────────────── En el navegador (en vivo) ──────────────────────┐
 │ Velas de Binance de la temporalidad elegida → categoría técnica  │
-│ Funding rate de los perpetuos → se suma al sentimiento           │
 │ En 1 h y 4 h: open interest y ratios long/short y compra/venta   │
 │   → sustituyen al Fear & Greed y al SOPR (diarios) en el sentim. │
 │ Pesos por temporalidad → score final 1-100                       │
@@ -30,7 +29,7 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 
 - Las métricas lentas (on-chain, ciclo y liquidez) solo cambian una vez al día. Las calcula el pipeline y la web
   las lee de un JSON estático, así que las visitas nunca consumen las cuotas de las APIs.
-- Las métricas rápidas (RSI, Bollinger %B, precio / MA200, funding y, en 1 h y 4 h, open interest y ratios
+- Las métricas rápidas (RSI, Bollinger %B, precio / MA200 y, en 1 h y 4 h, open interest y ratios
   long/short y compra/venta de los futuros) las calcula el navegador con la API pública de Binance, que no
   necesita clave.
 - En temporalidades cortas pesa más el técnico y el sentimiento; en las largas, la valoración y el ciclo.
@@ -165,6 +164,11 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   y cuántas veces cambia de dirección sin motivo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
   o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio). Con `--shadow`, compara el
   publicado con la sombra de la misma ejecución: el acierto de cada uno y en cuántas coinciden las direcciones.
+- `collect_derivatives.py`: va guardando en `news/state/derivatives_{1h,4h}.csv` el open interest, las cuentas en largo y
+  las compras a mercado de Binance con el precio de cada vela. Binance solo guarda 30 días (500 puntos en 1 h), así que
+  sin este histórico propio no se puede comprobar con un backtest si el sentimiento de 1 h y 4 h anticipa el precio: con
+  20 días (11 nov 2026) reaccionaba al precio y, si acaso, iba a favor de él, al revés de como lo puntúa el índice. Cada
+  ejecución añade solo las velas que faltan; no llama a ningún modelo.
 
 En el droplet, una vez:
 
@@ -197,6 +201,8 @@ crontab -e
 0 8,9,15,16 * * 1-5     h=$(TZ=Europe/Madrid date +\%H); [ "$h" = 10 ] || [ "$h" = 17 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 0 10,11 * * 6           [ "$(TZ=Europe/Madrid date +\%H)" = 12 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+# Histórico de derivados de Binance (solo guarda 30 días): cada 6 h, con margen de sobra
+40 */6 * * *            /root/isbtccheap/news/run.sh collect_derivatives.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
 Coste orientativo: menos de 1 $/mes en noticias y agenda (los duplicados, la tarea que más tokens gasta, van con el nivel gratuito de Gemini), más el análisis (unas 52 consultas al mes: unos 0,50 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que

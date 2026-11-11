@@ -236,7 +236,7 @@ const SENTIMENT_META: Record<"es" | "en", PageMeta> = {
     URL: SENTIMENT.URL_ES,
     TITLE: "Sentimiento de Bitcoin: Fear & Greed, SOPR y flujos de ETF | Is BTC Cheap?",
     DESCRIPTION:
-      "Evolución del Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF de Bitcoin, las métricas de sentimiento del índice, frente al precio, en un mapa de calor de 0 a 100.",
+      "El precio de Bitcoin frente al Fear & Greed Index, el SOPR de corto plazo, los flujos de los ETF, el open interest, las cuentas en largo y las compras a mercado, en 1 hora, 4 horas y 1 día.",
   },
   en: {
     ...INDEX_META.en,
@@ -244,7 +244,7 @@ const SENTIMENT_META: Record<"es" | "en", PageMeta> = {
     URL: SENTIMENT.URL_EN,
     TITLE: "Bitcoin sentiment: Fear & Greed, SOPR and ETF flows | Is BTC Cheap?",
     DESCRIPTION:
-      "How the Fear & Greed Index, short-term SOPR and Bitcoin ETF flows, the index's sentiment metrics, have evolved against the price, in a 0 to 100 heatmap.",
+      "The Bitcoin price against the Fear & Greed Index, short-term SOPR, ETF flows, open interest, accounts long and market buys, in 1 hour, 4 hours and 1 day.",
   },
 };
 

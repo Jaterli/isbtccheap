@@ -76,11 +76,6 @@ export function derivativesMetrics(d: Derivatives): MetricScore[] {
   ];
 }
 
-/** Funding neutro ≈ 0,01 %/8 h. Cada +0,04 % sobre el neutro suma 50 puntos. */
-export function fundingScore(rate: number): number {
-  return clamp(50 + ((rate - 0.0001) / 0.0004) * 50);
-}
-
 export interface ScoreResult {
   score: number | null;
   categories: Record<CategoryId, Category>;
@@ -91,20 +86,17 @@ export function computeScore(
   latest: Latest,
   tf: Timeframe,
   technical: Category | null,
-  funding: number | null,
   /** Solo en 1 h y 4 h; null si Binance no respondió (se quedan las métricas diarias) */
   derivatives: MetricScore[] | null = null,
 ): ScoreResult {
   const categories = { ...latest.categories };
   if (technical) categories.tecnico = technical;
 
-  if (derivatives || funding !== null) {
+  // Sin funding desde el 11 nov 2026: casi siempre en el 0,01 % neutro (puntuación 29-50 de mayo a noviembre), sin
+  // relación con el precio, arrastraba la categoría hacia 44; y el pipeline calibra el índice diario sin él
+  if (derivatives) {
     const sent = latest.categories.sentimiento;
-    const metrics = [
-      ...(derivatives ?? sent.metrics),
-      ...(funding !== null ? [{ id: "funding", name: "Funding rate perpetuos (Binance)", value: funding, score: fundingScore(funding) }] : []),
-    ];
-    categories.sentimiento = { ...sent, metrics, score: mean(metrics.map((m) => m.score)) };
+    categories.sentimiento = { ...sent, metrics: derivatives, score: mean(derivatives.map((m) => m.score)) };
   }
 
   const weights = latest.weights[tf] ?? latest.weights["1w"];

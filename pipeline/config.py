@@ -27,7 +27,7 @@ METRICS = [
     {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True},
     {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile"},
     {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True},
-    # El funding y, en 1 h y 4 h, los derivados se añaden en vivo en el frontend
+    # En 1 h y 4 h, los derivados de Binance sustituyen en vivo (en el frontend) a estas métricas diarias
     {"id": "fear_greed", "name": "Fear & Greed Index", "category": "sentimiento", "method": "raw"},
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum): solo
     # se muestra en la página de valoración

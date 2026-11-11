@@ -5,7 +5,7 @@ import { HistoryChart } from "./components/HistoryChart";
 import { PriceCard } from "./components/PriceCard";
 import { RefreshStatus } from "./components/RefreshStatus";
 import { TimeframeSelector } from "./components/TimeframeSelector";
-import { fetchCandles, fetchDerivatives, fetchFundingRate } from "./lib/binance";
+import { fetchCandles, fetchDerivatives } from "./lib/binance";
 import {
   computeScore,
   DERIVATIVES_TFS,
@@ -28,8 +28,6 @@ import { TIMEFRAMES, type Category, type CategoryId, type History, type Latest, 
 
 const TF_KEY = "isbtccheap:tf";
 const REFRESH_MS: Record<Timeframe, number> = { "1h": 120_000, "4h": 300_000, "1d": 600_000, "1w": 1_800_000, "1M": 3_600_000 };
-// El funding solo cambia cada 8 h
-const FUNDING_MS = 300_000;
 
 interface LiveEntry {
   technical: Category;
@@ -108,7 +106,6 @@ export function App() {
   const [live, setLive] = useState<{ tf: Timeframe; technical: Category | null; derivatives: MetricScore[] | null } | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
-  const [funding, setFunding] = useState<number | null>(null);
   const [liveError, setLiveError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -125,7 +122,6 @@ export function App() {
 
   // Caché por temporalidad: no se vuelve a llamar a la API hasta que caduca su intervalo de refresco
   const cache = useRef(new Map<Timeframe, LiveEntry>());
-  const fundingCache = useRef<{ value: number; at: number } | null>(null);
 
   useEffect(() => {
     try {
@@ -157,11 +153,8 @@ export function App() {
       // Hasta tener velas de esta temporalidad no se muestra la variación de otra
       else setPrevClose(null);
       setLoading(true);
-      const f = fundingCache.current;
-      const needFunding = !f || Date.now() - f.at > FUNDING_MS;
-      const [candles, fr, derivs] = await Promise.allSettled([
+      const [candles, derivs] = await Promise.allSettled([
         tf === "1w" || tf === "1M" ? fetchCandles(tf).then((c) => withHistory(c, history, tf)) : fetchCandles(tf),
-        needFunding ? fetchFundingRate() : Promise.resolve(f!.value),
         DERIVATIVES_TFS.includes(tf) ? fetchDerivatives(tf).then(derivativesMetrics) : Promise.resolve(null),
       ]);
       if (cancelled) return;
@@ -182,10 +175,6 @@ export function App() {
       } else {
         setLive({ tf, technical: cached?.technical ?? null, derivatives });
       }
-      if (fr.status === "fulfilled") {
-        if (needFunding) fundingCache.current = { value: fr.value, at: now };
-        setFunding(fr.value);
-      }
       setLiveError(candles.status === "rejected");
       setLoading(false);
       schedule(now);
@@ -204,8 +193,8 @@ export function App() {
   const liveTf = live?.tf === tf ? live : cachedTf ?? null;
   const ready = liveTf !== null;
   const computed = useMemo(
-    () => (latest ? computeScore(latest, tf, liveTf?.technical ?? null, funding, liveTf?.derivatives ?? null) : null),
-    [latest, tf, liveTf, funding],
+    () => (latest ? computeScore(latest, tf, liveTf?.technical ?? null, liveTf?.derivatives ?? null) : null),
+    [latest, tf, liveTf],
   );
   const shown = ready ? computed : null;
 

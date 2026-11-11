@@ -162,25 +162,47 @@ export const es = {
   },
   sentiment: {
     title: "Sentimiento del mercado de Bitcoin",
-    rest: "Cómo han evolucionado el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF, las métricas de sentimiento del índice, frente al precio.",
-    card: "Métricas de sentimiento en el tiempo",
+    rest: "La puntuación del sentimiento y de cada una de sus métricas frente al precio de BTC, en 1 h, 4 h y 1 día: cómo se mueve la parte del índice que más pesa en las temporalidades cortas.",
+    card: "Sentimiento y precio",
     info: [
-      "Cada fila es la puntuación diaria (cierre del día) de una métrica, de 0 (miedo: barato, verde) a 100 (euforia: caro, rojo), con los mismos tramos de color que el medidor. La primera es la categoría de sentimiento del índice, la media de las tres. Al pasar por el gráfico se ve también el valor de cada métrica. Con periodos largos, cada columna es la media de varios días.",
-      "Fear & Greed Index (Alternative.me, desde 2018): de 0, miedo extremo, a 100, codicia extrema; se usa tal cual. SOPR de corto plazo (media de 7 días, desde 2011): el precio de venta entre el de compra de las monedas que mueven quienes compraron hace menos de 155 días; por debajo de 1, venden con pérdidas. Flujos de los ETF al contado (desde 2024): lo que entró menos lo que salió en las últimas 20 sesiones, en BTC. El SOPR y los flujos se puntúan con su percentil frente a sus últimos 4 años.",
+      "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica.",
+      "El índice no usa las mismas métricas en todas las temporalidades: en 1 h y 4 h, los derivados de Binance (open interest, cuentas en largo y compras a mercado, puntuados con su percentil frente a sus últimos 30 días); en 1D, el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF (puntuados frente a sus últimos 4 años). Por eso cada temporalidad muestra las suyas.",
+      "Binance solo guarda 30 días de los derivados, así que en 1 h y 4 h el gráfico cubre unas 3 o 4 semanas. Las primeras velas no tienen puntuación hasta reunir 50 datos, como en el índice.",
     ],
-    current: (day: ReactNode, cat: ReactNode, fg: ReactNode, sopr: ReactNode, etf: ReactNode) => (
+    current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
-        Al cierre del {day}, la categoría de sentimiento está en {cat}: Fear & Greed {fg}, SOPR de corto plazo {sopr} y flujos de
-        los ETF {etf}.
+        En la temporalidad de {tf}, la categoría de sentimiento está ahora en {cat}. La forman {metrics}.
       </>
     ),
-    short: { sentimiento: "Sentimiento", fear_greed: "Fear & Greed", sth_sopr: "SOPR CP", etf_flows: "ETF 20 ses." },
-    names: { fear_greed: "Fear & Greed Index", sth_sopr: "SOPR de corto plazo (7 días)", etf_flows: "Flujos de los ETF (20 sesiones)" },
+    short: {
+      sentimiento: "Sentimiento",
+      fear_greed: "Fear & Greed",
+      sth_sopr: "SOPR CP",
+      etf_flows: "ETF 20 ses.",
+      open_interest: "Open interest",
+      long_pct: "Cuentas en largo",
+      taker_pct: "Compras a mercado",
+    },
+    names: {
+      sentimiento: "Categoría de sentimiento (1 h)",
+      fear_greed: "Fear & Greed Index",
+      sth_sopr: "SOPR de corto plazo (7 días)",
+      etf_flows: "Flujos de los ETF (20 sesiones)",
+      open_interest: "Open interest",
+      long_pct: "Cuentas en largo",
+      taker_pct: "Compras a mercado",
+    },
     btc: (v: string) => `${v} BTC`,
-    tableTitle: "Hoy y antes",
-    cols: { metric: "Métrica", value: "Valor hoy", now: "Hoy", d30: "Hace 30 días", y1: "Hace 1 año" },
-    note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
-    chartAria: "Gráfico del precio de Bitcoin y mapa de calor de sus métricas de sentimiento",
+    tfAria: "Temporalidad",
+    metricAria: "Puntuación superpuesta al precio",
+    noData: "Sin datos: Binance no responde.",
+    tableTitle: "Puntuación ahora y antes, en 1 h",
+    dailyGroup: "Métricas diarias (las usa el índice en 1D y más): cambian una vez al día",
+    scoreNote: "De 0 (miedo: barato) a 100 (euforia: caro), como en el índice de 1 h. Hace 4 horas y hace 1 día, en la vela de 1 h de entonces.",
+    cols: { metric: "Métrica", now: "Ahora", h4: "Hace 4 h", d1: "Hace 1 día" },
+    note: "Datos históricos sin mirar al futuro, no una predicción ni una recomendación de inversión.",
+    chartAria: "Gráfico del precio de Bitcoin con la puntuación de sentimiento superpuesta",
+    chartLink: "Ver la evolución del sentimiento",
   },
   etf: {
     title: "Flujos de los ETF de Bitcoin",
@@ -214,7 +236,7 @@ export const es = {
     rest: "La situación de BTC hoy según un análisis con IA: soportes y resistencias, sesgo del mercado y lo más probable en las próximas horas y en 1-2 días.",
     card: "Zonas y previsión",
     info: [
-      "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, funding, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
+      "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
       "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las líneas naranjas son los niveles de Fibonacci de los que el modelo saca algún objetivo o invalidación: son niveles calculados, no zonas donde el precio haya reaccionado. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a viernes a las 10:00 y a las 17:00, los sábados a las 12:00 y los domingos a las 18:00 (hora de Madrid).",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
@@ -365,7 +387,7 @@ export const es = {
     },
     sentimiento: {
       name: "Sentimiento",
-      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas, y funding), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios), los flujos de los ETF al contado y el funding.",
+      what: "Mide el miedo o la euforia de los inversores y el apalancamiento en los mercados de futuros. En 1 h y 4 h se mide con los derivados de Binance (open interest, ratios long/short y de compras/ventas), que cambian a ese ritmo; en 1 día, 1 semana y 1 mes, con el Fear & Greed, el SOPR de los holders de corto plazo (datos on-chain diarios) y los flujos de los ETF al contado.",
       read: "La codicia extrema suele coincidir con techos y el miedo extremo con suelos, por eso la codicia suma al score.",
     },
     tecnico: {
@@ -444,11 +466,6 @@ export const es = {
       name: "Flujos ETF al contado (20 ses.)",
       what: "Entradas menos salidas de los ETF de bitcoin al contado de EE. UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
       read: "Percentil frente a su historia. Entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Con menos de tres años de datos, es una señal todavía poco contrastada.",
-    },
-    funding: {
-      name: "Funding rate perpetuos (Binance)",
-      what: "Funding rate de los futuros perpetuos de Binance: el pago periódico (cada 8 h) entre posiciones largas y cortas.",
-      read: "0,01 % es neutro. Muy positivo indica exceso de apalancamiento alcista (suma); negativo indica pesimismo (resta).",
     },
     open_interest: {
       name: "Open interest",

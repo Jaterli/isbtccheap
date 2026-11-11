@@ -1,4 +1,4 @@
-import { locale, t } from "../i18n";
+import { lang, locale, PAGE_PATH, t } from "../i18n";
 import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
 import type { Category, CategoryId, Timeframe } from "../types";
 import { InfoTip } from "./InfoTip";
@@ -46,8 +46,6 @@ function fmt(v: number | null, id: string) {
     return t.percent(Math.round(Math.min(Math.max(phase, 0), 1) * 100).toLocaleString(locale));
   }
   if (v === null) return "—";
-  // Con 4 decimales: 0,0000267 redondearía a 0
-  if (id === "funding") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 4 }));
   // Partes del total (50 % = equilibrio): sin signo
   if (id === "long_short" || id === "taker_ratio") return t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: 1 }));
   if (id === "open_interest") return `${Math.round(v).toLocaleString(locale)} BTC`;
@@ -102,6 +100,13 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
             <header>
               <h3>
                 {info.name}
+                {id === "sentimiento" && (
+                  <a className="info-btn chart-link" href={PAGE_PATH.sentiment[lang]} title={t.sentiment.chartLink} aria-label={t.sentiment.chartLink}>
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M2 13.5h12M3 11l3-3.5 2.5 2L13 4" />
+                    </svg>
+                  </a>
+                )}
                 <InfoTip label={info.name} title={info.name}>
                   <p>{info.what}</p>
                   <p>{info.read}</p>

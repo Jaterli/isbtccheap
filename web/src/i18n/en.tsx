@@ -155,24 +155,47 @@ export const en: Messages = {
   },
   sentiment: {
     title: "Bitcoin market sentiment",
-    rest: "How the Fear & Greed Index, short-term SOPR and ETF flows, the index's sentiment metrics, have evolved against the price.",
-    card: "Sentiment metrics over time",
+    rest: "The score of sentiment and each of its metrics against the BTC price, in 1h, 4h and 1 day: how the part of the index that weighs most in short timeframes moves.",
+    card: "Sentiment and price",
     info: [
-      "Each row is the daily score (daily close) of a metric, from 0 (fear: cheap, green) to 100 (euphoria: expensive, red), with the same color bands as the gauge. The first one is the index's sentiment category, the average of the three. Hovering the chart also shows each metric's value. With long periods, each column is the average of several days.",
-      "Fear & Greed Index (Alternative.me, since 2018): from 0, extreme fear, to 100, extreme greed; used as is. Short-term SOPR (7-day average, since 2011): the selling price over the buying price of the coins moved by those who bought less than 155 days ago; below 1, they sell at a loss. Spot ETF flows (since 2024): inflows minus outflows over the last 20 sessions, in BTC. SOPR and flows are scored by their percentile against their last 4 years.",
+      "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value.",
+      "The index does not use the same metrics in every timeframe: in 1h and 4h, Binance derivatives (open interest, accounts long and market buys, scored by their percentile against their last 30 days); in 1D, the Fear & Greed Index, short-term SOPR and ETF flows (scored against their last 4 years). That is why each timeframe shows its own.",
+      "Binance only keeps 30 days of derivatives, so in 1h and 4h the chart covers about 3 or 4 weeks. The first candles have no score until 50 data points are available, as in the index.",
     ],
-    current: (day: ReactNode, cat: ReactNode, fg: ReactNode, sopr: ReactNode, etf: ReactNode) => (
+    current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
-        At the {day} close, the sentiment category stands at {cat}: Fear & Greed {fg}, short-term SOPR {sopr} and ETF flows {etf}.
+        In the {tf} timeframe, the sentiment category currently stands at {cat}. It is made up of {metrics}.
       </>
     ),
-    short: { sentimiento: "Sentiment", fear_greed: "Fear & Greed", sth_sopr: "STH SOPR", etf_flows: "ETF 20 ses." },
-    names: { fear_greed: "Fear & Greed Index", sth_sopr: "Short-term SOPR (7 days)", etf_flows: "ETF flows (20 sessions)" },
+    short: {
+      sentimiento: "Sentiment",
+      fear_greed: "Fear & Greed",
+      sth_sopr: "STH SOPR",
+      etf_flows: "ETF 20 ses.",
+      open_interest: "Open interest",
+      long_pct: "Accounts long",
+      taker_pct: "Market buys",
+    },
+    names: {
+      sentimiento: "Sentiment category (1h)",
+      fear_greed: "Fear & Greed Index",
+      sth_sopr: "Short-term SOPR (7 days)",
+      etf_flows: "ETF flows (20 sessions)",
+      open_interest: "Open interest",
+      long_pct: "Accounts long",
+      taker_pct: "Market buys",
+    },
     btc: (v: string) => `${v} BTC`,
-    tableTitle: "Today and before",
-    cols: { metric: "Metric", value: "Value today", now: "Today", d30: "30 days ago", y1: "1 year ago" },
-    note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
-    chartAria: "Chart of Bitcoin's price and heatmap of its sentiment metrics",
+    tfAria: "Timeframe",
+    metricAria: "Score overlaid on the price",
+    noData: "No data: Binance is not responding.",
+    tableTitle: "Score now and before, in 1h",
+    dailyGroup: "Daily metrics (used by the index in 1D and above): they change once a day",
+    scoreNote: "From 0 (fear: cheap) to 100 (euphoria: expensive), as in the 1h index. 4 hours and 1 day ago, in the 1h candle of then.",
+    cols: { metric: "Metric", now: "Now", h4: "4h ago", d1: "1 day ago" },
+    note: "Historical data computed without looking ahead, not a forecast or investment advice.",
+    chartAria: "Chart of the Bitcoin price with the sentiment score overlaid",
+    chartLink: "See how sentiment has evolved",
   },
   etf: {
     title: "Bitcoin ETF flows",
@@ -206,7 +229,7 @@ export const en: Messages = {
     rest: "BTC's situation today according to an AI analysis: support and resistance, market bias and what is most likely over the next hours and 1-2 days.",
     card: "Zones and outlook",
     info: [
-      "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, funding, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
+      "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
       "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. The dashed lines mark resting liquidity (highs and lows the price has not yet taken out, where stops build up) and the grey bands, unfilled gaps; the script computes them, not the model. The orange lines are the Fibonacci levels the model takes a target or invalidation from: they are computed levels, not zones where the price has reacted. Candles are 4h (or daily with the 1D selector, about 6 months, to see which levels have been reclaimed or lost) and run up to the time of the analysis, as the model saw them: they do not change until the next one, which runs Monday to Friday at 10:00 and 17:00, on Saturdays at 12:00 and on Sundays at 18:00 (Madrid time).",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
@@ -354,7 +377,7 @@ export const en: Messages = {
     },
     sentimiento: {
       name: "Sentiment",
-      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios, and funding), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data), spot ETF flows and funding.",
+      what: "Measures investor fear or euphoria and leverage in the futures markets. On 1h and 4h it uses Binance derivatives (open interest, long/short and buy/sell ratios), which move at that pace; on 1 day, 1 week and 1 month, the Fear & Greed Index, short-term holders' SOPR (daily on-chain data) and spot ETF flows.",
       read: "Extreme greed tends to coincide with tops and extreme fear with bottoms, so greed raises the score.",
     },
     tecnico: {
@@ -433,11 +456,6 @@ export const en: Messages = {
       name: "Spot ETF flows (20 sessions)",
       what: "Inflows minus outflows of US spot bitcoin ETFs over the last 20 sessions (about a month), in BTC. Data from The Commoner Bitcoin ETF Tracker (TFTC), since January 2024.",
       read: "Percentile versus its history. Strong inflows, typical of tops, add; outflows, typical of lows, subtract. With less than three years of data, it is still a lightly tested signal.",
-    },
-    funding: {
-      name: "Perpetual funding rate (Binance)",
-      what: "Funding rate of Binance perpetual futures: the periodic payment (every 8h) between long and short positions.",
-      read: "0.01% is neutral. Strongly positive means excess bullish leverage (raises the score); negative means pessimism (lowers it).",
     },
     open_interest: {
       name: "Open interest",
@@ -629,7 +647,7 @@ export const en: Messages = {
       `On-chain, cycle and liquidity data as of ${asOf} (recalculated once a day; last run ${updated}).`,
     missing: (list: string) => ` Sources unavailable today: ${list}.`,
     sources: "Sources:",
-    attribution: { "https://www.binance.com/": "Binance (live price and funding)" },
+    attribution: { "https://www.binance.com/": "Binance (live price and derivatives)" },
     disclaimer: "This indicator is for information only and is not financial advice.",
     credit: "Built by",
     legalAria: "Legal information",
