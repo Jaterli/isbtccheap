@@ -124,7 +124,7 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   mínimo de los últimos 12 meses, la estructura de mercado en semanal y diario (pivotes con su RSI, máximos y mínimos
   crecientes o decrecientes, última ruptura, divergencias del RSI y Fibonacci en escala logarítmica, retrocesos y
   extensiones, de dos tramos: el principal, desde el último mínimo que ningún cierre ha perdido hasta el máximo posterior
-  o al revés en bajada, el mayor de los dos, y su corrección, provisional mientras no se confirme su extremo) y los
+  o al revés en bajada, el mayor de los dos, y su corrección, provisional mientras no se confirme su extremo y, entonces, sin extensiones) y los
   imbalances (fair value gaps) sin rellenar en semanal, diario y 4 h, la liquidez pendiente en diario y 4 h (máximos y
   mínimos que el precio no ha vuelto a superar, agrupando los iguales; se guarda también en `analysis.json` para dibujarla
   en su gráfico, con un selector 4h / 1D), las zonas de reacción en diario y 4 h (todos los pivotes cercanos agrupados,

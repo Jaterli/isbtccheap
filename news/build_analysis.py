@@ -80,7 +80,7 @@ ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacc
 tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
 máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo posterior \
 (provisional si ese extremo aún no se ha confirmado): retrocesos dentro de cada tramo y extensiones 1,272 y 1,618 más \
-allá de su final. En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
+allá de su final (la corrección provisional no las lleva: su final aún se mueve). En imbalances, para semanal, diario y 4 h, los huecos de liquidez (fair value gaps) cercanos que el precio aún \
 no ha rellenado. En liquidity_pools, para diario y 4 h, la liquidez pendiente: máximos y mínimos de la estructura que \
 el precio no ha vuelto a superar (encima, stops de cortos y compras por ruptura; debajo, stops de largos), marcando los \
 máximos o mínimos iguales, que concentran más órdenes. En reaction_zones, para diario y 4 h, las zonas donde el precio \
@@ -394,7 +394,7 @@ def fib_legs(raw: list[list], high: list[float], low: list[float], close: list[f
                   máximo posterior (o, en bajada, desde el último máximo que ningún cierre ha superado hasta el mínimo
                   posterior); de los dos, el más grande
       correction  la corrección desde el final de main hasta el extremo posterior, provisional mientras ese extremo no se
-                  confirme como pivote (el precio aún puede alargarla)
+                  confirme como pivote (el precio aún puede alargarla): entonces lleva solo los retrocesos, sin extensiones
     Así el tramo nace en el mínimo que protege la subida y llega a su punto más alto, sin cortarse en un pivote intermedio."""
     price, n = close[-1], len(close)
 
@@ -417,8 +417,12 @@ def fib_legs(raw: list[list], high: list[float], low: list[float], close: list[f
         k = min(range(i1 + 1, n), key=lambda x: low[x]) if up else max(range(i1 + 1, n), key=lambda x: high[x])
         ext = low[k] if up else high[k]
         if ext != p1:
-            out["correction"] = {**_fib(raw, i1, p1, k, ext, price),
-                                 "provisional": not any(i == k for i, _, _ in pivots)}
+            provisional = not any(i == k for i, _, _ in pivots)
+            out["correction"] = {**_fib(raw, i1, p1, k, ext, price), "provisional": provisional}
+            # Sin extremo confirmado (sin un rebote de al menos el umbral de la estructura) la extensión se movería con el
+            # precio: no es un objetivo. Los retrocesos sí sirven, como niveles de rebote
+            if provisional:
+                del out["correction"]["extensions"]
     return out
 
 
