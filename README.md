@@ -110,7 +110,7 @@ nivel 3):
 | Noticias y agenda | GLM-5.3 Flash → gpt-oss-120b → qwen3.8-27b → gpt-oss-20b (los tres en Groq) → Gemini 3.5 Flash → Gemini Flash Latest (`NEWS_MODELS`) |
 | Duplicados de noticias | Gemini 3.5 Flash → GLM-5.3 Flash → gpt-oss-120b (Groq) → Gemini Flash Latest (`DEDUPE_MODELS`); GLM se pasaba razonando hasta el límite de tokens |
 | Análisis | GLM-5.3 Flash → GLM-5.3 Flash con esfuerzo `high` (razona unas 6 veces menos: 30 s en vez de 3-4 min, con textos algo menos precisos) → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_MODELS`); si fallan todos, se mantiene el anterior |
-| Textos del análisis | GLM-5.3 Flash con esfuerzo `high` → GLM-5.3 Flash → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_TEXT_MODELS`): redactar el análisis ya decidido apenas necesita razonar |
+| Textos del análisis | GLM-5.3 Flash con esfuerzo `high` → GLM-5.3 Flash con esfuerzo `medium` → Gemini 3.5 Flash → Gemini Flash Latest (`ANALYSIS_TEXT_MODELS`): redactar el análisis ya decidido apenas necesita razonar, y con su esfuerzo por defecto GLM agotaba los tokens |
 
 Los modelos de Groq no están en el análisis: sus datos superan los 8.000 tokens por minuto de su nivel gratuito. Qwen 3.5
 salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b, por leer mal la estructura del mercado.

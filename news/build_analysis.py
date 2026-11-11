@@ -227,7 +227,9 @@ SCHEMA = {
 # Los textos, en una segunda llamada con el análisis ya validado: así nunca contradicen lo que se publica (la
 # validación recorta zonas, corrige direcciones o descarta invalidaciones) y cada llamada razona solo su parte
 TEXT_SCHEMA = {"type": "object", "properties": {"es": TEXT, "en": TEXT}, "required": ["es", "en"], "additionalProperties": False}
-TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,glm-5.3-flash,gemini:gemini-3.5-flash,"
+# Redactar apenas necesita razonar (11 nov 2026, mismo análisis): GLM con "high" redacta bien en 30-90 s; con su esfuerzo
+# por defecto agotó los 16.000 tokens las dos veces, así que el respaldo es "medium"; Gemini suele tener la cuota agotada
+TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,glm-5.3-flash@medium,gemini:gemini-3.5-flash,"
                                   "gemini:gemini-flash-latest")
 TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de un analista ya \
 revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, sesgo, confianza y escenarios con \
@@ -246,7 +248,16 @@ rellenado" (X, Y y N son los de los datos).
 3. Interpreta bien los datos: un dato por encima de la previsión no es "mejor de lo previsto" si es malo para el \
 mercado (una inflación más alta, por ejemplo); una pérdida no realizada alta de los holders de corto plazo es estrés, y \
 solo es capitulación si venden de verdad con pérdidas (pérdida realizada disparada y SOPR claramente por debajo de 1).
-4. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
+4. Atribuye cada dato a su fuente y no mezcles datos de distinta naturaleza en una misma frase o clave: las \
+probabilidades de las decisiones de la Fed son las del mercado de predicción Kalshi, no la opinión de un miembro de la \
+Fed; las salidas de los ETF son flujos de inversores, no posiciones en derivados.
+5. Escribe para lectores que no son especialistas: sin jerga ni abreviaturas ("%B de Bollinger", "m/m", "hawkish", \
+"dovish", "pierna", "pozo de liquidez", "extremo sin confirmar", "SMA200", "HH", "LL"…). Explícalo con palabras normales: \
+"en la parte baja de su rango habitual" en vez de "%B en 0,1", "el mínimo de ayer" en vez de "extremo sin confirmar", \
+"la media de 200 semanas" en vez de "SMA200 semanal". Soporte, resistencia, Fibonacci, liquidez o hueco sin rellenar sí \
+valen, con su explicación cuando hace falta.
+6. El precio actual es analysis.price: cita ese.
+7. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
 
 Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 {
@@ -1167,8 +1178,12 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     return result
 
 
+# Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
+TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 80, "outlook": 70, "outlook_days": 70, "points": 35}
+
+
 def check_texts(a: dict) -> dict:
-    """Los textos de la segunda llamada, sin campos vacíos; como mucho 4 claves."""
+    """Los textos de la segunda llamada, sin campos vacíos; como mucho 4 claves. Avisa de los que se pasan de palabras."""
     out = {}
     for lang in ("es", "en"):
         t = a[lang]
@@ -1176,14 +1191,18 @@ def check_texts(a: dict) -> dict:
             raise ValueError(f"texto vacío ({lang})")
         out[lang] = {k: t[k].strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")}
         out[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
+        long = [f"{k} {len(v.split())}/{TEXT_WORDS[k]}" for k, v in out[lang].items() if k != "points" and len(v.split()) > TEXT_WORDS[k]]
+        long += [f"points {len(p.split())}/{TEXT_WORDS['points']}" for p in out[lang]["points"] if len(p.split()) > TEXT_WORDS["points"]]
+        if long:
+            log.warning("Texto demasiado largo (%s): %s", lang, ", ".join(long))
     return out
 
 
-def text_input(result: dict, data: dict) -> str:
+def text_input(result: dict, data: dict, price: float) -> str:
     """Lo que recibe la redacción: el análisis validado (cada zona con los datos de su candidata) y los datos citables,
     sin las velas ni las candidatas (lo que se necesita de ellas ya va en las zonas elegidas)."""
     candidates = {c["id"]: c for c in data.get("zone_candidates", [])}
-    analysis = {k: v for k, v in result.items() if k != "notes"}
+    analysis = {"price": round(price), **{k: v for k, v in result.items() if k != "notes"}}
     analysis["levels"] = [{**z, "zone": {k: v for k, v in candidates.get(z.get("candidate"), {}).items() if k not in ("id", "side")}}
                           for z in result["levels"]]
     facts = {k: v for k, v in model_view(data).items() if not k.startswith("candles_") and k != "zone_candidates"}
@@ -1231,7 +1250,7 @@ def main() -> None:
         name = lambda spec: llm.label(spec) + (f"@{spec.partition('@')[2]}" if "@" in spec else "")
         price, model = prices[-1], name(spec)
         try:
-            texts, spec = llm.complete(TEXT_PROMPT, text_input(result, data), TEXT_SCHEMA, "analisis-textos", TEXT_MODELS,
+            texts, spec = llm.complete(TEXT_PROMPT, text_input(result, data, price), TEXT_SCHEMA, "analisis-textos", TEXT_MODELS,
                                        check_texts, max_tokens=16000)
         except RuntimeError:
             raise SystemExit("ningún modelo redactó los textos: se mantiene el análisis anterior")
