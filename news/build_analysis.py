@@ -22,6 +22,7 @@ import json
 import logging
 import math
 import os
+import re
 import sys
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
@@ -252,8 +253,9 @@ solo es capitulación si venden de verdad con pérdidas (pérdida realizada disp
 probabilidades de las decisiones de la Fed son las del mercado de predicción Kalshi, no la opinión de un miembro de la \
 Fed; las salidas de los ETF son flujos de inversores, no posiciones en derivados.
 5. Escribe para lectores que no son especialistas: sin jerga ni abreviaturas ("%B de Bollinger", "m/m", "hawkish", \
-"dovish", "pierna", "pozo de liquidez", "extremo sin confirmar", "SMA200", "HH", "LL"…). Explícalo con palabras normales: \
-"en la parte baja de su rango habitual" en vez de "%B en 0,1", "el mínimo de ayer" en vez de "extremo sin confirmar", \
+"dovish", "pierna", "pozo de liquidez", "extremo en curso", "extremo sin confirmar", "SMA200", "HH", "LL"…). Explícalo \
+con palabras normales: "en la parte baja de su rango habitual" en vez de "%B en 0,1", "el mínimo de ayer" en vez de \
+"extremo en curso", \
 "la media de 200 semanas" en vez de "SMA200 semanal". Soporte, resistencia, Fibonacci, liquidez o hueco sin rellenar sí \
 valen, con su explicación cuando hace falta.
 6. El precio actual es analysis.price: cita ese.
@@ -273,6 +275,8 @@ de ella, en 2 o 3 frases (80 palabras como máximo).
 (70 palabras como máximo).
 - outlook_days: lo mismo para 1-2 días (analysis.outlook_days).
 - points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio.
+- "es" en español y "en" en inglés, con el mismo contenido: traduce con cuidado las cifras y su sentido (una subida de \
+tipos mayor no es un recorte).
 - Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Nombra los datos con palabras normales, no con \
 sus nombres en el JSON."""
 
@@ -1178,12 +1182,41 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     return result
 
 
+# Para saber en qué idioma está un texto: palabras muy frecuentes de cada uno (11 nov 2026: un modelo cruzó los campos y
+# publicó el inglés en "es" y el español en "en")
+LANG_WORDS = {"es": {"el", "la", "los", "las", "de", "del", "que", "y", "en", "con", "por", "para", "una", "se", "su"},
+              "en": {"the", "of", "and", "to", "in", "with", "for", "a", "is", "at", "its", "on", "from", "by", "as"}}
+
+
+def _lang(text: str) -> str | None:
+    words = re.findall(r"[a-záéíóúñü]+", text.lower())
+    score = {lang: sum(w in common for w in words) for lang, common in LANG_WORDS.items()}
+    return max(score, key=score.get) if max(score.values()) >= 3 and score["es"] != score["en"] else None
+
+
+def _fix_languages(a: dict) -> None:
+    """Si un texto de "es" está en inglés y el mismo de "en" en español, los intercambia; si un idioma está mal sin su
+    pareja al revés, lanza ValueError (se prueba el siguiente modelo)."""
+    keys = [k for k in a["es"] if k in a["en"]]
+    for k in keys:
+        es, en = a["es"][k], a["en"][k]
+        text = lambda v: " ".join(v) if isinstance(v, list) else str(v)
+        got_es, got_en = _lang(text(es)), _lang(text(en))
+        if got_es == "en" and got_en == "es":
+            a["es"][k], a["en"][k] = en, es
+            log.warning("Textos con los idiomas cruzados, se intercambian: %s", k)
+        elif got_es == "en" or got_en == "es":
+            raise ValueError(f"texto en el idioma equivocado: {k}")
+
+
 # Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
 TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 80, "outlook": 70, "outlook_days": 70, "points": 35}
 
 
 def check_texts(a: dict) -> dict:
-    """Los textos de la segunda llamada, sin campos vacíos; como mucho 4 claves. Avisa de los que se pasan de palabras."""
+    """Los textos de la segunda llamada, sin campos vacíos y cada uno en su idioma; como mucho 4 claves. Avisa de los que
+    se pasan de palabras."""
+    _fix_languages(a)
     out = {}
     for lang in ("es", "en"):
         t = a[lang]
