@@ -75,7 +75,8 @@ máximo y el mínimo de los últimos 12 meses. En cycle_context, con cierres dia
 días transcurridos y distancia del precio), los techos y suelos de los ciclos anteriores (caída y días del techo al \
 suelo) y el ciclo en curso con su mínimo hasta hoy. En market_structure, para semanal y diario y calculado con sus velas: los \
 últimos pivotes de la estructura (con el RSI en cada uno y si son más altos o más bajos que el anterior: HH, LH, HL, LL), \
-el extremo en curso, la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
+el extremo en curso (current_extreme: el máximo o mínimo desde el último pivote, aún sin confirmar, porque el precio \
+no se ha alejado lo bastante de él para que lo sea), la última ruptura de un pivote por un cierre, las divergencias del RSI entre pivotes (clásicas u \
 ocultas, alcistas o bajistas, y si se están formando) y los niveles de Fibonacci (en escala logarítmica) de dos \
 tramos: main, el movimiento principal (desde el último mínimo de la estructura que el precio no ha perdido hasta el \
 máximo posterior, o al revés en bajada), y correction, la corrección desde su final hasta el extremo posterior \
@@ -116,8 +117,9 @@ debajo del precio y resistencias por encima. Cada zona tiene que estar donde el 
 reaction_zones (da más fuerza a las de más reacciones y más recientes, y menos a las que el precio ha atravesado \
 varias veces sin girar, sobre todo desde su última reacción: ya no las respeta; una sola ruptura seguida de una reacción \
 desde el otro lado no le resta, porque la confirma con el papel cambiado), los pivotes de market_structure o la liquidez \
-pendiente: cada zona tiene que contener al menos uno de ellos. Fibonacci e imbalances no bastan para una zona, aunque \
-coincidan varios: no la crean, solo pueden reforzar una que ya exista, y por sí solos sirven para objetivos. Afina las zonas diarias con las de 4 h: si una zona de \
+pendiente: cada zona tiene que contener al menos uno de ellos. El extremo en curso no basta: aún no se ha visto un \
+rebote desde él (sí sirve como objetivo, invalidación o referencia en el texto). Fibonacci e imbalances tampoco bastan, \
+aunque coincidan varios: solo pueden reforzar una zona que ya exista. Afina las zonas diarias con las de 4 h: si una zona de \
 reaction_zones de 4 h cae dentro de una diaria (o la solapa casi entera), usa el rango de la de 4 h, más preciso, con la \
 fuerza que le da la diaria; si no hay ninguna, deja la diaria.
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
@@ -128,8 +130,9 @@ Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
 - target_basis e invalidation_basis (base: {"kind": ..., "timeframe": "1w" | "1d" | "4h" | "1h"}): de qué nivel de los \
-datos sale ese precio. kind: "reaction_zone", "liquidity_pool", "imbalance", "pivot" (de market_structure), "fibonacci" \
-o, si no hay un nivel cerca y lo estimas por la volatilidad, "atr". Elige el precio en el nivel, no un número redondo \
+datos sale ese precio. kind: "reaction_zone" o "liquidity_pool" (en 1d o 4h), "imbalance" (en 1w, 1d o 4h), "pivot" \
+(de market_structure, incluido el extremo en curso) o "fibonacci" (en 1w o 1d) o, si no hay un nivel cerca y lo estimas \
+por la volatilidad, "atr" (en cualquier temporalidad). Elige el precio en el nivel, no un número redondo \
 cercano.
 - Los precios y las direcciones deben coincidir con lo que dicen los textos.
 - Ajusta objetivos e invalidaciones a la volatilidad reciente (ATR): en las próximas horas el precio suele moverse unos \
@@ -137,9 +140,9 @@ pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios. Un objetivo much
 - Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus indicadores, market_structure y \
 trend_context) al elegir lo más probable a horas y a 1-2 días: un movimiento de pocas horas no la cambia por sí solo. La \
 estructura y las divergencias son referencias para el sesgo, no certezas. La liquidez pendiente y los imbalances cercanos \
-son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de girar). Fibonacci sirve para estimar \
-hasta dónde puede llegar el precio cuando atraviesa un tramo sin zonas de reacción, como un imbalance grande: úsalo \
-para los objetivos en ese caso, no para situar las zonas. cycle_context \
+son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de girar). Fibonacci sirve para los \
+objetivos (sobre todo cuando el precio atraviesa un tramo sin zonas de reacción, como un imbalance grande) y para \
+reforzar una zona con la que coincida. cycle_context \
 sirve para encuadrar la tendencia de fondo (dónde está BTC frente a su máximo histórico y a ciclos anteriores), no para \
 predecir las próximas horas o días por analogía con otros ciclos. short_term_holders mide el estrés de los que \
 compraron en los últimos meses: una pérdida no realizada muy alta (ratio y percentil altos) indica que muchos están en \
@@ -154,9 +157,9 @@ máximo). outlook: lo más probable en las próximas horas, hacia dónde y qué 
 como máximo). outlook_days: lo mismo para 1-2 días. points: de 2 a 4 claves (35 palabras como máximo cada una) de lo \
 que está moviendo el precio.
 - Cada precio que cites en los textos, salvo el actual, debe decir en pocas palabras qué nivel es y por qué importa, \
-con los datos que lo respaldan: por ejemplo "los mínimos iguales de 4 h en 73.500 $, donde se acumulan stops de \
-largos", "el 50 % de Fibonacci del tramo diario (71.200 $), dentro de una zona con 6 reacciones" o "el hueco de 4 h \
-entre 77.000 y 80.200 $ que el precio no ha rellenado". Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
+con los datos que lo respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", \
+"el 50 % de Fibonacci del tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco de 4 h entre \
+X e Y $ que el precio no ha rellenado" (X, Y y N son los de los datos). Lo mismo con cada nivel de Fibonacci, pivote o ruptura que \
 menciones: di su precio. Nombra los datos con palabras normales, no con sus nombres en el JSON.
 
 Precios en dólares redondeados en los textos (78.500 $ en español, $78,500 en inglés). Habla de probabilidades y \
@@ -851,7 +854,10 @@ def basis_levels(data: dict) -> list[tuple[str, str, float, float]]:
     for tf, gaps in data.get("imbalances", {}).items():
         out += [("imbalance", tf, g["low"], g["high"]) for g in gaps]
     for tf, ms in data.get("market_structure", {}).items():
-        out += [("pivot", tf, p["price"], p["price"]) for p in ms.get("pivots", []) + [ms.get("current_extreme") or {}] if p]
+        out += [("pivot", tf, p["price"], p["price"]) for p in ms.get("pivots", [])]
+        # Aparte: vale como base de un objetivo o una invalidación ("pivot"), pero no para anclar una zona
+        if cur := ms.get("current_extreme"):
+            out.append(("current_extreme", tf, cur["price"], cur["price"]))
         for leg in fib_legs_of(ms):
             out += [("fibonacci", tf, v, v) for v in {**leg.get("retracements", {}), **leg.get("extensions", {})}.values()]
     return out
@@ -889,7 +895,8 @@ def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> di
     if out["kind"] == "atr" or not levels:
         return out
     gap = lambda lv: max(lv[2] - price, price - lv[3], 0)
-    out["found"] = any(gap(lv) <= tolerance for lv in levels if lv[0] == out["kind"] and lv[1] == out["timeframe"])
+    kinds = ("pivot", "current_extreme") if out["kind"] == "pivot" else (out["kind"],)
+    out["found"] = any(gap(lv) <= tolerance for lv in levels if lv[0] in kinds and lv[1] == out["timeframe"])
     if not out["found"]:
         k, tf, lo, hi = min(levels, key=gap)
         out["nearest"] = {"kind": k, "timeframe": tf, "level": round(lo) if lo == hi else [round(lo), round(hi)],
@@ -897,7 +904,7 @@ def check_basis(price: float, basis: dict, levels: list, tolerance: float) -> di
     return out
 
 # Lo que puede sostener una zona: una reacción real del precio, un pivote o liquidez pendiente (Fibonacci o un
-# imbalance solos, no). La zona tiene que solapar una zona de reacción, o contener un pivote o una liquidez con un margen
+# imbalance solos, no, ni el extremo en curso, aún sin confirmar). La zona tiene que solapar una zona de reacción, o contener un pivote o una liquidez con un margen
 # de ZONE_ATR (ATR diario) por redondeos
 ZONE_ANCHORS = ("reaction_zone", "pivot", "liquidity_pool")
 ZONE_ATR = 0.1
