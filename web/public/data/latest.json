@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-12T21:07:30+00:00",
+  "updated_at": "2026-11-12T22:08:15+00:00",
   "as_of": "2026-11-11",
   "price": 73805.5217,
-  "score_1d": 21.3328,
+  "score_1d": 21.2476,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -54,13 +54,13 @@
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 74.4011,
+      "score": 72.3477,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.02,
-          "score": 60.0958
+          "value": -0.0168,
+          "score": 55.989
         },
         {
           "id": "dxy_roc",

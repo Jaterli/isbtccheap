@@ -38,8 +38,8 @@ interface Props {
   metrics: readonly string[];
   info?: readonly string[];
   tx: ScoresText;
-  /** Valor real de una métrica, con su formato */
-  format: (id: string, v: number) => string;
+  /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
+  format: (id: string, v: number, time: number) => string;
   storageKey: string;
 }
 
@@ -111,7 +111,7 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
   const rowCells = (r: { key: string; scores: (number | null)[]; value: number | null }) => (
     <tr key={r.key}>
       <th scope="row">{name(r.key)}</th>
-      <td className="num">{r.value === null ? "—" : format(r.key, r.value)}</td>
+      <td className="num">{r.value === null || !full ? "—" : format(r.key, r.value, full.time.at(-1)!)}</td>
       {r.scores.map((v, i) => (
         <td key={i}>
           <Chip v={v} />
@@ -159,7 +159,7 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           label={label(k)}
           detail={(i) => {
             const v = shown.values?.[i];
-            return v == null ? null : format(k, v);
+            return v == null ? null : format(k, v, shown.time[i]);
           }}
           aria={tx.chartAria}
         />

@@ -13,6 +13,20 @@ export const en: Messages = {
   language: "Language",
   nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", liquidity: "Liquidity", sentiment: "Sentiment", technical: "Technical", metrics: "Metrics", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies", top: "Back to top" },
   cycles: {
+    scores: {
+      card: "Cycle and price: the index score",
+      info: [
+        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Cycle” is the category: the average of the halving cycle phase, the power law deviation and the price vs the 200-week moving average. Hovering the chart also shows the metric's actual value.",
+        "The halving phase is not compared with the past: it scores according to how much of the cycle has elapsed (cheap after the bottom, expensive towards the typical top, about 12-18 months after the halving), and its actual value is that share of the cycle. The power law and the 200-week average are compared with their previous 4 years.",
+      ],
+      category: "Cycle",
+      short: { halving_phase: "Halving phase", power_law: "Power law", wma200_ratio: "200W MA" },
+      metricAria: "Score overlaid on the price",
+      cols: { metric: "Metric", value: "Current value", now: "Today", m1: "1 month ago", m3: "3 months ago" },
+      note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
+      chartAria: "Chart of the Bitcoin price with the cycle score overlaid",
+    },
+    chartLink: "See how the cycle score has evolved",
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
     card: "Price since each halving",

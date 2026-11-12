@@ -2,7 +2,7 @@
 
 Uso:  python pipeline/build.py
 Genera web/public/data/latest.json, history.json, categories.json, sentiment.json, liquidity_scores.json, bands.json,
-valuation_scores.json y liquidity.json
+valuation_scores.json, cycle_scores.json y liquidity.json
 (en otra carpeta con PIPELINE_OUT_DIR, para probar sin tocar los datos de la web).
 """
 
@@ -24,7 +24,7 @@ OUT_DIR = Path(os.environ.get("PIPELINE_OUT_DIR") or Path(__file__).resolve().pa
 # Decimales del valor de cada métrica en los archivos de CATEGORY_FILES (el resto, 4)
 SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
-CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json"}
+CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json", "ciclo": "cycle_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
 FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS"]
 
@@ -139,7 +139,7 @@ def main() -> None:
         },
     }
 
-    # Archivos de CATEGORY_FILES (sentiment.json, liquidity_scores.json, valuation_scores.json): cada métrica de la categoría, con su valor y su puntuación de 0 a 100, y la de
+    # Archivos de CATEGORY_FILES (sentiment.json, liquidity_scores.json, valuation_scores.json, cycle_scores.json): cada métrica de la categoría, con su valor y su puntuación de 0 a 100, y la de
     # la categoría, con las mismas fechas que history.json (para sus páginas). Las informativas van también, con "info"
     num = lambda v, d: None if pd.isna(v) else (int(round(float(v))) if d == 0 else round(float(v), d))
     category_files = {

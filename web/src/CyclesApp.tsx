@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CategoryScores } from "./components/CategoryScores";
 import { CyclesChart, fmtMult } from "./components/CyclesChart";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -6,7 +7,7 @@ import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_CYCLES } from "./i18n/seo";
 import { fetchCandles } from "./lib/binance";
-import { cycles as splitCycles, LAST_HALVING, multAt, NEXT_HALVING } from "./lib/cycles";
+import { cycles as splitCycles, HALVINGS, LAST_HALVING, multAt, NEXT_HALVING } from "./lib/cycles";
 import { getJson } from "./lib/data";
 import { priceSeries } from "./lib/series";
 import type { History } from "./types";
@@ -23,6 +24,23 @@ function loadHidden(): number[] {
   } catch {
     return [];
   }
+}
+
+// Métricas de la categoría de ciclo del índice, en el orden de su tarjeta
+const METRICS = ["halving_phase", "power_law", "wma200_ratio"] as const;
+const GENESIS = Date.parse("2009-01-03T00:00:00Z");
+const signedPct = (f: number) => t.percent(`${f > 0 ? "+" : f < 0 ? "−" : ""}${Math.abs(f * 100).toLocaleString(locale, { maximumFractionDigits: 1 })}`);
+
+/** Valor real de cada métrica. La fase guarda ya su puntuación: se muestra la parte del ciclo transcurrida ese día */
+function cycleValue(id: string, v: number, time: number) {
+  if (id === "halving_phase") {
+    const next = HALVINGS.findIndex((h) => h > time);
+    if (next < 0) return "—";
+    const prev = next === 0 ? GENESIS : HALVINGS[next - 1];
+    return t.percent(Math.round(((time - prev) / (HALVINGS[next] - prev)) * 100).toLocaleString(locale));
+  }
+  // Residuo en log10 frente a la tendencia; cociente frente a la media de 200 semanas
+  return signedPct(id === "power_law" ? 10 ** v - 1 : v - 1);
 }
 
 export function CyclesApp() {
@@ -148,6 +166,15 @@ export function CyclesApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
+
+      <CategoryScores
+        history={history}
+        file="cycle_scores.json"
+        metrics={METRICS}
+        tx={t.cycles.scores}
+        format={cycleValue}
+        storageKey="isbtccheap:cycle-scores-range"
+      />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

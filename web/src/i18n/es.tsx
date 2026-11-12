@@ -20,6 +20,20 @@ export const es = {
   language: "Idioma",
   nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", liquidity: "Liquidez", sentiment: "Sentimiento", technical: "Técnico", metrics: "Métricas", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
   cycles: {
+    scores: {
+      card: "Ciclo y precio: la puntuación del índice",
+      info: [
+        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Ciclo» es la categoría: la media de la fase del ciclo de halving, la desviación de la power law y el precio frente a la media de 200 semanas. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "La fase del halving no se compara con el pasado: puntúa según la parte del ciclo transcurrida (barata tras el suelo, cara hacia el techo típico, unos 12-18 meses después del halving), y su valor real es ese porcentaje del ciclo. La power law y la media de 200 semanas se comparan con sus 4 años anteriores.",
+      ],
+      category: "Ciclo",
+      short: { halving_phase: "Fase halving", power_law: "Power law", wma200_ratio: "MA 200 sem" },
+      metricAria: "Puntuación superpuesta al precio",
+      cols: { metric: "Métrica", value: "Valor actual", now: "Hoy", m1: "Hace 1 mes", m3: "Hace 3 meses" },
+      note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
+      chartAria: "Gráfico del precio de Bitcoin con la puntuación de ciclo superpuesta",
+    },
+    chartLink: "Ver la evolución del ciclo",
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
     card: "Precio desde cada halving",

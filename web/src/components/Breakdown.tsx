@@ -24,6 +24,7 @@ const ORDER: CategoryId[] = ["tecnico", "sentimiento", "valoracion", "ciclo", "l
 const CHART_LINKS: Partial<Record<CategoryId, { href: string; label: string }>> = {
   tecnico: { href: PAGE_PATH.technical[lang], label: t.technical.chartLink },
   valoracion: { href: `${PAGE_PATH.valuation[lang]}#metricas`, label: t.valuation.chartLink },
+  ciclo: { href: `${PAGE_PATH.cycles[lang]}#metricas`, label: t.cycles.chartLink },
   sentimiento: { href: PAGE_PATH.sentiment[lang], label: t.sentiment.chartLink },
   liquidez: { href: `${PAGE_PATH.liquidity[lang]}#metricas`, label: t.liquidity.chartLink },
 };

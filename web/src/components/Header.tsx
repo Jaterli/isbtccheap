@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18n";
 
 // "metrics" es el desplegable con las páginas de métricas de las categorías del índice, en el orden de sus tarjetas
-const METRIC_PAGES: Page[] = ["technical", "sentiment", "valuation", "liquidity"];
-const PAGES: (Page | "metrics")[] = ["index", "analysis", "metrics", "volatility", "drawdown", "categories", "cycles"];
+const METRIC_PAGES: Page[] = ["technical", "sentiment", "valuation", "cycles", "liquidity"];
+const PAGES: (Page | "metrics")[] = ["index", "analysis", "metrics", "volatility", "drawdown", "categories"];
 
 export function Header({ title, rest }: { title: string; rest: string }) {
   // Por debajo de 1000 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
