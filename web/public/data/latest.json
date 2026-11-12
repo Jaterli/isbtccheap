@@ -1,15 +1,8 @@
 {
-<<<<<<< HEAD
-  "updated_at": "2026-11-12T13:25:18+00:00",
+  "updated_at": "2026-11-12T19:09:51+00:00",
   "as_of": "2026-11-11",
   "price": 73805.5217,
   "score_1d": 21.3328,
-=======
-  "updated_at": "2026-11-12T18:31:12+00:00",
-  "as_of": "2026-11-11",
-  "price": 73805.5217,
-  "score_1d": 20.6863,
->>>>>>> 9ba46aa285891db613312f6452d0702dc6749158
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -61,41 +54,19 @@
     },
     "liquidez": {
       "name": "Liquidez",
-<<<<<<< HEAD
       "score": 74.4011,
-=======
-      "score": 58.744,
->>>>>>> 9ba46aa285891db613312f6452d0702dc6749158
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
           "value": -0.02,
           "score": 60.0958
-<<<<<<< HEAD
-=======
-        },
-        {
-          "id": "m2_yoy",
-          "name": "M2 EE. UU. (var. interanual)",
-          "value": 0.0522,
-          "score": 12.9363
->>>>>>> 9ba46aa285891db613312f6452d0702dc6749158
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
           "value": 0.0232,
           "score": 88.7064
-<<<<<<< HEAD
-=======
-        },
-        {
-          "id": "stablecoin_roc",
-          "name": "Oferta de stablecoins (var. 90 d)",
-          "value": -0.0241,
-          "score": 73.2375
->>>>>>> 9ba46aa285891db613312f6452d0702dc6749158
         }
       ]
     },
