@@ -116,8 +116,9 @@ export function LiquidityScores({ history }: { history: History | null }) {
             ))}
           </InfoTip>
         </h2>
-        {range.control}
       </header>
+      {/* Como en las páginas de sentimiento y técnico: el periodo en una línea bajo el título y las métricas en otra */}
+      <div className="sent-controls">{range.control}</div>
       <div className="sent-controls">
         <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
           {KEYS.map((o) => (

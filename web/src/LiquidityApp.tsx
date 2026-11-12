@@ -49,8 +49,9 @@ export function LiquidityApp() {
               ))}
             </InfoTip>
           </h2>
-          {range.control}
         </header>
+        {/* El periodo en su propia línea, bajo el título, como en el resto de gráficas de la página */}
+        <div className="sent-controls">{range.control}</div>
 
         {liq && net != null && roc != null && (
           <p className="vol-stats">

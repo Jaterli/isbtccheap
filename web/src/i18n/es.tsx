@@ -342,7 +342,7 @@ export const es = {
     chartLink: "Ver la evolución de la liquidez",
     legend: {
       price: "BTC",
-      roc: (d: string) => `Liquidez global (13 sem.) a ${d}`,
+      roc: (d: string) => `Liquidez global (13S) a ${d}`,
       pending: "aún no",
     },
     today: "Hoy",
