@@ -5,7 +5,7 @@ import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { LEGAL, linkParts, type LegalPage } from "./src/i18n/legal";
 import { META } from "./src/i18n/meta";
-import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_SENTIMENT, SEO_VALUATION, SEO_VOL, SEO_ANALYSIS } from "./src/i18n/seo";
+import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_SENTIMENT, SEO_TECHNICAL, SEO_VALUATION, SEO_VOL, SEO_ANALYSIS } from "./src/i18n/seo";
 
 // En WSL node_modules es un enlace simbólico al disco de Linux: Vite debe poder servir desde su ubicación real
 const nodeModules = realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url)));
@@ -56,6 +56,7 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
   etf: { input: "etf/index.html", en: "en/etf/index.html", seo: (l) => chartSeoHtml(SEO_ETF, l) },
   liquidity: { input: "liquidez/index.html", en: "en/liquidity/index.html", seo: (l) => chartSeoHtml(SEO_LIQUIDITY, l) },
   sentiment: { input: "sentimiento/index.html", en: "en/sentiment/index.html", seo: (l) => chartSeoHtml(SEO_SENTIMENT, l) },
+  technical: { input: "tecnico/index.html", en: "en/technical/index.html", seo: (l) => chartSeoHtml(SEO_TECHNICAL, l) },
   analysis: { input: "analisis/index.html", en: "en/analysis/index.html", seo: (l) => chartSeoHtml(SEO_ANALYSIS, l) },
   legal: { input: "aviso-legal/index.html", en: "en/legal-notice/index.html", seo: (l) => legalSeoHtml("legal", l) },
   privacy: { input: "privacidad/index.html", en: "en/privacy/index.html", seo: (l) => legalSeoHtml("privacy", l) },
@@ -110,6 +111,7 @@ function devNews(): Plugin {
         else if (req.url?.startsWith("/en/etf")) req.url = "/etf/";
         else if (req.url?.startsWith("/en/liquidity")) req.url = "/liquidez/";
         else if (req.url?.startsWith("/en/sentiment")) req.url = "/sentimiento/";
+        else if (req.url?.startsWith("/en/technical")) req.url = "/tecnico/";
         else if (req.url?.startsWith("/en/analysis")) req.url = "/analisis/";
         else if (req.url?.startsWith("/en/legal-notice")) req.url = "/aviso-legal/";
         else if (req.url?.startsWith("/en/privacy")) req.url = "/privacidad/";

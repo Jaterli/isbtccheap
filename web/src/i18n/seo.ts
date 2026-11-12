@@ -442,6 +442,47 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
   },
 };
 
+export const SEO_TECHNICAL: Record<"es" | "en", VolSeoText> = {
+  es: {
+    title: "Análisis técnico de Bitcoin",
+    intro:
+      "Gráfico del precio de Bitcoin con la puntuación de 0 a 100 de la categoría técnica del índice y de cada una de sus métricas superpuesta: RSI 14, Bollinger %B y distancia a la media móvil de 200 velas, en temporalidades de 1 hora, 4 horas, 1 día y 1 semana.",
+    sections: [
+      {
+        h: "¿Qué mide el técnico?",
+        p: "Cuánto se ha estirado el precio a corto plazo en la temporalidad elegida: si ha subido o bajado mucho y deprisa (RSI), dónde está dentro de su rango habitual (bandas de Bollinger) y cuánto se aleja de su tendencia (media de 200 velas). Puntúa de 0 (muy estirado a la baja: barato) a 100 (muy estirado al alza: caro).",
+      },
+      {
+        h: "¿Cómo lo usa el índice?",
+        p: "Es la única categoría que se recalcula en vivo con las velas de cada temporalidad. Pesa mucho en las cortas (43 % en 1 hora, 28 % en 4 horas) y poco en las largas (3 % en la mensual), donde mandan la valoración on-chain y el ciclo.",
+      },
+      {
+        h: "¿Un técnico extremo anticipa un giro?",
+        p: "No suele. En los backtests desde 2018, un técnico muy alto o un RSI de 80 o más han indicado sobre todo un impulso fuerte que tendía a continuar, no un techo; y uno muy bajo, una caída en marcha. El giro suele llegar después, cuando el técnico sale de la zona extrema. Por eso la flecha de impulso fuerte es solo informativa.",
+      },
+    ],
+  },
+  en: {
+    title: "Bitcoin technical analysis",
+    intro:
+      "Chart of the Bitcoin price with the 0 to 100 score of the index's technical category and each of its metrics overlaid: RSI 14, Bollinger %B and distance to the 200-candle moving average, in 1-hour, 4-hour, 1-day and 1-week timeframes.",
+    sections: [
+      {
+        h: "What does the technical category measure?",
+        p: "How stretched the price is in the short term on the chosen timeframe: whether it has risen or fallen a lot and quickly (RSI), where it sits within its usual range (Bollinger Bands) and how far it is from its trend (200-candle average). It scores from 0 (very stretched to the downside: cheap) to 100 (very stretched to the upside: expensive).",
+      },
+      {
+        h: "How does the index use it?",
+        p: "It is the only category recalculated live with each timeframe's candles. It weighs a lot on short timeframes (43% on 1 hour, 28% on 4 hours) and little on long ones (3% on the monthly), where on-chain valuation and the cycle dominate.",
+      },
+      {
+        h: "Does an extreme technical reading anticipate a turn?",
+        p: "Not usually. In backtests since 2018, a very high technical score or an RSI of 80 or more has mostly signalled strong momentum that tended to continue, not a top; and a very low one, a decline under way. The turn usually comes later, when the technical score leaves the extreme zone. That is why the strong momentum arrow is informational only.",
+      },
+    ],
+  },
+};
+
 export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Sentimiento del mercado de Bitcoin",

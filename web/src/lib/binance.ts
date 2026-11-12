@@ -79,3 +79,17 @@ export async function fetchDerivativesSeries(period: Timeframe): Promise<Derivat
   ]);
   return { openInterest, longShort, takerRatio };
 }
+
+/** Las últimas `count` velas de `tf`, paginando de 1000 en 1000 hacia atrás. */
+export async function fetchCandleHistory(tf: Timeframe, count: number): Promise<Candle[]> {
+  const out: Candle[] = [];
+  let end: number | undefined;
+  while (out.length < count) {
+    const rows = await fetchCandles(tf, Math.min(1000, count - out.length), end);
+    if (!rows.length) break;
+    out.unshift(...rows);
+    end = rows[0].time - 1;
+    if (rows.length < 1000) break;
+  }
+  return out;
+}

@@ -25,6 +25,7 @@ const CATEGORIES = { URL_ES: `${SITE}/categorias/`, URL_EN: `${SITE}/en/categori
 const ETF = { URL_ES: `${SITE}/etf/`, URL_EN: `${SITE}/en/etf/` };
 const LIQUIDITY = { URL_ES: `${SITE}/liquidez/`, URL_EN: `${SITE}/en/liquidity/` };
 const SENTIMENT = { URL_ES: `${SITE}/sentimiento/`, URL_EN: `${SITE}/en/sentiment/` };
+const TECHNICAL = { URL_ES: `${SITE}/tecnico/`, URL_EN: `${SITE}/en/technical/` };
 const ANALYSIS = { URL_ES: `${SITE}/analisis/`, URL_EN: `${SITE}/en/analysis/` };
 
 const INDEX_META: Record<"es" | "en", PageMeta> = {
@@ -248,6 +249,25 @@ const SENTIMENT_META: Record<"es" | "en", PageMeta> = {
   },
 };
 
+const TECHNICAL_META: Record<"es" | "en", PageMeta> = {
+  es: {
+    ...INDEX_META.es,
+    ...TECHNICAL,
+    URL: TECHNICAL.URL_ES,
+    TITLE: "Análisis técnico de Bitcoin: RSI, Bollinger y media de 200 | Is BTC Cheap?",
+    DESCRIPTION:
+      "El precio de Bitcoin con la puntuación técnica del índice superpuesta: RSI 14, Bollinger %B y distancia a la media de 200 velas, en 1 hora, 4 horas, 1 día y 1 semana.",
+  },
+  en: {
+    ...INDEX_META.en,
+    ...TECHNICAL,
+    URL: TECHNICAL.URL_EN,
+    TITLE: "Bitcoin technical analysis: RSI, Bollinger and 200 moving average | Is BTC Cheap?",
+    DESCRIPTION:
+      "The Bitcoin price with the index's technical score overlaid: RSI 14, Bollinger %B and distance to the 200-candle moving average, in 1 hour, 4 hours, 1 day and 1 week.",
+  },
+};
+
 export const META = {
   index: INDEX_META,
   volatility: VOLATILITY_META,
@@ -258,6 +278,7 @@ export const META = {
   etf: ETF_META,
   liquidity: LIQUIDITY_META,
   sentiment: SENTIMENT_META,
+  technical: TECHNICAL_META,
   analysis: ANALYSIS_META,
   legal: legalMeta("legal"),
   privacy: legalMeta("privacy"),

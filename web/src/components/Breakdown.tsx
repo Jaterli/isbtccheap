@@ -22,6 +22,7 @@ const LIVE: CategoryId[] = ["tecnico"];
 const ORDER: CategoryId[] = ["tecnico", "sentimiento", "valoracion", "ciclo", "liquidez"];
 // Categorías con su gráfica de métricas, enlazada con un icono junto al título
 const CHART_LINKS: Partial<Record<CategoryId, { href: string; label: string }>> = {
+  tecnico: { href: PAGE_PATH.technical[lang], label: t.technical.chartLink },
   sentimiento: { href: PAGE_PATH.sentiment[lang], label: t.sentiment.chartLink },
   liquidez: { href: `${PAGE_PATH.liquidity[lang]}#metricas`, label: t.liquidity.chartLink },
 };

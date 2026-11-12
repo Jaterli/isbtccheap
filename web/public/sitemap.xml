@@ -114,6 +114,20 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/sentiment/" />
   </url>
   <url>
+    <loc>https://isbtccheap.com/tecnico/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/tecnico/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/technical/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/technical/" />
+  </url>
+  <url>
+    <loc>https://isbtccheap.com/en/technical/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/tecnico/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://isbtccheap.com/en/technical/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://isbtccheap.com/en/technical/" />
+  </url>
+  <url>
     <loc>https://isbtccheap.com/liquidez/</loc>
     <changefreq>weekly</changefreq>
     <xhtml:link rel="alternate" hreflang="es" href="https://isbtccheap.com/liquidez/" />
