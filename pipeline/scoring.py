@@ -33,7 +33,7 @@ def normalize(metrics: pd.DataFrame) -> pd.DataFrame:
 def categories(scores: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame(index=scores.index)
     for cat in CATEGORIES:
-        cols = [m["id"] for m in METRICS if m["category"] == cat and m["id"] in scores]
+        cols = [m["id"] for m in METRICS if m["category"] == cat and not m.get("info") and m["id"] in scores]
         if cols:
             out[cat] = scores[cols].mean(axis=1, skipna=True)
     return out

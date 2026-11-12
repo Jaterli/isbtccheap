@@ -4,7 +4,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
-import { SentimentChart } from "./components/SentimentChart";
+import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
 import { getJson } from "./lib/data";
@@ -211,10 +211,11 @@ export function SentimentApp() {
         )}
         {shown && shown.time.length > 1 ? (
           <div className={updating ? "chart-wrap updating" : "chart-wrap"} aria-busy={updating}>
-            <SentimentChart
+            <ScoreChart
               data={shown}
-              k={shownK}
+              scores={shown.scores[shownK]}
               tf={shownTf}
+              aria={tx.chartAria}
               label={label(shownK)}
               detail={(i) => {
                 if (shownK === "sentimiento") return null;

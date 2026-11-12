@@ -287,6 +287,22 @@ export const en: Messages = {
       </>
     ),
     correlation: (c: ReactNode) => <>Over the period shown, its correlation with BTC's return over the following 13 weeks is {c}.</>,
+    scores: {
+      card: "Liquidity and price: the index score",
+      info: [
+        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of global liquidity and the dollar. M2 and stablecoins are informational: in the backtest they did not anticipate reliably and the index does not use them. Hovering the chart also shows the metric's actual value.",
+        "It runs opposite to liquidity: more money in the system (central banks expanding their balance sheets or a weakening dollar) is favorable for BTC and scores low (cheap); less, high (expensive). Each metric is compared with its previous 4 years. They are weekly or monthly data: they change slowly.",
+      ],
+      category: "Liquidity",
+      short: { global_liquidity_roc: "Global liquidity", m2_yoy: "M2", dxy_roc: "DXY dollar", stablecoin_roc: "Stablecoins" },
+      metricAria: "Score overlaid on the price",
+      infoMetric: "Informational: the index does not use it",
+      infoGroup: "Informational: the index does not use them",
+      cols: { metric: "Metric", value: "Current value", now: "Today", m1: "1 month ago", m3: "3 months ago" },
+      note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
+      chartAria: "Chart of the Bitcoin price with the liquidity score overlaid",
+    },
+    chartLink: "See how liquidity has evolved",
     legend: {
       price: "BTC",
       roc: (d: string) => `Global liquidity (13w) as of ${d}`,
@@ -343,6 +359,12 @@ export const en: Messages = {
   },
 
   gauge: { cheap: "Cheap", expensive: "Expensive" },
+  momentum: {
+    up: (tf: string, rsi: string) =>
+      `Strong bullish momentum on ${tf} (RSI 14 at ${rsi}). Historically, with RSI at 80 or above the rise has tended to continue. Informational: it does not count in the score.`,
+    down: (tf: string, rsi: string) =>
+      `Strong bearish momentum on ${tf} (RSI 14 at ${rsi}). Historically, with RSI at 20 or below the decline has continued slightly more than half the time. Informational: it does not count in the score.`,
+  },
   scoreInfo: {
     label: "the score",
     title: "Score",
@@ -379,7 +401,7 @@ export const en: Messages = {
     },
     liquidez: {
       name: "Liquidity",
-      what: "Measures whether money is flowing into or out of the system: Federal Reserve liquidity, M2 money supply, dollar strength and stablecoin supply.",
+      what: "Measures whether money is flowing into or out of the system: liquidity from the major central banks (Fed, ECB and Bank of Japan) and dollar strength.",
       read: "More liquidity is a tailwind for Bitcoin and lowers the score; less liquidity or a strong dollar raise it.",
     },
     sentimiento: {

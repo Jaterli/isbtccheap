@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-11T18:00:26+00:00",
-  "as_of": "2026-11-10",
-  "price": 73661.005,
-  "score_1d": 20.7706,
+  "updated_at": "2026-11-12T13:25:18+00:00",
+  "as_of": "2026-11-11",
+  "price": 73805.5217,
+  "score_1d": 21.3328,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -11,122 +11,110 @@
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.3666,
-          "score": 25.6674
+          "value": 1.3697,
+          "score": 25.8042
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 0.9098,
-          "score": 37.1663
+          "value": 0.9062,
+          "score": 36.8925
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 1.0072,
-          "score": 36.7556
+          "value": 1.0095,
+          "score": 36.8925
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 14.5291,
+      "score": 14.5805,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 10.1854,
-          "score": 10.1854
+          "value": 10.2713,
+          "score": 10.2713
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.2959,
+          "value": -0.2953,
           "score": 9.3771
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 1.087,
-          "score": 24.0246
+          "value": 1.0885,
+          "score": 24.0931
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 58.8381,
+      "score": 74.4011,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0227,
-          "score": 62.0808
-        },
-        {
-          "id": "m2_yoy",
-          "name": "M2 EE. UU. (var. interanual)",
-          "value": 0.0522,
-          "score": 12.9021
+          "value": -0.02,
+          "score": 60.0958
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
-          "value": 0.0227,
-          "score": 87.8166
-        },
-        {
-          "id": "stablecoin_roc",
-          "name": "Oferta de stablecoins (var. 90 d)",
-          "value": -0.0208,
-          "score": 72.553
+          "value": 0.0232,
+          "score": 88.7064
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 23.029,
+      "score": 20.1839,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 29.0,
-          "score": 29.0
+          "value": 28.0,
+          "score": 28.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 0.9977,
-          "score": 26.694
+          "value": 0.9963,
+          "score": 19.3703
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
-          "value": -24442.2524,
-          "score": 13.3929
+          "value": -25262.5807,
+          "score": 13.1814
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 19.7663,
+      "score": 22.5372,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 33.5637,
-          "score": 8.9093
+          "value": 34.2231,
+          "score": 10.5578
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": 3.3895,
-          "score": 3.3895
+          "value": 9.8039,
+          "score": 9.8039
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 1.0072,
-          "score": 47.0
+          "value": 1.0095,
+          "score": 47.25
         }
       ]
     }
@@ -215,11 +203,11 @@
       "url": "https://bitview.space"
     },
     {
-      "name": "Binance (precio y funding en vivo)",
+      "name": "Binance (precio y derivados en vivo)",
       "url": "https://www.binance.com/"
     },
     {
-      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-10",
+      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-11",
       "url": "https://www.tftc.io/bitcoin-etf-flows",
       "license": "CC BY 4.0"
     }

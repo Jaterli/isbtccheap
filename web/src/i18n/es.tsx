@@ -296,6 +296,22 @@ export const es = {
     correlation: (c: ReactNode) => (
       <>En el periodo mostrado, su correlación con la rentabilidad de BTC en las 13 semanas siguientes es {c}.</>
     ),
+    scores: {
+      card: "Liquidez y precio: la puntuación del índice",
+      info: [
+        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la liquidez global y el dólar. M2 y stablecoins son informativas: en el backtest no anticipaban de forma fiable y el índice no las usa. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Va al revés que la liquidez: más dinero en el sistema (bancos centrales que amplían su balance o un dólar que se debilita) es favorable para BTC y puntúa bajo (barato); menos, alto (caro). Cada métrica se compara con sus 4 años anteriores. Son datos semanales o mensuales: cambian despacio.",
+      ],
+      category: "Liquidez",
+      short: { global_liquidity_roc: "Liquidez global", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins" },
+      metricAria: "Puntuación superpuesta al precio",
+      infoMetric: "Informativa: el índice no la usa",
+      infoGroup: "Informativas: el índice no las usa",
+      cols: { metric: "Métrica", value: "Valor actual", now: "Hoy", m1: "Hace 1 mes", m3: "Hace 3 meses" },
+      note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
+      chartAria: "Gráfico del precio de Bitcoin con la puntuación de liquidez superpuesta",
+    },
+    chartLink: "Ver la evolución de la liquidez",
     legend: {
       price: "BTC",
       roc: (d: string) => `Liquidez global (13 sem.) a ${d}`,
@@ -352,6 +368,12 @@ export const es = {
   },
 
   gauge: { cheap: "Barato", expensive: "Caro" },
+  momentum: {
+    up: (tf: string, rsi: string) =>
+      `Impulso alcista fuerte en ${tf} (RSI 14 en ${rsi}). Históricamente, con el RSI en 80 o más la subida ha tendido a continuar. Es informativo: no cuenta en el score.`,
+    down: (tf: string, rsi: string) =>
+      `Impulso bajista fuerte en ${tf} (RSI 14 en ${rsi}). Históricamente, con el RSI en 20 o menos la caída ha continuado algo más de la mitad de las veces. Es informativo: no cuenta en el score.`,
+  },
   scoreInfo: {
     label: "el score",
     title: "Score",
@@ -389,7 +411,7 @@ export const es = {
     },
     liquidez: {
       name: "Liquidez",
-      what: "Mide si entra o sale dinero del sistema: liquidez de la Reserva Federal, masa monetaria M2, fuerza del dólar y oferta de stablecoins.",
+      what: "Mide si entra o sale dinero del sistema: liquidez de los grandes bancos centrales (Fed, BCE y Banco de Japón) y fuerza del dólar.",
       read: "Más liquidez es un entorno favorable para Bitcoin y resta al score; menos liquidez o un dólar fuerte suman.",
     },
     sentimiento: {

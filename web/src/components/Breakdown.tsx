@@ -20,6 +20,11 @@ const LIVE: CategoryId[] = ["tecnico"];
 // Por frecuencia de actualización: técnico en vivo; sentimiento con el dato del día; valoración con un día de retraso;
 // ciclo diario pero lento; liquidez semanal o mensual
 const ORDER: CategoryId[] = ["tecnico", "sentimiento", "valoracion", "ciclo", "liquidez"];
+// Categorías con su gráfica de métricas, enlazada con un icono junto al título
+const CHART_LINKS: Partial<Record<CategoryId, { href: string; label: string }>> = {
+  sentimiento: { href: PAGE_PATH.sentiment[lang], label: t.sentiment.chartLink },
+  liquidez: { href: `${PAGE_PATH.liquidity[lang]}#metricas`, label: t.liquidity.chartLink },
+};
 // Zona extrema: el 10 % más bajo o más alto de su historia reciente
 const EXTREME = 10;
 
@@ -102,8 +107,8 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
             <header>
               <h3>
                 {info.name}
-                {id === "sentimiento" && (
-                  <a className="info-btn chart-link" href={PAGE_PATH.sentiment[lang]} title={t.sentiment.chartLink} aria-label={t.sentiment.chartLink}>
+                {CHART_LINKS[id] && (
+                  <a className="info-btn chart-link" href={CHART_LINKS[id]!.href} title={CHART_LINKS[id]!.label} aria-label={CHART_LINKS[id]!.label}>
                     <svg viewBox="0 0 16 16" aria-hidden="true">
                       <path d="M2 13.5h12M3 11l3-3.5 2.5 2L13 4" />
                     </svg>

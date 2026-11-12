@@ -24,9 +24,13 @@ METRICS = [
     {"id": "wma200_ratio", "name": "Precio / MA200 semanas", "category": "ciclo", "method": "percentile"},
     # Fed + BCE + Banco de Japón en dólares: anticipa el año siguiente el doble que la liquidez de la Fed sola
     {"id": "global_liquidity_roc", "name": "Liquidez global (var. 13 sem.)", "category": "liquidez", "method": "percentile", "invert": True},
-    {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True},
     {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile"},
-    {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True},
+    # Informativas (info): se puntúan para la página de liquidez, pero no cuentan en la categoría ni salen en su tarjeta.
+    # Backtest de noviembre de 2026: M2 anticipa a un año con signo inestable (bien hasta 2020, al revés después) y las
+    # stablecoins con el signo cambiado; sin ellas mejora la anticipación del score (1M a 3 meses −0,19 → −0,21) y los
+    # techos y suelos quedan igual o algo mejor
+    {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
+    {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
     {"id": "fear_greed", "name": "Fear & Greed Index", "category": "sentimiento", "method": "raw"},
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum): solo
     # se muestra en la página de valoración

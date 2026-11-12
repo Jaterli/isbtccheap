@@ -18,6 +18,7 @@ import { Footer } from "./components/Footer";
 import { getJson } from "./lib/data";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
+import { Momentum } from "./components/Momentum";
 import { Faq } from "./components/Faq";
 import { Feed } from "./components/Feed";
 import { Outlook } from "./components/Outlook";
@@ -224,6 +225,7 @@ export function App() {
             <div className="status-label" style={score === null ? undefined : { color: bandColor(score) }}>
               <strong className="status-value num">{score === null ? "—" : Math.round(score)}</strong>
               {label}
+              {shown && <Momentum technical={liveTf?.technical ?? null} tf={tf} />}
               <InfoTip label={t.scoreInfo.label} title={t.scoreInfo.title}>
                 <p>{t.scoreInfo.body}</p>
                 <ul className="info-list">

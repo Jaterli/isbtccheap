@@ -69,7 +69,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿Qué métricas utiliza?",
-        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón), masa monetaria M2, fuerza del dólar y oferta de stablecoins. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
+        a: "Valoración on-chain: MVRV, Puell Multiple y Mayer Multiple. Ciclo: fase del ciclo de halving, desviación de la power law y distancia a la media de 200 semanas. Liquidez: liquidez global de los grandes bancos centrales (Fed, BCE y Banco de Japón) y fuerza del dólar. Sentimiento: Fear & Greed Index, SOPR de los holders de corto plazo, flujos de los ETF al contado. Técnico: RSI, bandas de Bollinger y distancia a la media móvil.",
       },
       {
         q: "¿Qué temporalidad debo mirar?",
@@ -105,7 +105,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Which metrics does it use?",
-        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan), M2 money supply, dollar strength and stablecoin supply. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows. Technical: RSI, Bollinger Bands and distance to the moving average.",
+        a: "On-chain valuation: MVRV, Puell Multiple and Mayer Multiple. Cycle: halving cycle phase, power law deviation and distance to the 200-week moving average. Liquidity: global liquidity from the major central banks (Fed, ECB and Bank of Japan) and dollar strength. Sentiment: Fear & Greed Index, short-term holders' SOPR, spot ETF flows. Technical: RSI, Bollinger Bands and distance to the moving average.",
       },
       {
         q: "Which timeframe should I look at?",
@@ -376,7 +376,7 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Cómo la usa el índice?",
-        p: "La liquidez global es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la masa monetaria M2, la fuerza del dólar y la oferta de stablecoins. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
+        p: "La liquidez global es una de las métricas de la categoría de liquidez del índice de Is BTC Cheap?, junto con la fuerza del dólar. Pesa poco en las temporalidades cortas y más en la mensual, donde ayuda a anticipar el año siguiente.",
       },
     ],
   },
@@ -395,7 +395,7 @@ export const SEO_LIQUIDITY: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "How does the index use it?",
-        p: "Global liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with M2 money supply, dollar strength and stablecoin supply. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
+        p: "Global liquidity is one of the metrics in the liquidity category of the Is BTC Cheap? index, along with dollar strength. It weighs little on short timeframes and more on the monthly one, where it helps anticipate the following year.",
       },
     ],
   },

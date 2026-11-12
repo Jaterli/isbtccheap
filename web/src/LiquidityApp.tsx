@@ -3,21 +3,26 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { LiquidityChart, rocPct } from "./components/LiquidityChart";
+import { LiquidityScores } from "./components/LiquidityScores";
 import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
 import { lang, locale, t } from "./i18n";
 import { SEO_LIQUIDITY } from "./i18n/seo";
 import { getJson } from "./lib/data";
 import { lastDaysOf, leadCorrelation, liquiditySeries, type LiquidityJson } from "./lib/liquidity";
+import type { History } from "./types";
 
 const date = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 export function LiquidityApp() {
   const [liq, setLiq] = useState<LiquidityJson | null>(null);
+  // Precio para la tarjeta de las métricas de liquidez
+  const [history, setHistory] = useState<History | null>(null);
   const [error, setError] = useState(false);
   const range = useRange("isbtccheap:liquidity-range", "4y", LIQUIDITY_RANGES);
 
   useEffect(() => {
     getJson("liquidity.json").then(setLiq, () => setError(true));
+    getJson("history.json").then(setHistory, () => {});
   }, []);
 
   const full = useMemo(() => (liq ? liquiditySeries(liq) : null), [liq]);
@@ -61,6 +66,8 @@ export function LiquidityApp() {
         {series && series.liqTime.length > 1 ? <LiquidityChart data={series} /> : <p className="muted">{error ? t.charts.error : t.loading}</p>}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
+
+      <LiquidityScores history={history} />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

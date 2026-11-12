@@ -1,27 +1,32 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
-import type { SentimentKey, SentimentSeries, SentimentTf } from "../lib/sentiment";
+import type { CandleTf, PriceSeries } from "../lib/series";
 
 const PAD_T = 10;
 const AXIS_H = 22;
 const SCORE_TICKS = [0, 25, 50, 75, 100];
 
 interface Props {
-  data: SentimentSeries;
-  k: SentimentKey;
-  tf: SentimentTf;
+  /** Precio de cada vela */
+  data: PriceSeries;
+  /** Puntuación de 0 a 100 en cada vela (null si no hay) */
+  scores: (number | null)[];
+  tf: CandleTf;
   label: string;
   /** Valor real de la métrica en una vela, con su formato (null si no hay o es la categoría) */
   detail?: (i: number) => string | null;
+  aria: string;
 }
 
-/** El precio (eje derecho, logarítmico) y, superpuesta, la puntuación de 0 a 100 de lo elegido (eje izquierdo). */
-export function SentimentChart({ data, k, tf, label, detail }: Props) {
+/**
+ * El precio (eje derecho, logarítmico) y, superpuesta, una puntuación de 0 a 100 (eje izquierdo): la de una categoría o
+ * de una de sus métricas (páginas de sentimiento y de liquidez).
+ */
+export function ScoreChart({ data, scores, tf, label, detail, aria }: Props) {
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
 
-  const scores = data.scores[k];
   const small = width < 600;
   const H0 = small ? 260 : 340;
   const PAD_L = axisPad(SCORE_TICKS.map(String));
@@ -60,7 +65,7 @@ export function SentimentChart({ data, k, tf, label, detail }: Props) {
           {extra && <span className="muted"> ({extra})</span>}
         </span>
       </p>
-      <svg width={width} height={H} role="img" aria-label={t.sentiment.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+      <svg width={width} height={H} role="img" aria-label={aria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {price.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={price.y(p)} y2={price.y(p)} className="grid" />

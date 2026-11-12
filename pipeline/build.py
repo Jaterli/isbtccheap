@@ -1,7 +1,8 @@
 """Punto de entrada del pipeline diario.
 
 Uso:  python pipeline/build.py
-Genera web/public/data/latest.json, history.json, categories.json, sentiment.json, bands.json, etf.json y liquidity.json
+Genera web/public/data/latest.json, history.json, categories.json, sentiment.json, liquidity_scores.json, bands.json,
+etf.json y liquidity.json
 (en otra carpeta con PIPELINE_OUT_DIR, para probar sin tocar los datos de la web).
 """
 
@@ -20,8 +21,10 @@ import sources
 from config import CATEGORIES, LABELS, METRICS, SCORE_STRETCH, TIMEFRAME_WEIGHTS
 
 OUT_DIR = Path(os.environ.get("PIPELINE_OUT_DIR") or Path(__file__).resolve().parent.parent / "web" / "public" / "data")
-# Decimales del valor de cada métrica en sentiment.json (el resto, 4)
+# Decimales del valor de cada métrica en sentiment.json y liquidity_scores.json (el resto, 4)
 SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
+# Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
+CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
 FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS"]
 
@@ -123,7 +126,7 @@ def main() -> None:
                         "score": _clean(scores[spec["id"]].iloc[-1]) if spec["id"] in scores else None,
                     }
                     for spec in METRICS
-                    if spec["category"] == cat
+                    if spec["category"] == cat and not spec.get("info")
                 ],
             }
             for cat, name in CATEGORIES.items()
@@ -153,27 +156,32 @@ def main() -> None:
         },
     }
 
-    # sentiment.json: cada métrica de sentimiento, con su valor y su puntuación de 0 a 100, y la de la categoría, con las
-    # mismas fechas que history.json (para la página de sentimiento)
+    # sentiment.json y liquidity_scores.json: cada métrica de la categoría, con su valor y su puntuación de 0 a 100, y la de
+    # la categoría, con las mismas fechas que history.json (para sus páginas). Las informativas van también, con "info"
     num = lambda v, d: None if pd.isna(v) else (int(round(float(v))) if d == 0 else round(float(v), d))
-    sentiment = {
-        "start": categories_hist["start"],
-        "category": categories_hist["categories"].get("sentimiento"),
-        "metrics": {
-            spec["id"]: {
-                "value": [num(v, SENTIMENT_DECIMALS.get(spec["id"], 4)) for v in m[spec["id"]].reindex(hist.index)],
-                "score": [num(v, 0) for v in scores[spec["id"]].reindex(hist.index)],
-            }
-            for spec in METRICS
-            if spec["category"] == "sentimiento" and spec["id"] in m and spec["id"] in scores
-        },
+    category_files = {
+        name: {
+            "start": categories_hist["start"],
+            "category": categories_hist["categories"].get(cat),
+            "metrics": {
+                spec["id"]: {
+                    "value": [num(v, SENTIMENT_DECIMALS.get(spec["id"], 4)) for v in m[spec["id"]].reindex(hist.index)],
+                    "score": [num(v, 0) for v in scores[spec["id"]].reindex(hist.index)],
+                    **({"info": True} if spec.get("info") else {}),
+                }
+                for spec in METRICS
+                if spec["category"] == cat and spec["id"] in m and spec["id"] in scores
+            },
+        }
+        for cat, name in CATEGORY_FILES.items()
     }
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT_DIR / "history.json").write_text(json.dumps(history, separators=(",", ":")), encoding="utf-8")
     (OUT_DIR / "categories.json").write_text(json.dumps(categories_hist, separators=(",", ":")), encoding="utf-8")
-    (OUT_DIR / "sentiment.json").write_text(json.dumps(sentiment, separators=(",", ":")), encoding="utf-8")
+    for name, content in category_files.items():
+        (OUT_DIR / name).write_text(json.dumps(content, separators=(",", ":")), encoding="utf-8")
     bands = metrics_mod.valuation_bands(cm, extra.get("sth_realized_price"))
     (OUT_DIR / "bands.json").write_text(json.dumps(bands, separators=(",", ":")), encoding="utf-8")
     # Si la fuente falló, se queda el de la última ejecución
