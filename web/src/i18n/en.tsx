@@ -11,7 +11,7 @@ export const en: Messages = {
   infoAbout: (label: string) => `About ${label}`,
   percent: (n: string) => `${n}%`,
   language: "Language",
-  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", etf: "ETFs", liquidity: "Liquidity", sentiment: "Sentiment", technical: "Technical", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies", top: "Back to top" },
+  nav: { aria: "Sections", index: "Index", volatility: "Volatility", cycles: "Cycles", valuation: "Valuation", drawdown: "Drawdown", categories: "Categories", liquidity: "Liquidity", sentiment: "Sentiment", technical: "Technical", metrics: "Metrics", analysis: "Analysis", legal: "Legal notice", privacy: "Privacy", cookies: "Cookies", top: "Back to top" },
   cycles: {
     title: "Bitcoin cycles since each halving",
     rest: "The current cycle against those of 2012, 2016 and 2020: how much the price has risen since its halving, when the top came and how far it fell afterwards.",
@@ -49,6 +49,20 @@ export const en: Messages = {
     chartAria: "Chart of Bitcoin's price in each cycle, as a multiple of the price on the halving day",
   },
   valuation: {
+    scores: {
+      card: "On-chain valuation and price: the index score",
+      info: [
+        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Valuation” is the category: the average of MVRV, the Puell Multiple and the Mayer Multiple. Hovering the chart also shows the metric's actual value.",
+        "Each metric is compared with its previous 4 years (one halving cycle): a high score means it is more expensive than almost always in that period. It is the category that weighs most in the index from the daily timeframe up, and the one that has best marked cycle tops and bottoms in the backtest.",
+      ],
+      category: "Valuation",
+      short: { mvrv: "MVRV", puell: "Puell", mayer: "Mayer" },
+      metricAria: "Score overlaid on the price",
+      cols: { metric: "Metric", value: "Current value", now: "Today", m1: "1 month ago", m3: "3 months ago" },
+      note: "Historical data computed each day without looking ahead (each metric is only compared with its past), not a forecast or investment advice.",
+      chartAria: "Chart of the Bitcoin price with the on-chain valuation score overlaid",
+    },
+    chartLink: "See how on-chain valuation has evolved",
     title: "Bitcoin valuation bands",
     rest: "BTC's price against its long-term levels: realized price, 200-week moving average and the power law trend.",
     card: "Price and valuation levels",
@@ -231,33 +245,6 @@ export const en: Messages = {
     note: "Historical data without looking ahead, not a forecast or investment advice.",
     chartAria: "Chart of the Bitcoin price with the technical score overlaid",
     chartLink: "See how the technical score has evolved",
-  },
-  etf: {
-    title: "Bitcoin ETF flows",
-    rest: "How much money flows into or out of US spot bitcoin ETFs each day, against the BTC price.",
-    card: "Daily net flow and price",
-    info: [
-      "Each bar is a session's net flow: inflows minus outflows across all US spot bitcoin ETFs (IBIT, FBTC, GBTC…), in dollars. Green, inflows; red, outflows. The x axis is trading sessions, without weekends or holidays.",
-      "The index uses the sum of the last 20 sessions in BTC as a sentiment metric: strong inflows, typical of tops, add; outflows, typical of lows, subtract. The data is updated once a day.",
-      "The purple line is the flows' score in the index (left axis, from 0 to 100): the percentile of the sum of the last 20 sessions in BTC against its whole history (up to 4 years). High means strong inflows (euphoria, raises the score); low, outflows (fear, lowers it). It starts in 2025, when there is enough data for the percentile.",
-    ],
-    money: (v: number) =>
-      v >= 1e9
-        ? `$${(v / 1e9).toLocaleString("en-US", { maximumFractionDigits: 1 })}B`
-        : `$${(v / 1e6).toLocaleString("en-US", { maximumFractionDigits: v < 1e7 ? 1 : 0 })}M`,
-    current: (day: ReactNode, last: ReactNode, n: number, sum: ReactNode, sumBtc: ReactNode, pct: ReactNode, total: ReactNode) => (
-      <>
-        Last session ({day}): {last}. Over the last {n} sessions: {sum} ({sumBtc}), percentile {pct} since launch. Cumulative since January
-        2024: {total}.
-      </>
-    ),
-    legend: { price: "Price", flow: "Flow", cumulative: "Cumulative", score: "Score" },
-    tableTitle: "By fund",
-    cols: { fund: "Fund", last: (d: string) => `${d} session`, d20: (n: number) => `Last ${n} sessions`, total: "Since launch" },
-    source: "Source:",
-    fgSource: "Fear & Greed Index:",
-    note: "Historical data, not a forecast or investment advice.",
-    chartAria: "Chart of Bitcoin's price and the daily net flow of spot bitcoin ETFs",
   },
   analysis: {
     title: "Bitcoin analysis",

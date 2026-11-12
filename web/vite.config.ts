@@ -5,7 +5,7 @@ import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { LEGAL, linkParts, type LegalPage } from "./src/i18n/legal";
 import { META } from "./src/i18n/meta";
-import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_ETF, SEO_LIQUIDITY, SEO_SENTIMENT, SEO_TECHNICAL, SEO_VALUATION, SEO_VOL, SEO_ANALYSIS } from "./src/i18n/seo";
+import { SEO, SEO_CATEGORIES, SEO_CYCLES, SEO_DRAWDOWN, SEO_LIQUIDITY, SEO_SENTIMENT, SEO_TECHNICAL, SEO_VALUATION, SEO_VOL, SEO_ANALYSIS } from "./src/i18n/seo";
 
 // En WSL node_modules es un enlace simbólico al disco de Linux: Vite debe poder servir desde su ubicación real
 const nodeModules = realpathSync(fileURLToPath(new URL("./node_modules", import.meta.url)));
@@ -53,7 +53,6 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
   valuation: { input: "valoracion/index.html", en: "en/valuation/index.html", seo: (l) => chartSeoHtml(SEO_VALUATION, l) },
   drawdown: { input: "caidas/index.html", en: "en/drawdown/index.html", seo: (l) => chartSeoHtml(SEO_DRAWDOWN, l) },
   categories: { input: "categorias/index.html", en: "en/categories/index.html", seo: (l) => chartSeoHtml(SEO_CATEGORIES, l) },
-  etf: { input: "etf/index.html", en: "en/etf/index.html", seo: (l) => chartSeoHtml(SEO_ETF, l) },
   liquidity: { input: "liquidez/index.html", en: "en/liquidity/index.html", seo: (l) => chartSeoHtml(SEO_LIQUIDITY, l) },
   sentiment: { input: "sentimiento/index.html", en: "en/sentiment/index.html", seo: (l) => chartSeoHtml(SEO_SENTIMENT, l) },
   technical: { input: "tecnico/index.html", en: "en/technical/index.html", seo: (l) => chartSeoHtml(SEO_TECHNICAL, l) },
@@ -108,7 +107,6 @@ function devNews(): Plugin {
         else if (req.url?.startsWith("/en/valuation")) req.url = "/valoracion/";
         else if (req.url?.startsWith("/en/drawdown")) req.url = "/caidas/";
         else if (req.url?.startsWith("/en/categories")) req.url = "/categorias/";
-        else if (req.url?.startsWith("/en/etf")) req.url = "/etf/";
         else if (req.url?.startsWith("/en/liquidity")) req.url = "/liquidez/";
         else if (req.url?.startsWith("/en/sentiment")) req.url = "/sentimiento/";
         else if (req.url?.startsWith("/en/technical")) req.url = "/tecnico/";

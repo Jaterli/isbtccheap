@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
+import { CategoryScores } from "./components/CategoryScores";
 import { InfoTip } from "./components/InfoTip";
 import { useRange } from "./components/RangeSelect";
 import { ValuationChart } from "./components/ValuationChart";
@@ -10,7 +11,11 @@ import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import { getJson } from "./lib/data";
 import { lastDays } from "./lib/series";
+import type { History } from "./types";
 import { valuationSeries, type BandsJson } from "./lib/valuation";
+
+// Métricas de la categoría de valoración on-chain del índice, en el orden de su tarjeta
+const METRICS = ["mvrv", "puell", "mayer"] as const;
 
 // Margen (en múltiplo) para decir que el precio está "cerca" del suelo o del techo del corredor
 const NEAR = 1.25;
@@ -27,10 +32,13 @@ export function ValuationApp() {
   const [bands, setBands] = useState<BandsJson | null>(null);
   const [live, setLive] = useState<number | null>(null);
   const [error, setError] = useState(false);
+  // Precio para la tarjeta de las métricas de valoración
+  const [history, setHistory] = useState<History | null>(null);
   const range = useRange("isbtccheap:valuation-range");
 
   useEffect(() => {
     getJson("bands.json").then(setBands, () => setError(true));
+    getJson("history.json").then(setHistory, () => {});
     fetchCandles("1d", 1).then((c) => setLive(c.at(-1)?.close ?? null), () => {});
   }, []);
 
@@ -75,8 +83,8 @@ export function ValuationApp() {
               ))}
             </InfoTip>
           </h2>
-          {range.control}
         </header>
+        <div className="sent-controls">{range.control}</div>
 
         {now && bands && (
           <p className="vol-stats">
@@ -120,6 +128,15 @@ export function ValuationApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
+
+      <CategoryScores
+        history={history}
+        file="valuation_scores.json"
+        metrics={METRICS}
+        tx={tx.scores}
+        format={(_, v) => v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        storageKey="isbtccheap:valuation-scores-range"
+      />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

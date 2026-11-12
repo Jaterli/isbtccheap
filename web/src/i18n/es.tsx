@@ -18,7 +18,7 @@ export const es = {
   infoAbout: (label: string) => `Información sobre ${label}`,
   percent: (n: string) => `${n}\u00a0%`,
   language: "Idioma",
-  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", etf: "ETF", liquidity: "Liquidez", sentiment: "Sentimiento", technical: "Técnico", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
+  nav: { aria: "Secciones", index: "Índice", volatility: "Volatilidad", cycles: "Ciclos", valuation: "Valoración", drawdown: "Caídas", categories: "Categorías", liquidity: "Liquidez", sentiment: "Sentimiento", technical: "Técnico", metrics: "Métricas", analysis: "Análisis", legal: "Aviso legal", privacy: "Privacidad", cookies: "Cookies", top: "Volver arriba" },
   cycles: {
     title: "Ciclos de Bitcoin desde cada halving",
     rest: "El ciclo actual frente a los de 2012, 2016 y 2020: cuánto ha subido el precio desde su halving, cuándo llegó el techo y cuánto cayó después.",
@@ -56,6 +56,20 @@ export const es = {
     chartAria: "Gráfico del precio de Bitcoin en cada ciclo, como múltiplo del precio del día del halving",
   },
   valuation: {
+    scores: {
+      card: "Valoración on-chain y precio: la puntuación del índice",
+      info: [
+        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Valoración» es la categoría: la media del MVRV, el Puell Multiple y el Mayer Multiple. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada métrica se compara con sus 4 años anteriores (un ciclo de halving): una puntuación alta indica que está más cara que casi siempre en ese periodo. Es la categoría que más pesa en el índice desde la temporalidad diaria y la que mejor ha marcado los techos y suelos de ciclo en el backtest.",
+      ],
+      category: "Valoración",
+      short: { mvrv: "MVRV", puell: "Puell", mayer: "Mayer" },
+      metricAria: "Puntuación superpuesta al precio",
+      cols: { metric: "Métrica", value: "Valor actual", now: "Hoy", m1: "Hace 1 mes", m3: "Hace 3 meses" },
+      note: "Datos históricos calculados cada día sin mirar al futuro (cada métrica solo se compara con su pasado), no una predicción ni una recomendación de inversión.",
+      chartAria: "Gráfico del precio de Bitcoin con la puntuación de valoración on-chain superpuesta",
+    },
+    chartLink: "Ver la evolución de la valoración on-chain",
     title: "Bandas de valoración de Bitcoin",
     rest: "El precio de BTC frente a sus niveles de largo plazo: precio realizado, media de 200 semanas y la tendencia de la power law.",
     card: "Precio y niveles de valoración",
@@ -238,33 +252,6 @@ export const es = {
     note: "Datos históricos sin mirar al futuro, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin con la puntuación técnica superpuesta",
     chartLink: "Ver la evolución del técnico",
-  },
-  etf: {
-    title: "Flujos de los ETF de Bitcoin",
-    rest: "Cuánto dinero entra o sale cada día de los ETF de bitcoin al contado de EE. UU., frente al precio de BTC.",
-    card: "Flujo neto diario y precio",
-    info: [
-      "Cada barra es el flujo neto de una sesión: lo que entró menos lo que salió del conjunto de ETF de bitcoin al contado de EE. UU. (IBIT, FBTC, GBTC…), en dólares. Verde, entradas; rojo, salidas. El eje x son sesiones de mercado, sin fines de semana ni festivos.",
-      "El índice usa la suma de las últimas 20 sesiones en BTC como métrica de sentimiento: entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Los datos se actualizan una vez al día.",
-      "La línea lila es la puntuación de los flujos en el índice (eje izquierdo, de 0 a 100): el percentil de la suma de las últimas 20 sesiones en BTC frente a toda su historia (hasta 4 años). Alta, entradas fuertes (euforia, suma al score); baja, salidas (miedo, resta). Empieza en 2025, cuando hay datos suficientes para el percentil.",
-    ],
-    money: (v: number) =>
-      v >= 1e9
-        ? `${(v / 1e9).toLocaleString("es-ES", { maximumFractionDigits: 1 })} mil M$`
-        : `${(v / 1e6).toLocaleString("es-ES", { maximumFractionDigits: v < 1e7 ? 1 : 0 })} M$`,
-    current: (day: ReactNode, last: ReactNode, n: number, sum: ReactNode, sumBtc: ReactNode, pct: ReactNode, total: ReactNode) => (
-      <>
-        Última sesión ({day}): {last}. En las últimas {n} sesiones: {sum} ({sumBtc}), percentil {pct} desde el lanzamiento. Acumulado desde
-        enero de 2024: {total}.
-      </>
-    ),
-    legend: { price: "Precio", flow: "Flujo", cumulative: "Acumulado", score: "Puntuación" },
-    tableTitle: "Por fondo",
-    cols: { fund: "Fondo", last: (d: string) => `Sesión del ${d}`, d20: (n: number) => `Últimas ${n} sesiones`, total: "Desde el lanzamiento" },
-    source: "Fuente:",
-    fgSource: "Fear & Greed Index:",
-    note: "Datos históricos, no una predicción ni una recomendación de inversión.",
-    chartAria: "Gráfico del precio de Bitcoin y del flujo neto diario de los ETF de bitcoin al contado",
   },
   analysis: {
     title: "Análisis de Bitcoin",

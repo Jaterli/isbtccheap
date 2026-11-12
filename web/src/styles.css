@@ -118,6 +118,28 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .page-nav a:hover { color: var(--fg); }
 .page-nav a[aria-current] { color: var(--accent); }
 .page-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Desplegable de métricas: se abre al pasar el ratón, al enfocarlo o al pulsarlo */
+.nav-group { position: relative; }
+.nav-group-btn {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 0; border-radius: 6px;
+  background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+}
+.nav-group-btn svg { stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; transition: transform 0.15s; }
+.nav-group-btn:hover { color: var(--fg); }
+.nav-group-btn[data-current] { color: var(--accent); }
+.nav-group-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nav-sub {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 10; flex-direction: column; min-width: 160px;
+  margin-top: 4px; padding: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+/* Puente invisible sobre el hueco para que no se cierre al bajar el ratón */
+.nav-sub::before { content: ""; position: absolute; left: 0; right: 0; top: -6px; height: 6px; }
+.nav-group.open .nav-sub, .nav-group:focus-within .nav-sub { display: flex; }
+@media (hover: hover) { .nav-group:hover .nav-sub { display: flex; } .nav-group:hover .nav-group-btn svg { transform: rotate(180deg); } }
+.nav-group.open .nav-group-btn svg { transform: rotate(180deg); }
+.nav-sub a { padding: 7px 10px; }
+.nav-sub a[aria-current] { background: var(--bg); }
 .lang-switch { display: flex; gap: 2px; }
 .lang-switch a { padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-weight: 600; }
 .lang-switch a:hover { color: var(--fg); }
@@ -147,6 +169,11 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
   .page-links.open { display: flex; }
   .page-links a { padding: 9px 10px; font-size: 0.95rem; }
   .page-links a[aria-current] { background: var(--bg); }
+  /* En el desplegable de móvil, las métricas van siempre a la vista: un título y sus páginas sangradas */
+  .nav-group-btn { width: 100%; padding: 9px 10px 4px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; cursor: default; pointer-events: none; }
+  .nav-group-btn svg { display: none; }
+  .nav-sub, .nav-group:hover .nav-sub { display: flex; position: static; margin: 0; padding: 0 0 4px 10px; min-width: 0; background: none; border: 0; box-shadow: none; }
+  .nav-sub::before { display: none; }
 }
 /* Móvil: la barra va siempre pegada arriba con el logo pequeño (sin el grande), textos más compactos y botón para
    volver arriba. El fondo de la barra ocupa todo el ancho de la ventana aunque la barra mida lo que el contenedor */
@@ -580,21 +607,16 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cat-table td { text-align: right; }
 .cat-table tbody tr.ev-today th { color: var(--accent); }
 /* ETF */
-.etf-bar.in { fill: var(--band-1); }
-.etf-bar.out { fill: var(--band-5); }
 .etf-fg { --c: var(--cycle-2012); }
 .legend.etf-fg::before { background: var(--c); }
-.etf-fg-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.2; opacity: 0.85; }
 /* Fear & Greed en el histórico del score: fina y atenuada, para que el score siga siendo el protagonista */
 .line-fg { fill: none; stroke: var(--cycle-2012); stroke-width: 1; opacity: 0.4; }
 .legend-fg::before { background: var(--cycle-2012); opacity: 0.6; }
 .legend-fg strong { font-weight: 600; }
 /* En móvil, la línea de datos del histórico (fecha, precio y score) cabe en una fila: el valor del F&G no se muestra */
 @media (max-width: 399px) { .chart-readout .legend-fg { display: none; } }
-.legend.etf-in::before { background: var(--band-1); }
-.legend.etf-out::before { background: var(--band-5); }
-.etf-table td.up, .vol-stats .up { color: var(--band-1); }
-.etf-table td.down, .vol-stats .down { color: var(--band-5); }
+.vol-stats .up { color: var(--band-1); }
+.vol-stats .down { color: var(--band-5); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
 /* Liquidez */
 .liq-roc { --c: var(--accent); }

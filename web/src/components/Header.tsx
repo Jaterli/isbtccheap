@@ -1,19 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { lang, page, PAGE_PATH, savePref, t, type Lang, type Page } from "../i18n";
 
-const PAGES: Page[] = ["index", "analysis", "etf", "volatility", "valuation", "drawdown", "categories", "cycles"];
+// "metrics" es el desplegable con las páginas de métricas de las categorías del índice, en el orden de sus tarjetas
+const METRIC_PAGES: Page[] = ["technical", "sentiment", "valuation", "liquidity"];
+const PAGES: (Page | "metrics")[] = ["index", "analysis", "metrics", "volatility", "drawdown", "categories", "cycles"];
 
 export function Header({ title, rest }: { title: string; rest: string }) {
   // Por debajo de 1000 px los enlaces van en un desplegable (styles.css oculta el botón en pantallas grandes)
   const [open, setOpen] = useState(false);
+  // Desplegable de métricas en pantallas grandes (con el ratón se abre también al pasar por encima, ver styles.css)
+  const [sub, setSub] = useState(false);
   const nav = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!open) return;
-    const onDown = (e: PointerEvent) => !nav.current?.contains(e.target as Node) && setOpen(false);
+    if (!open && !sub) return;
+    const onDown = (e: PointerEvent) => {
+      if (nav.current?.contains(e.target as Node)) return;
+      setOpen(false);
+      setSub(false);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      setSub(false);
+      if (!open) return;
       setOpen(false);
       toggle.current?.focus();
     };
@@ -23,7 +33,7 @@ export function Header({ title, rest }: { title: string; rest: string }) {
       document.removeEventListener("pointerdown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, sub]);
 
   // stuck: en pantallas grandes, la barra pasa a estar fija arriba con el logo pequeño en cuanto llega al borde
   // (el padding superior del contenedor). scrolled: el botón flotante para volver arriba (solo en móvil, ver
@@ -58,11 +68,36 @@ export function Header({ title, rest }: { title: string; rest: string }) {
             {t.nav[page]}
           </button>
           <div id="page-links" className={open ? "page-links open" : "page-links"}>
-            {PAGES.map((p) => (
-              <a key={p} href={PAGE_PATH[p][lang]} aria-current={p === page ? "page" : undefined} onClick={() => setOpen(false)}>
-                {t.nav[p]}
-              </a>
-            ))}
+            {PAGES.map((p) =>
+              p === "metrics" ? (
+                <div key={p} className={sub ? "nav-group open" : "nav-group"}>
+                  <button
+                    type="button"
+                    className="nav-group-btn"
+                    aria-expanded={sub}
+                    aria-controls="metric-links"
+                    data-current={METRIC_PAGES.includes(page) || undefined}
+                    onClick={() => setSub(!sub)}
+                  >
+                    {t.nav.metrics}
+                    <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">
+                      <path d="M4 6l4 4 4-4" />
+                    </svg>
+                  </button>
+                  <div id="metric-links" className="nav-sub">
+                    {METRIC_PAGES.map((m) => (
+                      <a key={m} href={PAGE_PATH[m][lang]} aria-current={m === page ? "page" : undefined} onClick={() => (setOpen(false), setSub(false))}>
+                        {t.nav[m]}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <a key={p} href={PAGE_PATH[p][lang]} aria-current={p === page ? "page" : undefined} onClick={() => setOpen(false)}>
+                  {t.nav[p]}
+                </a>
+              ),
+            )}
           </div>
         </nav>
         <nav className="lang-switch" aria-label={t.language}>

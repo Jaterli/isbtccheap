@@ -41,7 +41,7 @@ const STORAGE: { key: string; es: string; en: string }[] = [
   { key: "isbtccheap:outlook-period, isbtccheap:moves-period", es: "Periodo de las tablas del índice", en: "Period of the index tables" },
   { key: "isbtccheap:vol-tf, isbtccheap:vol-range", es: "Temporalidad y rango de la volatilidad", en: "Volatility timeframe and range" },
   {
-    key: "isbtccheap:valuation-range, isbtccheap:drawdown-range, isbtccheap:categories-range, isbtccheap:etf-range, isbtccheap:liquidity-range",
+    key: "isbtccheap:valuation-range, isbtccheap:drawdown-range, isbtccheap:categories-range, isbtccheap:liquidity-range",
     es: "Rango de fechas de cada gráfica",
     en: "Date range of each chart",
   },
