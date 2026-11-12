@@ -17,8 +17,8 @@ export function technicalFromCandles(candles: Candle[], tf: Timeframe): Category
 
   const metrics: MetricScore[] = [
     // RSI 30 → 0, 70 → 100: en bruto apenas sale de 30-70
-    { id: "rsi_14", name: "RSI 14", value: r, score: r === null ? null : clamp(((r - 15) / 65) * 100) },
-    { id: "bollinger", name: "Bollinger %B (20, 2)", value: b, score: b === null ? null : clamp(((b + 25) / 150) * 100) },
+    { id: "rsi_14", name: "RSI 14", value: r, score: r === null ? null : clamp(((r - 30) / 40) * 100) },
+    { id: "bollinger", name: "Bollinger %B (20, 2)", value: b, score: b === null ? null : clamp(b) },
     { id, name: `Precio frente a MA${period} (percentil)`, value: ratios.at(-1) ?? null, score: p },
   ];
   return { name: "Técnico", score: mean(metrics.map((m) => m.score)), metrics };
