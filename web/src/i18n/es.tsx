@@ -253,8 +253,8 @@ export const es = {
     unavailable: "El análisis aún no está disponible.",
     close: "Cierre",
     legendLiquidity: "– – liquidez pendiente · bandas grises: imbalances sin rellenar",
-    fibLabel: (ratio: string, tf: string, correction: boolean) =>
-      `Fib ${(Number(ratio) * 100).toLocaleString("es-ES", { maximumFractionDigits: 1 })} % ${tf === "1w" ? "semanal" : "diario"}${correction ? " (corrección)" : ""}`,
+    fibLabel: (ratio: string, tf: string, correction: boolean, price: string) =>
+      `Fib ${(Number(ratio) * 100).toLocaleString("es-ES", { maximumFractionDigits: 1 })} % ${tf === "1w" ? "semanal" : "diario"}${correction ? " (corrección)" : ""} · ${price}`,
     liquidityLabel: "Liquidez",
     equalHighs: "Máx. iguales",
     equalLows: "Mín. iguales",

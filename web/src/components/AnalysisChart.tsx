@@ -148,7 +148,10 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
           <g key={`${f.timeframe}-${f.leg}-${f.ratio}`} className="an-fib">
             {/* Desde el día en que empieza el tramo (o el borde izquierdo, si es anterior a las velas mostradas) */}
             <line x1={f.from ? xAt(f.from) : PAD_L} x2={PAD_L + plotW} y1={y(f.price)} y2={y(f.price)} />
-            <text x={PAD_L + plotW - 4} y={y(f.price) - 4} textAnchor="end">{tx.fibLabel(f.ratio, f.timeframe, f.leg === "correction")}</text>
+            {/* Centrada en la zona de velas: a la derecha la tapaban los rótulos de los plazos ("Próximas … h", "1-2 días") */}
+            <text x={PAD_L + candlesW / 2} y={y(f.price) - 4} textAnchor="middle">
+              {tx.fibLabel(f.ratio, f.timeframe, f.leg === "correction", usd(f.price))}
+            </text>
           </g>
         ))}
 
