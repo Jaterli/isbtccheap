@@ -407,9 +407,14 @@ def _atr(high: list[float], low: list[float], close: list[float]) -> float:
     return _rma(tr, 14)[-1]
 
 
-def _zigzag(high: list[float], low: list[float], threshold: float) -> tuple[list[tuple[int, str, float]], tuple[int, str, float] | None]:
+def _zigzag(high: list[float], low: list[float], close: list[float], threshold: float) -> tuple[list[tuple[int, str, float]], tuple[int, str, float] | None]:
     """Pivotes alternos (máximo, mínimo…) separados al menos por `threshold`: un extremo se confirma cuando el precio
-    se aleja de él esa distancia. Devuelve los confirmados y el extremo en curso (aún sin confirmar)."""
+    se aleja de él esa distancia. Devuelve los confirmados y el extremo en curso (aún sin confirmar).
+
+    Velas amplias que marcan un extremo nuevo y además recorren el umbral hacia el otro lado (el 4 de noviembre de 2026:
+    perforó el mínimo y subió 5.460 $ en la misma vela): sin mirarlas, el giro se perdía, porque solo se veía el extremo
+    nuevo. El cierre dice el orden: si cierra en la mitad contraria al extremo nuevo, ese extremo fue primero y la vela
+    lo confirma como pivote y queda como extremo en curso del otro lado."""
     pivots: list[tuple[int, str, float]] = []
     trend, ext, hi_i, lo_i = None, 0, 0, 0
     for i in range(1, len(high)):
@@ -426,12 +431,18 @@ def _zigzag(high: list[float], low: list[float], threshold: float) -> tuple[list
         elif trend == "up":
             if high[i] >= high[ext]:
                 ext = i
+                if high[i] - low[i] >= threshold and close[i] <= (high[i] + low[i]) / 2:
+                    pivots.append((i, "high", high[i]))
+                    trend = "down"
             elif high[ext] - low[i] >= threshold:
                 pivots.append((ext, "high", high[ext]))
                 trend, ext = "down", i
         else:
             if low[i] <= low[ext]:
                 ext = i
+                if high[i] - low[i] >= threshold and close[i] >= (high[i] + low[i]) / 2:
+                    pivots.append((i, "low", low[i]))
+                    trend = "up"
             elif high[i] - low[ext] >= threshold:
                 pivots.append((ext, "low", low[ext]))
                 trend, ext = "up", i
@@ -504,7 +515,7 @@ def structure(raw: list[list], tf: str) -> dict:
     principal y de su corrección (fib_legs). Sirve igual para tendencias alcistas y bajistas."""
     high, low, close = _hlc(raw)
     rsi = _rsi(close)
-    pivots, current = _zigzag(high, low, STRUCTURE_ATR[tf] * _atr(high, low, close))
+    pivots, current = _zigzag(high, low, close, STRUCTURE_ATR[tf] * _atr(high, low, close))
     labelled, last = [], {}
     for i, kind, price in pivots:
         prev = last.get(kind)
@@ -558,8 +569,11 @@ def structure(raw: list[list], tf: str) -> dict:
 # máximos o dos mínimos (en ATR), distancia máxima al precio y cuántos niveles de cada lado
 LIQUIDITY_ATR = {"1d": 2.0, "4h": 2.0}
 EQUAL_ATR = 0.3
-LIQUIDITY_RANGE = {"1d": 0.20, "4h": 0.08}
-LIQUIDITY_MAX = 3
+# En 4 h hasta un 12 %: con un 8 % quedaban fuera máximos intermedios del diario que el zigzag diario filtra como ruido
+# (el del 29 de octubre de 2026, a un +10 %)
+LIQUIDITY_RANGE = {"1d": 0.20, "4h": 0.12}
+# Los más cercanos de cada lado; en 4 h uno más, porque el rango es mayor
+LIQUIDITY_MAX = {"1d": 3, "4h": 4}
 
 
 def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
@@ -569,7 +583,7 @@ def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
     al precio, por encima y por debajo. Se calcula con las velas, sin suponer nada del apalancamiento."""
     high, low, close = _hlc(raw)
     atr, price = _atr(high, low, close), close[-1]
-    pivots, _ = _zigzag(high, low, LIQUIDITY_ATR[tf] * atr)
+    pivots, _ = _zigzag(high, low, close, LIQUIDITY_ATR[tf] * atr)
     pools: list[dict] = []
     for i, kind, level in pivots:
         later = range(i + 1, len(raw))
@@ -587,7 +601,7 @@ def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
             continue
         out.append({"side": "above" if p["kind"] == "high" else "below", "price": round(p["price"]), "dates": p["dates"],
                     "equal_levels": len(p["dates"]) > 1, "pct_from_price": round((p["price"] / price - 1) * 100, 2)})
-    near = lambda side: sorted((p for p in out if p["side"] == side), key=lambda p: abs(p["pct_from_price"]))[:LIQUIDITY_MAX]
+    near = lambda side: sorted((p for p in out if p["side"] == side), key=lambda p: abs(p["pct_from_price"]))[: LIQUIDITY_MAX[tf]]
     return near("above") + near("below")
 
 
@@ -619,7 +633,7 @@ def reaction_zones(raw: list[list], tf: str) -> list[dict]:
     resistencia (o al revés)."""
     high, low, close = _hlc(raw)
     atr, price = _atr(high, low, close), close[-1]
-    pivots, _ = _zigzag(high, low, REACTION_ATR[tf] * atr)
+    pivots, _ = _zigzag(high, low, close, REACTION_ATR[tf] * atr)
     zones: list[dict] = []
     for i, kind, level in sorted(pivots, key=lambda p: p[2]):
         z = zones[-1] if zones and level - zones[-1]["low"] <= REACTION_WIDTH_ATR * atr else None
