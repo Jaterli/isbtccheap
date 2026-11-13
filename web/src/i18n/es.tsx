@@ -198,6 +198,7 @@ export const es = {
       "Informativas (el índice no las usa): los derivados de Binance (open interest, cuentas en largo y compras a mercado, puntuados frente a sus últimos 30 días, que es lo que guarda Binance) dejaron de contar en 1 h y 4 h porque no hay histórico con el que comprobar si anticipan el precio, y con un mes de datos las cuentas en largo apuntaban al revés de como las puntuaba el índice. Se van guardando para un backtest. Sus primeras velas no tienen puntuación hasta reunir 50 datos.",
       "Compras al contado (informativa, el índice no la usa): la parte del volumen al contado de BTC/USDT en Binance que fueron compras a mercado, en las 3 últimas velas; 50 % es equilibrio. Binance guarda todo su histórico (desde 2017): en 1D se puntúa frente a sus 4 años anteriores y en 1 h y 4 h frente a lo descargado. Sirve para comparar el contado con los futuros: si el contado compra mientras los futuros venden, alguien está absorbiendo las ventas apalancadas. Las compras a mercado y al contado cambian mucho de una vela a otra: se muestran las últimas (5 días en 1 h, 10 en 4 h y 1 o 3 meses en 1D) para que se lean mejor.",
       "Oferta en pérdidas de corto plazo (informativa): el porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) que valen menos que cuando se compraron, de Bitview. Se puntúa al revés que el resto: muchas pérdidas es miedo, puntuación baja. Marca mejor que el Fear & Greed los techos y suelos de ciclo, pero en el backtest del índice anticipaba algo peor y mide casi lo mismo, así que no sustituye al Fear & Greed.",
+      "MVRV de corto plazo ajustado (informativa): el precio frente al coste medio de los holders de corto plazo (precio realizado de Bitview), comparado con su media de 90 días. Se puntúa por desviaciones frente a su último año: 25 y 75 son las bandas de −1σ y +1σ, y 0 y 100, las de −2σ y +2σ. En el backtest seguía al precio en vez de anticiparlo; muy por debajo de su banda inferior (−1,5σ o menos) solía llegar un rebote de 1-2 semanas que a 30 días se deshacía la mayoría de las veces.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
@@ -214,6 +215,7 @@ export const es = {
       taker_pct: "Compras a mercado",
       spot_buy_pct: "Compras al contado",
       sth_loss_pct: "Pérdidas CP",
+      sth_mvrv_adj: "MVRV CP ajust.",
     },
     names: {
       sentimiento: "Categoría de sentimiento (1 h)",
@@ -225,8 +227,10 @@ export const es = {
       taker_pct: "Compras a mercado",
       spot_buy_pct: "Compras al contado (informativa)",
       sth_loss_pct: "Oferta en pérdidas de corto plazo (informativa)",
+      sth_mvrv_adj: "MVRV de corto plazo ajustado (informativa)",
     },
     btc: (v: string) => `${v} BTC`,
+    sigma: (z: number) => `${z > 0 ? "+" : z < 0 ? "−" : ""}${Math.abs(z).toLocaleString("es-ES", { maximumFractionDigits: 1 })}σ`,
     tfAria: "Temporalidad",
     metricAria: "Puntuación superpuesta al precio",
     noData: "Sin datos: Binance no responde.",

@@ -20,6 +20,11 @@ def normalize(metrics: pd.DataFrame) -> pd.DataFrame:
             window = spec.get("window", PERCENTILE_WINDOW_DAYS)
             pct = valid.rolling(window, min_periods=min(window, MIN_HISTORY_DAYS)).rank(pct=True) * 100
             score = pct.reindex(s.index)
+        elif spec["method"] == "zscore":
+            # Desviaciones frente a la media de su ventana: −2σ → 0, −1σ → 25, la media → 50, +1σ → 75, +2σ → 100
+            window = spec.get("window", 365)
+            roll = s.rolling(window, min_periods=30)
+            score = (50 + 25 * (s - roll.mean()) / roll.std(ddof=0)).clip(0, 100)
         elif spec["method"] == "band":
             score = ((s - spec["lo"]) / (spec["hi"] - spec["lo"]) * 100).clip(0, 100)
         else:

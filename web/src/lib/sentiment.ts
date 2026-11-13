@@ -13,7 +13,10 @@ export const DERIV_METRICS = ["open_interest", "long_pct", "taker_pct"] as const
  * pérdidas de los holders de corto plazo (Bitview: marca mejor que el Fear & Greed los techos y suelos, pero en el
  * backtest del índice anticipaba algo peor y es redundante con él).
  */
-export const INFO_METRICS = [...DERIV_METRICS, "spot_buy_pct", "sth_loss_pct"] as const;
+export const INFO_METRICS = [...DERIV_METRICS, "spot_buy_pct", "sth_loss_pct", "sth_mvrv_adj"] as const;
+/** Informativas que calcula el pipeline (sentiment.json, con "info"): el MVRV de corto plazo frente a su media de 90 días */
+const PIPELINE_INFO = ["sth_mvrv_adj"] as const;
+type PipelineInfo = (typeof PIPELINE_INFO)[number];
 export const SENTIMENT_METRICS = [...DAILY_METRICS, ...DERIV_METRICS, ...INFO_METRICS] as const;
 export type DailyMetric = (typeof DAILY_METRICS)[number];
 export type SentimentMetric = (typeof SENTIMENT_METRICS)[number];
@@ -36,7 +39,7 @@ export interface SentimentJson {
   /** Puntuación de la categoría de sentimiento (0-100) */
   category: (number | null)[];
   /** Por métrica, su valor y su puntuación (0-100) cada día */
-  metrics: Partial<Record<DailyMetric, { value: (number | null)[]; score: (number | null)[] }>>;
+  metrics: Partial<Record<DailyMetric | PipelineInfo, { value: (number | null)[]; score: (number | null)[] }>>;
 }
 
 type Col = (number | null)[];
@@ -119,7 +122,7 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
   // Diarias: el dato del día de cada vela
   const idx = new Map(h.dates[0] === s.start ? h.dates.map((d, i) => [d, i] as const) : []);
   const at = time.map((t) => idx.get(dayKey(t)));
-  const daily = (m: DailyMetric, k: "value" | "score") => at.map((i) => (i === undefined ? null : (s.metrics[m]?.[k][i] ?? null)));
+  const daily = (m: DailyMetric | PipelineInfo, k: "value" | "score") => at.map((i) => (i === undefined ? null : (s.metrics[m]?.[k][i] ?? null)));
 
   const [derivs, spot, sthLoss] = await Promise.all([
     derivativeColumns(tf, time).catch(() => null),
@@ -134,6 +137,7 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
     taker_pct: derivs?.values.taker_pct ?? none(),
     spot_buy_pct: spot?.value ?? none(),
     sth_loss_pct: sthLoss?.value ?? none(),
+    sth_mvrv_adj: daily("sth_mvrv_adj", "value"),
   };
   const metricScores = {
     ...(Object.fromEntries(DAILY_METRICS.map((m) => [m, daily(m, "score")])) as Record<DailyMetric, Col>),
@@ -142,6 +146,7 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
     taker_pct: derivs?.scores.taker_pct ?? none(),
     spot_buy_pct: spot?.score ?? none(),
     sth_loss_pct: sthLoss?.score ?? none(),
+    sth_mvrv_adj: daily("sth_mvrv_adj", "score"),
   };
   // La categoría: la media de las métricas de la temporalidad que tengan dato, como en el índice
   const used = TF_METRICS[tf];

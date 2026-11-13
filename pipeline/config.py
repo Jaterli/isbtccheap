@@ -35,6 +35,11 @@ METRICS = [
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum): solo
     # se muestra en la página de valoración
     {"id": "sth_sopr", "name": "SOPR de corto plazo (7 d)", "category": "sentimiento", "method": "percentile"},
+    # Informativa: el MVRV de corto plazo frente a su media de 90 días, con bandas de ±1σ y ±2σ de su último año (como
+    # blackalmanak.com). Backtest de noviembre de 2026: sigue al precio (correlación positiva con la rentabilidad
+    # posterior), en el índice no cambiaba nada y por debajo de −1,5σ solo daba un rebote de 1-2 semanas que a 30 días se
+    # deshacía la mayoría de las veces
+    {"id": "sth_mvrv_adj", "name": "MVRV de corto plazo ajustado (90 d)", "category": "sentimiento", "method": "zscore", "window": 365, "info": True},
     # 20 sesiones: con 5 o 10 se comporta como momentum. Datos desde 2024, así que puntúa desde 2025
     {"id": "etf_flows", "name": "Flujos de ETF al contado (20 sesiones)", "category": "sentimiento", "method": "percentile"},
     # El frontend recalcula el técnico con las velas de cada temporalidad

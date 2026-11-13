@@ -38,6 +38,7 @@ const FORMAT: Record<SentimentMetric, (v: number) => string> = {
   taker_pct: (v) => pct(v),
   spot_buy_pct: (v) => pct(v),
   sth_loss_pct: (v) => pct(v),
+  sth_mvrv_adj: (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
 };
 
 // Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D no hay periodo a elegir)
@@ -78,7 +79,7 @@ function Chip({ v }: { v: number | null | undefined }) {
   );
 }
 
-const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct"];
+const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "sth_mvrv_adj"];
 const isInfo = (k: SentimentKey) => (INFO_METRICS as readonly string[]).includes(k);
 
 export function SentimentApp() {
@@ -220,7 +221,11 @@ export function SentimentApp() {
               detail={(i) => {
                 if (shownK === "sentimiento") return null;
                 const v = shown.values[shownK][i];
-                return v === null ? null : FORMAT[shownK](v);
+                if (v === null) return null;
+                const sc = shown.scores[shownK][i];
+                // Puntuación 50 + 25·σ (recortada en ±2σ): se muestra a cuántas desviaciones está de su media del último año
+                const sigma = shownK === "sth_mvrv_adj" && sc !== null ? ` · ${tx.sigma((sc - 50) / 25)}` : "";
+                return FORMAT[shownK](v) + sigma;
               }}
             />
             {updating && (
