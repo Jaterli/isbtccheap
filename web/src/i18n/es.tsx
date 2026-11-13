@@ -405,6 +405,7 @@ export const es = {
 
   gauge: { cheap: "Barato", expensive: "Caro" },
   momentum: {
+    label: "Momentum",
     up: (tf: string, rsi: string) =>
       `Impulso alcista fuerte en ${tf} (RSI 14 en ${rsi}). Históricamente, con el RSI en 80 o más la subida ha tendido a continuar. Es informativo: no cuenta en el score.`,
     down: (tf: string, rsi: string) =>

@@ -2,6 +2,7 @@ import { lang, locale, PAGE_PATH, t } from "../i18n";
 import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
 import type { Category, CategoryId, Timeframe } from "../types";
 import { InfoTip } from "./InfoTip";
+import { Momentum, momentumDir } from "./Momentum";
 
 interface Props {
   categories: Record<CategoryId, Category>;
@@ -143,8 +144,13 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
                           <p>{mi.read}</p>
                         </InfoTip>
                       )}
+                      {/* Impulso fuerte: solo con el RSI en vivo de la temporalidad elegida */}
+                      {m.id === "rsi_14" && live && <Momentum rsi={m.value} tf={tf} />}
                     </span>
-                    <span className="muted num">{fmt(m.value, m.id)}</span>
+                    {/* Con impulso fuerte, el valor del RSI toma el color de la etiqueta Momentum */}
+                    <span className={`muted num${m.id === "rsi_14" && live && momentumDir(m.value, tf) ? ` momentum-value ${momentumDir(m.value, tf)}` : ""}`}>
+                      {fmt(m.value, m.id)}
+                    </span>
                     <MetricScore score={m.score} mark={live || !LIVE.includes(id)} />
                   </li>
                 );

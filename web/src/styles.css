@@ -272,11 +272,11 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .status-change { font-size: 0.95rem; font-weight: 600; }
 .status-price .info-btn { font-size: 0.9rem; font-weight: 400; }
 .status-change.up { color: var(--band-1); }
-/* Flecha de impulso fuerte junto a la etiqueta del score */
-.momentum { display: inline-flex; align-self: center; width: 1.1em; height: 1.1em; border-radius: 50%; cursor: help; }
-.momentum svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.momentum.up { color: var(--band-1); }
-.momentum.down { color: var(--band-5); }
+/* Etiqueta «Momentum» con flecha junto al RSI 14 de la tarjeta del técnico (y en su página) */
+.momentum { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-size: inherit; font-weight: inherit; white-space: nowrap; vertical-align: baseline; cursor: help; }
+.momentum svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.momentum.up, .momentum-value.up { color: var(--band-1); }
+.momentum.down, .momentum-value.down { color: var(--band-5); }
 .status-change.down { color: var(--band-5); }
 /* Pantallas muy estrechas: precio, variación, vela e info en una sola línea */
 @media (max-width: 360px) { .status-price { gap: 4px 5px; font-size: 1.1rem; } }

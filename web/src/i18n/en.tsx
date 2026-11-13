@@ -396,6 +396,7 @@ export const en: Messages = {
 
   gauge: { cheap: "Cheap", expensive: "Expensive" },
   momentum: {
+    label: "Momentum",
     up: (tf: string, rsi: string) =>
       `Strong bullish momentum on ${tf} (RSI 14 at ${rsi}). Historically, with RSI at 80 or above the rise has tended to continue. Informational: it does not count in the score.`,
     down: (tf: string, rsi: string) =>

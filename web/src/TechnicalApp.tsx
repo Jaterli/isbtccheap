@@ -139,7 +139,8 @@ export function TechnicalApp() {
 
         {series && current && (
           <p className="vol-stats">
-            {tx.current(t.timeframes[shownTf].label, <Chip v={current.score} />)} <Momentum technical={current} tf={shownTf} />
+            {tx.current(t.timeframes[shownTf].label, <Chip v={current.score} />)}{" "}
+            <Momentum rsi={current.metrics.find((m) => m.id === "rsi_14")?.value} tf={shownTf} />
           </p>
         )}
         {shown && shown.time.length > 1 ? (
