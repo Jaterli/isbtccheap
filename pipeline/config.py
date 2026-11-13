@@ -39,6 +39,11 @@ METRICS = [
     # blackalmanak.com). Backtest de noviembre de 2026: sigue al precio (correlación positiva con la rentabilidad
     # posterior), en el índice no cambiaba nada y por debajo de −1,5σ solo daba un rebote de 1-2 semanas que a 30 días se
     # deshacía la mayoría de las veces
+    # Informativa: la pérdida realizada de todos los holders frente a su media de 90 días (como coinglass.com). Mucha
+    # pérdida = miedo = barato (invertida). Backtest de noviembre de 2026: en general no anticipaba; tras picos de 5 veces
+    # su media, el mes siguiente fue algo mejor que la media (+7 % frente a +4 % desde 2018). En el índice mejoraba algo la
+    # anticipación pero empeoraba el techo de 2017 y algún suelo
+    {"id": "realized_loss_ratio", "name": "Pérdida realizada (frente a su media de 90 d)", "category": "sentimiento", "method": "percentile", "invert": True, "info": True},
     {"id": "sth_mvrv_adj", "name": "MVRV de corto plazo ajustado (90 d)", "category": "sentimiento", "method": "zscore", "window": 365, "info": True},
     # 20 sesiones: con 5 o 10 se comporta como momentum. Datos desde 2024, así que puntúa desde 2025
     {"id": "etf_flows", "name": "Flujos de ETF al contado (20 sesiones)", "category": "sentimiento", "method": "percentile"},

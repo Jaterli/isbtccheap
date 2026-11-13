@@ -167,6 +167,10 @@ retraso): pérdida no realizada y realizada frente a su media de 90 días y su p
 1, venden con pérdidas). Una pérdida no realizada alta es estrés y riesgo de más ventas; capitulación es cuando venden de \
 verdad (pérdida realizada disparada y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open \
 interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo.
+- long_term_holders (monedas movidas hace más de 155 días, mismo retraso): pérdida realizada frente a su media de 90 días \
+y su último pico del año (5 veces su media o más). En los mercados alcistas es casi cero; su primer pico tras un periodo \
+así ha marcado el inicio de fases bajistas (2018, 2021, 2025: los compradores del techo venden con pérdidas), no suelos. \
+Contexto de fondo para el sesgo de días y semanas, no para las próximas horas.
 - news_headlines: titulares de impacto medio y alto (hora UTC, medio, impacto de 0 a 10), como contexto."""
 
 
@@ -374,6 +378,29 @@ def sth_context() -> dict:
         out["sopr_24h_last_14d"] = [round(x, 4) if x else None for x in sopr[-14:]]
     except Exception as e:  # la pérdida no realizada sirve sola
         log.warning("bitview: sin pérdida realizada o SOPR: %s", e)
+    return out
+
+
+LTH_SPIKE = 5  # pico de pérdida realizada de largo plazo: 5 veces su media de 90 días
+
+
+def lth_context() -> dict:
+    """Holders de largo plazo (monedas movidas hace más de 155 días): la pérdida realizada de cada día frente a su media de
+    90 días y el último pico (≥ LTH_SPIKE veces esa media) del último año. En los mercados alcistas es casi cero (quien
+    lleva meses suele estar en beneficios), así que su primer pico tras un periodo así es enorme frente a su media.
+    Backtest de noviembre de 2026: esos primeros picos tras un techo (abril de 2018, junio de 2021, octubre de 2025)
+    abrieron fases bajistas, con el año siguiente peor que la media; solo algunos coincidieron con suelos (marzo de 2020,
+    noviembre de 2022)."""
+    last, loss = _bitview("lth_realized_loss_sum_24h", STH_LOSS_PCT_DAYS + STH_LOSS_MEAN)
+    out = {"date": last.isoformat(), "realized_loss_24h": _vs_mean(loss)}
+    spike = None
+    for i in range(len(loss) - 365, len(loss)):
+        mean = sum(loss[i - STH_LOSS_MEAN + 1:i + 1]) / STH_LOSS_MEAN
+        if mean and loss[i] >= LTH_SPIKE * mean:
+            spike = (i, loss[i] / mean)
+    out["last_spike_365d"] = None if spike is None else {
+        "date": (last - timedelta(days=len(loss) - 1 - spike[0])).isoformat(), "days_ago": len(loss) - 1 - spike[0],
+        "ratio_to_90d_mean": round(spike[1], 1), "usd_bn": round(loss[spike[0]] / 1e9, 2)}
     return out
 
 
@@ -981,6 +1008,10 @@ def market() -> dict:
         data["short_term_holders"] = sth_context()
     except Exception as e:  # sin bitview el análisis sigue sin este dato
         log.warning("bitview no disponible: %s", e)
+    try:
+        data["long_term_holders"] = lth_context()
+    except Exception as e:
+        log.warning("bitview: sin pérdida realizada de largo plazo: %s", e)
     try:
         fg = get("https://api.alternative.me/fng/?limit=14")["data"]
         data["fear_greed_14d"] = [int(x["value"]) for x in reversed(fg)]

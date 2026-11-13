@@ -13,9 +13,10 @@ export const DERIV_METRICS = ["open_interest", "long_pct", "taker_pct"] as const
  * pérdidas de los holders de corto plazo (Bitview: marca mejor que el Fear & Greed los techos y suelos, pero en el
  * backtest del índice anticipaba algo peor y es redundante con él).
  */
-export const INFO_METRICS = [...DERIV_METRICS, "spot_buy_pct", "sth_loss_pct", "sth_mvrv_adj"] as const;
-/** Informativas que calcula el pipeline (sentiment.json, con "info"): el MVRV de corto plazo frente a su media de 90 días */
-const PIPELINE_INFO = ["sth_mvrv_adj"] as const;
+export const INFO_METRICS = [...DERIV_METRICS, "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"] as const;
+/** Informativas que calcula el pipeline (sentiment.json, con "info"): la pérdida realizada y el MVRV de corto plazo, cada
+ * una frente a su media de 90 días */
+const PIPELINE_INFO = ["realized_loss_ratio", "sth_mvrv_adj"] as const;
 type PipelineInfo = (typeof PIPELINE_INFO)[number];
 export const SENTIMENT_METRICS = [...DAILY_METRICS, ...DERIV_METRICS, ...INFO_METRICS] as const;
 export type DailyMetric = (typeof DAILY_METRICS)[number];
@@ -137,6 +138,7 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
     taker_pct: derivs?.values.taker_pct ?? none(),
     spot_buy_pct: spot?.value ?? none(),
     sth_loss_pct: sthLoss?.value ?? none(),
+    realized_loss_ratio: daily("realized_loss_ratio", "value"),
     sth_mvrv_adj: daily("sth_mvrv_adj", "value"),
   };
   const metricScores = {
@@ -146,6 +148,7 @@ export async function loadSentiment(tf: SentimentTf, h: History, s: SentimentJso
     taker_pct: derivs?.scores.taker_pct ?? none(),
     spot_buy_pct: spot?.score ?? none(),
     sth_loss_pct: sthLoss?.score ?? none(),
+    realized_loss_ratio: daily("realized_loss_ratio", "score"),
     sth_mvrv_adj: daily("sth_mvrv_adj", "score"),
   };
   // La categoría: la media de las métricas de la temporalidad que tengan dato, como en el índice

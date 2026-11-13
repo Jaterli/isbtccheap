@@ -696,6 +696,17 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 }
 
 /* Análisis: zonas, velas y flechas de los escenarios */
+/* Desplegable de la métrica dibujada sobre el precio (páginas de métricas) */
+.metric-select { position: relative; display: inline-flex; align-items: center; }
+.metric-select select {
+  appearance: none; -webkit-appearance: none; min-width: 200px; padding: 5px 30px 5px 10px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--fg);
+  font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.metric-select select:hover { border-color: var(--muted); }
+.metric-select select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.metric-select svg { position: absolute; right: 10px; width: 12px; height: 12px; pointer-events: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.metric-select option, .metric-select optgroup { background: var(--surface); color: var(--fg); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .an-bias { padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
 .an-bias.alcista { color: var(--band-1); }
@@ -788,9 +799,11 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
   border-color: color-mix(in srgb, var(--cycle-2016) 45%, var(--border));
 }
 /* Métrica informativa (el índice no la usa): borde discontinuo, separada de las del índice */
-.sent-controls .segmented button.info-metric { box-shadow: inset 0 0 0 1px var(--border); border: 1px dashed var(--tag-border); }
-.sent-controls .segmented button.info-metric.active { box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
 .sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+/* Pantallas estrechas: el desplegable ocupa la fila y los botones de temporalidad y periodo pasan a la siguiente */
+@media (max-width: 639px) {
+  .sent-controls .metric-select, .sent-controls .metric-select select { width: 100%; }
+}
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
 /* Al cambiar de temporalidad, el gráfico anterior atenuado y un aviso encima hasta que llega el nuevo (volatilidad y

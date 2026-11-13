@@ -65,6 +65,7 @@ def fetch_all() -> tuple:
         "stablecoins": sources.stablecoin_supply,
         "sth_sopr": lambda: sources.bitview("sth_sopr_1w"),
         "sth_realized_price": lambda: sources.bitview("sth_realized_price"),
+        "realized_loss": lambda: sources.bitview("realized_loss_sum_24h"),
         "etf_flows": sources.etf_flows,
     }
     tasks.update({sid: (lambda sid=sid: sources.fred(sid)) for sid in FRED_SERIES})

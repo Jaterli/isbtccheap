@@ -191,6 +191,7 @@ export const en: Messages = {
       "Informational (not used by the index): Binance derivatives (open interest, accounts long and market buys, scored against their last 30 days, which is all Binance keeps) stopped counting in 1h and 4h because there is no history to test whether they lead the price, and with a month of data accounts long pointed the opposite way to how the index scored them. They are being stored for a backtest. Their first candles have no score until 50 data points are available.",
       "Spot buys (informational, not used by the index): the share of BTC/USDT spot volume on Binance that was market buying, over the last 3 candles; 50% is balance. Binance keeps its whole history (since 2017): in 1D it is scored against its previous 4 years and in 1h and 4h against what is downloaded. It helps compare spot with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Market buys and spot buys change a lot from one candle to the next: the latest ones are shown (5 days in 1h, 10 in 4h and 1 or 3 months in 1D) so they read better.",
       "Short-term supply in loss (informational): the share of short-term holders' coins (moved less than 155 days ago) worth less than when bought, from Bitview. It is scored the other way round from the rest: many losses is fear, a low score. It marks cycle tops and bottoms better than the Fear & Greed Index, but in the index backtest it led slightly worse and measures almost the same, so it does not replace Fear & Greed.",
+      "Realized loss (informational): what coins moving below the price they were bought at lose each day, across all holders (Bitview), against its 90-day average: ×3 is three times the usual. It is scored the other way round from the rest, against its previous 4 years: heavy losses are fear, a low score. In the backtest it did not lead the price in general; after spikes of 5 times its average, the following month was somewhat better than average.",
       "Adjusted short-term MVRV (informational): the price against the average cost of short-term holders (Bitview realized price), compared with its 90-day average. It is scored by deviations from its last year: 25 and 75 are the −1σ and +1σ bands, and 0 and 100, the −2σ and +2σ ones. In the backtest it followed the price rather than leading it; well below its lower band (−1.5σ or less) a 1-2 week bounce usually came, which had faded 30 days later most of the time.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
@@ -208,6 +209,7 @@ export const en: Messages = {
       taker_pct: "Market buys",
       spot_buy_pct: "Spot buys",
       sth_loss_pct: "STH in loss",
+      realized_loss_ratio: "Realized loss",
       sth_mvrv_adj: "Adj. STH MVRV",
     },
     names: {
@@ -220,6 +222,7 @@ export const en: Messages = {
       taker_pct: "Market buys",
       spot_buy_pct: "Spot buys (informational)",
       sth_loss_pct: "Short-term supply in loss (informational)",
+      realized_loss_ratio: "Realized loss vs its 90-day average (informational)",
       sth_mvrv_adj: "Adjusted short-term MVRV (informational)",
     },
     btc: (v: string) => `${v} BTC`,

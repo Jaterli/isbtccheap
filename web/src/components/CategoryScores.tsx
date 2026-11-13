@@ -4,6 +4,7 @@ import { getJson } from "../lib/data";
 import type { History } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
+import { MetricSelect } from "./MetricSelect";
 import { LIQUIDITY_RANGES, useRange } from "./RangeSelect";
 import { ScoreChart } from "./ScoreChart";
 
@@ -132,23 +133,16 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           </InfoTip>
         </h2>
       </header>
-      {/* Como en las páginas de sentimiento y técnico: el periodo en una línea bajo el título y las métricas en otra */}
-      <div className="sent-controls">{range.control}</div>
+      {/* Como en las páginas de sentimiento y técnico: la métrica y el periodo en una línea bajo el título */}
       <div className="sent-controls">
-        <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
-          {keys.map((o) => (
-            <button
-              key={o}
-              role="radio"
-              aria-checked={k === o}
-              className={[isInfo(o) && "info-metric", k === o && "active"].filter(Boolean).join(" ")}
-              title={isInfo(o) ? tx.infoMetric : undefined}
-              onClick={() => setK(o)}
-            >
-              {label(o)}
-            </button>
-          ))}
-        </div>
+        <MetricSelect
+          value={k}
+          onChange={setK}
+          options={keys.map((o) => ({ id: o, label: label(o), info: isInfo(o) }))}
+          aria={tx.metricAria}
+          infoGroup={tx.infoGroup}
+        />
+        {range.control}
       </div>
 
       {shown && shown.time.length > 1 ? (

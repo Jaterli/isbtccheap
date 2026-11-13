@@ -172,6 +172,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         # MVRV de corto plazo (precio / precio realizado de las monedas de menos de 155 días) frente a su media de 90 días
         sth_mvrv = price / extra["sth_realized_price"].reindex(idx).ffill(limit=CM_LAG_FILL_DAYS)
         m["sth_mvrv_adj"] = sth_mvrv / sth_mvrv.rolling(90).mean() - 1
+    if "realized_loss" in extra:
+        # Pérdida realizada de todos los holders (USD/día) frente a su media de 90 días; sin el último día, que va en curso
+        loss = extra["realized_loss"].iloc[:-1].reindex(idx)
+        m["realized_loss_ratio"] = loss / loss.rolling(90, min_periods=60).mean()
     if "fear_greed" in extra:
         fg = extra["fear_greed"]
         m["fear_greed"] = fg.reindex(idx)

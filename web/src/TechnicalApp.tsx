@@ -3,6 +3,7 @@ import { Footer } from "./components/Footer";
 import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
+import { MetricSelect } from "./components/MetricSelect";
 import { Momentum } from "./components/Momentum";
 import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
@@ -126,19 +127,11 @@ export function TechnicalApp() {
         </header>
 
         <div className="sent-controls">
+          <MetricSelect value={k} onChange={(o) => setK(o as TechKey)} options={KEYS.map((o) => ({ id: o, label: label(o) }))} aria={tx.metricAria} />
           <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
             {TECH_TFS.map((x) => (
               <button key={x} role="radio" aria-checked={tf === x} className={tf === x ? "active" : ""} onClick={() => setTf(x)}>
                 {t.timeframes[x].short}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="sent-controls">
-          <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
-            {KEYS.map((o) => (
-              <button key={o} role="radio" aria-checked={k === o} className={k === o ? "active" : ""} onClick={() => setK(o)}>
-                {label(o)}
               </button>
             ))}
           </div>

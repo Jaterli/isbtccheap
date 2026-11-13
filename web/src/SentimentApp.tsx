@@ -3,6 +3,7 @@ import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
+import { MetricSelect } from "./components/MetricSelect";
 import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
 import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
@@ -38,6 +39,7 @@ const FORMAT: Record<SentimentMetric, (v: number) => string> = {
   taker_pct: (v) => pct(v),
   spot_buy_pct: (v) => pct(v),
   sth_loss_pct: (v) => pct(v),
+  realized_loss_ratio: (v) => `×${v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
   sth_mvrv_adj: (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
 };
 
@@ -79,7 +81,7 @@ function Chip({ v }: { v: number | null | undefined }) {
   );
 }
 
-const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "sth_mvrv_adj"];
+const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"];
 const isInfo = (k: SentimentKey) => (INFO_METRICS as readonly string[]).includes(k);
 
 export function SentimentApp() {
@@ -170,8 +172,15 @@ export function SentimentApp() {
           </h2>
         </header>
 
-        {/* Una línea con la temporalidad (y, en 1D, el periodo) y otra con las métricas */}
+        {/* Una línea: la métrica, la temporalidad y, en 1D, el periodo (en pantallas estrechas los botones bajan a otra) */}
         <div className="sent-controls">
+          <MetricSelect
+            value={k}
+            onChange={(o) => setKey(o as SentimentKey)}
+            options={options.map((o) => ({ id: o, label: label(o), info: isInfo(o) }))}
+            aria={tx.metricAria}
+            infoGroup={tx.infoGroup}
+          />
           <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
             {SENTIMENT_TFS.map((x) => (
               <button
@@ -187,22 +196,6 @@ export function SentimentApp() {
           </div>
           {/* Los periodos son de velas diarias: con el color del botón 1D */}
           {tf === "1d" && !NO_RANGE.includes(k) && <div className="sent-daily">{range.control}</div>}
-        </div>
-        <div className="sent-controls">
-          <div className="segmented small" role="radiogroup" aria-label={tx.metricAria}>
-            {options.map((o) => (
-              <button
-                key={o}
-                role="radio"
-                aria-checked={k === o}
-                className={[isInfo(o) && "info-metric", k === o && "active"].filter(Boolean).join(" ")}
-                title={isInfo(o) ? tx.infoMetric : undefined}
-                onClick={() => setKey(o)}
-              >
-                {label(o)}
-              </button>
-            ))}
-          </div>
         </div>
 
         {series && (
