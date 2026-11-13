@@ -211,12 +211,13 @@ export function SentimentApp() {
               tf={shownTf}
               aria={tx.chartAria}
               label={label(shownK)}
-              detail={(i) => {
-                if (shownK === "sentimiento") return null;
-                const v = shown.values[shownK][i];
-                if (v === null) return null;
-                const sc = shown.scores[shownK][i];
-                // Puntuación 50 + 25·σ (recortada en ±2σ): se muestra a cuántas desviaciones está de su media del último año
+              // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
+              mode={shownK === "sentimiento" ? "score" : isInfo(shownK) ? "value" : "both"}
+              values={shownK === "sentimiento" ? undefined : shown.values[shownK]}
+              format={(v, i) => {
+                if (shownK === "sentimiento") return "";
+                const sc = i >= 0 ? shown.scores[shownK][i] : null;
+                // Puntuación 50 + 25·σ (recortada en ±2σ): a cuántas desviaciones está de su media del último año
                 const sigma = shownK === "sth_mvrv_adj" && sc !== null ? ` · ${tx.sigma((sc - 50) / 25)}` : "";
                 return FORMAT[shownK](v) + sigma;
               }}

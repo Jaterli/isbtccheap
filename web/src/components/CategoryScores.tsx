@@ -39,6 +39,9 @@ interface Props {
   metrics: readonly string[];
   info?: readonly string[];
   tx: ScoresText;
+  /** Valor real de las métricas cuyo valor del pipeline no es el real (p. ej., la fase del halving, que guarda su
+   * puntuación), calculado con el día */
+  valueAt?: Record<string, (time: number) => number | null>;
   /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
   format: (id: string, v: number, time: number) => string;
   storageKey: string;
@@ -65,7 +68,7 @@ function Chip({ v }: { v: number | null | undefined }) {
  * métricas, como en la página de sentimiento; con la tabla de hoy, hace 1 mes y hace 3 meses. Se llega a ella desde el
  * icono de la tarjeta de la categoría (#metricas).
  */
-export function CategoryScores({ history, file, metrics, info = [], tx, format, storageKey }: Props) {
+export function CategoryScores({ history, file, metrics, info = [], tx, format, storageKey, valueAt }: Props) {
   const [data, setData] = useState<ScoresJson | null>(null);
   const [error, setError] = useState(false);
   const [k, setK] = useState<string>(CAT);
@@ -85,9 +88,15 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
       time: history.dates.slice(0, n).map((d) => Date.parse(`${d}T00:00:00Z`)),
       price: history.price.slice(0, n),
       scores: Object.fromEntries([[CAT, fit(data.category)], ...metrics.map((m) => [m, fit(data.metrics[m]?.score)])]),
-      values: Object.fromEntries(metrics.map((m) => [m, fit(data.metrics[m]?.value)])),
+      values: Object.fromEntries(
+        metrics.map((m) => {
+          const real = valueAt?.[m];
+          const days = history.dates.slice(0, n).map((d) => Date.parse(`${d}T00:00:00Z`));
+          return [m, real ? days.map(real) : fit(data.metrics[m]?.value)];
+        }),
+      ),
     };
-  }, [history, data, metrics]);
+  }, [history, data, metrics, valueAt]);
 
   const shown = useMemo(() => {
     if (!full) return null;
@@ -151,10 +160,10 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           scores={shown.scores}
           tf="1d"
           label={label(k)}
-          detail={(i) => {
-            const v = shown.values?.[i];
-            return v == null ? null : format(k, v, shown.time[i]);
-          }}
+          // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
+          mode={k === CAT ? "score" : isInfo(k) ? "value" : "both"}
+          values={shown.values ?? undefined}
+          format={(v, i) => format(k, v, i >= 0 ? shown.time[i] : shown.time.at(-1)!)}
           aria={tx.chartAria}
         />
       ) : (

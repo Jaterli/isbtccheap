@@ -31,14 +31,18 @@ const METRICS = ["halving_phase", "power_law", "wma200_ratio"] as const;
 const GENESIS = Date.parse("2009-01-03T00:00:00Z");
 const signedPct = (f: number) => t.percent(`${f > 0 ? "+" : f < 0 ? "−" : ""}${Math.abs(f * 100).toLocaleString(locale, { maximumFractionDigits: 1 })}`);
 
-/** Valor real de cada métrica. La fase guarda ya su puntuación: se muestra la parte del ciclo transcurrida ese día */
-function cycleValue(id: string, v: number, time: number) {
-  if (id === "halving_phase") {
-    const next = HALVINGS.findIndex((h) => h > time);
-    if (next < 0) return "—";
-    const prev = next === 0 ? GENESIS : HALVINGS[next - 1];
-    return t.percent(Math.round(((time - prev) / (HALVINGS[next] - prev)) * 100).toLocaleString(locale));
-  }
+/** Parte del ciclo de halving transcurrida un día (0-1): el valor real de la fase, que el pipeline guarda ya puntuada */
+function halvingPhase(time: number) {
+  const next = HALVINGS.findIndex((h) => h > time);
+  if (next < 0) return null;
+  const prev = next === 0 ? GENESIS : HALVINGS[next - 1];
+  return (time - prev) / (HALVINGS[next] - prev);
+}
+const VALUE_AT = { halving_phase: halvingPhase };
+
+/** Valor real de cada métrica */
+function cycleValue(id: string, v: number) {
+  if (id === "halving_phase") return t.percent(Math.round(v * 100).toLocaleString(locale));
   // Residuo en log10 frente a la tendencia; cociente frente a la media de 200 semanas
   return signedPct(id === "power_law" ? 10 ** v - 1 : v - 1);
 }
@@ -173,6 +177,7 @@ export function CyclesApp() {
         metrics={METRICS}
         tx={t.cycles.scores}
         format={cycleValue}
+        valueAt={VALUE_AT}
         storageKey="isbtccheap:cycle-scores-range"
       />
 

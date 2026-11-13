@@ -150,11 +150,10 @@ export function TechnicalApp() {
               tf={shownTf}
               aria={tx.chartAria}
               label={label(k)}
-              detail={(i) => {
-                if (!shown.values) return null;
-                const v = shown.values[i];
-                return v === null ? null : FORMAT[k as TechMetric](v);
-              }}
+              // La categoría, su puntuación; cada métrica, su puntuación y su valor real
+              mode={k === "tecnico" ? "score" : "both"}
+              values={shown.values ?? undefined}
+              format={(v) => (k === "tecnico" ? "" : FORMAT[k as TechMetric](v))}
             />
             {updating && (
               <div className="chart-updating" role="status">

@@ -788,6 +788,8 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 /* Página de sentimiento: la métrica superpuesta al precio */
 .sent-line { fill: none; stroke: var(--cycle-2012); stroke-width: 1.6; }
 .sent-dot { fill: var(--cycle-2012); }
+/* Valor real de una métrica del índice, junto a su puntuación: discontinuo y más fino */
+.value-line { stroke-width: 1.1; stroke-dasharray: 4 3; opacity: 0.75; }
 /* Temporalidad: botones del mismo tamaño que el resto. 1D, en turquesa, el mismo fondo que los periodos (velas diarias) */
 .sent-tfs button.daily.active, .sent-daily .segmented button.active {
   background: color-mix(in srgb, var(--cycle-2016) 22%, var(--surface));
