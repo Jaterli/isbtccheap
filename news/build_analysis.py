@@ -166,7 +166,9 @@ reinterpretado el mercado los datos recientes).
 retraso): pérdida no realizada y realizada frente a su media de 90 días y su percentil de 4 años, y SOPR (por debajo de \
 1, venden con pérdidas). Una pérdida no realizada alta es estrés y riesgo de más ventas; capitulación es cuando venden de \
 verdad (pérdida realizada disparada y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open \
-interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo.
+interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo. \
+capitulation.level ya lo clasifica: none, capitulation_levels (pérdida realizada de 5 veces su media o más con SOPR por \
+debajo de 1) o intense_capitulation (además, SOPR de 0,97 o menos o pérdida en dólares en el 1 % más alto de 4 años).
 - long_term_holders (monedas movidas hace más de 155 días, mismo retraso): pérdida realizada frente a su media de 90 días \
 y su último pico del año (5 veces su media o más). En los mercados alcistas es casi cero; su primer pico tras un periodo \
 así ha marcado el inicio de fases bajistas (2018, 2021, 2025: los compradores del techo venden con pérdidas), no suelos. \
@@ -236,7 +238,10 @@ tramo diario principal (X $), dentro de una zona con N reacciones" o "el hueco d
 rellenado" (X, Y y N son los de los datos).
 3. Interpreta bien los datos: un dato por encima de la previsión no es "mejor de lo previsto" si es malo para el \
 mercado (una inflación más alta, por ejemplo); una pérdida no realizada alta de los holders de corto plazo es estrés, y \
-solo es capitulación si venden de verdad con pérdidas (pérdida realizada disparada y SOPR claramente por debajo de 1).
+solo es capitulación si venden de verdad con pérdidas (pérdida realizada disparada y SOPR claramente por debajo de 1). \
+Su intensidad es la de short_term_holders.capitulation.level, sin exagerarla: con capitulation_levels, "en niveles de \
+capitulación" o "con pérdidas propias de una capitulación" (nunca "plena capitulación" ni "capitulación masiva"); solo \
+con intense_capitulation, "capitulación intensa"; con none, no hables de capitulación.
 4. Atribuye cada dato a su fuente y no mezcles datos de distinta naturaleza en una misma frase o clave: las \
 probabilidades de las decisiones de la Fed son las del mercado de predicción Kalshi, no la opinión de un miembro de la \
 Fed; las salidas de los ETF son flujos de inversores, no posiciones en derivados.
@@ -364,6 +369,26 @@ def _vs_mean(values: list[float]) -> dict:
     }
 
 
+# Capitulación de los holders de corto plazo, clasificada aquí para que el texto no la exagere (14 nov 2026: "plena
+# capitulación" con el ratio alto pero un SOPR de 0,985 y la cuarta parte de pérdida en dólares que en febrero)
+CAPITULATION_RATIO = 5  # pérdida realizada, veces su media de 90 días
+CAPITULATION_INTENSE_SOPR = 0.97  # SOPR de 24 h igual o por debajo: venden con un 3 % de pérdida o más
+CAPITULATION_INTENSE_USD_PCT = 99  # o pérdida en dólares en el 1 % más alto de los últimos 4 años
+# Calibrado con las de 2018-2026: así salen intensas marzo de 2020, mayo de 2021, junio de 2022, agosto de 2024 y
+# febrero de 2026; con el percentil 90 lo eran casi todos los días con niveles de capitulación (66 de 74)
+
+
+def capitulation(realized: list[float], ratio: float | None, sopr: float | None) -> dict:
+    """none; capitulation_levels (pérdida realizada ≥ CAPITULATION_RATIO veces su media con SOPR por debajo de 1);
+    intense_capitulation (además, SOPR ≤ CAPITULATION_INTENSE_SOPR o pérdida en dólares en el 1 % más alto de 4 años)."""
+    valid = [v for v in realized[-STH_LOSS_PCT_DAYS:] if v]
+    usd_pct = round(sum(v < realized[-1] for v in valid) / len(valid) * 100) if valid else None
+    levels = ratio is not None and ratio >= CAPITULATION_RATIO and sopr is not None and sopr < 1
+    intense = levels and (sopr <= CAPITULATION_INTENSE_SOPR or (usd_pct is not None and usd_pct >= CAPITULATION_INTENSE_USD_PCT))
+    return {"level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
+            "realized_loss_usd_percentile_4y": usd_pct, "sopr_24h": sopr}
+
+
 def sth_context() -> dict:
     """Holders de corto plazo (monedas movidas hace menos de 155 días): la pérdida no realizada (lo que pierden las que
     aún tienen) y la realizada (lo que perdieron las que vendieron ese día), cada una frente a su media de 90 días, y el
@@ -376,6 +401,7 @@ def sth_context() -> dict:
         out["realized_loss_24h"] = _vs_mean(realized)
         _, sopr = _bitview("sth_sopr_24h", 14)
         out["sopr_24h_last_14d"] = [round(x, 4) if x else None for x in sopr[-14:]]
+        out["capitulation"] = capitulation(realized, out["realized_loss_24h"]["ratio_to_90d_mean"], round(sopr[-1], 4) if sopr[-1] else None)
     except Exception as e:  # la pérdida no realizada sirve sola
         log.warning("bitview: sin pérdida realizada o SOPR: %s", e)
     return out
