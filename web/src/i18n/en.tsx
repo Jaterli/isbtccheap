@@ -257,6 +257,12 @@ export const en: Messages = {
       bollinger: "Bollinger %B (20, 2)",
       ma200_ratio: "Price vs MA200 (percentile)",
     },
+    smoothAria: "Smoothing (average of the last candles)",
+    smoothNone: "No smoothing",
+    // N candles in the timeframe: days on 1D, hours on 1h, hours or days on 4h, weeks on the weekly
+    smoothLabel: (n: number, tf: string) =>
+      tf === "1h" ? `${n}h` : tf === "4h" ? (n * 4 < 48 ? `${n * 4}h` : `${Math.round((n * 4) / 24)}d`) : tf === "1w" ? `${n}w` : `${n}d`,
+    smoothed: (name: string, span: string) => `${name} (${span} average)`,
     tfAria: "Timeframe",
     metricAria: "Score overlaid on the price",
     noData: "No data: Binance is not responding.",

@@ -14,6 +14,18 @@ import { TECH_METRICS, TECH_TFS, loadTechnical, type TechKey, type TechMetric, t
 import type { Category, History } from "./types";
 
 const KEYS: TechKey[] = ["tecnico", ...TECH_METRICS];
+// Suavizado del técnico, del RSI y del %B: media de las últimas N velas (en 1D, 7 y 30 días; en el resto, las mismas velas)
+const SMOOTH = ["0", "7", "30"] as const;
+type Smooth = (typeof SMOOTH)[number];
+const smaOf = (xs: (number | null)[], n: number) =>
+  xs.map((_, i) => {
+    if (i < n - 1) return null;
+    const w = xs.slice(i - n + 1, i + 1);
+    return w.some((v) => v === null) ? null : (w as number[]).reduce((a, b) => a + b, 0) / n;
+  });
+// La misma puntuación que el índice: RSI 30 o menos → 0 y 70 o más → 100; %B recortado entre 0 y 100
+const clamp100 = (x: number) => Math.min(100, Math.max(0, x));
+const SMOOTH_SCORE: Partial<Record<TechKey, (v: number) => number>> = { rsi_14: (v) => clamp100(((v - 30) / 40) * 100), bollinger: clamp100 };
 // Columnas de la tabla: ahora, la vela anterior y 6 velas antes
 const AGO = [0, 1, 6];
 
@@ -65,6 +77,11 @@ export function TechnicalApp() {
   const [error, setError] = useState(false);
   const [tf, setTf] = useStored<TechTf>("isbtccheap:technical-tf", "4h", TECH_TFS);
   const [k, setK] = useStored<TechKey>("isbtccheap:technical-key", "tecnico", KEYS);
+  const [smooth, setSmooth] = useStored<Smooth>("isbtccheap:technical-smooth", "0", SMOOTH);
+  const smoothScore = SMOOTH_SCORE[k];
+  // El técnico no tiene valor propio: se suaviza su puntuación
+  const smoothable = k === "tecnico" || smoothScore !== undefined;
+  const smoothN = smoothable ? Number(smooth) : 0;
   const updating = loaded !== null && loaded.tf !== tf;
 
   useEffect(() => {
@@ -89,9 +106,16 @@ export function TechnicalApp() {
   const shownTf = loaded?.tf ?? tf;
   const shown = useMemo(() => {
     if (!series) return null;
-    const i = series.scores[k].findIndex((v) => v !== null);
-    return i < 0 ? null : { time: series.time.slice(i), price: series.price.slice(i), scores: series.scores[k].slice(i), values: k === "tecnico" ? null : series.values[k].slice(i) };
-  }, [series, k]);
+    // Suavizado: la media de su valor y la puntuación de esa media
+    const values = k === "tecnico" ? null : smoothN ? smaOf(series.values[k], smoothN) : series.values[k];
+    const scores = !smoothN
+      ? series.scores[k]
+      : values && smoothScore
+        ? values.map((v) => (v === null ? null : smoothScore(v)))
+        : smaOf(series.scores[k], smoothN);
+    const i = scores.findIndex((v) => v !== null);
+    return i < 0 ? null : { time: series.time.slice(i), price: series.price.slice(i), scores: scores.slice(i), values: values ? values.slice(i) : null };
+  }, [series, k, smoothN, smoothScore]);
 
   const last = series ? series.time.length - 1 : -1;
   // La categoría de la última vela, para la flecha de impulso (la misma que junto al score del índice)
@@ -138,6 +162,15 @@ export function TechnicalApp() {
               </button>
             ))}
           </div>
+          {smoothable && (
+            <div className="segmented small" role="radiogroup" aria-label={tx.smoothAria}>
+              {SMOOTH.map((n) => (
+                <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
+                  {n === "0" ? tx.smoothNone : tx.smoothLabel(Number(n), shownTf)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {series && current && (
@@ -153,7 +186,7 @@ export function TechnicalApp() {
               scores={shown.scores}
               tf={shownTf}
               aria={tx.chartAria}
-              label={label(k)}
+              label={smoothN ? tx.smoothed(label(k), tx.smoothLabel(smoothN, shownTf)) : label(k)}
               // La categoría, su puntuación; cada métrica, su puntuación y su valor real
               mode={k === "tecnico" ? "score" : "both"}
               values={shown.values ?? undefined}

@@ -264,6 +264,12 @@ export const es = {
       bollinger: "Bollinger %B (20, 2)",
       ma200_ratio: "Precio frente a MA200 (percentil)",
     },
+    smoothAria: "Suavizado (media de las últimas velas)",
+    smoothNone: "Sin suavizar",
+    // N velas en la temporalidad: en 1D, días; en 1 h, horas; en 4 h, horas o días; en semanal, semanas
+    smoothLabel: (n: number, tf: string) =>
+      tf === "1h" ? `${n} h` : tf === "4h" ? (n * 4 < 48 ? `${n * 4} h` : `${Math.round((n * 4) / 24)} d`) : tf === "1w" ? `${n} sem` : `${n} d`,
+    smoothed: (name: string, span: string) => `${name} (media ${span})`,
     tfAria: "Temporalidad",
     metricAria: "Puntuación superpuesta al precio",
     noData: "Sin datos: Binance no responde.",
