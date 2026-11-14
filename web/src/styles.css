@@ -272,6 +272,25 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .status-change { font-size: 0.95rem; font-weight: 600; }
 .status-price .info-btn { font-size: 0.9rem; font-weight: 400; }
 .status-change.up { color: var(--band-1); }
+/* Tarjeta de capitulación (página de sentimiento) */
+.cap-level { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 10px 0 4px; }
+.cap-badge { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--border); color: var(--muted); }
+.cap-badge.capitulation_levels { color: var(--band-4); border-color: var(--band-4); }
+.cap-badge.intense_capitulation { color: #fff; background: var(--band-5); border-color: var(--band-5); }
+.cap-table { margin-top: 10px; white-space: normal; }
+.cap-table tbody th { font-weight: 500; }
+.cap-table td { white-space: nowrap; }
+.cap-group th { padding-top: 14px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 0; }
+.cap-th-inline { display: none; }
+/* Pantallas estrechas: dos columnas, con el umbral bajo el nombre de la métrica */
+@media (max-width: 639px) {
+  .cap-table .cap-th { display: none; }
+  .cap-th-inline { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 400; }
+  .cap-table th, .cap-table td { padding: 7px 6px; }
+  .cap-table th:first-child { padding-left: 0; }
+}
+.cap-met { font-weight: 700; color: var(--fg); }
+.cap-check { color: var(--band-4); }
 /* Etiqueta «Momentum» con flecha junto al RSI 14 de la tarjeta del técnico (y en su página) */
 .momentum { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-size: inherit; font-weight: inherit; white-space: nowrap; vertical-align: baseline; cursor: help; }
 .momentum svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }

@@ -2,7 +2,8 @@
 
 Uso:  python pipeline/build.py
 Genera web/public/data/latest.json, history.json, categories.json, sentiment.json, liquidity_scores.json, bands.json,
-valuation_scores.json, cycle_scores.json y liquidity.json
+valuation_scores.json, cycle_scores.json,
+liquidity.json y capitulation.json
 (en otra carpeta con PIPELINE_OUT_DIR, para probar sin tocar los datos de la web).
 """
 
@@ -66,6 +67,11 @@ def fetch_all() -> tuple:
         "sth_sopr": lambda: sources.bitview("sth_sopr_1w"),
         "sth_realized_price": lambda: sources.bitview("sth_realized_price"),
         "realized_loss": lambda: sources.bitview("realized_loss_sum_24h"),
+        # Para capitulation.json: la de los holders de corto plazo, su SOPR diario y su oferta en pérdidas y en beneficios
+        "sth_realized_loss": lambda: sources.bitview("sth_realized_loss_sum_24h"),
+        "sth_sopr_24h": lambda: sources.bitview("sth_sopr_24h"),
+        "sth_supply_in_loss": lambda: sources.bitview("sth_supply_in_loss"),
+        "sth_supply_in_profit": lambda: sources.bitview("sth_supply_in_profit"),
         "etf_flows": sources.etf_flows,
     }
     tasks.update({sid: (lambda sid=sid: sources.fred(sid)) for sid in FRED_SERIES})
@@ -172,6 +178,10 @@ def main() -> None:
     if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *metrics_mod.GLOBAL_SERIES)):
         liquidity = metrics_mod.liquidity_json(extra, cm["PriceUSD"].dropna())
         (OUT_DIR / "liquidity.json").write_text(json.dumps(liquidity, separators=(",", ":")), encoding="utf-8")
+    # Si Bitview falló, se queda el de la última ejecución
+    cap = metrics_mod.capitulation_json(extra, m)
+    if cap:
+        (OUT_DIR / "capitulation.json").write_text(json.dumps(cap, separators=(",", ":")), encoding="utf-8")
     log.info("Score 1d (%s): %.1f  |  fuentes caídas: %s", latest["as_of"], score_1d.iloc[-1], missing or "ninguna")
 
 

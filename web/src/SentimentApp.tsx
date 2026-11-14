@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CapitulationCard } from "./components/CapitulationCard";
 import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -283,6 +284,8 @@ export function SentimentApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
+
+      <CapitulationCard />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

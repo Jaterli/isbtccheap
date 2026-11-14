@@ -395,6 +395,37 @@ export const en: Messages = {
   },
 
   gauge: { cheap: "Cheap", expensive: "Expensive" },
+  capitulation: {
+    card: "Recent buyers' capitulation",
+    info: [
+      "Three questions, in order. **How many are losing?** (stress): short-term holders' supply in loss and adjusted MVRV (coins moved less than 155 days ago). **Are they actually selling at a loss?** (the capitulation itself): their realized loss against its 90-day average and their daily SOPR. **Is there panic?**: the Fear & Greed Index.",
+      "The level uses the same rule as the AI analysis. **Capitulation levels**: realized loss of 5 times its average or more with SOPR below 1. **Intense capitulation**: in addition, SOPR of 0.97 or less or a dollar loss in the top 1% of 4 years, as in March 2020, August 2024 or February 2026. The stress and panic questions do not change the level: they explain it.",
+      "Capitulations tend to mark the short-term bottom zone, not the day: the decline can continue (in June 2022 it fell another 20%). What usually announces the turn is the exit: SOPR reclaiming 1 and realized loss returning to its average. Daily Bitview data with a one-day lag. Informational: the index does not use it.",
+    ],
+    levels: { none: "No capitulation", capitulation_levels: "Capitulation levels", intense_capitulation: "Intense capitulation" },
+    asOf: (d: string) => `Data for ${d}`,
+    reading: {
+      none: () => "Recent buyers are not selling at a loss at capitulation levels.",
+      capitulation_levels: (p: number) =>
+        `Recent buyers are selling at a loss at capitulation levels, but without the intensity of the big ones: SOPR is not below 0.97 and the dollar loss is in the ${p}th percentile of 4 years, not among the highest.`,
+      intense_capitulation: () => "Recent buyers are selling at heavy losses, as in the big capitulations.",
+    },
+    questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?" },
+    metrics: {
+      sthLoss: "Short-term supply in loss",
+      mvrv: "Adjusted short-term MVRV",
+      realizedLoss: "Short-term realized loss (times its 90-day average)",
+      sopr: "Short-term SOPR (day)",
+      fearGreed: "Fear & Greed Index",
+    },
+    over: (v: string) => `over ${v}`,
+    under: (v: string) => `under ${v}`,
+    atLeast: (v: string) => `${v} or more`,
+    soprThreshold: (v: string, intense: string) => `under ${v} (${intense} or less, intense)`,
+    cols: { question: "Question", metric: "Metric", now: "Today", threshold: "Threshold" },
+    met: "Meets the threshold",
+    note: "Historical data, not a forecast or investment advice.",
+  },
   momentum: {
     label: "Momentum",
     up: (tf: string, rsi: string) =>

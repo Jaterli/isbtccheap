@@ -190,3 +190,53 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     m["ma200_ratio"] = m["mayer"]
 
     return m.replace([np.inf, -np.inf], np.nan)
+
+
+# Capitulación de los holders de corto plazo: la misma regla que el análisis de IA (news/build_analysis.py, capitulation),
+# calibrada con las capitulaciones de 2018-2026. Si se cambia allí, cambiarla aquí
+CAPITULATION_RATIO = 5  # pérdida realizada de corto plazo, veces su media de 90 días (con SOPR por debajo de 1)
+CAPITULATION_INTENSE_SOPR = 0.97
+CAPITULATION_INTENSE_USD_PCT = 99  # pérdida en dólares en el 1 % más alto de los últimos 4 años
+# Umbrales de las otras señales de la tarjeta (estrés y pánico): solo se muestran, no cambian el nivel
+STH_LOSS_STRESS_PCT = 75
+FEAR_GREED_PANIC = 20
+
+
+def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
+    """capitulation.json: el último día completo de Bitview con el nivel (none, capitulation_levels o
+    intense_capitulation) y los datos para leerlo: cuántos compradores recientes pierden, si venden con pérdidas y el
+    miedo del mercado."""
+    if not all(k in extra for k in ("sth_realized_loss", "sth_sopr_24h", "sth_supply_in_loss", "sth_supply_in_profit")):
+        return None
+    # El último día de Bitview va en curso
+    loss = extra["sth_realized_loss"].iloc[:-1].fillna(0)
+    sopr = extra["sth_sopr_24h"].iloc[:-1].dropna()
+    in_loss, in_profit = extra["sth_supply_in_loss"].iloc[:-1], extra["sth_supply_in_profit"].iloc[:-1]
+    day = min(loss.index[-1], sopr.index[-1], in_loss.dropna().index[-1])
+    mean90 = loss[:day].iloc[-90:].mean()
+    ratio = float(loss[day] / mean90) if mean90 else None
+    window = loss[:day].iloc[-1460:]
+    usd_pct = float((window.iloc[:-1] < loss[day]).mean() * 100)
+    s = float(sopr[day])
+    levels = ratio is not None and ratio >= CAPITULATION_RATIO and s < 1
+    intense = levels and (s <= CAPITULATION_INTENSE_SOPR or usd_pct >= CAPITULATION_INTENSE_USD_PCT)
+    adj = m["sth_mvrv_adj"].dropna() if "sth_mvrv_adj" in m else pd.Series(dtype=float)
+    roll = adj.rolling(365, min_periods=30)
+    sigma = ((adj - roll.mean()) / roll.std(ddof=0)).dropna()
+    fg = m["fear_greed"].dropna() if "fear_greed" in m else pd.Series(dtype=float)
+    r = lambda v, d: None if v is None or pd.isna(v) else round(float(v), d)
+    return {
+        "date": day.strftime("%Y-%m-%d"),
+        "level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
+        "sth_loss_pct": r(in_loss[day] / (in_loss[day] + in_profit[day]) * 100, 1),
+        "sth_mvrv_adj": r(adj.iloc[-1], 4) if len(adj) else None,
+        "sth_mvrv_sigma": r(sigma.iloc[-1], 2) if len(sigma) else None,
+        "sth_realized_loss_ratio": r(ratio, 2),
+        "sth_realized_loss_usd_bn": r(loss[day] / 1e9, 2),
+        "sth_realized_loss_usd_pct_4y": round(usd_pct),
+        "sth_sopr_24h": r(s, 4),
+        "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
+        "thresholds": {"realized_loss_ratio": CAPITULATION_RATIO, "sopr": 1, "intense_sopr": CAPITULATION_INTENSE_SOPR,
+                       "intense_usd_pct": CAPITULATION_INTENSE_USD_PCT, "sth_loss_pct": STH_LOSS_STRESS_PCT,
+                       "sth_mvrv_sigma": -1, "fear_greed": FEAR_GREED_PANIC},
+    }
