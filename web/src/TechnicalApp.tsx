@@ -3,6 +3,7 @@ import { Footer } from "./components/Footer";
 import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
+import { Rich } from "./components/Rich";
 import { MetricSelect } from "./components/MetricSelect";
 import { Momentum } from "./components/Momentum";
 import { ScoreChart } from "./components/ScoreChart";
@@ -120,7 +121,9 @@ export function TechnicalApp() {
             {tx.card}
             <InfoTip label={tx.card} title={tx.card}>
               {tx.info.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p}>
+                  <Rich text={p} />
+                </p>
               ))}
             </InfoTip>
           </h2>

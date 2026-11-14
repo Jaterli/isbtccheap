@@ -818,3 +818,7 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 /* Enlace a la página de la categoría, con icono de gráfica, junto a la i de información */
 .info-btn.chart-link { cursor: pointer; }
 .info-btn.chart-link + .info-btn { margin-left: 0.25em; }
+/* Nombre de la categoría como enlace a su página de métricas: subrayado discreto, más marcado al pasar el ratón */
+.cat-link { color: inherit; text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px; }
+.cat-link:hover { color: var(--accent); text-decoration-style: solid; text-decoration-color: currentColor; }
+.cat-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }

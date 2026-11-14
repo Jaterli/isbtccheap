@@ -4,6 +4,7 @@ import { getJson } from "../lib/data";
 import type { History } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
+import { Rich } from "./Rich";
 import { MetricSelect } from "./MetricSelect";
 import { LIQUIDITY_RANGES, useRange } from "./RangeSelect";
 import { ScoreChart } from "./ScoreChart";
@@ -137,7 +138,9 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           {tx.card}
           <InfoTip label={tx.card} title={tx.card}>
             {tx.info.map((p) => (
-              <p key={p}>{p}</p>
+              <p key={p}>
+                <Rich text={p} />
+              </p>
             ))}
           </InfoTip>
         </h2>

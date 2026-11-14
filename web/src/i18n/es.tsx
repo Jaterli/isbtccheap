@@ -23,8 +23,8 @@ export const es = {
     scores: {
       card: "Ciclo y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Ciclo» es la categoría: la media de la fase del ciclo de halving, la desviación de la power law y el precio frente a la media de 200 semanas. Al pasar por el gráfico se ve también el valor real de la métrica.",
-        "La fase del halving no se compara con el pasado: puntúa según la parte del ciclo transcurrida (barata tras el suelo, cara hacia el techo típico, unos 12-18 meses después del halving), y su valor real es ese porcentaje del ciclo. La power law y la media de 200 semanas se comparan con sus 4 años anteriores.",
+        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Ciclo» es la categoría: la media de la **fase del ciclo de halving**, la **desviación de la power law** y el **precio frente a la media de 200 semanas**. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "**La fase del halving** no se compara con el pasado: puntúa según la parte del ciclo transcurrida (barata tras el suelo, cara hacia el techo típico, unos 12-18 meses después del halving), y su valor real es ese porcentaje del ciclo. La **power law** y la **media de 200 semanas** se comparan con sus 4 años anteriores.",
       ],
       category: "Ciclo",
       short: { halving_phase: "Fase halving", power_law: "Power law", wma200_ratio: "MA 200 sem" },
@@ -73,7 +73,7 @@ export const es = {
     scores: {
       card: "Valoración on-chain y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Valoración» es la categoría: la media del MVRV, el Puell Multiple y el Mayer Multiple. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada línea es una puntuación de 0 (barato) a 100 (caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Valoración» es la categoría: la media del **MVRV**, el **Puell Multiple** y el **Mayer Multiple**. Al pasar por el gráfico se ve también el valor real de la métrica.",
         "Cada métrica se compara con sus 4 años anteriores (un ciclo de halving): una puntuación alta indica que está más cara que casi siempre en ese periodo. Es la categoría que más pesa en el índice desde la temporalidad diaria y la que mejor ha marcado los techos y suelos de ciclo en el backtest.",
       ],
       category: "Valoración",
@@ -88,8 +88,8 @@ export const es = {
     rest: "El precio de BTC frente a sus niveles de largo plazo: precio realizado, media de 200 semanas y la tendencia de la power law.",
     card: "Precio y niveles de valoración",
     info: [
-      "Precio realizado: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). Precio realizado de corto plazo: lo mismo solo para las monedas de menos de 150 días, el coste medio de los compradores recientes (de Bitview). Media de 200 semanas: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
-      "Power law: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
+      "**Precio realizado**: el precio medio al que se movieron por última vez los bitcoins en circulación, una aproximación a lo que pagaron de media sus dueños (precio / MVRV, de Coin Metrics). **Precio realizado de corto plazo**: lo mismo solo para las monedas de menos de 150 días, el coste medio de los compradores recientes (de Bitview). **Media de 200 semanas**: la media del precio de los últimos cuatro años, aproximadamente un ciclo.",
+      "**Power law**: la recta que mejor se ajusta al precio en escala logarítmica frente a los días desde el bloque génesis. El corredor sombreado contiene el 95 % de los días desde 2013. La escala es logarítmica y el último día usa el precio actual.",
     ],
     current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
       <>
@@ -194,12 +194,12 @@ export const es = {
     card: "Sentimiento y precio",
     info: [
       "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica.",
-      "El índice usa en todas las temporalidades las mismas métricas diarias: el Fear & Greed Index, el SOPR de corto plazo y los flujos de los ETF (puntuados frente a sus últimos 4 años). En 1 h y 4 h, cada vela muestra el dato de su día.",
-      "Informativas (el índice no las usa): los derivados de Binance (open interest, cuentas en largo y compras a mercado, puntuados frente a sus últimos 30 días, que es lo que guarda Binance) dejaron de contar en 1 h y 4 h porque no hay histórico con el que comprobar si anticipan el precio, y con un mes de datos las cuentas en largo apuntaban al revés de como las puntuaba el índice. Se van guardando para un backtest. Sus primeras velas no tienen puntuación hasta reunir 50 datos.",
-      "Compras al contado (informativa, el índice no la usa): la parte del volumen al contado de BTC/USDT en Binance que fueron compras a mercado, en las 3 últimas velas; 50 % es equilibrio. Binance guarda todo su histórico (desde 2017): en 1D se puntúa frente a sus 4 años anteriores y en 1 h y 4 h frente a lo descargado. Sirve para comparar el contado con los futuros: si el contado compra mientras los futuros venden, alguien está absorbiendo las ventas apalancadas. Las compras a mercado y al contado cambian mucho de una vela a otra: se muestran las últimas (5 días en 1 h, 10 en 4 h y 1 o 3 meses en 1D) para que se lean mejor.",
-      "Oferta en pérdidas de corto plazo (informativa): el porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) que valen menos que cuando se compraron, de Bitview. Se puntúa al revés que el resto: muchas pérdidas es miedo, puntuación baja. Marca mejor que el Fear & Greed los techos y suelos de ciclo, pero en el backtest del índice anticipaba algo peor y mide casi lo mismo, así que no sustituye al Fear & Greed.",
-      "Pérdida realizada (informativa): lo que pierden cada día las monedas que se mueven por debajo del precio al que se compraron, de todos los holders (Bitview), frente a su media de 90 días: ×3 es el triple de lo habitual. Se puntúa al revés que el resto, frente a sus 4 años anteriores: mucha pérdida es miedo, puntuación baja. En el backtest no anticipaba en general; tras picos de 5 veces su media, el mes siguiente fue algo mejor que la media.",
-      "MVRV de corto plazo ajustado (informativa): el precio frente al coste medio de los holders de corto plazo (precio realizado de Bitview), comparado con su media de 90 días. Se puntúa por desviaciones frente a su último año: 25 y 75 son las bandas de −1σ y +1σ, y 0 y 100, las de −2σ y +2σ. En el backtest seguía al precio en vez de anticiparlo; muy por debajo de su banda inferior (−1,5σ o menos) solía llegar un rebote de 1-2 semanas que a 30 días se deshacía la mayoría de las veces.",
+      "El índice usa en todas las temporalidades las mismas métricas diarias: el **Fear & Greed Index**, el **SOPR de corto plazo** y los **flujos de los ETF** (puntuados frente a sus últimos 4 años). En 1 h y 4 h, cada vela muestra el dato de su día.",
+      "Informativas (el índice no las usa): los **derivados de Binance** (**open interest**, **cuentas en largo** y **compras a mercado**, puntuados frente a sus últimos 30 días, que es lo que guarda Binance) dejaron de contar en 1 h y 4 h porque no hay histórico con el que comprobar si anticipan el precio, y con un mes de datos las cuentas en largo apuntaban al revés de como las puntuaba el índice. Se van guardando para un backtest. Sus primeras velas no tienen puntuación hasta reunir 50 datos.",
+      "**Compras al contado** (informativa, el índice no la usa): la parte del volumen al contado de BTC/USDT en Binance que fueron compras a mercado, en las 3 últimas velas; 50 % es equilibrio. Binance guarda todo su histórico (desde 2017): en 1D se puntúa frente a sus 4 años anteriores y en 1 h y 4 h frente a lo descargado. Sirve para comparar el contado con los futuros: si el contado compra mientras los futuros venden, alguien está absorbiendo las ventas apalancadas. Las compras a mercado y al contado cambian mucho de una vela a otra: se muestran las últimas (5 días en 1 h, 10 en 4 h y 1 o 3 meses en 1D) para que se lean mejor.",
+      "**Oferta en pérdidas de corto plazo** (informativa): el porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) que valen menos que cuando se compraron, de Bitview. Se puntúa al revés que el resto: muchas pérdidas es miedo, puntuación baja. Marca mejor que el Fear & Greed los techos y suelos de ciclo, pero en el backtest del índice anticipaba algo peor y mide casi lo mismo, así que no sustituye al Fear & Greed.",
+      "**Pérdida realizada** (informativa): lo que pierden cada día las monedas que se mueven por debajo del precio al que se compraron, de todos los holders (Bitview), frente a su media de 90 días: ×3 es el triple de lo habitual. Se puntúa al revés que el resto, frente a sus 4 años anteriores: mucha pérdida es miedo, puntuación baja. En el backtest no anticipaba en general; tras picos de 5 veces su media, el mes siguiente fue algo mejor que la media.",
+      "**MVRV de corto plazo ajustado** (informativa): el precio frente al coste medio de los holders de corto plazo (precio realizado de Bitview), comparado con su media de 90 días. Se puntúa por desviaciones frente a su último año: 25 y 75 son las bandas de −1σ y +1σ, y 0 y 100, las de −2σ y +2σ. En el backtest seguía al precio en vez de anticiparlo; muy por debajo de su banda inferior (−1,5σ o menos) solía llegar un rebote de 1-2 semanas que a 30 días se deshacía la mayoría de las veces.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
@@ -252,9 +252,9 @@ export const es = {
     card: "Técnico y precio",
     info: [
       "Cada línea es una puntuación de 0 (estirado a la baja: barato) a 100 (estirado al alza: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Técnico» es la categoría: la media de sus tres métricas. Al pasar por el gráfico se ve también el valor real de la métrica.",
-      "RSI 14: 30 o menos puntúa 0 y 70 o más, 100. Bollinger %B (20, 2): 0 es la banda inferior y 100 la superior. Precio frente a la media de 200 velas: su percentil frente a las últimas 1000 velas (en semanal, frente a toda la historia desde 2011).",
+      "**RSI 14**: 30 o menos puntúa 0 y 70 o más, 100. **Bollinger %B (20, 2)**: 0 es la banda inferior y 100 la superior. **Precio frente a la media de 200 velas**: su percentil frente a las últimas 1000 velas (en semanal, frente a toda la historia desde 2011).",
       "Se calcula con las velas de Binance de cada temporalidad, igual que el técnico en vivo del índice; en semanal, completadas con el histórico diario. Cada vela usa solo los datos hasta ella.",
-      "La flecha aparece con el RSI 14 en 80 o más (impulso alcista fuerte) o en 20 o menos (bajista) en 1 h, 4 h y 1 día: en los backtests, esos impulsos tendían a continuar. Es informativa: no cuenta en el score.",
+      "**Momentum**: la etiqueta, con su flecha, aparece junto al RSI 14 (en verde o en rojo, como su valor) con el RSI en 80 o más (impulso alcista fuerte) o en 20 o menos (bajista), en 1 h, 4 h y 1 día: en los backtests, esos impulsos tendían a continuar. Es informativa: no cuenta en el score.",
     ],
     current: (tf: string, cat: ReactNode) => <>En la temporalidad de {tf}, el técnico está ahora en {cat}.</>,
     short: { tecnico: "Técnico", rsi_14: "RSI 14", bollinger: "Bollinger %B", ma200_ratio: "Precio / MA200" },
@@ -320,7 +320,7 @@ export const es = {
     rest: "La variación de la liquidez de los grandes bancos centrales, adelantada 13 semanas, frente al precio de BTC: ¿se anticipa la liquidez al precio?",
     card: "Precio de BTC y liquidez global 13 semanas antes",
     info: [
-      "Liquidez global = liquidez neta de la Fed (balance − cuenta del Tesoro − repos inversos) + balances del BCE y del Banco de Japón, en dólares. Datos semanales de FRED hasta el último de la Fed; el del Banco de Japón es mensual y se repite su último dato. La línea naranja es su variación en 13 semanas.",
+      "**Liquidez global** = liquidez neta de la Fed (balance − cuenta del Tesoro − repos inversos) + balances del BCE y del Banco de Japón, en dólares. Datos semanales de FRED hasta el último de la Fed; el del Banco de Japón es mensual y se repite su último dato. La línea naranja es su variación en 13 semanas.",
       "La línea naranja está adelantada 13 semanas: en cada fecha se ve la variación de la liquidez de 13 semanas antes, junto al precio de BTC (azul) de ese día. Si la liquidez se adelanta al precio, las dos líneas suben y bajan a la vez. El tramo sombreado son las próximas 13 semanas: lo que anticipa la liquidez ya publicada.",
     ],
     money: (bn: number) => `${(bn / 1000).toLocaleString("es-ES", { maximumFractionDigits: 2 })} billones de $`,
@@ -335,7 +335,7 @@ export const es = {
     scores: {
       card: "Liquidez y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la liquidez global y el dólar. M2 y stablecoins son informativas: en el backtest no anticipaban de forma fiable y el índice no las usa. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **dólar**. **M2** y **stablecoins** son informativas: en el backtest no anticipaban de forma fiable y el índice no las usa. Al pasar por el gráfico se ve también el valor real de la métrica.",
         "Va al revés que la liquidez: más dinero en el sistema (bancos centrales que amplían su balance o un dólar que se debilita) es favorable para BTC y puntúa bajo (barato); menos, alto (caro). Cada métrica se compara con sus 4 años anteriores. Son datos semanales o mensuales: cambian despacio.",
       ],
       category: "Liquidez",

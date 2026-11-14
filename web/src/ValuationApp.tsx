@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { CategoryScores } from "./components/CategoryScores";
 import { InfoTip } from "./components/InfoTip";
+import { Rich } from "./components/Rich";
 import { useRange } from "./components/RangeSelect";
 import { ValuationChart } from "./components/ValuationChart";
 import { lang, locale, t } from "./i18n";
@@ -79,7 +80,9 @@ export function ValuationApp() {
             {tx.card}
             <InfoTip label={tx.card} title={tx.card}>
               {tx.info.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p}>
+                  <Rich text={p} />
+                </p>
               ))}
             </InfoTip>
           </h2>

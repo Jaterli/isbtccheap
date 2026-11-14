@@ -3,6 +3,7 @@ import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
+import { Rich } from "./components/Rich";
 import { MetricSelect } from "./components/MetricSelect";
 import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
 import { ScoreChart } from "./components/ScoreChart";
@@ -166,7 +167,9 @@ export function SentimentApp() {
             {tx.card}
             <InfoTip label={tx.card} title={tx.card}>
               {tx.info.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p}>
+                  <Rich text={p} />
+                </p>
               ))}
             </InfoTip>
           </h2>

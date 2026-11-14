@@ -16,8 +16,8 @@ export const en: Messages = {
     scores: {
       card: "Cycle and price: the index score",
       info: [
-        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Cycle” is the category: the average of the halving cycle phase, the power law deviation and the price vs the 200-week moving average. Hovering the chart also shows the metric's actual value.",
-        "The halving phase is not compared with the past: it scores according to how much of the cycle has elapsed (cheap after the bottom, expensive towards the typical top, about 12-18 months after the halving), and its actual value is that share of the cycle. The power law and the 200-week average are compared with their previous 4 years.",
+        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Cycle” is the category: the average of the **halving cycle phase**, the **power law deviation** and the **price vs the 200-week moving average**. Hovering the chart also shows the metric's actual value.",
+        "**The halving phase** is not compared with the past: it scores according to how much of the cycle has elapsed (cheap after the bottom, expensive towards the typical top, about 12-18 months after the halving), and its actual value is that share of the cycle. The **power law** and the **200-week average** are compared with their previous 4 years.",
       ],
       category: "Cycle",
       short: { halving_phase: "Halving phase", power_law: "Power law", wma200_ratio: "200W MA" },
@@ -66,7 +66,7 @@ export const en: Messages = {
     scores: {
       card: "On-chain valuation and price: the index score",
       info: [
-        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Valuation” is the category: the average of MVRV, the Puell Multiple and the Mayer Multiple. Hovering the chart also shows the metric's actual value.",
+        "Each line is a score from 0 (cheap) to 100 (expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Valuation” is the category: the average of **MVRV**, the **Puell Multiple** and the **Mayer Multiple**. Hovering the chart also shows the metric's actual value.",
         "Each metric is compared with its previous 4 years (one halving cycle): a high score means it is more expensive than almost always in that period. It is the category that weighs most in the index from the daily timeframe up, and the one that has best marked cycle tops and bottoms in the backtest.",
       ],
       category: "Valuation",
@@ -81,8 +81,8 @@ export const en: Messages = {
     rest: "BTC's price against its long-term levels: realized price, 200-week moving average and the power law trend.",
     card: "Price and valuation levels",
     info: [
-      "Realized price: the average price at which the bitcoins in circulation last moved, an approximation of what their owners paid on average (price / MVRV, from Coin Metrics). Short-term holder realized price: the same for coins younger than 150 days only, the average cost of recent buyers (from Bitview). 200-week moving average: the average price over the last four years, roughly one cycle.",
-      "Power law: the straight line that best fits the price on a logarithmic scale against the days since the genesis block. The shaded corridor contains 95% of days since 2013. The scale is logarithmic and the last day uses the current price.",
+      "**Realized price**: the average price at which the bitcoins in circulation last moved, an approximation of what their owners paid on average (price / MVRV, from Coin Metrics). **Short-term holder realized price**: the same for coins younger than 150 days only, the average cost of recent buyers (from Bitview). **200-week moving average**: the average price over the last four years, roughly one cycle.",
+      "**Power law**: the straight line that best fits the price on a logarithmic scale against the days since the genesis block. The shaded corridor contains 95% of days since 2013. The scale is logarithmic and the last day uses the current price.",
     ],
     current: (price: ReactNode, vsRealized: ReactNode, vsWma: ReactNode, vsTrend: ReactNode, zone: string) => (
       <>
@@ -187,12 +187,12 @@ export const en: Messages = {
     card: "Sentiment and price",
     info: [
       "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value.",
-      "The index uses the same daily metrics in every timeframe: the Fear & Greed Index, short-term SOPR and ETF flows (scored against their last 4 years). In 1h and 4h, each candle shows its day's value.",
-      "Informational (not used by the index): Binance derivatives (open interest, accounts long and market buys, scored against their last 30 days, which is all Binance keeps) stopped counting in 1h and 4h because there is no history to test whether they lead the price, and with a month of data accounts long pointed the opposite way to how the index scored them. They are being stored for a backtest. Their first candles have no score until 50 data points are available.",
-      "Spot buys (informational, not used by the index): the share of BTC/USDT spot volume on Binance that was market buying, over the last 3 candles; 50% is balance. Binance keeps its whole history (since 2017): in 1D it is scored against its previous 4 years and in 1h and 4h against what is downloaded. It helps compare spot with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Market buys and spot buys change a lot from one candle to the next: the latest ones are shown (5 days in 1h, 10 in 4h and 1 or 3 months in 1D) so they read better.",
-      "Short-term supply in loss (informational): the share of short-term holders' coins (moved less than 155 days ago) worth less than when bought, from Bitview. It is scored the other way round from the rest: many losses is fear, a low score. It marks cycle tops and bottoms better than the Fear & Greed Index, but in the index backtest it led slightly worse and measures almost the same, so it does not replace Fear & Greed.",
-      "Realized loss (informational): what coins moving below the price they were bought at lose each day, across all holders (Bitview), against its 90-day average: ×3 is three times the usual. It is scored the other way round from the rest, against its previous 4 years: heavy losses are fear, a low score. In the backtest it did not lead the price in general; after spikes of 5 times its average, the following month was somewhat better than average.",
-      "Adjusted short-term MVRV (informational): the price against the average cost of short-term holders (Bitview realized price), compared with its 90-day average. It is scored by deviations from its last year: 25 and 75 are the −1σ and +1σ bands, and 0 and 100, the −2σ and +2σ ones. In the backtest it followed the price rather than leading it; well below its lower band (−1.5σ or less) a 1-2 week bounce usually came, which had faded 30 days later most of the time.",
+      "The index uses the same daily metrics in every timeframe: the **Fear & Greed Index**, **short-term SOPR** and **ETF flows** (scored against their last 4 years). In 1h and 4h, each candle shows its day's value.",
+      "Informational (not used by the index): **Binance derivatives** (**open interest**, **accounts long** and **market buys**, scored against their last 30 days, which is all Binance keeps) stopped counting in 1h and 4h because there is no history to test whether they lead the price, and with a month of data accounts long pointed the opposite way to how the index scored them. They are being stored for a backtest. Their first candles have no score until 50 data points are available.",
+      "**Spot buys** (informational, not used by the index): the share of BTC/USDT spot volume on Binance that was market buying, over the last 3 candles; 50% is balance. Binance keeps its whole history (since 2017): in 1D it is scored against its previous 4 years and in 1h and 4h against what is downloaded. It helps compare spot with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Market buys and spot buys change a lot from one candle to the next: the latest ones are shown (5 days in 1h, 10 in 4h and 1 or 3 months in 1D) so they read better.",
+      "**Short-term supply in loss** (informational): the share of short-term holders' coins (moved less than 155 days ago) worth less than when bought, from Bitview. It is scored the other way round from the rest: many losses is fear, a low score. It marks cycle tops and bottoms better than the Fear & Greed Index, but in the index backtest it led slightly worse and measures almost the same, so it does not replace Fear & Greed.",
+      "**Realized loss** (informational): what coins moving below the price they were bought at lose each day, across all holders (Bitview), against its 90-day average: ×3 is three times the usual. It is scored the other way round from the rest, against its previous 4 years: heavy losses are fear, a low score. In the backtest it did not lead the price in general; after spikes of 5 times its average, the following month was somewhat better than average.",
+      "**Adjusted short-term MVRV** (informational): the price against the average cost of short-term holders (Bitview realized price), compared with its 90-day average. It is scored by deviations from its last year: 25 and 75 are the −1σ and +1σ bands, and 0 and 100, the −2σ and +2σ ones. In the backtest it followed the price rather than leading it; well below its lower band (−1.5σ or less) a 1-2 week bounce usually came, which had faded 30 days later most of the time.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string) => (
       <>
@@ -245,9 +245,9 @@ export const en: Messages = {
     card: "Technical and price",
     info: [
       "Each line is a score from 0 (stretched to the downside: cheap) to 100 (stretched to the upside: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Technical” is the category: the average of its three metrics. Hovering the chart also shows the metric's actual value.",
-      "RSI 14: 30 or below scores 0 and 70 or above, 100. Bollinger %B (20, 2): 0 is the lower band and 100 the upper one. Price vs 200-candle average: its percentile against the last 1000 candles (on the weekly, against the whole history since 2011).",
+      "**RSI 14**: 30 or below scores 0 and 70 or above, 100. **Bollinger %B (20, 2)**: 0 is the lower band and 100 the upper one. **Price vs 200-candle average**: its percentile against the last 1000 candles (on the weekly, against the whole history since 2011).",
       "It is calculated with Binance candles for each timeframe, like the index's live technical score; on the weekly, completed with the daily history. Each candle only uses data up to it.",
-      "The arrow appears with RSI 14 at 80 or above (strong bullish momentum) or at 20 or below (bearish) on 1h, 4h and 1 day: in backtests, those moves tended to continue. It is informational: it does not count in the score.",
+      "**Momentum**: the label, with its arrow, appears next to RSI 14 (in green or red, like its value) with RSI at 80 or above (strong bullish momentum) or at 20 or below (bearish), on 1h, 4h and 1 day: in backtests, those moves tended to continue. It is informational: it does not count in the score.",
     ],
     current: (tf: string, cat: ReactNode) => <>On the {tf} timeframe, the technical score currently stands at {cat}.</>,
     short: { tecnico: "Technical", rsi_14: "RSI 14", bollinger: "Bollinger %B", ma200_ratio: "Price / MA200" },
@@ -313,7 +313,7 @@ export const en: Messages = {
     rest: "The change in major central bank liquidity, shifted 13 weeks forward, against the BTC price: does liquidity lead the price?",
     card: "BTC price and global liquidity 13 weeks earlier",
     info: [
-      "Global liquidity = Fed net liquidity (balance sheet − Treasury account − reverse repos) + the ECB and Bank of Japan balance sheets, in dollars. Weekly FRED data up to the latest Fed release; the Bank of Japan's is monthly and its latest value is carried forward. The orange line is its 13-week change.",
+      "**Global liquidity** = Fed net liquidity (balance sheet − Treasury account − reverse repos) + the ECB and Bank of Japan balance sheets, in dollars. Weekly FRED data up to the latest Fed release; the Bank of Japan's is monthly and its latest value is carried forward. The orange line is its 13-week change.",
       "The orange line is shifted 13 weeks forward: each date shows the liquidity change from 13 weeks earlier, next to that day's BTC price (blue). If liquidity leads the price, both lines rise and fall together. The shaded stretch is the next 13 weeks: what the liquidity already released anticipates.",
     ],
     money: (bn: number) => `$${(bn / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })} trillion`,
@@ -326,7 +326,7 @@ export const en: Messages = {
     scores: {
       card: "Liquidity and price: the index score",
       info: [
-        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of global liquidity and the dollar. M2 and stablecoins are informational: in the backtest they did not anticipate reliably and the index does not use them. Hovering the chart also shows the metric's actual value.",
+        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of **global liquidity** and the **dollar**. **M2** and **stablecoins** are informational: in the backtest they did not anticipate reliably and the index does not use them. Hovering the chart also shows the metric's actual value.",
         "It runs opposite to liquidity: more money in the system (central banks expanding their balance sheets or a weakening dollar) is favorable for BTC and scores low (cheap); less, high (expensive). Each metric is compared with its previous 4 years. They are weekly or monthly data: they change slowly.",
       ],
       category: "Liquidity",

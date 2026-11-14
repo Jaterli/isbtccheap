@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
+import { Rich } from "./components/Rich";
 import { LiquidityChart, rocPct } from "./components/LiquidityChart";
 import { LiquidityScores } from "./components/LiquidityScores";
 import { LIQUIDITY_RANGES, useRange } from "./components/RangeSelect";
@@ -45,7 +46,9 @@ export function LiquidityApp() {
             {tx.card}
             <InfoTip label={tx.card} title={tx.card}>
               {tx.info.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p}>
+                  <Rich text={p} />
+                </p>
               ))}
             </InfoTip>
           </h2>

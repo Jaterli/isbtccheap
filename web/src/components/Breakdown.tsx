@@ -110,13 +110,13 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
           <article key={id} className={flash ? "card category score-linked flash" : "card category score-linked"}>
             <header>
               <h3>
-                {info.name}
-                {CHART_LINKS[id] && (
-                  <a className="info-btn chart-link" href={CHART_LINKS[id]!.href} title={CHART_LINKS[id]!.label} aria-label={CHART_LINKS[id]!.label}>
-                    <svg viewBox="0 0 16 16" aria-hidden="true">
-                      <path d="M2 13.5h12M3 11l3-3.5 2.5 2L13 4" />
-                    </svg>
+                {/* El nombre lleva a la página con la gráfica de sus métricas */}
+                {CHART_LINKS[id] ? (
+                  <a className="cat-link" href={CHART_LINKS[id]!.href} title={CHART_LINKS[id]!.label}>
+                    {info.name}
                   </a>
+                ) : (
+                  info.name
                 )}
                 <InfoTip label={info.name} title={info.name}>
                   <p>{info.what}</p>
@@ -124,9 +124,8 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
                   <p className="muted">{t.scoreColumns}</p>
                 </InfoTip>
               </h3>
-              <span className="muted">
-                <span className="tf-tag" title={t.timeframes[tf].label}>{t.timeframes[tf].short}</span> {t.weight(w.toFixed(0))}
-              </span>
+              {/* Sin la temporalidad: es la de la tarjeta del score, la misma en todas */}
+              <span className="muted">{t.weight(w.toFixed(0))}</span>
               <strong className="num">{c.score === null ? "—" : Math.round(c.score)}</strong>
             </header>
             <Bar score={c.score} />
