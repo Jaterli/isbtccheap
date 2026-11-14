@@ -163,12 +163,15 @@ de los ETF en 20 sesiones; la fecha y hora, y si la bolsa de EE. UU. está abier
 de las próximas reuniones de la Fed según Kalshi, ahora, hace 24 h y hace 7 días (sus cambios muestran cómo ha \
 reinterpretado el mercado los datos recientes).
 - short_term_holders (holders de corto plazo, monedas movidas hace menos de 155 días; datos diarios con un día de \
-retraso): pérdida no realizada y realizada frente a su media de 90 días y su percentil de 4 años, y SOPR (por debajo de \
+retraso): pérdida no realizada y realizada frente a su media de 90 días y en qué % de los días de los últimos 4 años fue \
+menor (above_pct_of_days_4y: 97 = mayor que en el 97 % de los días), y SOPR (por debajo de \
 1, venden con pérdidas). Una pérdida no realizada alta es estrés y riesgo de más ventas; capitulación es cuando venden de \
 verdad (pérdida realizada disparada y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open \
 interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo. \
 capitulation.level ya lo clasifica: none, capitulation_levels (pérdida realizada de 5 veces su media o más con SOPR por \
-debajo de 1) o intense_capitulation (además, SOPR de 0,97 o menos o pérdida en dólares en el 1 % más alto de 4 años).
+debajo de 1) o intense_capitulation (además, SOPR de 0,97 o menos o pérdida en dólares en el 1 % más alto de 4 años). \
+Con capitulation_levels, una pérdida en dólares mayor que en el 95 % de los días es muy alta pero queda por debajo de \
+la de las grandes capitulaciones, que fueron las mayores de su periodo.
 - long_term_holders (monedas movidas hace más de 155 días, mismo retraso): pérdida realizada frente a su media de 90 días \
 y su último pico del año (5 veces su media o más). En los mercados alcistas es casi cero; su primer pico tras un periodo \
 así ha marcado el inicio de fases bajistas (2018, 2021, 2025: los compradores del techo venden con pérdidas), no suelos. \
@@ -341,7 +344,7 @@ def cycle_context(history: dict) -> dict:
 
 BITVIEW = "https://bitview.space/api/series/{series}/day1?start=-{days}"  # Bitcoin Research Kit público, sin clave
 STH_LOSS_MEAN = 90
-STH_LOSS_PCT_DAYS = 1460  # el percentil de los ratios, frente a los últimos 4 años (como el score)
+STH_LOSS_PCT_DAYS = 1460  # los ratios, frente a los últimos 4 años (como el score)
 
 
 def _bitview(series: str, days: int) -> tuple[date, list[float]]:
@@ -352,8 +355,8 @@ def _bitview(series: str, days: int) -> tuple[date, list[float]]:
 
 
 def _vs_mean(values: list[float]) -> dict:
-    """El último valor (en miles de millones de dólares) frente a su media de STH_LOSS_MEAN días: el ratio, su
-    percentil en STH_LOSS_PCT_DAYS días y el ratio de los últimos 14."""
+    """El último valor (en miles de millones de dólares) frente a su media de STH_LOSS_MEAN días: el ratio, en qué % de
+    los últimos STH_LOSS_PCT_DAYS días fue menor (above_pct_of_days) y el ratio de los últimos 14."""
     ratios = []
     for i in range(STH_LOSS_MEAN - 1, len(values)):
         mean = sum(values[i - STH_LOSS_MEAN + 1:i + 1]) / STH_LOSS_MEAN
@@ -364,7 +367,7 @@ def _vs_mean(values: list[float]) -> dict:
         "usd_bn": round(values[-1] / 1e9, 2),
         "mean_90d_usd_bn": round(sum(values[-STH_LOSS_MEAN:]) / STH_LOSS_MEAN / 1e9, 2),
         "ratio_to_90d_mean": None if now is None else round(now, 2),
-        "ratio_percentile_4y": None if now is None else round(sum(r < now for r in valid) / len(valid) * 100),
+        "ratio_above_pct_of_days_4y": None if now is None else round(sum(r < now for r in valid) / len(valid) * 100),
         "ratio_last_14d": [None if r is None else round(r, 2) for r in ratios[-14:]],
     }
 
@@ -386,7 +389,7 @@ def capitulation(realized: list[float], ratio: float | None, sopr: float | None)
     levels = ratio is not None and ratio >= CAPITULATION_RATIO and sopr is not None and sopr < 1
     intense = levels and (sopr <= CAPITULATION_INTENSE_SOPR or (usd_pct is not None and usd_pct >= CAPITULATION_INTENSE_USD_PCT))
     return {"level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
-            "realized_loss_usd_percentile_4y": usd_pct, "sopr_24h": sopr}
+            "realized_loss_usd_above_pct_of_days_4y": usd_pct, "sopr_24h": sopr}
 
 
 def sth_context() -> dict:

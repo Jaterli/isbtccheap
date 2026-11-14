@@ -407,7 +407,7 @@ export const en: Messages = {
     reading: {
       none: () => "Recent buyers are not selling at a loss at capitulation levels.",
       capitulation_levels: (p: number) =>
-        `Recent buyers are selling at a loss at capitulation levels, but without the intensity of the big ones: SOPR is not below 0.97 and the dollar loss is in the ${p}th percentile of 4 years, not among the highest.`,
+        `Recent buyers are selling at a loss at capitulation levels, though without the intensity of the big ones: SOPR is not below 0.97 and the dollar loss, very high (larger than on ${p}% of days in the last 4 years), stays below that of the big capitulations, which were the largest of their period.`,
       intense_capitulation: () => "Recent buyers are selling at heavy losses, as in the big capitulations.",
     },
     questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?" },

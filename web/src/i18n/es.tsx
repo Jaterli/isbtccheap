@@ -416,7 +416,7 @@ export const es = {
     reading: {
       none: () => "Los compradores recientes no están vendiendo con pérdidas en niveles de capitulación.",
       capitulation_levels: (p: number) =>
-        `Los compradores recientes venden con pérdidas en niveles de capitulación, pero sin la intensidad de las grandes: el SOPR no baja de 0,97 y la pérdida en dólares está en el percentil ${p} de 4 años, no entre las más altas.`,
+        `Los compradores recientes venden con pérdidas en niveles de capitulación, aunque sin la intensidad de las grandes: el SOPR no baja de 0,97 y la pérdida en dólares, muy alta (mayor que en el ${p}\u00A0% de los días de los últimos 4 años), queda por debajo de la de las grandes capitulaciones, que fueron las mayores de su periodo.`,
       intense_capitulation: () => "Los compradores recientes venden con pérdidas fuertes, como en las grandes capitulaciones.",
     },
     questions: { stress: "¿Cuántos pierden?", selling: "¿Venden con pérdidas?", panic: "¿Hay pánico?" },
