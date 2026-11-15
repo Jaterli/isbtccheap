@@ -838,14 +838,6 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
   .sent-controls .smooth-buttons { display: none; }
   .metric-select.smooth-select { display: inline-flex; }
 }
-/* Pantallas muy pequeñas: botones y huecos más estrechos para que quepan más en cada fila */
-@media (max-width: 399px) {
-  .sent-controls { gap: 6px; }
-  .sent-controls .segmented.small { gap: 2px; padding: 3px; }
-  .sent-controls .segmented.small button { padding: 4px 7px; }
-  .sent-controls .smooth-select select { padding: 4px 24px 4px 8px; }
-  .sent-controls .smooth-select svg { right: 8px; }
-}
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
 /* Al cambiar de temporalidad, el gráfico anterior atenuado y un aviso encima hasta que llega el nuevo (volatilidad y
