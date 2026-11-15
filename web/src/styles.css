@@ -277,6 +277,8 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cap-badge { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--border); color: var(--muted); }
 .cap-badge.capitulation_levels { color: var(--band-4); border-color: var(--band-4); }
 .cap-badge.intense_capitulation { color: #fff; background: var(--band-5); border-color: var(--band-5); }
+.cap-last { margin: -4px 0 10px; }
+.cap-badge.small { padding: 1px 8px; font-size: 0.8rem; margin: 0 4px; }
 .cap-table { margin-top: 10px; white-space: normal; }
 .cap-table tbody th { font-weight: 500; }
 .cap-table td { white-space: nowrap; }

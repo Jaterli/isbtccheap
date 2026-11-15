@@ -410,6 +410,11 @@ export const en: Messages = {
     ],
     levels: { none: "No capitulation", capitulation_levels: "Capitulation levels", intense_capitulation: "Intense capitulation" },
     asOf: (d: string) => `Data for ${d}`,
+    last: (when: string, level: ReactNode, ratio: string) => (
+      <>
+        Last capitulation: <strong className="num">{when}</strong> {level} <span className="muted">(realized loss up to {ratio} its average)</span>
+      </>
+    ),
     reading: {
       none: () => "Recent buyers are not selling at a loss at capitulation levels.",
       capitulation_levels: (p: number) =>

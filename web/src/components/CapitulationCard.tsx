@@ -16,6 +16,8 @@ interface CapitulationJson {
   sth_realized_loss_usd_pct_4y: number | null;
   sth_sopr_24h: number | null;
   fear_greed: number | null;
+  /** El último episodio (días seguidos) en niveles de capitulación, con su nivel más alto y su mayor pérdida frente a la media */
+  last?: { from: string; to: string; level: "capitulation_levels" | "intense_capitulation"; max_ratio: number } | null;
   thresholds: { realized_loss_ratio: number; sopr: number; intense_sopr: number; sth_loss_pct: number; sth_mvrv_sigma: number; fear_greed: number };
 }
 
@@ -36,6 +38,10 @@ export function CapitulationCard() {
   const tx = t.capitulation;
   const th = c.thresholds;
   const date = new Date(`${c.date}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "long", timeZone: "UTC" });
+  // Fechas del último episodio: con el año si no es el de los datos
+  const short = (d: string) =>
+    new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", ...(d.slice(0, 4) !== c.date.slice(0, 4) && { year: "numeric" }), timeZone: "UTC" });
+  const last = c.level === "none" && c.last ? c.last : null;
   // Cada fila: la pregunta a la que responde, el dato de hoy, el umbral y si lo cumple (null: sin dato)
   const rows: { q: string; name: string; value: string; threshold: string; met: boolean | null }[] = [
     {
@@ -93,6 +99,16 @@ export function CapitulationCard() {
         <span className="muted small">{tx.asOf(date)}</span>
       </p>
       <p>{tx.reading[c.level](c.sth_realized_loss_usd_pct_4y ?? 0)}</p>
+      {/* Sin capitulación hoy: la última, para que no se pierda la de ayer */}
+      {last && (
+        <p className="cap-last small">
+          {tx.last(
+            last.from === last.to ? short(last.to) : `${short(last.from)} – ${short(last.to)}`,
+            <span className={`cap-badge small ${last.level}`}>{tx.levels[last.level]}</span>,
+            `×${num(last.max_ratio, 1)}`,
+          )}
+        </p>
+      )}
       <div className="outlook-table-wrap">
         <table className="outlook-table cap-table">
           <thead>

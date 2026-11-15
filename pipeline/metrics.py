@@ -202,10 +202,33 @@ STH_LOSS_STRESS_PCT = 75
 FEAR_GREED_PANIC = 20
 
 
+def _last_capitulation(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) -> dict | None:
+    """El último episodio (días seguidos) en niveles de capitulación hasta `day`, con su nivel más alto y su pérdida
+    realizada más alta frente a la media: para que «sin capitulación» no oculte la de ayer."""
+    loss, sopr = loss[:day], sopr.reindex(loss[:day].index)
+    ratio = loss / loss.rolling(90, min_periods=1).mean()
+    usd_pct = loss.rolling(1460, min_periods=1).apply(lambda w: (w[:-1] < w[-1]).mean() * 100 if len(w) > 1 else 0, raw=True)
+    levels = (ratio >= CAPITULATION_RATIO) & (sopr < 1)
+    intense = levels & ((sopr <= CAPITULATION_INTENSE_SOPR) | (usd_pct >= CAPITULATION_INTENSE_USD_PCT))
+    days = levels[levels].index
+    if not len(days):
+        return None
+    end = days[-1]
+    start = end
+    while start - pd.Timedelta(days=1) in days:
+        start -= pd.Timedelta(days=1)
+    return {
+        "from": start.strftime("%Y-%m-%d"),
+        "to": end.strftime("%Y-%m-%d"),
+        "level": "intense_capitulation" if intense[start:end].any() else "capitulation_levels",
+        "max_ratio": round(float(ratio[start:end].max()), 2),
+    }
+
+
 def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
     """capitulation.json: el último día completo de Bitview con el nivel (none, capitulation_levels o
     intense_capitulation) y los datos para leerlo: cuántos compradores recientes pierden, si venden con pérdidas y el
-    miedo del mercado."""
+    miedo del mercado, y el último episodio de capitulación (last)."""
     if not all(k in extra for k in ("sth_realized_loss", "sth_sopr_24h", "sth_supply_in_loss", "sth_supply_in_profit")):
         return None
     # El último día de Bitview va en curso
@@ -236,6 +259,7 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
         "sth_realized_loss_usd_pct_4y": round(usd_pct),
         "sth_sopr_24h": r(s, 4),
         "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
+        "last": _last_capitulation(loss, sopr, day),
         "thresholds": {"realized_loss_ratio": CAPITULATION_RATIO, "sopr": 1, "intense_sopr": CAPITULATION_INTENSE_SOPR,
                        "intense_usd_pct": CAPITULATION_INTENSE_USD_PCT, "sth_loss_pct": STH_LOSS_STRESS_PCT,
                        "sth_mvrv_sigma": -1, "fear_greed": FEAR_GREED_PANIC},
