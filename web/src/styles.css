@@ -826,6 +826,9 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 /* Pantallas estrechas: el desplegable ocupa la fila y los botones de temporalidad y periodo pasan a la siguiente */
 @media (max-width: 639px) {
   .sent-controls .metric-select, .sent-controls .metric-select select { width: 100%; }
+  /* Botones más estrechos para que la temporalidad y el suavizado quepan en la misma fila; cada grupo, entero */
+  .sent-controls .segmented.small { gap: 2px; padding: 3px; flex-wrap: nowrap; }
+  .sent-controls .segmented.small button { padding: 4px 6px; }
 }
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
