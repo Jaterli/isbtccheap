@@ -628,7 +628,6 @@ export const es = {
     title: "Score diario frente al precio",
     title4h: "Score de 4h frente al precio",
     score4h: "Score 4 h",
-    fearGreed: "Fear & Greed Index (0 = miedo extremo, 100 = codicia extrema)",
     loading4h: "Cargando velas de 4 h…",
     info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela.",
     infoLabel: "el histórico",

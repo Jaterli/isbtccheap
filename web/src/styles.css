@@ -630,12 +630,6 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* ETF */
 .etf-fg { --c: var(--cycle-2012); }
 .legend.etf-fg::before { background: var(--c); }
-/* Fear & Greed en el histórico del score: fina y atenuada, para que el score siga siendo el protagonista */
-.line-fg { fill: none; stroke: var(--cycle-2012); stroke-width: 1; opacity: 0.4; }
-.legend-fg::before { background: var(--cycle-2012); opacity: 0.6; }
-.legend-fg strong { font-weight: 600; }
-/* En móvil, la línea de datos del histórico (fecha, precio y score) cabe en una fila: el valor del F&G no se muestra */
-@media (max-width: 399px) { .chart-readout .legend-fg { display: none; } }
 .vol-stats .up { color: var(--band-1); }
 .vol-stats .down { color: var(--band-5); }
 .faq h3 { margin: 14px 0 4px; font-size: 0.95rem; }
