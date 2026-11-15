@@ -423,7 +423,7 @@ export const es = {
     asOf: (d: string) => `Datos del ${d}`,
     last: (when: string, level: ReactNode, ratio: string) => (
       <>
-        Última capitulación: <strong className="num">{when}</strong> {level} <span className="muted">(pérdida realizada de hasta {ratio} su media)</span>
+        Última capitulación: <strong className="num">{when}</strong>&nbsp; {level} &nbsp;<span className="muted">(pérdida realizada de hasta {ratio} su media)</span>
       </>
     ),
     reading: {

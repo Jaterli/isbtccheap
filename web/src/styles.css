@@ -278,7 +278,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cap-badge.capitulation_levels { color: var(--band-4); border-color: var(--band-4); }
 .cap-badge.intense_capitulation { color: #fff; background: var(--band-5); border-color: var(--band-5); }
 .cap-last { margin: -4px 0 10px; }
-.cap-badge.small { padding: 1px 8px; font-size: 0.8rem; margin: 0 4px; }
+.cap-badge.small { padding: 1px 8px; font-size: 0.8rem; display: inline-block; }
 .cap-table { margin-top: 10px; white-space: normal; }
 .cap-table tbody th { font-weight: 500; }
 .cap-table td { white-space: nowrap; }
@@ -826,17 +826,20 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 }
 /* Métrica informativa (el índice no la usa): borde discontinuo, separada de las del índice */
 .sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-/* Pantallas estrechas: el desplegable ocupa la fila y los botones de temporalidad y periodo pasan a la siguiente */
+/* Pantallas estrechas: cada control con el ancho de su contenido y en su orden (métrica, temporalidad, suavizado y
+   periodo), pasando a la línea siguiente lo que no cabe; la métrica solo se recorta si no cabe ni sola */
 @media (max-width: 639px) {
-  /* El desplegable de la métrica y el del suavizado, juntos en la primera fila (el suavizado baja si no cabe), cada uno
-     del ancho de su contenido (la métrica solo se recorta si no cabe ni sola); la temporalidad y el periodo, detrás */
-  .sent-controls > * { order: 2; }
-  .sent-controls > .metric-select:not(.smooth-select) { order: 0; flex: 0 1 auto; max-width: 100%; }
-  .sent-controls > .smooth-select { order: 1; }
+  .sent-controls > .metric-select:not(.smooth-select) { flex: 0 1 auto; max-width: 100%; }
   .sent-controls .metric-select:not(.smooth-select) select { max-width: 100%; text-overflow: ellipsis; }
   /* El suavizado, en desplegable: los botones con «Sin suavizar» no cabían junto a la temporalidad */
   .sent-controls .smooth-buttons { display: none; }
   .metric-select.smooth-select { display: inline-flex; }
+}
+/* Pantallas muy pequeñas: botones y huecos algo más estrechos */
+@media (max-width: 399px) {
+  .sent-controls { gap: 6px; }
+  .sent-controls .segmented.small { gap: 3px; padding: 3px; }
+  .sent-controls .segmented.small button { padding: 4px 8px; }
 }
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
