@@ -828,10 +828,23 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 /* Pantallas estrechas: el desplegable ocupa la fila y los botones de temporalidad y periodo pasan a la siguiente */
 @media (max-width: 639px) {
-  .sent-controls .metric-select:not(.smooth-select), .sent-controls .metric-select:not(.smooth-select) select { width: 100%; }
+  /* El desplegable de la métrica y el del suavizado, juntos en la primera fila (el suavizado baja si no cabe), cada uno
+     del ancho de su contenido (la métrica solo se recorta si no cabe ni sola); la temporalidad y el periodo, detrás */
+  .sent-controls > * { order: 2; }
+  .sent-controls > .metric-select:not(.smooth-select) { order: 0; flex: 0 1 auto; max-width: 100%; }
+  .sent-controls > .smooth-select { order: 1; }
+  .sent-controls .metric-select:not(.smooth-select) select { max-width: 100%; text-overflow: ellipsis; }
   /* El suavizado, en desplegable: los botones con «Sin suavizar» no cabían junto a la temporalidad */
   .sent-controls .smooth-buttons { display: none; }
   .metric-select.smooth-select { display: inline-flex; }
+}
+/* Pantallas muy pequeñas: botones y huecos más estrechos para que quepan más en cada fila */
+@media (max-width: 399px) {
+  .sent-controls { gap: 6px; }
+  .sent-controls .segmented.small { gap: 2px; padding: 3px; }
+  .sent-controls .segmented.small button { padding: 4px 7px; }
+  .sent-controls .smooth-select select { padding: 4px 24px 4px 8px; }
+  .sent-controls .smooth-select svg { right: 8px; }
 }
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
