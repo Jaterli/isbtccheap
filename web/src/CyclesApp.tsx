@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CategoryScores } from "./components/CategoryScores";
+import { CATEGORY_KEY, CategoryScores } from "./components/CategoryScores";
 import { CyclesChart, fmtMult } from "./components/CyclesChart";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -28,6 +28,9 @@ function loadHidden(): number[] {
 
 // Métricas de la categoría de ciclo del índice, en el orden de su tarjeta
 const METRICS = ["halving_phase", "power_law", "wma200_ratio"] as const;
+// Suavizables: las que siguen al precio y zigzaguean (recorrido en 30 días ~5 veces su cambio neto); la fase del halving
+// es una curva del calendario y ya va lisa
+const SMOOTH = [CATEGORY_KEY, "power_law", "wma200_ratio"];
 const GENESIS = Date.parse("2009-01-03T00:00:00Z");
 const signedPct = (f: number) => t.percent(`${f > 0 ? "+" : f < 0 ? "−" : ""}${Math.abs(f * 100).toLocaleString(locale, { maximumFractionDigits: 1 })}`);
 
@@ -179,6 +182,7 @@ export function CyclesApp() {
         format={cycleValue}
         valueAt={VALUE_AT}
         storageKey="isbtccheap:cycle-scores-range"
+        smooth={SMOOTH}
       />
 
       <section className="card faq">

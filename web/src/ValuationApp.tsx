@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
-import { CategoryScores } from "./components/CategoryScores";
+import { CATEGORY_KEY, CategoryScores } from "./components/CategoryScores";
 import { InfoTip } from "./components/InfoTip";
 import { Rich } from "./components/Rich";
 import { useRange } from "./components/RangeSelect";
@@ -17,6 +17,8 @@ import { valuationSeries, type BandsJson } from "./lib/valuation";
 
 // Métricas de la categoría de valoración on-chain del índice, en el orden de su tarjeta
 const METRICS = ["mvrv", "puell", "mayer"] as const;
+// Suavizables: todas zigzaguean de un día a otro (recorrido en 30 días de 5 a 18 veces su cambio neto; el Puell, el que más)
+const SMOOTH = [CATEGORY_KEY, ...METRICS];
 
 // Margen (en múltiplo) para decir que el precio está "cerca" del suelo o del techo del corredor
 const NEAR = 1.25;
@@ -139,6 +141,7 @@ export function ValuationApp() {
         tx={tx.scores}
         format={(_, v) => v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         storageKey="isbtccheap:valuation-scores-range"
+        smooth={SMOOTH}
       />
 
       <section className="card faq">
