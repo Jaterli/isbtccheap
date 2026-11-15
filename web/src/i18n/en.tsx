@@ -332,11 +332,11 @@ export const en: Messages = {
     scores: {
       card: "Liquidity and price: the index score",
       info: [
-        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of **global liquidity** and the **dollar**. **M2** and **stablecoins** are informational: in the backtest they did not anticipate reliably and the index does not use them. Hovering the chart also shows the metric's actual value.",
+        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of **global liquidity** and the **dollar**. They are informational and the index does not use them: **M2** and **stablecoins** (in the backtest they did not anticipate reliably) and the **NFCI** (the Chicago Fed's financial conditions: credit, leverage and risk), with its level and its 13-week change. The NFCI approximates the private part of the liquidity Michael Howell measures: as background liquidity it anticipates noticeably better, but it did not improve the index. Hovering the chart also shows the metric's actual value.",
         "It runs opposite to liquidity: more money in the system (central banks expanding their balance sheets or a weakening dollar) is favorable for BTC and scores low (cheap); less, high (expensive). Each metric is compared with its previous 4 years. They are weekly or monthly data: they change slowly.",
       ],
       category: "Liquidity",
-      short: { global_liquidity_roc: "Global liquidity", m2_yoy: "M2", dxy_roc: "DXY dollar", stablecoin_roc: "Stablecoins" },
+      short: { global_liquidity_roc: "Global liquidity", m2_yoy: "M2", dxy_roc: "DXY dollar", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (13-week change)" },
       metricAria: "Score overlaid on the price",
       infoMetric: "Informational: the index does not use it",
       infoGroup: "Informational: the index does not use them",
@@ -544,6 +544,16 @@ export const en: Messages = {
       name: "Broad dollar index (13-week change)",
       what: "13-week change in the broad dollar index against major currencies.",
       read: "A strengthening dollar tightens global financial conditions and raises the score.",
+    },
+    nfci: {
+      name: "NFCI financial conditions",
+      what: "Chicago Fed National Financial Conditions Index: over 100 credit, leverage and risk indicators (including repo and volatility), in standard deviations. 0 is the average since 1971; positive, tighter than average; negative, looser. Weekly.",
+      read: "It reads contrarian: very tight conditions tend to coincide with bottoms and score low (cheap); very loose, high. Informative: the index does not use it.",
+    },
+    nfci_chg: {
+      name: "NFCI financial conditions (13-week change)",
+      what: "How much the NFCI has changed over 13 weeks: positive, financial conditions are tightening; negative, easing.",
+      read: "Tightening is unfavourable for BTC and scores high (expensive); easing, low. Informative: the index does not use it.",
     },
     stablecoin_roc: {
       name: "Stablecoin supply (90-day change)",

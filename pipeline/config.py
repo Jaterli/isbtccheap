@@ -31,6 +31,14 @@ METRICS = [
     # techos y suelos quedan igual o algo mejor
     {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
     {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
+    # Informativas: el NFCI (condiciones financieras de la Fed de Chicago, crédito, apalancamiento y riesgo, incluido el
+    # repo), la aproximación gratuita a la parte privada y de colateral de la liquidez de Michael Howell. Backtest de
+    # noviembre de 2026 desde 2018: su nivel invertido (condiciones muy restrictivas = barato) y su cambio en 13 semanas
+    # (endurecerse = caro) mejoran mucho la categoría sola (rentabilidad a 90 días −0,35 → −0,46; a un año −0,16 → −0,41),
+    # pero en el índice el cambio es de milésimas y mixto (1 M a un año −0,588 → −0,591; a 180 días −0,385 → −0,376),
+    # con suelos algo más bajos. El balance del Banco Popular de China (BIS, unos 5 meses de retraso) empeoraba
+    {"id": "nfci", "name": "Condiciones financieras NFCI", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
+    {"id": "nfci_chg", "name": "Condiciones financieras NFCI (cambio 13 sem.)", "category": "liquidez", "method": "percentile", "info": True},
     {"id": "fear_greed", "name": "Fear & Greed Index", "category": "sentimiento", "method": "raw"},
     # El precio realizado de corto plazo se probó en valoración y empeoraba la anticipación a un año (es momentum): solo
     # se muestra en la página de valoración

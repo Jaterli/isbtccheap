@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { t } from "../i18n";
 import { getJson } from "../lib/data";
+import { smaNullable } from "../lib/indicators";
 import type { History } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
@@ -11,6 +12,11 @@ import { ScoreChart } from "./ScoreChart";
 
 const DAY = 86_400_000;
 const CAT = "__category";
+/** Clave de la categoría en `smooth` */
+export const CATEGORY_KEY = CAT;
+// Suavizado: media de los últimos 7 o 30 días, como en las páginas de sentimiento y técnico
+const SMOOTH = ["0", "7", "30"] as const;
+type Smooth = (typeof SMOOTH)[number];
 
 /** Archivo de puntuaciones de una categoría del pipeline (CATEGORY_FILES): mismas fechas que history.json */
 interface ScoresJson {
@@ -46,6 +52,8 @@ interface Props {
   /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
   format: (id: string, v: number, time: number) => string;
   storageKey: string;
+  /** Lo que se puede suavizar (CATEGORY_KEY para la categoría): solo lo que zigzaguea de un día a otro */
+  smooth?: readonly string[];
 }
 
 interface Series {
@@ -69,13 +77,32 @@ function Chip({ v }: { v: number | null | undefined }) {
  * métricas, como en la página de sentimiento; con la tabla de hoy, hace 1 mes y hace 3 meses. Se llega a ella desde el
  * icono de la tarjeta de la categoría (#metricas).
  */
-export function CategoryScores({ history, file, metrics, info = [], tx, format, storageKey, valueAt }: Props) {
+export function CategoryScores({ history, file, metrics, info = [], tx, format, storageKey, valueAt, smooth = [] }: Props) {
   const [data, setData] = useState<ScoresJson | null>(null);
   const [error, setError] = useState(false);
   const [k, setK] = useState<string>(CAT);
   const range = useRange(storageKey, "4y", LIQUIDITY_RANGES);
   const keys = [CAT, ...metrics];
   const isInfo = (x: string) => info.includes(x);
+  const smoothKey = `${storageKey}-smooth`;
+  const [sm, setSmState] = useState<Smooth>(() => {
+    try {
+      const v = localStorage.getItem(smoothKey) as Smooth | null;
+      return v && SMOOTH.includes(v) ? v : "0";
+    } catch {
+      return "0";
+    }
+  });
+  const setSm = (v: Smooth) => {
+    setSmState(v);
+    try {
+      localStorage.setItem(smoothKey, v);
+    } catch {
+      /* sin almacenamiento: no pasa nada */
+    }
+  };
+  const smoothable = smooth.includes(k);
+  const smoothN = smoothable ? Number(sm) : 0;
 
   useEffect(() => {
     getJson(file).then(setData, () => setError(true));
@@ -101,11 +128,14 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
 
   const shown = useMemo(() => {
     if (!full) return null;
+    // La media antes de recortar el periodo, para que sus primeros días también la tengan
+    const sc = smoothN ? smaNullable(full.scores[k], smoothN) : full.scores[k];
+    const vals = k === CAT ? null : smoothN ? smaNullable(full.values[k], smoothN) : full.values[k];
     const from = Number.isFinite(range.days) ? full.time.at(-1)! - range.days * DAY : -Infinity;
     // Desde el periodo elegido y la primera puntuación de lo elegido (no todas las métricas empiezan a la vez)
-    const i = Math.max(full.time.findIndex((x) => x >= from), full.scores[k].findIndex((v) => v !== null), 0);
-    return { time: full.time.slice(i), price: full.price.slice(i), scores: full.scores[k].slice(i), values: k === CAT ? null : full.values[k].slice(i) };
-  }, [full, range.days, k]);
+    const i = Math.max(full.time.findIndex((x) => x >= from), sc.findIndex((v) => v !== null), 0);
+    return { time: full.time.slice(i), price: full.price.slice(i), scores: sc.slice(i), values: vals ? vals.slice(i) : null };
+  }, [full, range.days, k, smoothN]);
 
   const label = (x: string) => (x === CAT ? tx.category : tx.short[x] ?? x);
   const name = (x: string) => (x === CAT ? tx.category : t.metrics[x]?.name ?? x);
@@ -154,6 +184,15 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           aria={tx.metricAria}
           infoGroup={tx.infoGroup}
         />
+        {smoothable && (
+          <div className="segmented small" role="radiogroup" aria-label={t.technical.smoothAria}>
+            {SMOOTH.map((n) => (
+              <button key={n} role="radio" aria-checked={sm === n} className={sm === n ? "active" : ""} onClick={() => setSm(n)}>
+                {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), "1d")}
+              </button>
+            ))}
+          </div>
+        )}
         {range.control}
       </div>
 
@@ -162,7 +201,7 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           data={shown}
           scores={shown.scores}
           tf="1d"
-          label={label(k)}
+          label={smoothN ? t.technical.smoothed(label(k), t.technical.smoothLabel(smoothN, "1d")) : label(k)}
           // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
           mode={k === CAT ? "score" : isInfo(k) ? "value" : "both"}
           values={shown.values ?? undefined}

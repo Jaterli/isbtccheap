@@ -158,6 +158,12 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         m["m2_yoy"] = _daily(extra["M2SL"], idx).pct_change(365, fill_method=None)
     if "DTWEXBGS" in extra:
         m["dxy_roc"] = _daily(extra["DTWEXBGS"], idx).pct_change(91, fill_method=None)
+    if "NFCI" in extra:
+        # Condiciones financieras de la Fed de Chicago (0 = la media; positivo = más restrictivas). El dato del viernes
+        # se publica el miércoles siguiente
+        nfci = _daily(extra["NFCI"].set_axis(extra["NFCI"].index + pd.Timedelta(days=5)), idx)
+        m["nfci"] = nfci
+        m["nfci_chg"] = nfci.diff(91)
     if "stablecoins" in extra:
         m["stablecoin_roc"] = _daily(extra["stablecoins"], idx).pct_change(90, fill_method=None)
 

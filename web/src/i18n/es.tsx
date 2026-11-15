@@ -341,11 +341,11 @@ export const es = {
     scores: {
       card: "Liquidez y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **dólar**. **M2** y **stablecoins** son informativas: en el backtest no anticipaban de forma fiable y el índice no las usa. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **dólar**. Son informativas y el índice no las usa: **M2** y **stablecoins** (en el backtest no anticipaban de forma fiable) y el **NFCI** (las condiciones financieras de la Fed de Chicago: crédito, apalancamiento y riesgo), con su nivel y su cambio en 13 semanas. El NFCI se acerca a la parte privada de la liquidez que mide Michael Howell: como liquidez de fondo anticipa bastante mejor, pero dentro del índice no lo mejoraba. Al pasar por el gráfico se ve también el valor real de la métrica.",
         "Va al revés que la liquidez: más dinero en el sistema (bancos centrales que amplían su balance o un dólar que se debilita) es favorable para BTC y puntúa bajo (barato); menos, alto (caro). Cada métrica se compara con sus 4 años anteriores. Son datos semanales o mensuales: cambian despacio.",
       ],
       category: "Liquidez",
-      short: { global_liquidity_roc: "Liquidez global", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins" },
+      short: { global_liquidity_roc: "Liquidez global", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (cambio 13 sem.)" },
       metricAria: "Puntuación superpuesta al precio",
       infoMetric: "Informativa: el índice no la usa",
       infoGroup: "Informativas: el índice no las usa",
@@ -554,6 +554,16 @@ export const es = {
       name: "Dólar DXY amplio (var. 13 sem.)",
       what: "Variación en 13 semanas del índice amplio del dólar frente a las principales divisas.",
       read: "Un dólar que se fortalece endurece las condiciones financieras globales y suma al score.",
+    },
+    nfci: {
+      name: "Condiciones financieras NFCI",
+      what: "National Financial Conditions Index de la Fed de Chicago: más de 100 indicadores de crédito, apalancamiento y riesgo (incluidos el repo y la volatilidad), en desviaciones típicas. 0 es la media desde 1971; positivo, más restrictivas que la media; negativo, más laxas. Semanal.",
+      read: "Va a contracorriente: unas condiciones muy restrictivas suelen coincidir con la zona de suelo y puntúan bajo (barato); muy laxas, alto. Informativa: el índice no la usa.",
+    },
+    nfci_chg: {
+      name: "Condiciones financieras NFCI (cambio 13 sem.)",
+      what: "Cuánto ha cambiado el NFCI en 13 semanas: positivo, las condiciones financieras se endurecen; negativo, se relajan.",
+      read: "Que se endurezcan es desfavorable para BTC y puntúa alto (caro); que se relajen, bajo. Informativa: el índice no la usa.",
     },
     stablecoin_roc: {
       name: "Oferta de stablecoins (var. 90 d)",
