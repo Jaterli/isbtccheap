@@ -1,54 +1,54 @@
 {
-  "updated_at": "2026-11-14T16:41:39+00:00",
-  "as_of": "2026-11-13",
-  "price": 68096.3125,
-  "score_1d": 11.852,
+  "updated_at": "2026-11-15T07:58:26+00:00",
+  "as_of": "2026-11-14",
+  "price": 63820.7313,
+  "score_1d": 10.275,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 17.4994,
+      "score": 17.2028,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.2666,
-          "score": 16.6324
+          "value": 1.1878,
+          "score": 9.2402
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 0.7074,
-          "score": 12.3888
+          "value": 0.7989,
+          "score": 25.2567
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 0.9324,
-          "score": 23.4771
+          "value": 0.8746,
+          "score": 17.1116
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 9.5043,
+      "score": 6.1562,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 10.443,
-          "score": 10.443
+          "value": 10.5288,
+          "score": 10.5288
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.3307,
-          "score": 2.8747
+          "value": -0.3591,
+          "score": 0.0684
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 1.0032,
-          "score": 15.1951
+          "value": 0.9398,
+          "score": 7.8713
         }
       ]
     },
@@ -60,61 +60,61 @@
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
           "value": -0.0183,
-          "score": 58.2478
+          "score": 58.282
         },
         {
           "id": "dxy_roc",
           "name": "Dólar DXY amplio (var. 13 sem.)",
           "value": 0.025,
-          "score": 90.486
+          "score": 90.4517
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 12.1965,
+      "score": 9.6297,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 13.0,
-          "score": 13.0
+          "value": 10.0,
+          "score": 10.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 0.9935,
-          "score": 10.3354
+          "value": 0.9926,
+          "score": 7.8713
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
-          "value": -25262.5807,
-          "score": 13.2542
+          "value": -30988.4378,
+          "score": 11.0178
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 11.3333,
+      "score": 8.125,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 23.76,
+          "value": 18.938,
           "score": 0.0
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": -15.9249,
+          "value": -21.9022,
           "score": 0.0
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 0.9324,
-          "score": 34.0
+          "value": 0.8746,
+          "score": 24.375
         }
       ]
     }
@@ -207,7 +207,7 @@
       "url": "https://www.binance.com/"
     },
     {
-      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-11",
+      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-13",
       "url": "https://www.tftc.io/bitcoin-etf-flows",
       "license": "CC BY 4.0"
     }
