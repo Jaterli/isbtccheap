@@ -13,10 +13,12 @@ interface Props {
   aria: string;
   /** Título del grupo de las informativas */
   infoGroup?: string;
+  /** Clase adicional (p. ej. smooth-select) */
+  className?: string;
 }
 
 /** Desplegable con lo que se dibuja sobre el precio: la categoría y sus métricas y, aparte, las informativas. */
-export function MetricSelect({ value, onChange, options, aria, infoGroup }: Props) {
+export function MetricSelect({ value, onChange, options, aria, infoGroup, className }: Props) {
   const main = options.filter((o) => !o.info);
   const info = options.filter((o) => o.info);
   const opt = (o: MetricOption) => (
@@ -25,7 +27,7 @@ export function MetricSelect({ value, onChange, options, aria, infoGroup }: Prop
     </option>
   );
   return (
-    <label className="metric-select">
+    <label className={className ? `metric-select ${className}` : "metric-select"}>
       <span className="visually-hidden">{aria}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         {main.map(opt)}

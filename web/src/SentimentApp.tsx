@@ -225,13 +225,23 @@ export function SentimentApp() {
           </div>
           {/* Los periodos son de velas diarias: con el color del botón 1D */}
           {smoothable && (
-            <div className="segmented small" role="radiogroup" aria-label={t.technical.smoothAria}>
-              {SMOOTH.map((n) => (
-                <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
-                  {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), tf)}
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="segmented small smooth-buttons" role="radiogroup" aria-label={t.technical.smoothAria}>
+                {SMOOTH.map((n) => (
+                  <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
+                    {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), tf)}
+                  </button>
+                ))}
+              </div>
+              {/* En pantallas estrechas, un desplegable en su lugar: cabe en la fila de la temporalidad */}
+              <MetricSelect
+                className="smooth-select"
+                value={smooth}
+                onChange={(v) => setSmooth(v as Smooth)}
+                options={SMOOTH.map((n) => ({ id: n, label: n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), tf) }))}
+                aria={t.technical.smoothAria}
+              />
+            </>
           )}
           {tf === "1d" && !NO_RANGE.includes(k) && <div className="sent-daily">{range.control}</div>}
         </div>

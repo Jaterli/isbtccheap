@@ -158,13 +158,23 @@ export function TechnicalApp() {
             ))}
           </div>
           {smoothable && (
-            <div className="segmented small" role="radiogroup" aria-label={tx.smoothAria}>
-              {SMOOTH.map((n) => (
-                <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
-                  {n === "0" ? tx.smoothNone : tx.smoothLabel(Number(n), shownTf)}
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="segmented small smooth-buttons" role="radiogroup" aria-label={tx.smoothAria}>
+                {SMOOTH.map((n) => (
+                  <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
+                    {n === "0" ? tx.smoothNone : tx.smoothLabel(Number(n), shownTf)}
+                  </button>
+                ))}
+              </div>
+              {/* En pantallas estrechas, un desplegable en su lugar: cabe en la fila de la temporalidad */}
+              <MetricSelect
+                className="smooth-select"
+                value={smooth}
+                onChange={(v) => setSmooth(v as Smooth)}
+                options={SMOOTH.map((n) => ({ id: n, label: n === "0" ? tx.smoothNone : tx.smoothLabel(Number(n), shownTf) }))}
+                aria={tx.smoothAria}
+              />
+            </>
           )}
         </div>
 

@@ -185,13 +185,23 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           infoGroup={tx.infoGroup}
         />
         {smoothable && (
-          <div className="segmented small" role="radiogroup" aria-label={t.technical.smoothAria}>
-            {SMOOTH.map((n) => (
-              <button key={n} role="radio" aria-checked={sm === n} className={sm === n ? "active" : ""} onClick={() => setSm(n)}>
-                {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), "1d")}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="segmented small smooth-buttons" role="radiogroup" aria-label={t.technical.smoothAria}>
+              {SMOOTH.map((n) => (
+                <button key={n} role="radio" aria-checked={sm === n} className={sm === n ? "active" : ""} onClick={() => setSm(n)}>
+                  {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), "1d")}
+                </button>
+              ))}
+            </div>
+            {/* En pantallas estrechas, un desplegable en su lugar: cabe en la fila de la temporalidad */}
+            <MetricSelect
+              className="smooth-select"
+              value={sm}
+              onChange={(v) => setSm(v as Smooth)}
+              options={SMOOTH.map((n) => ({ id: n, label: n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), "1d") }))}
+              aria={t.technical.smoothAria}
+            />
+          </>
         )}
         {range.control}
       </div>

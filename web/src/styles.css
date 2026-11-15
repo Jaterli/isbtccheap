@@ -728,6 +728,9 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .metric-select select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .metric-select svg { position: absolute; right: 10px; width: 12px; height: 12px; pointer-events: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .metric-select option, .metric-select optgroup { background: var(--surface); color: var(--fg); }
+/* Desplegable del suavizado: solo en pantallas estrechas (en las anchas, botones), del tamaño de los botones */
+.metric-select.smooth-select { display: none; }
+.smooth-select select { min-width: 0; font-size: 0.85rem; font-weight: 400; padding: 5px 28px 5px 10px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .an-bias { padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
 .an-bias.alcista { color: var(--band-1); }
@@ -825,10 +828,10 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 /* Pantallas estrechas: el desplegable ocupa la fila y los botones de temporalidad y periodo pasan a la siguiente */
 @media (max-width: 639px) {
-  .sent-controls .metric-select, .sent-controls .metric-select select { width: 100%; }
-  /* Botones más estrechos para que la temporalidad y el suavizado quepan en la misma fila; cada grupo, entero */
-  .sent-controls .segmented.small { gap: 2px; padding: 3px; flex-wrap: nowrap; }
-  .sent-controls .segmented.small button { padding: 4px 6px; }
+  .sent-controls .metric-select:not(.smooth-select), .sent-controls .metric-select:not(.smooth-select) select { width: 100%; }
+  /* El suavizado, en desplegable: los botones con «Sin suavizar» no cabían junto a la temporalidad */
+  .sent-controls .smooth-buttons { display: none; }
+  .metric-select.smooth-select { display: inline-flex; }
 }
 /* Las tres temporalidades, siempre juntas en su línea */
 .segmented.sent-tfs { flex-wrap: nowrap; }
