@@ -10,6 +10,7 @@ import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_TECHNICAL } from "./i18n/seo";
 import { getJson } from "./lib/data";
+import { smaNullable } from "./lib/indicators";
 import { TECH_METRICS, TECH_TFS, loadTechnical, type TechKey, type TechMetric, type TechSeries, type TechTf } from "./lib/technical";
 import type { Category, History } from "./types";
 
@@ -17,12 +18,6 @@ const KEYS: TechKey[] = ["tecnico", ...TECH_METRICS];
 // Suavizado del técnico, del RSI y del %B: media de las últimas N velas (en 1D, 7 y 30 días; en el resto, las mismas velas)
 const SMOOTH = ["0", "7", "30"] as const;
 type Smooth = (typeof SMOOTH)[number];
-const smaOf = (xs: (number | null)[], n: number) =>
-  xs.map((_, i) => {
-    if (i < n - 1) return null;
-    const w = xs.slice(i - n + 1, i + 1);
-    return w.some((v) => v === null) ? null : (w as number[]).reduce((a, b) => a + b, 0) / n;
-  });
 // La misma puntuación que el índice: RSI 30 o menos → 0 y 70 o más → 100; %B recortado entre 0 y 100
 const clamp100 = (x: number) => Math.min(100, Math.max(0, x));
 const SMOOTH_SCORE: Partial<Record<TechKey, (v: number) => number>> = { rsi_14: (v) => clamp100(((v - 30) / 40) * 100), bollinger: clamp100 };
@@ -107,12 +102,12 @@ export function TechnicalApp() {
   const shown = useMemo(() => {
     if (!series) return null;
     // Suavizado: la media de su valor y la puntuación de esa media
-    const values = k === "tecnico" ? null : smoothN ? smaOf(series.values[k], smoothN) : series.values[k];
+    const values = k === "tecnico" ? null : smoothN ? smaNullable(series.values[k], smoothN) : series.values[k];
     const scores = !smoothN
       ? series.scores[k]
       : values && smoothScore
         ? values.map((v) => (v === null ? null : smoothScore(v)))
-        : smaOf(series.scores[k], smoothN);
+        : smaNullable(series.scores[k], smoothN);
     const i = scores.findIndex((v) => v !== null);
     return i < 0 ? null : { time: series.time.slice(i), price: series.price.slice(i), scores: scores.slice(i), values: values ? values.slice(i) : null };
   }, [series, k, smoothN, smoothScore]);

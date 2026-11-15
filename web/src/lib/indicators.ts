@@ -11,6 +11,15 @@ export function sma(values: number[], period: number): (number | null)[] {
   return out;
 }
 
+/** Media de las últimas `n` posiciones, con huecos: null si falta alguna en la ventana (suavizado de las gráficas). */
+export function smaNullable(xs: (number | null)[], n: number): (number | null)[] {
+  return xs.map((_, i) => {
+    if (i < n - 1) return null;
+    const w = xs.slice(i - n + 1, i + 1);
+    return w.some((v) => v === null) ? null : (w as number[]).reduce((a, b) => a + b, 0) / n;
+  });
+}
+
 /** RSI de Wilder del último cierre. */
 export function rsi(values: number[], period = 14): number | null {
   if (values.length <= period) return null;

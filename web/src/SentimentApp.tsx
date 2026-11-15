@@ -11,6 +11,7 @@ import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
 import { getJson } from "./lib/data";
+import { smaNullable } from "./lib/indicators";
 import {
   INFO_METRICS,
   SENTIMENT_TFS,
@@ -52,6 +53,18 @@ const MAX_CANDLES: Partial<Record<SentimentKey, Record<SentimentTf, number>>> = 
 };
 // Derivados en 1D: solo sus ~30 días; tampoco hay periodo a elegir
 const NO_RANGE: SentimentKey[] = ["open_interest", "long_pct", "taker_pct", "spot_buy_pct"];
+
+// Suavizado: media de las últimas N velas (en 1D, 7 y 30 días; en 1 h y 4 h, las mismas velas), como en la página técnica.
+// Solo donde cambia algo: en 1 h y 4 h las métricas diarias repiten el dato del día en todas sus velas, así que allí solo
+// se suavizan las que cambian de vela a vela. Fuera quedan los ETF (ya son la suma de 20 sesiones), el interés abierto (es
+// un nivel, no oscila) y, en 1D, los derivados (Binance solo guarda 30 días)
+const SMOOTH = ["0", "7", "30"] as const;
+type Smooth = (typeof SMOOTH)[number];
+const SMOOTHABLE: Record<SentimentTf, SentimentKey[]> = {
+  "1h": ["long_pct", "taker_pct", "spot_buy_pct"],
+  "4h": ["long_pct", "taker_pct", "spot_buy_pct"],
+  "1d": ["sentimiento", "fear_greed", "sth_sopr", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"],
+};
 
 /** La elección guardada en el navegador (si se puede) */
 function useStored<T extends string>(key: string, fallback: T, valid: readonly T[]) {
@@ -97,6 +110,7 @@ export function SentimentApp() {
   const [tf, setTf] = useStored<SentimentTf>("isbtccheap:sentiment-tf", "1h", SENTIMENT_TFS);
   const [stored, setKey] = useStored<SentimentKey>("isbtccheap:sentiment-key", "sentimiento", KEYS);
   const range = useRange("isbtccheap:sentiment-range", "1y", SENTIMENT_RANGES);
+  const [smooth, setSmooth] = useStored<Smooth>("isbtccheap:sentiment-smooth", "0", SMOOTH);
 
   // Lo que se puede elegir en esta temporalidad: la categoría y las métricas que usa en ella el índice
   // y, al final, las informativas (el índice no las usa)
@@ -109,6 +123,8 @@ export function SentimentApp() {
   const shownTf = loaded?.tf ?? tf;
   const shownK = keyFor(shownTf);
   const updating = loaded !== null && loaded.tf !== tf;
+  const smoothable = SMOOTHABLE[tf].includes(k);
+  const smoothN = SMOOTHABLE[shownTf].includes(shownK) ? Number(smooth) : 0;
 
   useEffect(() => {
     getJson("history.json").then(setHistory, () => setError(true));
@@ -140,11 +156,19 @@ export function SentimentApp() {
   // En 1D, el periodo elegido; desde la primera puntuación de lo elegido
   const shown = useMemo(() => {
     if (!series) return null;
-    const ranged = shownTf === "1d" && !NO_RANGE.includes(shownK) ? lastDaysOf(series, range.days) : series;
+    // Antes de recortar, para que la media tenga sus velas anteriores: la media del valor y la de la puntuación
+    const src = !smoothN
+      ? series
+      : {
+          ...series,
+          values: { ...series.values, ...(shownK === "sentimiento" ? {} : { [shownK]: smaNullable(series.values[shownK], smoothN) }) },
+          scores: { ...series.scores, [shownK]: smaNullable(series.scores[shownK], smoothN) },
+        };
+    const ranged = shownTf === "1d" && !NO_RANGE.includes(shownK) ? lastDaysOf(src, range.days) : src;
     const max = MAX_CANDLES[shownK]?.[shownTf];
     const cut = fromFirstScore(max ? lastCandles(ranged, max) : ranged, shownK);
     return cut.scores[shownK].some((v) => v !== null) ? cut : null;
-  }, [series, shownTf, shownK, range.days]);
+  }, [series, shownTf, shownK, range.days, smoothN]);
 
   const table = useMemo(() => {
     if (!hourly || !hourly.time.length) return null;
@@ -156,7 +180,8 @@ export function SentimentApp() {
   const tx = t.sentiment;
   const seo = SEO_SENTIMENT[lang];
   const label = (key: SentimentKey) => tx.short[key];
-  const lastScore = shown ? [...shown.scores.sentimiento].reverse().find((v) => v !== null) : undefined;
+  // El de la serie sin suavizar: el suavizado solo cambia la gráfica
+  const lastScore = series ? [...series.scores.sentimiento].reverse().find((v) => v !== null) : undefined;
 
   return (
     <main className="container">
@@ -199,6 +224,15 @@ export function SentimentApp() {
             ))}
           </div>
           {/* Los periodos son de velas diarias: con el color del botón 1D */}
+          {smoothable && (
+            <div className="segmented small" role="radiogroup" aria-label={t.technical.smoothAria}>
+              {SMOOTH.map((n) => (
+                <button key={n} role="radio" aria-checked={smooth === n} className={smooth === n ? "active" : ""} onClick={() => setSmooth(n)}>
+                  {n === "0" ? t.technical.smoothNone : t.technical.smoothLabel(Number(n), tf)}
+                </button>
+              ))}
+            </div>
+          )}
           {tf === "1d" && !NO_RANGE.includes(k) && <div className="sent-daily">{range.control}</div>}
         </div>
 
@@ -214,7 +248,7 @@ export function SentimentApp() {
               scores={shown.scores[shownK]}
               tf={shownTf}
               aria={tx.chartAria}
-              label={label(shownK)}
+              label={smoothN ? t.technical.smoothed(label(shownK), t.technical.smoothLabel(smoothN, shownTf)) : label(shownK)}
               // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
               mode={shownK === "sentimiento" ? "score" : isInfo(shownK) ? "value" : "both"}
               values={shownK === "sentimiento" ? undefined : shown.values[shownK]}
