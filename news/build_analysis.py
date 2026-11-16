@@ -57,6 +57,7 @@ LATEST_URL = os.environ.get("ANALYSIS_LATEST_URL", "https://raw.githubuserconten
 UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 # Histórico diario de la web (cierres desde 2011), para los techos y suelos de ciclo
 HISTORY_URL = LATEST_URL.rsplit("/", 1)[0] + "/history.json"
+LIQUIDITY_URL = LATEST_URL.rsplit("/", 1)[0] + "/liquidity_scores.json"
 
 # Titulares de news.json que se pasan como contexto: los de impacto medio y alto (naranja y rojo en la web) y recientes
 NEWS_MIN_IMPACT = 5
@@ -852,7 +853,8 @@ def zone_candidates(data: dict, price: float, atr_1d: float) -> list[dict]:
 
 
 # Lo que se calcula para la validación pero no se envía al modelo: las zonas de reacción ya van en zone_candidates
-MODEL_HIDDEN = ("reaction_zones",)
+# macro_liquidity, solo para el análisis semanal (trend_view): anticipa a meses, no a horas ni días
+MODEL_HIDDEN = ("reaction_zones", "macro_liquidity")
 
 
 def model_view(data: dict) -> dict:
@@ -1068,6 +1070,10 @@ def market() -> dict:
         data["fed_decision_odds"] = fed_odds()
     except Exception as e:  # sin Kalshi el análisis sigue sin este dato
         log.warning("Kalshi no disponible: %s", e)
+    try:
+        data["macro_liquidity"] = macro_liquidity(get(LIQUIDITY_URL))
+    except Exception as e:  # sin el dato, el análisis semanal sigue sin la liquidez macro
+        log.warning("liquidity_scores.json no disponible: %s", e)
     try:
         data["cycle_context"] = cycle_context(get(HISTORY_URL))
     except Exception as e:  # sin el histórico, el análisis sigue sin el contexto de ciclo
@@ -1382,7 +1388,7 @@ TREND_FILE = "trend.json"
 TREND_LOG = "trend_log.jsonl"
 # Lo que ve el modelo: la escala de semanas y meses (sin velas de 4 h y 1 h ni derivados de corto plazo)
 TREND_KEYS = ("context", "candles_1w", "candles_1d", "indicators_1w", "indicators_1d", "market_structure", "trend_context",
-              "cycle_context", "imbalances", "liquidity_pools", "long_term_holders", "short_term_holders",
+              "cycle_context", "imbalances", "liquidity_pools", "macro_liquidity", "long_term_holders", "short_term_holders",
               "spot_etf_net_flows_20_sessions_btc", "fear_greed_14d", "fed_decision_odds")
 # Distancia de los niveles de revisión al precio, en ATR diarios: ni a un paso (saltaría cada pocos días) ni tan lejos
 # que no sirvan
@@ -1443,6 +1449,14 @@ no para predecir por analogía.
 - long_term_holders y short_term_holders (datos on-chain diarios con un día de retraso): pérdidas realizadas y no \
 realizadas frente a su media; capitulation.level ya clasifica la de corto plazo (none, capitulation_levels o \
 intense_capitulation). Contexto, no una señal de giro por sí sola.
+- macro_liquidity (datos de la Reserva Federal de St. Louis, hoy y hace 4 y 13 semanas): la variación en 13 semanas de \
+la liquidez de la Fed, el BCE y el Banco de Japón en dólares (en %), el cambio en 13 semanas del rendimiento del bono a \
+2 años de EE. UU. (en puntos: si sube, el mercado descuenta subidas de tipos) y de la diferencia entre el bono a 10 y a \
+2 años (si sube, la curva se empina, lo habitual cuando se esperan recortes), y el NFCI de la Fed de Chicago (0 es la \
+media; positivo, condiciones financieras más restrictivas). Es el viento de fondo para las próximas semanas y meses: \
+más liquidez y tipos esperados a la baja favorecen a BTC. No es una señal de giro: va con retraso respecto al precio, \
+y en los suelos suele seguir desfavorable (en 2022 los dos suelos llegaron con la Fed subiendo tipos), así que una \
+liquidez restrictiva no basta para esperar más caídas inmediatas; pesa más su cambio de dirección.
 - Flujos de los ETF en 20 sesiones, Fear & Greed de 14 días y probabilidades de la Fed según Kalshi: contexto."""
 
 TREND_TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de la tendencia \
@@ -1641,6 +1655,30 @@ def trend_references(data: dict) -> dict:
     for k in ("high_12m", "low_12m"):
         if v := (data.get("trend_context") or {}).get(k):
             out[k] = {"price": v["price"], "date": v["date"]}
+    return out
+
+
+# Liquidez macro para el análisis semanal: los valores en bruto del pipeline (no sus puntuaciones: el análisis es del
+# modelo), hoy y hace 4 y 13 semanas. Backtest de noviembre de 2026: la categoría de liquidez anticipa la rentabilidad de
+# BTC a 30 días (−0,23) y sobre todo a 90 (−0,46), el plazo del análisis semanal
+MACRO_LIQUIDITY = {"global_liquidity_roc": ("global_liquidity_change_13w_pct", 100, 2),
+                   "us2y_chg": ("us_2y_yield_change_13w_pp", 1, 2),
+                   "curve_chg": ("yield_curve_10y_2y_change_13w_pp", 1, 2),
+                   "nfci": ("chicago_fed_financial_conditions_nfci", 1, 3)}
+
+
+def macro_liquidity(scores: dict) -> dict:
+    """De liquidity_scores.json: cada serie hoy y hace 4 y 13 semanas (último dato publicado)."""
+    start = datetime.fromisoformat(scores["start"]).date()
+    out: dict = {}
+    for key, (name, scale, digits) in MACRO_LIQUIDITY.items():
+        values = (scores["metrics"].get(key) or {}).get("value") or []
+        last = max((i for i, v in enumerate(values) if v is not None), default=None)
+        if last is None:
+            continue
+        at = lambda i: None if i < 0 or values[i] is None else round(values[i] * scale, digits)
+        out[name] = {"now": at(last), "4w_ago": at(last - 28), "13w_ago": at(last - 91)}
+        out["as_of"] = (start + timedelta(days=last)).isoformat()
     return out
 
 
