@@ -27,7 +27,7 @@ SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
 CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json", "ciclo": "cycle_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
-FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI"]
+FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2"]
 
 ATTRIBUTION = [
     {"name": "Coin Metrics Community", "url": "https://coinmetrics.io/community-network-data/", "license": "CC BY-NC 4.0"},

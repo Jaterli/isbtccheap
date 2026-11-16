@@ -350,11 +350,11 @@ export const en: Messages = {
     scores: {
       card: "Liquidity and price: the index score",
       info: [
-        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of **global liquidity** and the **dollar**. They are informational and the index does not use them: **M2** and **stablecoins** (in the backtest they did not anticipate reliably) and the **NFCI** (the Chicago Fed's financial conditions: credit, leverage and risk), with its level and its 13-week change. The NFCI approximates the private part of the liquidity Michael Howell measures: as background liquidity it anticipates noticeably better, but it did not improve the index. Hovering the chart also shows the metric's actual value.",
+        "Each line is a score from 0 to 100, the same one the index uses, overlaid on the BTC price (right axis, log scale). “Liquidity” is the category: the average of **global liquidity** and the US **2-year yield** (what the market expects from Fed rates). They are informational and the index does not use them: the **dollar** (global liquidity is already in dollars and anticipates better on its own), **M2** and **stablecoins** (in the backtest they did not anticipate reliably) and the **NFCI** (the Chicago Fed's financial conditions: credit, leverage and risk), with its level and its 13-week change. The NFCI approximates the private part of the liquidity Michael Howell measures: as background liquidity it anticipates noticeably better, but it did not improve the index. Hovering the chart also shows the metric's actual value.",
         "It runs opposite to liquidity: more money in the system (central banks expanding their balance sheets or a weakening dollar) is favorable for BTC and scores low (cheap); less, high (expensive). Each metric is compared with its previous 4 years. They are weekly or monthly data: they change slowly.",
       ],
       category: "Liquidity",
-      short: { global_liquidity_roc: "Global liquidity", m2_yoy: "M2", dxy_roc: "DXY dollar", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (13-week change)" },
+      short: { global_liquidity_roc: "Global liquidity", us2y_chg: "2-year yield", m2_yoy: "M2", dxy_roc: "DXY dollar", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (13-week change)" },
       metricAria: "Score overlaid on the price",
       infoMetric: "Informational: the index does not use it",
       infoGroup: "Informational: the index does not use them",
@@ -363,6 +363,7 @@ export const en: Messages = {
       chartAria: "Chart of the Bitcoin price with the liquidity score overlaid",
     },
     chartLink: "See how liquidity has evolved",
+    pp: (v: string) => `${v}\u00A0pp`,
     legend: {
       price: "BTC",
       roc: (d: string) => `Global liquidity (13w) as of ${d}`,
@@ -498,8 +499,8 @@ export const en: Messages = {
     },
     liquidez: {
       name: "Liquidity",
-      what: "Measures whether money is flowing into or out of the system: liquidity from the major central banks (Fed, ECB and Bank of Japan) and dollar strength.",
-      read: "More liquidity is a tailwind for Bitcoin and lowers the score; less liquidity or a strong dollar raise it.",
+      what: "Measures whether money is flowing into or out of the system: liquidity from the major central banks (Fed, ECB and Bank of Japan), in dollars, so it also captures dollar strength, and what the market expects from Fed rates (the 2-year yield).",
+      read: "More liquidity or lower expected rates are a tailwind for Bitcoin and lower the score; less liquidity or higher expected rates raise it.",
     },
     sentimiento: {
       name: "Sentiment",
@@ -558,10 +559,15 @@ export const en: Messages = {
       what: "Year-over-year growth of the US M2 money supply (cash, deposits and equivalents).",
       read: "Monetary expansion favours scarce assets like Bitcoin and lowers the score.",
     },
+    us2y_chg: {
+      name: "US 2-year Treasury yield (13-week change)",
+      what: "How much the 2-year Treasury yield has changed over 13 weeks, in percentage points: it reflects what the market expects from Fed rates.",
+      read: "If it rises fast, the market is pricing in hikes and it raises the score; if it falls, it is pricing in cuts and lowers it.",
+    },
     dxy_roc: {
       name: "Broad dollar index (13-week change)",
       what: "13-week change in the broad dollar index against major currencies.",
-      read: "A strengthening dollar tightens global financial conditions and raises the score.",
+      read: "A strengthening dollar tightens global financial conditions and scores high. Informational: global liquidity already captures its effect (it is in dollars) and anticipates better on its own.",
     },
     nfci: {
       name: "NFCI financial conditions",

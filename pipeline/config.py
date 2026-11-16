@@ -24,7 +24,17 @@ METRICS = [
     {"id": "wma200_ratio", "name": "Precio / MA200 semanas", "category": "ciclo", "method": "percentile"},
     # Fed + BCE + Banco de Japón en dólares: anticipa el año siguiente el doble que la liquidez de la Fed sola
     {"id": "global_liquidity_roc", "name": "Liquidez global (var. 13 sem.)", "category": "liquidez", "method": "percentile", "invert": True},
-    {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile"},
+    # Lo que espera el mercado de los tipos de la Fed: si el bono a 2 años sube deprisa, descuenta subidas (caro); si baja,
+    # recortes (barato). Backtest de noviembre de 2026, entre 14 series gratuitas de FRED (unas 50 variantes: tipos reales,
+    # curva, crédito, estrés financiero, reservas, VIX…), la única que se sostiene en 2013-2017, 2018-2021 y 2022-2026 con
+    # el mismo signo (en 2013-2017, con los tipos en cero, apenas dice nada) y mejora sin empeorar techos ni suelos: categoría
+    # a 90 días −0,354 → −0,460; índice 1 M a un año −0,601 → −0,622 (desde 2022 −0,456 → −0,485), 1 semana −0,487 → −0,500
+    {"id": "us2y_chg", "name": "Bono a 2 años de EE. UU. (cambio 13 sem.)", "category": "liquidez", "method": "percentile"},
+    # Informativa desde noviembre de 2026: es redundante con la liquidez global, que ya está en dólares (los balances del BCE
+    # y del Banco de Japón bajan en dólares cuando el dólar sube; correlación entre las dos 0,59). Backtest desde 2018: la
+    # liquidez global sola anticipa mejor como categoría (90 d desde 2022 −0,370 → −0,423) y en el índice en todas las
+    # temporalidades (1 M a un año −0,588 → −0,601; a 180 días −0,385 → −0,409), con techos y suelos iguales
+    {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile", "info": True},
     # Informativas (info): se puntúan para la página de liquidez, pero no cuentan en la categoría ni salen en su tarjeta.
     # Backtest de noviembre de 2026: M2 anticipa a un año con signo inestable (bien hasta 2020, al revés después) y las
     # stablecoins con el signo cambiado; sin ellas mejora la anticipación del score (1M a 3 meses −0,19 → −0,21) y los

@@ -158,6 +158,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         m["m2_yoy"] = _daily(extra["M2SL"], idx).pct_change(365, fill_method=None)
     if "DTWEXBGS" in extra:
         m["dxy_roc"] = _daily(extra["DTWEXBGS"], idx).pct_change(91, fill_method=None)
+    if "DGS2" in extra:
+        # Rendimiento del bono a 2 años de EE. UU. (en %): su cambio en 13 semanas, en puntos. El dato de un día se publica
+        # al siguiente
+        m["us2y_chg"] = _daily(extra["DGS2"].set_axis(extra["DGS2"].index + pd.Timedelta(days=1)), idx).diff(91)
     if "NFCI" in extra:
         # Condiciones financieras de la Fed de Chicago (0 = la media; positivo = más restrictivas). El dato del viernes
         # se publica el miércoles siguiente

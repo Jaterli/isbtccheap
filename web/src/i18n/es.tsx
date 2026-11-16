@@ -362,11 +362,11 @@ export const es = {
     scores: {
       card: "Liquidez y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **dólar**. Son informativas y el índice no las usa: **M2** y **stablecoins** (en el backtest no anticipaban de forma fiable) y el **NFCI** (las condiciones financieras de la Fed de Chicago: crédito, apalancamiento y riesgo), con su nivel y su cambio en 13 semanas. El NFCI se acerca a la parte privada de la liquidez que mide Michael Howell: como liquidez de fondo anticipa bastante mejor, pero dentro del índice no lo mejoraba. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **bono a 2 años** de EE. UU. (lo que espera el mercado de los tipos de la Fed). Son informativas y el índice no las usa: el **dólar** (la liquidez global ya está en dólares y, sola, anticipa mejor), **M2** y **stablecoins** (en el backtest no anticipaban de forma fiable) y el **NFCI** (las condiciones financieras de la Fed de Chicago: crédito, apalancamiento y riesgo), con su nivel y su cambio en 13 semanas. El NFCI se acerca a la parte privada de la liquidez que mide Michael Howell: como liquidez de fondo anticipa bastante mejor, pero dentro del índice no lo mejoraba. Al pasar por el gráfico se ve también el valor real de la métrica.",
         "Va al revés que la liquidez: más dinero en el sistema (bancos centrales que amplían su balance o un dólar que se debilita) es favorable para BTC y puntúa bajo (barato); menos, alto (caro). Cada métrica se compara con sus 4 años anteriores. Son datos semanales o mensuales: cambian despacio.",
       ],
       category: "Liquidez",
-      short: { global_liquidity_roc: "Liquidez global", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (cambio 13 sem.)" },
+      short: { global_liquidity_roc: "Liquidez global", us2y_chg: "Bono 2 años", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (cambio 13 sem.)" },
       metricAria: "Puntuación superpuesta al precio",
       infoMetric: "Informativa: el índice no la usa",
       infoGroup: "Informativas: el índice no las usa",
@@ -375,6 +375,8 @@ export const es = {
       chartAria: "Gráfico del precio de Bitcoin con la puntuación de liquidez superpuesta",
     },
     chartLink: "Ver la evolución de la liquidez",
+    // Cambio de un rendimiento, en puntos porcentuales
+    pp: (v: string) => `${v}\u00A0pp`,
     legend: {
       price: "BTC",
       roc: (d: string) => `Liquidez global (13S) a ${d}`,
@@ -511,8 +513,8 @@ export const es = {
     },
     liquidez: {
       name: "Liquidez",
-      what: "Mide si entra o sale dinero del sistema: liquidez de los grandes bancos centrales (Fed, BCE y Banco de Japón) y fuerza del dólar.",
-      read: "Más liquidez es un entorno favorable para Bitcoin y resta al score; menos liquidez o un dólar fuerte suman.",
+      what: "Mide si entra o sale dinero del sistema: la liquidez de los grandes bancos centrales (Fed, BCE y Banco de Japón), en dólares, así que recoge también la fuerza del dólar, y lo que espera el mercado de los tipos de la Fed (el bono a 2 años).",
+      read: "Más liquidez o tipos esperados a la baja son un entorno favorable para Bitcoin y restan al score; menos liquidez o tipos esperados al alza suman.",
     },
     sentimiento: {
       name: "Sentimiento",
@@ -571,10 +573,15 @@ export const es = {
       what: "Crecimiento interanual de la masa monetaria M2 de EE. UU. (efectivo, depósitos y equivalentes).",
       read: "La expansión monetaria favorece a los activos escasos como Bitcoin y resta al score.",
     },
+    us2y_chg: {
+      name: "Bono a 2 años de EE. UU. (cambio 13 sem.)",
+      what: "Cuánto ha cambiado en 13 semanas el rendimiento del bono del Tesoro a 2 años, en puntos porcentuales: refleja lo que espera el mercado de los tipos de la Fed.",
+      read: "Si sube deprisa, el mercado descuenta subidas de tipos y suma al score; si baja, descuenta recortes y resta.",
+    },
     dxy_roc: {
       name: "Dólar DXY amplio (var. 13 sem.)",
       what: "Variación en 13 semanas del índice amplio del dólar frente a las principales divisas.",
-      read: "Un dólar que se fortalece endurece las condiciones financieras globales y suma al score.",
+      read: "Un dólar que se fortalece endurece las condiciones financieras globales y puntúa alto. Informativa: la liquidez global ya recoge su efecto (está en dólares) y, sola, anticipa mejor.",
     },
     nfci: {
       name: "Condiciones financieras NFCI",
