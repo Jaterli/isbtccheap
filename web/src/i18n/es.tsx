@@ -57,6 +57,8 @@ export const es = {
     yearN: (y: number) => (y === 0 ? "Halving" : y === 1 ? "1 año" : `${y} años`),
     today: "Hoy",
     peakTitle: (year: number, day: number, mult: string) => `Techo del ciclo ${year}: día ${day}, ${mult}`,
+    troughTitle: (year: number, day: number, mult: string) => `Suelo del ciclo ${year}: día ${day}, ${mult}`,
+    troughNowTitle: (year: number, day: number, mult: string) => `Mínimo del ciclo ${year} hasta hoy: día ${day}, ${mult}`,
     cols: {
       cycle: "Ciclo",
       halvingPrice: "Precio en el halving",

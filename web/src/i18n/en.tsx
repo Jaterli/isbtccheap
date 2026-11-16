@@ -50,6 +50,8 @@ export const en: Messages = {
     yearN: (y: number) => (y === 0 ? "Halving" : y === 1 ? "1 year" : `${y} years`),
     today: "Today",
     peakTitle: (year: number, day: number, mult: string) => `${year} cycle top: day ${day}, ${mult}`,
+    troughTitle: (year: number, day: number, mult: string) => `${year} cycle bottom: day ${day}, ${mult}`,
+    troughNowTitle: (year: number, day: number, mult: string) => `${year} cycle low so far: day ${day}, ${mult}`,
     cols: {
       cycle: "Cycle",
       halvingPrice: "Halving price",

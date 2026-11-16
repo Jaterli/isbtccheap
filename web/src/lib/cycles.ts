@@ -19,6 +19,8 @@ export interface Cycle {
   day: number[];
   mult: number[];
   peak: { day: number; mult: number; time: number; price: number };
+  /** Suelo: el cierre más bajo tras el techo hasta el final del ciclo (en el ciclo en curso, hasta hoy: provisional) */
+  trough: { day: number; mult: number; time: number; price: number };
   /** Mayor caída desde el techo hasta el final del ciclo (o hasta hoy) */
   drawdown: number;
   current: boolean;
@@ -45,6 +47,7 @@ export function cycles(daily: PriceSeries): Cycle[] {
     let p = 0;
     day.forEach((d, j) => d <= PEAK_WINDOW && mult[j] > mult[p] && (p = j));
     const after = mult.slice(p);
+    const q = p + after.indexOf(Math.min(...after));
     out.push({
       year: new Date(start).getUTCFullYear(),
       start,
@@ -52,6 +55,7 @@ export function cycles(daily: PriceSeries): Cycle[] {
       day,
       mult,
       peak: { day: day[p], mult: mult[p], time: daily.time[idx[p]], price: daily.price[idx[p]] },
+      trough: { day: day[q], mult: mult[q], time: daily.time[idx[q]], price: daily.price[idx[q]] },
       drawdown: Math.min(...after) / mult[p] - 1,
       current: Date.now() < end,
     });

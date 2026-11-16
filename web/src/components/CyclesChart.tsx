@@ -89,6 +89,14 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
             <title>{tx.peakTitle(c.year, c.peak.day, fmtMult(c.peak.mult))}</title>
           </circle>
         ))}
+        {/* Suelos: tras el techo; hueco para distinguirlos de los techos (en el ciclo en curso, el mínimo hasta hoy) */}
+        {cycles
+          .filter((c) => c.trough.day > c.peak.day)
+          .map((c) => (
+            <circle key={c.year} cx={x(c.trough.day)} cy={chart.y(c.trough.mult)} r="4" className={`cycle-trough cycle-${c.year}`}>
+              <title>{(c.current ? tx.troughNowTitle : tx.troughTitle)(c.year, c.trough.day, fmtMult(c.trough.mult))}</title>
+            </circle>
+          ))}
 
         {hover !== null && (
           <>
