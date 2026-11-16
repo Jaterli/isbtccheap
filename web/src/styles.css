@@ -757,6 +757,8 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
    cambiaría hacia cada lado) y las referencias, punteadas y atenuadas */
 .an-trend > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .an-trend-chart { margin-top: 10px; }
+/* La situación, tras los escenarios: separada como el texto del análisis diario de su tarjeta */
+.an-trend-summary { margin-top: 16px; }
 .an-review line { stroke-width: 1.2; stroke-dasharray: 6 4; }
 .an-review.above line { stroke: var(--band-5); }
 .an-review.below line { stroke: var(--band-1); }

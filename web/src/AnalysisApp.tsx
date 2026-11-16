@@ -278,8 +278,6 @@ export function AnalysisApp() {
                 : null,
             )}
           </p>
-          {/* La situación y su porqué; en las revisiones anteriores, su único texto */}
-          <p>{keepUnits(trend[lang].summary ?? trend[lang].trend ?? "")}</p>
           {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}
           {trend.outlook && trend.alternative && (
             <ul className="an-scenarios">
@@ -293,6 +291,9 @@ export function AnalysisApp() {
               </li>
             </ul>
           )}
+          {/* Como en el análisis diario: el gráfico y los escenarios y, después, los textos: la situación y su porqué (en las
+              revisiones anteriores, su único texto), lo más probable y las claves */}
+          <p className="an-trend-summary">{keepUnits(trend[lang].summary ?? trend[lang].trend ?? "")}</p>
           {trend[lang].outlook && (
             <p className="an-outlook">
               <strong>{tx.trendMostLikely}:</strong> {keepUnits(trend[lang].outlook!)}

@@ -280,7 +280,10 @@ palabras si ayuda a entender la situación, sin contradecirla.
 en 2-4 semanas (data.background_trend.outlook_2_4_weeks), dilo en una frase para que el lector no lo tome por una \
 contradicción: por ejemplo, "antes del rebote hacia X $ que prevé la tendencia de fondo para las próximas semanas", con \
 su objetivo.
-- points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio.
+- points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio. No repitas las métricas \
+de las claves de la tendencia de fondo (data.background_trend.points: se publican en la misma página) salvo que hayan \
+cambiado desde entonces, y entonces di el cambio ("Kalshi ha pasado del 89 al 92 %"). Prioriza lo de horas y días: \
+velas de 1 h y 4 h, derivados, la agenda y las noticias del día, la liquidez y los huecos cercanos.
 - "es" en español y "en" en inglés, con el mismo contenido: traduce con cuidado las cifras y su sentido (una subida de \
 tipos mayor no es un recorte).
 - Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Nombra los datos con palabras normales, no con \
@@ -1508,7 +1511,9 @@ on-chain, liquidez y tipos…), en 3 o 4 frases (90 palabras como máximo).
 qué supondría un cierre diario más allá de cada nivel de revisión, diciendo qué nivel es cada uno; en 2 o 3 frases (70 \
 palabras como máximo).
 - points: de 2 a 4 claves (35 palabras como máximo cada una) de por qué el analista lo lee así, a partir de sus notes, \
-cada una con sus cifras. Si la dirección o el escenario más probable han cambiado respecto a la revisión anterior \
+cada una con sus cifras. No repiten lo que ya dicen summary y outlook (ni los escenarios ni los niveles de revisión): \
+aportan el porqué con otros datos. Son de semanas y meses: estructura semanal, ciclo, on-chain, liquidez y tipos, flujos \
+de los ETF; lo de horas y días (velas de 4 h, derivados, la agenda de la semana) es del análisis diario. Si la dirección o el escenario más probable han cambiado respecto a la revisión anterior \
 (previous_review en data), la primera clave dice qué ha cambiado y por qué."""
 
 REVIEW = {"type": "object", "properties": {"price": {"type": "number"}, "basis": BASIS}, "required": ["price", "basis"],
@@ -1719,6 +1724,8 @@ def background_trend(trend: dict) -> dict:
     """La tendencia publicada, como la recibe el análisis diario."""
     return {"reviewed_at": trend["generated_at"], "direction": trend["direction"], "confidence": trend["confidence"],
             "text": trend["es"].get("summary") or trend["es"].get("trend", ""), "review_above": trend["review_above"]["price"],
+            # Sus claves, para que el análisis diario no repita las mismas métricas (se publican en la misma página)
+            **({"points": trend["es"]["points"]} if trend["es"].get("points") else {}),
             "review_below": trend["review_below"]["price"],
             # Lo más probable en 2-4 semanas (ausente en las primeras revisiones)
             **({"outlook_2_4_weeks": {k: trend["outlook"][k] for k in ("direction", "target")}} if trend.get("outlook") else {})}
