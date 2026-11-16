@@ -89,6 +89,9 @@ export interface Trend {
   /** Cierres diarios que la harían revisar */
   review_above: { price: number };
   review_below: { price: number };
+  /** Lo más probable en 2-4 semanas y la alternativa (ausentes en las primeras revisiones) */
+  outlook?: { direction: Direction; target: number };
+  alternative?: { direction: Direction; target: number };
   es: { trend: string };
   en: { trend: string };
   /** Para el gráfico: máximo histórico (cierre diario) y máximo y mínimo de 12 meses (ausente en la primera revisión) */

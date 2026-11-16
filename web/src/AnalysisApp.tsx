@@ -212,27 +212,6 @@ export function AnalysisApp() {
         </section>
       )}
 
-      {trend && (
-        <section className="card an-trend">
-          <header>
-            <h2>{tx.trendTitle}</h2>
-            <span className={`an-bias ${trend.direction === "lateral" ? "neutral" : trend.direction}`}>
-              {tx.trendDirection[trend.direction]} · {tx.confidence[trend.confidence - 1]}
-            </span>
-          </header>
-          <p className="muted small an-updated">
-            {tx.trendReviewed(
-              new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
-              trend.review.reason === "close_above" || trend.review.reason === "close_below"
-                ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
-                : null,
-            )}
-          </p>
-          <p>{keepUnits(trend[lang].trend)}</p>
-          {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}
-        </section>
-      )}
-
       {analysis && (
         <section className="card">
           <h2>{tx.levelsTitle}</h2>
@@ -272,6 +251,39 @@ export function AnalysisApp() {
             </table>
           </div>
           <p className="muted small vol-note">{tx.note(modelName(analysis.model))}</p>
+        </section>
+      )}
+
+      {trend && (
+        <section className="card an-trend">
+          <header>
+            <h2>{tx.trendTitle}</h2>
+            <span className={`an-bias ${trend.direction === "lateral" ? "neutral" : trend.direction}`}>
+              {tx.trendDirection[trend.direction]} · {tx.confidence[trend.confidence - 1]}
+            </span>
+          </header>
+          <p className="muted small an-updated">
+            {tx.trendReviewed(
+              new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
+              trend.review.reason === "close_above" || trend.review.reason === "close_below"
+                ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
+                : null,
+            )}
+          </p>
+          <p>{keepUnits(trend[lang].trend)}</p>
+          {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}
+          {trend.outlook && trend.alternative && (
+            <ul className="an-scenarios">
+              <li className={`an-scenario primary ${trend.outlook.direction}`}>
+                <strong>{tx.trendMostLikely}</strong>
+                <span>{tx.move(trend.outlook.direction, usd(trend.outlook.target))}</span>
+              </li>
+              <li className={`an-scenario ${trend.alternative.direction}`}>
+                <strong>{tx.trendAlternative}</strong>
+                <span>{tx.move(trend.alternative.direction, usd(trend.alternative.target))}</span>
+              </li>
+            </ul>
+          )}
         </section>
       )}
 
