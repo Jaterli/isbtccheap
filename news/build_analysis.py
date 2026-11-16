@@ -14,7 +14,9 @@ Cada análisis publicado se añade a state/analysis_log.jsonl para poder medir d
 
 Variables de entorno (ver .env.example): DO_MODEL_ACCESS_KEY, GEMINI_API_KEY (para los gemini:), ANALYSIS_MODELS,
 NEWS_OUT_DIR, NEWS_STATE_DIR.
-Uso: python build_analysis.py [--dry-run]   (--dry-run no llama al modelo: zonas de prueba, para probar la web)
+La tendencia de fondo (semanas y meses) se analiza aparte, cada lunes (--weekly, trend.json), y el análisis diario la
+recibe como contexto; si un cierre diario supera uno de sus niveles de revisión, el diario la revisa antes.
+Uso: python build_analysis.py [--dry-run | --weekly]   (--dry-run no llama al modelo: zonas de prueba, para probar la web)
 """
 
 import argparse
@@ -95,8 +97,9 @@ en 1d o 4h), "liquidity_pool" (en 1d o 4h), \
 
 4. Escenarios realistas: ajusta objetivos e invalidaciones a la volatilidad reciente (ATR). En las próximas horas el \
 precio suele moverse unos pocos ATR de 1 h, y en 1-2 días, del orden de 1-2 ATR diarios: un objetivo mucho más lejano es \
-poco probable en ese plazo. Ten en cuenta la tendencia de fondo (semanas y meses: velas semanales y diarias, sus \
-indicadores, market_structure y trend_context): un movimiento de pocas horas no la cambia por sí solo. La liquidez \
+poco probable en ese plazo. Ten en cuenta la tendencia de fondo (background_trend, la revisión semanal, y las velas \
+semanales y diarias, sus indicadores, market_structure y trend_context): un movimiento de pocas horas no la cambia por \
+sí solo. La liquidez \
 pendiente y los imbalances cercanos son objetivos habituales del precio (suele ir a barrerlos o a rellenarlos antes de \
 girar), y Fibonacci sirve para los objetivos, sobre todo cuando el precio atraviesa un tramo sin zonas de reacción, \
 como un imbalance grande.
@@ -123,7 +126,7 @@ Solo un objeto JSON, sin texto antes ni después, con esta forma:
   "outlook_days": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base, "invalidation": número, \
 "invalidation_basis": base},
   "alternative": {"direction": "alcista" | "bajista" | "lateral", "target": número, "target_basis": base},
-  "notes": {"trend": texto, "drivers": [texto, ...]}
+  "notes": {"drivers": [texto, ...]}
 }
 
 - bias: el sesgo de corto plazo y confidence, tu confianza en él, de 1 (baja) a 3 (alta).
@@ -133,9 +136,8 @@ invalidaría ese escenario (al otro lado del precio actual).
 Puede coincidir o no con el de las próximas horas.
 - alternative: el escenario alternativo de las próximas horas, menos probable y en una dirección distinta de la de \
 outlook.
-- notes, en español: trend, la tendencia de fondo (semanas y meses: estructura, rupturas, divergencias) y en qué \
-punto está el precio dentro de ella, en 2 o 3 frases con sus precios; drivers, de 3 a 6 claves de lo que está moviendo \
-el precio y de por qué esperas cada escenario, una frase cada una con sus cifras.
+- notes, en español: drivers, de 3 a 6 claves de lo que está moviendo el precio y de por qué esperas cada escenario, \
+una frase cada una con sus cifras. La tendencia de fondo no se reescribe: es la de background_trend.
 
 CÓMO LEER LOS DATOS
 
@@ -154,6 +156,10 @@ referencias para el sesgo, no certezas. Solo en diario, Fibonacci en escala loga
 si es provisional, sin extensiones).
 - liquidity_pools (diario y 4 h): máximos y mínimos que el precio no ha vuelto a superar, donde se acumulan stops; los \
 iguales concentran más. imbalances (semanal, diario y 4 h): huecos que el precio no ha rellenado.
+- background_trend: la tendencia de fondo de la revisión semanal (cada lunes tras el cierre semanal, o antes si un \
+cierre diario superó uno de sus niveles de revisión): su dirección, su texto y los cierres diarios que la harían \
+revisar (review_above y review_below). No la reanalices: tus escenarios de horas y días pueden ir en contra de ella, \
+pero sabiéndolo.
 - trend_context (máximo y mínimo de 12 meses) y cycle_context (máximo histórico y ciclos anteriores): para encuadrar la \
 tendencia de fondo, no para predecir por analogía.
 - Derivados, en series de la más antigua a la más reciente: open interest, porcentaje de cuentas en largo y ratio de \
@@ -184,10 +190,10 @@ ZONE = {"type": "object", "properties": {"id": {"type": "string"}, "strength": {
         "required": ["id", "strength"], "additionalProperties": False}
 DIRECTION = {"type": "string", "enum": ["alcista", "bajista", "lateral"]}
 TEXT = {"type": "object",
-        "properties": {"headline": {"type": "string"}, "summary": {"type": "string"}, "trend": {"type": "string"},
+        "properties": {"headline": {"type": "string"}, "summary": {"type": "string"},
                        "outlook": {"type": "string"}, "outlook_days": {"type": "string"},
                        "points": {"type": "array", "items": {"type": "string"}}},
-        "required": ["headline", "summary", "trend", "outlook", "outlook_days", "points"], "additionalProperties": False}
+        "required": ["headline", "summary", "outlook", "outlook_days", "points"], "additionalProperties": False}
 # De qué nivel de los datos sale un objetivo o una invalidación (se comprueba en check_basis)
 BASIS_KINDS = ["reaction_zone", "liquidity_pool", "imbalance", "pivot", "fibonacci", "atr"]
 BASIS = {"type": "object", "properties": {"kind": {"type": "string", "enum": BASIS_KINDS},
@@ -210,8 +216,8 @@ SCHEMA = {
         "outlook_days": MOVE,
         "alternative": {"type": "object", "properties": {"direction": DIRECTION, "target": {"type": "number"}, "target_basis": BASIS},
                         "required": ["direction", "target", "target_basis"], "additionalProperties": False},
-        "notes": {"type": "object", "properties": {"trend": {"type": "string"}, "drivers": {"type": "array", "items": {"type": "string"}}},
-                  "required": ["trend", "drivers"], "additionalProperties": False},
+        "notes": {"type": "object", "properties": {"drivers": {"type": "array", "items": {"type": "string"}}},
+                  "required": ["drivers"], "additionalProperties": False},
     },
     "required": ["price", "supports", "resistances", "bias", "confidence", "outlook", "outlook_days", "alternative", "notes"],
     "additionalProperties": False,
@@ -227,8 +233,8 @@ TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,gl
                                   "gemini:gemini-flash-latest")
 TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de un analista ya \
 revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, sesgo, confianza y escenarios con \
-su objetivo, su invalidación y de qué nivel sale cada uno; notes: sus claves y la tendencia de fondo) y los datos de \
-mercado que puedes citar (data). Redactas sus textos para la web, en español de España y en inglés, sin cambiar el \
+su objetivo, su invalidación y de qué nivel sale cada uno; notes: sus claves) y los datos de mercado que puedes citar \
+(data, con background_trend: la tendencia de fondo de la revisión semanal, que se publica aparte). Redactas sus textos para la web, en español de España y en inglés, sin cambiar el \
 análisis.
 
 REGLAS
@@ -259,14 +265,14 @@ valen, con su explicación cuando hace falta.
 
 Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 {
-  "es": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
-  "en": {"headline": texto, "summary": texto, "trend": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
+  "es": {"headline": texto, "summary": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]},
+  "en": {"headline": texto, "summary": texto, "outlook": texto, "outlook_days": texto, "points": [texto, ...]}
 }
 
 - headline: una frase de 12 palabras como máximo.
 - summary: la situación de BTC hoy en 3 o 4 frases (100 palabras como máximo).
-- trend: la tendencia de fondo (semanas y meses: estructura, rupturas, divergencias) y en qué punto está el precio dentro \
-de ella, en 2 o 3 frases (80 palabras como máximo).
+- La tendencia de fondo se publica aparte (background_trend): no la repitas; el summary puede mencionarla en pocas \
+palabras si ayuda a entender la situación, sin contradecirla.
 - outlook: lo más probable en las próximas horas (analysis.outlook), hacia dónde y qué lo invalidaría, en 2 o 3 frases \
 (70 palabras como máximo).
 - outlook_days: lo mismo para 1-2 días (analysis.outlook_days).
@@ -1239,7 +1245,7 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         "fibonacci": list({f["price"]: f for f in cited if f}.values()),
     }
     notes = a.get("notes") or {}
-    result["notes"] = {"trend": str(notes.get("trend", "")).strip(), "drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}
+    result["notes"] = {"drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}
     return result
 
 
@@ -1271,7 +1277,8 @@ def _fix_languages(a: dict) -> None:
 
 
 # Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
-TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 80, "outlook": 70, "outlook_days": 70, "points": 35}
+TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 100, "outlook": 70, "outlook_days": 70, "points": 35}
+TEXT_KEYS = ("headline", "summary", "outlook", "outlook_days")
 POINT_MAX_WORDS = 50
 
 
@@ -1282,9 +1289,9 @@ def check_texts(a: dict) -> dict:
     out = {}
     for lang in ("es", "en"):
         t = a[lang]
-        if not all(str(t.get(k, "")).strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")):
+        if not all(str(t.get(k, "")).strip() for k in TEXT_KEYS):
             raise ValueError(f"texto vacío ({lang})")
-        out[lang] = {k: t[k].strip() for k in ("headline", "summary", "trend", "outlook", "outlook_days")}
+        out[lang] = {k: t[k].strip() for k in TEXT_KEYS}
         out[lang]["points"] = [x.strip() for x in t.get("points", []) if x.strip()][:4]
         long = [f"{k} {len(v.split())}/{TEXT_WORDS[k]}" for k, v in out[lang].items() if k != "points" and len(v.split()) > TEXT_WORDS[k]]
         long += [f"points {len(p.split())}/{TEXT_WORDS['points']}" for p in out[lang]["points"] if len(p.split()) > TEXT_WORDS["points"]]
@@ -1310,7 +1317,7 @@ def text_input(result: dict, data: dict, price: float) -> str:
 def dry_run(price: float) -> dict:
     """Sin modelo: zonas a distancias fijas del precio, para probar la salida y la web."""
     z = lambda f, s: {"low": price * f - 300, "high": price * f + 300, "strength": s}  # sin candidatas: con bordes
-    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "trend": "Sin modelo.", "outlook": "Sin modelo.",
+    text = {"headline": "Análisis de prueba (sin modelo)", "summary": "Generado con --dry-run.", "outlook": "Sin modelo.",
             "outlook_days": "Sin modelo.", "points": ["Sin modelo"]}
     return {"price": price, "supports": [z(0.985, 3), z(0.96, 2)], "resistances": [z(1.015, 2), z(1.04, 3)],
             "bias": "neutral", "confidence": 1,
@@ -1357,11 +1364,238 @@ def shadow(data: dict, user: str, published: dict) -> None:
              result["outlook_days"]["target"])
 
 
+# ---------- Tendencia de fondo semanal ----------
+
+# Desde el 16 nov 2026 la tendencia de fondo (semanas y meses) se analiza aparte, una vez por semana: el lunes a las
+# 08:00 de Madrid, con la vela semanal ya cerrada (a las 00:00 UTC) y unas horas de la nueva. Reescrita en cada análisis
+# diario, la conclusión no cambiaba (seis análisis seguidos «bajista de fondo») pero los detalles sí (el suelo del ciclo
+# en 58.525 o en 57.800 $, del −41 al −45 % desde el máximo). Se adelanta si un cierre diario supera uno de sus niveles de
+# revisión (lo comprueba el script en cada análisis diario) o si no hay ninguna. El análisis diario la recibe como
+# contexto (background_trend) y no la reescribe
+TREND_FILE = "trend.json"
+TREND_LOG = "trend_log.jsonl"
+# Lo que ve el modelo: la escala de semanas y meses (sin velas de 4 h y 1 h ni derivados de corto plazo)
+TREND_KEYS = ("context", "candles_1w", "candles_1d", "indicators_1w", "indicators_1d", "market_structure", "trend_context",
+              "cycle_context", "imbalances", "liquidity_pools", "long_term_holders", "short_term_holders",
+              "spot_etf_net_flows_20_sessions_btc", "fear_greed_14d", "fed_decision_odds")
+# Distancia de los niveles de revisión al precio, en ATR diarios: ni a un paso (saltaría cada pocos días) ni tan lejos
+# que no sirvan
+REVIEW_MIN_ATR = 1.0
+REVIEW_MAX = 0.35
+
+TREND_PROMPT = """Eres un analista de mercado de Bitcoin. Recibes en JSON datos de mercado en bruto de BTC/USDT y haces \
+tu propio análisis de la tendencia de fondo de BTC: semanas y meses, no horas ni días. Se publica una vez por semana \
+(el lunes por la mañana, con la vela semanal anterior ya cerrada y la nueva recién empezada) y la usan como contexto \
+los análisis diarios, así que tiene que aguantar toda la semana salvo que el precio rompa un nivel clave. Respondes \
+solo con un objeto JSON; otro modelo redactará después el texto.
+
+REGLAS
+
+1. Dirección (direction): alcista, bajista o lateral, por la estructura semanal y diaria (máximos y mínimos, rupturas \
+confirmadas por cierres, divergencias), la posición frente a sus medias largas y el contexto del ciclo. Lo que pasa en \
+pocos días no la cambia por sí solo.
+2. Niveles de revisión (review_above y review_below): el precio de un cierre diario por encima o por debajo del cual tu \
+lectura dejaría de valer o habría que revisarla, uno a cada lado del precio actual, con su base (basis: {"kind": ..., \
+"timeframe": ...}) como en estos datos: "pivot" (de market_structure, en 1w o 1d), "liquidity_pool" (1d), \
+"imbalance" (1w o 1d) o "fibonacci" (1d). Usa el precio exacto del nivel. Deben \
+estar a una distancia razonable: al menos un ATR diario del precio y no más de un 35 %.
+3. notes, en español: trend, la tendencia de fondo y en qué punto está el precio dentro de ella, en 3 o 4 frases con \
+sus precios y fechas exactos de los datos; drivers, de 2 a 4 claves de por qué la lees así, una frase cada una con sus \
+cifras. Lenguaje llano, sin abreviaturas ni nombres de campos del JSON (HH, LL, current_extreme…): el redactor tiende \
+a copiar tus palabras. Cita los extremos con la fecha y el tipo de dato tal como vienen (un mínimo de mecha no es un \
+cierre).
+
+Solo un objeto JSON, sin texto antes ni después:
+{
+  "price": precio actual de BTC en dólares (número),
+  "direction": "alcista" | "bajista" | "lateral",
+  "confidence": 1 a 3,
+  "review_above": {"price": número, "basis": base},
+  "review_below": {"price": número, "basis": base},
+  "notes": {"trend": texto, "drivers": [texto, ...]}
+}
+
+CÓMO LEER LOS DATOS
+
+- Velas semanales (un año) y diarias (6 meses) ([hora UTC, apertura, máximo, mínimo, cierre, volumen en BTC], la última \
+en curso) e indicadores de cada temporalidad: RSI 14, %B de Bollinger, distancia a las medias de 50 y 200 velas, \
+máximos y mínimos de 20 y 50 velas y ATR 14.
+- market_structure, semanal y diaria: los últimos pivotes (HH, LH, HL, LL, con su RSI), el extremo en curso (aún sin \
+confirmar), la última ruptura de un pivote por un cierre, las divergencias del RSI y, en diario, Fibonacci en escala \
+logarítmica (main y correction).
+- trend_context (máximo y mínimo de 12 meses) y cycle_context (máximo histórico y ciclos anteriores): para encuadrar, \
+no para predecir por analogía.
+- imbalances y liquidity_pools: huecos sin rellenar y máximos y mínimos que el precio no ha vuelto a superar.
+- long_term_holders y short_term_holders (datos on-chain diarios con un día de retraso): pérdidas realizadas y no \
+realizadas frente a su media; capitulation.level ya clasifica la de corto plazo (none, capitulation_levels o \
+intense_capitulation). Contexto, no una señal de giro por sí sola.
+- Flujos de los ETF en 20 sesiones, Fear & Greed de 14 días y probabilidades de la Fed según Kalshi: contexto."""
+
+TREND_TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de la tendencia \
+de fondo de BTC (semanas y meses) de un analista ya revisado (direction, confidence, review_above y review_below: los \
+cierres diarios que la harían revisar; notes: sus claves) y los datos que puedes citar (data). Redactas su texto para \
+la web, en español de España y en inglés, sin cambiar el análisis.
+
+REGLAS
+
+1. Cuenta este análisis: la misma dirección y los mismos niveles, con sus precios. No añadas niveles ni cifras que no \
+estén en el análisis, notes o data.
+2. En 3 o 4 frases (100 palabras como máximo): la tendencia de fondo, en qué punto está el precio dentro de ella y qué \
+la cambiaría (los niveles de revisión, diciendo en pocas palabras qué nivel es cada uno).
+3. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso…). Soporte, \
+resistencia, Fibonacci o hueco sin rellenar sí valen.
+4. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Con capitulation_levels, "en niveles de \
+capitulación" (nunca "plena" ni "masiva"); solo con intense_capitulation, "capitulación intensa".
+5. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
+
+Solo un objeto JSON, sin texto antes ni después: {"es": {"trend": texto}, "en": {"trend": texto}}"""
+
+REVIEW = {"type": "object", "properties": {"price": {"type": "number"}, "basis": BASIS}, "required": ["price", "basis"],
+          "additionalProperties": False}
+TREND_SCHEMA = {
+    "type": "object",
+    "properties": {"price": {"type": "number"}, "direction": DIRECTION, "confidence": {"type": "integer"},
+                   "review_above": REVIEW, "review_below": REVIEW,
+                   "notes": {"type": "object", "properties": {"trend": {"type": "string"},
+                                                              "drivers": {"type": "array", "items": {"type": "string"}}},
+                             "required": ["trend", "drivers"], "additionalProperties": False}},
+    "required": ["price", "direction", "confidence", "review_above", "review_below", "notes"],
+    "additionalProperties": False,
+}
+TREND_TEXT = {"type": "object", "properties": {"trend": {"type": "string"}}, "required": ["trend"], "additionalProperties": False}
+TREND_TEXT_SCHEMA = {"type": "object", "properties": {"es": TREND_TEXT, "en": TREND_TEXT}, "required": ["es", "en"],
+                     "additionalProperties": False}
+
+
+def trend_view(data: dict) -> dict:
+    """Los datos que ve el análisis semanal: solo los de semanas y meses."""
+    view = {k: v for k, v in data.items() if k in TREND_KEYS}
+    view["imbalances"] = {tf: v for tf, v in data.get("imbalances", {}).items() if tf in ("1w", "1d")}
+    view["liquidity_pools"] = {tf: v for tf, v in data.get("liquidity_pools", {}).items() if tf == "1d"}
+    return view
+
+
+def validate_trend(a: dict, price: float, data: dict) -> dict:
+    """Niveles de revisión a cada lado del precio y a una distancia razonable; la base de cada uno solo se registra."""
+    said = float(a.get("price") or 0)
+    if not said or abs(said / price - 1) > 0.03:
+        raise ValueError(f"el modelo da un precio de {said} y en Binance está a {price:.0f}")
+    atr = data.get("indicators_1d", {}).get("atr14") or price * 0.03
+    above, below = float(a["review_above"]["price"]), float(a["review_below"]["price"])
+    if not below < price < above:
+        raise ValueError(f"niveles de revisión del lado equivocado: {below} / {price:.0f} / {above}")
+    for lv in (above, below):
+        if abs(lv - price) < REVIEW_MIN_ATR * atr or abs(lv / price - 1) > REVIEW_MAX:
+            raise ValueError(f"nivel de revisión a una distancia poco razonable: {lv} (precio {price:.0f}, ATR {atr:.0f})")
+    if a.get("direction") not in ("alcista", "bajista", "lateral") or a.get("confidence") not in (1, 2, 3):
+        raise ValueError("dirección o confianza no válidas")
+    levels, tol = basis_levels(data), BASIS_ATR * atr
+    review = lambda r: {"price": round(float(r["price"])), "basis": check_basis(float(r["price"]), r["basis"], levels, tol)}
+    notes = a.get("notes") or {}
+    if not str(notes.get("trend", "")).strip():
+        raise ValueError("sin texto de tendencia")
+    return {"direction": a["direction"], "confidence": a["confidence"], "review_above": review(a["review_above"]),
+            "review_below": review(a["review_below"]),
+            "notes": {"trend": str(notes["trend"]).strip(), "drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}}
+
+
+def check_trend_texts(a: dict) -> dict:
+    _fix_languages(a)
+    out = {}
+    for lang in ("es", "en"):
+        text = str(a[lang].get("trend", "")).strip()
+        if not text:
+            raise ValueError(f"texto vacío ({lang})")
+        if len(text.split()) > TEXT_WORDS["trend"]:
+            log.warning("Tendencia demasiado larga (%s): %d/%d palabras", lang, len(text.split()), TEXT_WORDS["trend"])
+        out[lang] = {"trend": text}
+    return out
+
+
+def load_trend() -> dict | None:
+    try:
+        return json.loads((OUT_DIR / TREND_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def review_trigger(trend: dict | None, raw_1d: list[list]) -> dict | None:
+    """Por qué hay que revisar ya la tendencia: no la hay, o un cierre diario posterior a su revisión superó uno de sus
+    niveles (solo velas cerradas). None si sigue valiendo."""
+    if not trend:
+        return {"reason": "missing"}
+    since = datetime.fromisoformat(trend["generated_at"]).timestamp() * 1000
+    now = datetime.now(timezone.utc).timestamp() * 1000
+    above, below = trend["review_above"]["price"], trend["review_below"]["price"]
+    for r in raw_1d:
+        close_time, close = r[6], float(r[4])  # r[6]: hora de cierre de la vela (ms)
+        if close_time <= since or close_time > now:
+            continue
+        if close > above or close < below:
+            return {"reason": "close_above" if close > above else "close_below", "date": _day(r), "close": round(close),
+                    "level": above if close > above else below}
+    return None
+
+
+def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
+    """Analiza y publica la tendencia de fondo (trend.json). Devuelve la publicada o None si ningún modelo sirvió (se
+    mantiene la anterior)."""
+    user = json.dumps(trend_view(data), separators=(",", ":"))
+    prices: list[float] = []
+
+    def check(raw: dict) -> dict:
+        prices.append(float(get(PRICE_URL)["price"]))
+        return validate_trend(raw, prices[-1], data)
+
+    try:
+        result, spec = llm.complete(TREND_PROMPT, user, TREND_SCHEMA, "tendencia", MODELS, check, max_tokens=32000)
+    except RuntimeError:
+        log.error("ningún modelo dio una tendencia válida: se mantiene la anterior")
+        return None
+    price, model = prices[-1], model_name(spec)
+    facts = {k: v for k, v in trend_view(data).items() if not k.startswith("candles_")}
+    text_user = json.dumps({"analysis": {"price": round(price), **{k: v for k, v in result.items() if k != "notes"}},
+                            "notes": result["notes"], "data": facts}, separators=(",", ":"), ensure_ascii=False)
+    try:
+        texts, spec = llm.complete(TREND_TEXT_PROMPT, text_user, TREND_TEXT_SCHEMA, "tendencia-textos", TEXT_MODELS,
+                                   check_trend_texts, max_tokens=16000)
+    except RuntimeError:
+        log.error("ningún modelo redactó la tendencia: se mantiene la anterior")
+        return None
+    out = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model,
+           "text_model": model_name(spec), "price": round(price),
+           # weekly: la revisión de los lunes; early: adelantada por un cierre diario; missing: no había ninguna
+           "review": {"reason": "weekly"} if trigger is None else trigger,
+           **{k: v for k, v in result.items() if k != "notes"}, **texts}
+    write_json(OUT_DIR / TREND_FILE, out)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(STATE_DIR / TREND_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps({**{k: out[k] for k in ("generated_at", "model", "price", "review", "direction", "confidence",
+                                                   "review_above", "review_below")}, "notes": result["notes"]}) + "\n")
+    log.info("trend.json: %s (confianza %s), revisar con un cierre por encima de %s o por debajo de %s (%s; textos, %s)",
+             out["direction"], out["confidence"], out["review_above"]["price"], out["review_below"]["price"], model,
+             out["text_model"])
+    return out
+
+
+def background_trend(trend: dict) -> dict:
+    """La tendencia publicada, como la recibe el análisis diario."""
+    return {"reviewed_at": trend["generated_at"], "direction": trend["direction"], "confidence": trend["confidence"],
+            "text": trend["es"]["trend"], "review_above": trend["review_above"]["price"],
+            "review_below": trend["review_below"]["price"]}
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="no llama al modelo: zonas de prueba")
+    ap.add_argument("--weekly", action="store_true", help="solo la tendencia de fondo semanal (trend.json)")
     args = ap.parse_args()
+
+    if args.weekly:
+        if not build_trend(market()):
+            raise SystemExit(1)
+        return
 
     if args.dry_run:
         price = float(get(PRICE_URL)["price"])
@@ -1369,6 +1603,14 @@ def main() -> None:
         result, model, text_model = {**validate(raw, price), **check_texts(raw)}, "dry-run", "dry-run"
     else:
         data = market()
+        # La tendencia de fondo semanal, revisada antes si un cierre diario superó uno de sus niveles o si no la hay
+        trend = load_trend()
+        trigger = review_trigger(trend, get(f"{SPOT}/klines?symbol=BTCUSDT&interval=1d&limit=10"))
+        if trigger:
+            log.info("Tendencia de fondo: revisión anticipada (%s)", trigger)
+            trend = build_trend(data, trigger) or trend
+        if trend:
+            data["background_trend"] = background_trend(trend)
         user = json.dumps(model_view(data), separators=(",", ":"))
         prices: list[float] = []
 

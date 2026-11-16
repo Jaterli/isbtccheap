@@ -76,3 +76,21 @@ export interface Analysis {
 }
 
 export const ANALYSIS_URL = `${import.meta.env.BASE_URL}news/analysis.json`;
+
+/** trend.json de news/build_analysis.py --weekly: la tendencia de fondo, revisada cada lunes (o antes, si un cierre diario
+ * supera uno de sus niveles de revisión) */
+export interface Trend {
+  generated_at: string;
+  price: number;
+  direction: Direction;
+  confidence: 1 | 2 | 3;
+  /** weekly: la revisión de los lunes; close_above / close_below: adelantada por un cierre diario; missing: no había */
+  review: { reason: "weekly" | "missing" | "close_above" | "close_below"; date?: string; close?: number; level?: number };
+  /** Cierres diarios que la harían revisar */
+  review_above: { price: number };
+  review_below: { price: number };
+  es: { trend: string };
+  en: { trend: string };
+}
+
+export const TREND_URL = `${import.meta.env.BASE_URL}news/trend.json`;

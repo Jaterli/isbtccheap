@@ -5,7 +5,7 @@ import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
-import { ANALYSIS_URL, type Analysis, type ChartTf } from "./lib/analysis";
+import { ANALYSIS_URL, type Analysis, type ChartTf, TREND_URL, type Trend } from "./lib/analysis";
 import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
@@ -58,6 +58,8 @@ const signedPct = (v: number) =>
 
 export function AnalysisApp() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  // La tendencia de fondo, aparte: se revisa cada lunes (sin ella, la del análisis, en los anteriores)
+  const [trend, setTrend] = useState<Trend | null>(null);
   const [missing, setMissing] = useState(false);
   const [candles, setCandles] = useState<Record<ChartTf, Candle[]> | null>(null);
   // 4 h: las próximas horas y días, con los escenarios · 1D: unos 6 meses, para ver qué niveles se han superado o perdido
@@ -75,6 +77,9 @@ export function AnalysisApp() {
           .then(async (h4) => ({ "4h": h4, "1d": await dailyAt(at, h4) }))
           .then(setCandles, () => setCandleError(true));
       }, () => setMissing(true));
+    fetch(TREND_URL, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then(setTrend, () => {});
   }, []);
 
   const tx = t.analysis;
@@ -155,10 +160,27 @@ export function AnalysisApp() {
         <section className="card an-text">
           <h2>{keepUnits(text.headline)}</h2>
           <p>{keepUnits(text.summary)}</p>
-          {text.trend && (
-            <p className="an-outlook">
-              <strong>{tx.trend}</strong> {keepUnits(text.trend)}
-            </p>
+          {trend ? (
+            <div className="an-trend">
+              <p className="an-outlook">
+                <strong>{tx.trend}</strong> {keepUnits(trend[lang].trend)}
+              </p>
+              <p className="muted small">
+                {tx.trendReviewed(
+                  new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
+                  trend.review.reason === "close_above" || trend.review.reason === "close_below"
+                    ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
+                    : null,
+                )}{" "}
+                {tx.trendLevels(usd(trend.review_above.price), usd(trend.review_below.price))}
+              </p>
+            </div>
+          ) : (
+            text.trend && (
+              <p className="an-outlook">
+                <strong>{tx.trend}</strong> {keepUnits(text.trend)}
+              </p>
+            )
           )}
           <p className="an-outlook">
             <strong>{tx.nextHours}</strong> {keepUnits(text.outlook)}

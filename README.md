@@ -199,6 +199,9 @@ crontab -e
 # tocarlo con el cambio de hora. En crontab, % se escribe \%
 0 10,11 * * 1-6         [ "$(TZ=Europe/Madrid date +\%H)" = 12 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
 0 16,17 * * 0           [ "$(TZ=Europe/Madrid date +\%H)" = 18 ] && /root/isbtccheap/news/run.sh build_analysis.py >> /var/log/isbtccheap-news.log 2>&1
+# Tendencia de fondo (trend.json): los lunes a las 08:00 de Madrid, con la vela semanal ya cerrada (00:00 UTC). Los
+# análisis diarios la usan como contexto y la revisan antes si un cierre diario supera uno de sus niveles
+0 6,7 * * 1             [ "$(TZ=Europe/Madrid date +\%H)" = 08 ] && /root/isbtccheap/news/run.sh build_analysis.py --weekly >> /var/log/isbtccheap-news.log 2>&1
 # Histórico de derivados de Binance (solo guarda 30 días): cada 6 h, con margen de sobra
 40 */6 * * *            /root/isbtccheap/news/run.sh collect_derivatives.py >> /var/log/isbtccheap-news.log 2>&1
 ```

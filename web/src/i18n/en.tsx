@@ -279,7 +279,7 @@ export const en: Messages = {
     card: "Zones and outlook",
     info: [
       "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
-      "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. The dashed lines mark resting liquidity (highs and lows the price has not yet taken out, where stops build up) and the grey bands, unfilled gaps; the script computes them, not the model. The orange lines are the Fibonacci levels the model takes a target or invalidation from: they are computed levels, not zones where the price has reacted. Candles are 4h (or daily with the 1D selector, about 6 months, to see which levels have been reclaimed or lost) and run up to the time of the analysis, as the model saw them: they do not change until the next one, which runs Monday to Saturday at 12:00 and on Sundays at 18:00 (Madrid time).",
+      "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. The dashed lines mark resting liquidity (highs and lows the price has not yet taken out, where stops build up) and the grey bands, unfilled gaps; the script computes them, not the model. The orange lines are the Fibonacci levels the model takes a target or invalidation from: they are computed levels, not zones where the price has reacted. Candles are 4h (or daily with the 1D selector, about 6 months, to see which levels have been reclaimed or lost) and run up to the time of the analysis, as the model saw them: they do not change until the next one, which runs Monday to Saturday at 12:00 and on Sundays at 18:00 (Madrid time). The underlying trend (weeks and months) is analysed separately, every Monday at 08:00, once the weekly candle has closed, and the daily analyses use it as context; if a daily close breaks one of its review levels, it is reviewed earlier.",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
     confidence: ["low confidence", "medium confidence", "high confidence"],
@@ -305,6 +305,10 @@ export const en: Messages = {
       d === "alcista" ? `A rise toward ${target}.` : d === "bajista" ? `A drop toward ${target}.` : `Sideways around ${target}.`,
     invalidatedAt: (price: string) => `Invalidated if it reaches ${price}.`,
     trend: "Underlying trend:",
+    trendReviewed: (day: string, early: string | null) =>
+      early ? `Early review on ${day}: ${early}.` : `Reviewed every Monday at 08:00 (Madrid time); last review: ${day}.`,
+    trendEarly: (above: boolean, level: string) => `a daily close ${above ? "above" : "below"} ${level} brought it forward`,
+    trendLevels: (above: string, below: string) => `It would be reviewed earlier on a daily close above ${above} or below ${below}.`,
     nextHours: "Next hours:",
     nextDays: "1-2 days:",
     points: "Key points",
