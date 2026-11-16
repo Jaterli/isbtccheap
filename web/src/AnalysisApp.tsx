@@ -64,7 +64,7 @@ export function AnalysisApp() {
   const [chartTf, setChartTf] = useState<ChartTf>("4h");
   const [candleError, setCandleError] = useState(false);
 
-  // El análisis se lee al cargar (cambia dos veces al día) y las velas, las de su momento: no se refrescan
+  // El análisis se lee al cargar (cambia una vez al día) y las velas, las de su momento: no se refrescan
   useEffect(() => {
     fetch(ANALYSIS_URL, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))

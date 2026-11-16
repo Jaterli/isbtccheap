@@ -1,4 +1,4 @@
-/** analysis.json de news/build_analysis.py (IA, dos veces al día): zonas, sesgo y movimientos más probables */
+/** analysis.json de news/build_analysis.py (IA, una vez al día): zonas, sesgo y movimientos más probables */
 export interface Level {
   id: string;
   kind: "support" | "resistance";

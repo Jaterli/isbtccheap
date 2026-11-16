@@ -365,7 +365,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
   es: {
     title: "Análisis de Bitcoin: soportes, resistencias y sesgo",
     intro:
-      "Análisis del precio de Bitcoin con IA que se actualiza dos veces al día: la situación de BTC hoy, sus soportes y resistencias inmediatos, el sesgo del mercado y lo más probable en las próximas horas, dibujado sobre el gráfico de BTC.",
+      "Análisis del precio de Bitcoin con IA que se actualiza cada día: la situación de BTC hoy, sus soportes y resistencias inmediatos, el sesgo del mercado y lo más probable en las próximas horas, dibujado sobre el gráfico de BTC.",
     sections: [
       {
         h: "¿Cómo se hace el análisis?",
@@ -384,7 +384,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
   en: {
     title: "Bitcoin analysis: support, resistance and bias",
     intro:
-      "AI analysis of the Bitcoin price updated twice a day: BTC's situation today, its immediate support and resistance, the market bias and what is most likely over the next hours, drawn on the BTC chart.",
+      "AI analysis of the Bitcoin price updated daily: BTC's situation today, its immediate support and resistance, the market bias and what is most likely over the next hours, drawn on the BTC chart.",
     sections: [
       {
         h: "How is the analysis made?",
