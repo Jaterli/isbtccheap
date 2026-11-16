@@ -264,7 +264,15 @@ export function AnalysisApp() {
           </header>
           <p className="muted small an-updated">
             {tx.trendReviewed(
-              new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
+              new Date(trend.generated_at).toLocaleString(locale, {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Europe/Madrid",
+                timeZoneName: "short",
+              }),
               trend.review.reason === "close_above" || trend.review.reason === "close_below"
                 ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
                 : null,

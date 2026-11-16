@@ -275,7 +275,10 @@ Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 palabras si ayuda a entender la situación, sin contradecirla.
 - outlook: lo más probable en las próximas horas (analysis.outlook), hacia dónde y qué lo invalidaría, en 2 o 3 frases \
 (70 palabras como máximo).
-- outlook_days: lo mismo para 1-2 días (analysis.outlook_days).
+- outlook_days: lo mismo para 1-2 días (analysis.outlook_days). Si su dirección es la contraria a la de lo más probable \
+en 2-4 semanas (data.background_trend.outlook_2_4_weeks), dilo en una frase para que el lector no lo tome por una \
+contradicción: por ejemplo, "antes del rebote hacia X $ que prevé la tendencia de fondo para las próximas semanas", con \
+su objetivo.
 - points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio.
 - "es" en español y "en" en inglés, con el mismo contenido: traduce con cuidado las cifras y su sentido (una subida de \
 tipos mayor no es un recorte).
