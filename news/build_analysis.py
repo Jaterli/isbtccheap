@@ -1447,7 +1447,9 @@ máximos y mínimos de 20 y 50 velas y ATR 14.
 confirmar), la última ruptura de un pivote por un cierre, las divergencias del RSI y, en diario, Fibonacci en escala \
 logarítmica (main y correction).
 - trend_context (máximo y mínimo de 12 meses) y cycle_context (máximo histórico y ciclos anteriores): para encuadrar, \
-no para predecir por analogía.
+no para predecir por analogía. pct_from_price es cuánto se aleja el precio del nivel (precio / nivel − 1): +12,8 \
+frente al mínimo es que el precio está un 12,8 % por encima de él, no que el mínimo esté un 12,8 % por debajo (lo \
+está un 11,4 %).
 - imbalances y liquidity_pools: huecos sin rellenar y máximos y mínimos que el precio no ha vuelto a superar.
 - long_term_holders y short_term_holders (datos on-chain diarios con un día de retraso): pérdidas realizadas y no \
 realizadas frente a su media; capitulation.level ya clasifica la de corto plazo (none, capitulation_levels o \
@@ -1497,7 +1499,10 @@ rellenar o pata sí valen.
 7. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Sin frases de cierre genéricas sobre la \
 confianza o las probabilidades. Con capitulation_levels, "en niveles de capitulación" (nunca "plena" ni "masiva"); \
 solo con intense_capitulation, "capitulación intensa".
-8. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
+8. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés). Porcentajes con espacio en español \
+(47,8 %) y sin él en inglés (47.8%). Nunca "percentil": "mayor que en el 99 % de los días de los últimos cuatro \
+años". Los ETF son "al contado" ("spot" en inglés). Las distancias de pct_from_price son las del precio al nivel: \
++12,8 frente a un mínimo es que el precio está un 12,8 % por encima de él.
 
 Solo un objeto JSON, sin texto antes ni después:
 {
@@ -1506,7 +1511,8 @@ Solo un objeto JSON, sin texto antes ni después:
 }
 
 - summary: la situación de BTC en semanas y meses y por qué la tendencia de fondo es la que es (estructura, ciclo, \
-on-chain, liquidez y tipos…), en 3 o 4 frases (90 palabras como máximo).
+on-chain, liquidez y tipos…), en 3 o 4 frases (90 palabras como máximo). Solo las cifras que explican el porqué \
+(como mucho tres o cuatro): el resto de datos va en las claves.
 - outlook: lo más probable en las próximas 2-4 semanas (outlook, con su objetivo), en pocas palabras la alternativa, y \
 qué supondría un cierre diario más allá de cada nivel de revisión, diciendo qué nivel es cada uno; en 2 o 3 frases (70 \
 palabras como máximo).
