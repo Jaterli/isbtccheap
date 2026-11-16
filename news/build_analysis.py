@@ -733,7 +733,10 @@ def imbalances(raw: list[list], tf: str) -> list[dict]:
     high, low, close = _hlc(raw)
     price, min_size = close[-1], IMBALANCE_ATR * _atr(high, low, close)
     gaps: list[dict] = []
-    for i in range(1, len(raw) - 1):
+    # La vela que cierra el hueco (i + 1) tiene que estar cerrada: con la última, en curso, el hueco cambiaba o
+    # desaparecía según avanzaba (16 nov 2026: un hueco semanal con el máximo de una semana de unas horas). La vela en
+    # curso sí cuenta para rellenarlos
+    for i in range(1, len(raw) - 2):
         later = range(i + 2, len(raw))
         if high[i - 1] < low[i + 1]:  # alcista: el precio subió dejando un hueco por debajo
             bottom, top = high[i - 1], low[i + 1]
@@ -1449,7 +1452,8 @@ REGLAS
 
 1. Cuenta este análisis: la misma dirección, los mismos escenarios y los mismos niveles, con sus precios. No añadas niveles ni cifras que no \
 estén en el análisis, notes o data.
-2. En 3 o 4 frases (unas 100 palabras; algo más si hace falta para que se entienda, nunca para rellenar): la tendencia \
+2. En 3 o 4 frases (unas 100 palabras; algo más si hace falta para que se entienda, nunca para rellenar, y nunca más \
+de 150): la tendencia \
 de fondo, en qué punto está el precio dentro de ella, lo más probable en las próximas 2-4 semanas (outlook, con su \
 objetivo, y en pocas palabras la alternativa) y qué supondría un cierre diario (no un toque ni una mecha) más \
 allá de cada nivel de revisión, diciendo en pocas palabras qué nivel es cada uno. Cada nivel tiene un sentido distinto \
@@ -1464,7 +1468,8 @@ torno a él.
 ejemplo, el mínimo de mecha y una banda de mínimos de cierre). Si citas una zona y un extremo del mismo periodo, di qué \
 es cada uno ("la zona de X-Y $ donde el precio giró varias veces en julio, por encima del mínimo de Z $ del 1 de \
 julio", con las cifras de los datos).
-5. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso…). Soporte, \
+5. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso, extremo sin \
+confirmar…): "el mínimo del 15 de noviembre", no "extremo sin confirmar". Soporte, \
 resistencia, Fibonacci, hueco sin rellenar o pata sí valen.
 6. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Con capitulation_levels, "en niveles de \
 capitulación" (nunca "plena" ni "masiva"); solo con intense_capitulation, "capitulación intensa".
@@ -1538,6 +1543,10 @@ def validate_trend(a: dict, price: float, data: dict) -> dict:
             "notes": {"trend": str(notes["trend"]).strip(), "drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}}
 
 
+# Más de esto ya no es un texto de tendencia sino una lista de datos (16 nov 2026: 181 palabras): se pide a otro redactor
+TREND_MAX_WORDS = 150
+
+
 def check_trend_texts(a: dict) -> dict:
     _fix_languages(a)
     out = {}
@@ -1545,6 +1554,8 @@ def check_trend_texts(a: dict) -> dict:
         text = str(a[lang].get("trend", "")).strip()
         if not text:
             raise ValueError(f"texto vacío ({lang})")
+        if len(text.split()) > TREND_MAX_WORDS:
+            raise ValueError(f"tendencia de {len(text.split())} palabras ({lang}), más de {TREND_MAX_WORDS}")
         if len(text.split()) > TEXT_WORDS["trend"]:
             log.warning("Tendencia demasiado larga (%s): %d/%d palabras", lang, len(text.split()), TEXT_WORDS["trend"])
         out[lang] = {"trend": text}
