@@ -92,10 +92,19 @@ export interface Trend {
   /** Lo más probable en 2-4 semanas y la alternativa (ausentes en las primeras revisiones) */
   outlook?: { direction: Direction; target: number };
   alternative?: { direction: Direction; target: number };
-  es: { trend: string };
-  en: { trend: string };
+  es: TrendText;
+  en: TrendText;
   /** Para el gráfico: máximo histórico (cierre diario) y máximo y mínimo de 12 meses (ausente en la primera revisión) */
   references?: Partial<Record<"all_time_high" | "high_12m" | "low_12m", { price: number; date: string }>>;
+}
+
+/** Textos de la tendencia: situación, lo más probable en 2-4 semanas y claves (desde el 17 nov 2026); en las revisiones
+ * anteriores, un solo texto (trend) */
+export interface TrendText {
+  summary?: string;
+  outlook?: string;
+  points?: string[];
+  trend?: string;
 }
 
 export const TREND_URL = `${import.meta.env.BASE_URL}news/trend.json`;

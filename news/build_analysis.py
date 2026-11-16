@@ -1289,7 +1289,7 @@ def _fix_languages(a: dict) -> None:
 
 
 # Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
-TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 130, "outlook": 70, "outlook_days": 70, "points": 35}
+TEXT_WORDS = {"headline": 12, "summary": 100, "outlook": 70, "outlook_days": 70, "points": 35}
 TEXT_KEYS = ("headline", "summary", "outlook", "outlook_days")
 POINT_MAX_WORDS = 50
 
@@ -1457,42 +1457,59 @@ media; positivo, condiciones financieras más restrictivas). Es el viento de fon
 más liquidez y tipos esperados a la baja favorecen a BTC. No es una señal de giro: va con retraso respecto al precio, \
 y en los suelos suele seguir desfavorable (en 2022 los dos suelos llegaron con la Fed subiendo tipos), así que una \
 liquidez restrictiva no basta para esperar más caídas inmediatas; pesa más su cambio de dirección.
-- Flujos de los ETF en 20 sesiones, Fear & Greed de 14 días y probabilidades de la Fed según Kalshi: contexto."""
+- Flujos de los ETF en 20 sesiones, Fear & Greed de 14 días y probabilidades de la Fed según Kalshi: contexto.
+- previous_review: la revisión anterior (su fecha y precio, dirección, confianza, escenarios y niveles de revisión). \
+La tendencia tiene que aguantar la semana: mantén su dirección y su escenario más probable salvo que los datos hayan \
+cambiado de forma clara desde entonces (un nivel roto por un cierre, un cambio de estructura, un dato on-chain o macro \
+que gira…). Si cambias la dirección o el escenario más probable, la primera de tus drivers dice qué ha cambiado y por \
+qué; si no hay revisión anterior, analiza sin ella."""
 
 TREND_TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de la tendencia \
 de fondo de BTC (semanas y meses) de un analista ya revisado (direction, confidence, review_above y review_below: los \
 cierres diarios que la harían revisar; outlook y alternative: lo más probable en 2-4 semanas y la alternativa; notes: \
-sus claves) y los datos que puedes citar (data). Redactas su texto para \
-la web, en español de España y en inglés, sin cambiar el análisis.
+sus claves) y los datos que puedes citar (data). Redactas sus textos para la web, en español de España y en inglés, sin \
+cambiar el análisis.
 
 REGLAS
 
-1. Cuenta este análisis: la misma dirección, los mismos escenarios y los mismos niveles, con sus precios. No añadas niveles ni cifras que no \
-estén en el análisis, notes o data.
-2. En 3 o 4 frases (unas 100 palabras; algo más si hace falta para que se entienda, nunca para rellenar, y nunca más \
-de 150): la tendencia \
-de fondo, en qué punto está el precio dentro de ella, lo más probable en las próximas 2-4 semanas (outlook, con su \
-objetivo, y en pocas palabras la alternativa) y qué supondría un cierre diario (no un toque ni una mecha) más \
-allá de cada nivel de revisión, diciendo en pocas palabras qué nivel es cada uno. Cada nivel tiene un sentido distinto \
-según la dirección: el que va en contra de la tendencia (review_above si es bajista, review_below si es alcista) la \
-pondría en duda; el que va a su favor no la cambia: la confirmaría y abriría una nueva pata en su dirección. Si es \
-lateral, cada uno marcaría la salida del rango hacia su lado. Sin frases de cierre genéricas sobre la confianza o las \
-probabilidades.
+1. Cuenta este análisis: la misma dirección, los mismos escenarios y los mismos niveles, con sus precios. No añadas \
+niveles ni cifras que no estén en el análisis, notes o data. Cada texto cuenta algo distinto: no repitas en uno lo que \
+ya dice otro.
+2. Los niveles de revisión tienen un sentido distinto según la dirección: el que va en contra de la tendencia \
+(review_above si es bajista, review_below si es alcista) la pondría en duda; el que va a su favor no la cambia: la \
+confirmaría y abriría una nueva pata en su dirección. Si es lateral, cada uno marcaría la salida del rango hacia su \
+lado. Lo que cuenta es un cierre diario, no un toque ni una mecha.
 3. Precisión con los niveles: si el precio ha perforado un nivel durante la semana (su mínimo o su máximo lo ha \
 superado), no digas que se apoya en él o que lo respeta; di que lo ha perforado sin cerrar al otro lado o que está en \
 torno a él.
-4. Un mismo extremo, con una sola cifra: no describas el mínimo (o el máximo) de un mes con dos precios distintos (por \
-ejemplo, el mínimo de mecha y una banda de mínimos de cierre). Si citas una zona y un extremo del mismo periodo, di qué \
-es cada uno ("la zona de X-Y $ donde el precio giró varias veces en julio, por encima del mínimo de Z $ del 1 de \
-julio", con las cifras de los datos).
-5. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso, extremo sin \
-confirmar…): "el mínimo del 15 de noviembre", no "extremo sin confirmar". Soporte, \
-resistencia, Fibonacci, hueco sin rellenar o pata sí valen.
-6. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Con capitulation_levels, "en niveles de \
-capitulación" (nunca "plena" ni "masiva"); solo con intense_capitulation, "capitulación intensa".
-7. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
+4. Un mismo extremo, con una sola cifra: no describas el mínimo (o el máximo) de un mes con dos precios distintos. Si \
+citas una zona y un extremo del mismo periodo, di qué es cada uno ("la zona de X-Y $ donde el precio giró varias veces \
+en julio, por encima del mínimo de Z $ del 1 de julio", con las cifras de los datos).
+5. Atribuye cada dato a su fuente: la liquidez de los bancos centrales y los tipos (macro_liquidity) son datos de la \
+Reserva Federal; las probabilidades de la Fed, del mercado de predicción Kalshi; los holders de corto y largo plazo, \
+datos on-chain.
+6. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso, extremo sin \
+confirmar…): "el mínimo del 15 de noviembre", no "extremo sin confirmar". Soporte, resistencia, Fibonacci, hueco sin \
+rellenar o pata sí valen.
+7. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Sin frases de cierre genéricas sobre la \
+confianza o las probabilidades. Con capitulation_levels, "en niveles de capitulación" (nunca "plena" ni "masiva"); \
+solo con intense_capitulation, "capitulación intensa".
+8. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
 
-Solo un objeto JSON, sin texto antes ni después: {"es": {"trend": texto}, "en": {"trend": texto}}"""
+Solo un objeto JSON, sin texto antes ni después:
+{
+  "es": {"summary": texto, "outlook": texto, "points": [texto, ...]},
+  "en": {"summary": texto, "outlook": texto, "points": [texto, ...]}
+}
+
+- summary: la situación de BTC en semanas y meses y por qué la tendencia de fondo es la que es (estructura, ciclo, \
+on-chain, liquidez y tipos…), en 3 o 4 frases (90 palabras como máximo).
+- outlook: lo más probable en las próximas 2-4 semanas (outlook, con su objetivo), en pocas palabras la alternativa, y \
+qué supondría un cierre diario más allá de cada nivel de revisión, diciendo qué nivel es cada uno; en 2 o 3 frases (70 \
+palabras como máximo).
+- points: de 2 a 4 claves (35 palabras como máximo cada una) de por qué el analista lo lee así, a partir de sus notes, \
+cada una con sus cifras. Si la dirección o el escenario más probable han cambiado respecto a la revisión anterior \
+(previous_review en data), la primera clave dice qué ha cambiado y por qué."""
 
 REVIEW = {"type": "object", "properties": {"price": {"type": "number"}, "basis": BASIS}, "required": ["price", "basis"],
           "additionalProperties": False}
@@ -1508,14 +1525,21 @@ TREND_SCHEMA = {
     "required": ["price", "direction", "confidence", "review_above", "review_below", "outlook", "alternative", "notes"],
     "additionalProperties": False,
 }
-TREND_TEXT = {"type": "object", "properties": {"trend": {"type": "string"}}, "required": ["trend"], "additionalProperties": False}
+TREND_TEXT = {"type": "object", "properties": {"summary": {"type": "string"}, "outlook": {"type": "string"},
+                                              "points": {"type": "array", "items": {"type": "string"}}},
+              "required": ["summary", "outlook", "points"], "additionalProperties": False}
 TREND_TEXT_SCHEMA = {"type": "object", "properties": {"es": TREND_TEXT, "en": TREND_TEXT}, "required": ["es", "en"],
                      "additionalProperties": False}
 
 
-def trend_view(data: dict) -> dict:
-    """Los datos que ve el análisis semanal: solo los de semanas y meses."""
+def trend_view(data: dict, previous: dict | None = None) -> dict:
+    """Los datos que ve el análisis semanal: solo los de semanas y meses, y la revisión anterior (para no cambiar de
+    escenario sin motivo)."""
     view = {k: v for k, v in data.items() if k in TREND_KEYS}
+    if previous:
+        view["previous_review"] = {k: previous.get(k) for k in ("generated_at", "price", "direction", "confidence", "outlook",
+                                                                "alternative")}
+        view["previous_review"].update(review_above=previous["review_above"]["price"], review_below=previous["review_below"]["price"])
     view["imbalances"] = {tf: v for tf, v in data.get("imbalances", {}).items() if tf in ("1w", "1d")}
     view["liquidity_pools"] = {tf: v for tf, v in data.get("liquidity_pools", {}).items() if tf == "1d"}
     return view
@@ -1560,22 +1584,30 @@ def validate_trend(a: dict, price: float, data: dict) -> dict:
             "notes": {"trend": str(notes["trend"]).strip(), "drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}}
 
 
-# Más de esto ya no es un texto de tendencia sino una lista de datos (16 nov 2026: 181 palabras): se pide a otro redactor
-TREND_MAX_WORDS = 150
+# Palabras de cada texto de la tendencia: pasarse se avisa; con más del doble (o claves de más de POINT_MAX_WORDS) se pide
+# a otro redactor (16 nov 2026: con un solo texto de 150 palabras como máximo, dos redactores seguidos se pasaron y no se
+# publicó la revisión)
+TREND_WORDS = {"summary": 90, "outlook": 70, "points": 35}
 
 
 def check_trend_texts(a: dict) -> dict:
     _fix_languages(a)
     out = {}
     for lang in ("es", "en"):
-        text = str(a[lang].get("trend", "")).strip()
-        if not text:
-            raise ValueError(f"texto vacío ({lang})")
-        if len(text.split()) > TREND_MAX_WORDS:
-            raise ValueError(f"tendencia de {len(text.split())} palabras ({lang}), más de {TREND_MAX_WORDS}")
-        if len(text.split()) > TEXT_WORDS["trend"]:
-            log.warning("Tendencia demasiado larga (%s): %d/%d palabras", lang, len(text.split()), TEXT_WORDS["trend"])
-        out[lang] = {"trend": text}
+        t = a[lang]
+        summary, outlook = str(t.get("summary", "")).strip(), str(t.get("outlook", "")).strip()
+        points = [x.strip() for x in t.get("points", []) if str(x).strip()][:4]
+        if not summary or not outlook or len(points) < 2:
+            raise ValueError(f"texto vacío o menos de 2 claves ({lang})")
+        for k, v in (("summary", summary), ("outlook", outlook)):
+            n = len(v.split())
+            if n > 2 * TREND_WORDS[k]:
+                raise ValueError(f"{k} de {n} palabras ({lang}), más del doble de {TREND_WORDS[k]}")
+            if n > TREND_WORDS[k]:
+                log.warning("Tendencia, %s demasiado largo (%s): %d/%d palabras", k, lang, n, TREND_WORDS[k])
+        if any(len(x.split()) > POINT_MAX_WORDS for x in points):
+            raise ValueError(f"claves de más de {POINT_MAX_WORDS} palabras ({lang})")
+        out[lang] = {"summary": summary, "outlook": outlook, "points": points}
     return out
 
 
@@ -1607,7 +1639,8 @@ def review_trigger(trend: dict | None, raw_1d: list[list]) -> dict | None:
 def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
     """Analiza y publica la tendencia de fondo (trend.json). Devuelve la publicada o None si ningún modelo sirvió (se
     mantiene la anterior)."""
-    user = json.dumps(trend_view(data), separators=(",", ":"))
+    previous = load_trend()
+    user = json.dumps(trend_view(data, previous), separators=(",", ":"))
     prices: list[float] = []
 
     def check(raw: dict) -> dict:
@@ -1620,7 +1653,7 @@ def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
         log.error("ningún modelo dio una tendencia válida: se mantiene la anterior")
         return None
     price, model = prices[-1], model_name(spec)
-    facts = {k: v for k, v in trend_view(data).items() if not k.startswith("candles_")}
+    facts = {k: v for k, v in trend_view(data, previous).items() if not k.startswith("candles_")}
     text_user = json.dumps({"analysis": {"price": round(price), **{k: v for k, v in result.items() if k != "notes"}},
                             "notes": result["notes"], "data": facts}, separators=(",", ":"), ensure_ascii=False)
     try:
@@ -1685,7 +1718,7 @@ def macro_liquidity(scores: dict) -> dict:
 def background_trend(trend: dict) -> dict:
     """La tendencia publicada, como la recibe el análisis diario."""
     return {"reviewed_at": trend["generated_at"], "direction": trend["direction"], "confidence": trend["confidence"],
-            "text": trend["es"]["trend"], "review_above": trend["review_above"]["price"],
+            "text": trend["es"].get("summary") or trend["es"].get("trend", ""), "review_above": trend["review_above"]["price"],
             "review_below": trend["review_below"]["price"],
             # Lo más probable en 2-4 semanas (ausente en las primeras revisiones)
             **({"outlook_2_4_weeks": {k: trend["outlook"][k] for k in ("direction", "target")}} if trend.get("outlook") else {})}

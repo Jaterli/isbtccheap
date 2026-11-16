@@ -278,7 +278,8 @@ export function AnalysisApp() {
                 : null,
             )}
           </p>
-          <p>{keepUnits(trend[lang].trend)}</p>
+          {/* La situación y su porqué; en las revisiones anteriores, su único texto */}
+          <p>{keepUnits(trend[lang].summary ?? trend[lang].trend ?? "")}</p>
           {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}
           {trend.outlook && trend.alternative && (
             <ul className="an-scenarios">
@@ -291,6 +292,21 @@ export function AnalysisApp() {
                 <span>{tx.move(trend.alternative.direction, usd(trend.alternative.target))}</span>
               </li>
             </ul>
+          )}
+          {trend[lang].outlook && (
+            <p className="an-outlook">
+              <strong>{tx.trendMostLikely}:</strong> {keepUnits(trend[lang].outlook!)}
+            </p>
+          )}
+          {!!trend[lang].points?.length && (
+            <>
+              <h3>{tx.points}</h3>
+              <ul className="an-points">
+                {trend[lang].points!.map((s) => (
+                  <li key={s}>{keepUnits(s)}</li>
+                ))}
+              </ul>
+            </>
           )}
         </section>
       )}
