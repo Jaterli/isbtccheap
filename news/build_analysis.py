@@ -1277,7 +1277,7 @@ def _fix_languages(a: dict) -> None:
 
 
 # Palabras como máximo de cada texto (las del prompt): pasarse solo se avisa en el log
-TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 100, "outlook": 70, "outlook_days": 70, "points": 35}
+TEXT_WORDS = {"headline": 12, "summary": 100, "trend": 90, "outlook": 70, "outlook_days": 70, "points": 35}
 TEXT_KEYS = ("headline", "summary", "outlook", "outlook_days")
 POINT_MAX_WORDS = 50
 
@@ -1440,13 +1440,17 @@ REGLAS
 
 1. Cuenta este análisis: la misma dirección y los mismos niveles, con sus precios. No añadas niveles ni cifras que no \
 estén en el análisis, notes o data.
-2. En 3 o 4 frases (100 palabras como máximo): la tendencia de fondo, en qué punto está el precio dentro de ella y qué \
-la cambiaría (los niveles de revisión, diciendo en pocas palabras qué nivel es cada uno).
-3. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso…). Soporte, \
-resistencia, Fibonacci o hueco sin rellenar sí valen.
-4. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Con capitulation_levels, "en niveles de \
+2. En 3 frases y 90 palabras como máximo: la tendencia de fondo, en qué punto está el precio dentro de ella y qué la \
+cambiaría: un cierre diario (no un toque ni una mecha) por encima de review_above o por debajo de review_below, diciendo \
+en pocas palabras qué nivel es cada uno. Sin frases de cierre genéricas sobre la confianza o las probabilidades.
+3. Precisión con los niveles: si el precio ha perforado un nivel durante la semana (su mínimo o su máximo lo ha \
+superado), no digas que se apoya en él o que lo respeta; di que lo ha perforado sin cerrar al otro lado o que está en \
+torno a él.
+4. Para lectores que no son especialistas: sin jerga ni abreviaturas (HH, LL, SMA200, extremo en curso…). Soporte, \
+resistencia, Fibonacci, hueco sin rellenar o pata sí valen.
+5. Probabilidades, no certezas, y sin recomendaciones de compra o venta. Con capitulation_levels, "en niveles de \
 capitulación" (nunca "plena" ni "masiva"); solo con intense_capitulation, "capitulación intensa".
-5. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
+6. Precios en dólares redondeados (78.500 $ en español, $78,500 en inglés).
 
 Solo un objeto JSON, sin texto antes ni después: {"es": {"trend": texto}, "en": {"trend": texto}}"""
 
@@ -1566,7 +1570,9 @@ def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
            "text_model": model_name(spec), "price": round(price),
            # weekly: la revisión de los lunes; early: adelantada por un cierre diario; missing: no había ninguna
            "review": {"reason": "weekly"} if trigger is None else trigger,
-           **{k: v for k, v in result.items() if k != "notes"}, **texts}
+           **{k: v for k, v in result.items() if k != "notes"}, **texts,
+           # Referencias para el gráfico de la tendencia (calculadas, no del modelo)
+           "references": trend_references(data)}
     write_json(OUT_DIR / TREND_FILE, out)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     with open(STATE_DIR / TREND_LOG, "a", encoding="utf-8") as f:
@@ -1575,6 +1581,17 @@ def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
     log.info("trend.json: %s (confianza %s), revisar con un cierre por encima de %s o por debajo de %s (%s; textos, %s)",
              out["direction"], out["confidence"], out["review_above"]["price"], out["review_below"]["price"], model,
              out["text_model"])
+    return out
+
+
+def trend_references(data: dict) -> dict:
+    """Máximo histórico (cierre diario) y máximo y mínimo de 12 meses (con mecha) del momento de la revisión."""
+    out = {}
+    if ath := (data.get("cycle_context") or {}).get("all_time_high"):
+        out["all_time_high"] = {"price": ath["close"], "date": ath["date"]}
+    for k in ("high_12m", "low_12m"):
+        if v := (data.get("trend_context") or {}).get(k):
+            out[k] = {"price": v["price"], "date": v["date"]}
     return out
 
 

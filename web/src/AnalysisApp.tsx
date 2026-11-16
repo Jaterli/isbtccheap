@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnalysisChart } from "./components/AnalysisChart";
+import { TrendChart } from "./components/TrendChart";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
@@ -53,6 +54,26 @@ async function dailyAt(at: number, h4: Candle[]): Promise<Candle[]> {
   return [...candles.slice(0, -1), partial];
 }
 
+const WEEK = 7 * DAY;
+
+/** Velas semanales hasta la revisión de la tendencia (unos 2 años): la de esa semana, a medias entonces, rehecha con las
+ * de 1 h hasta ese momento */
+async function weeklyAt(at: number): Promise<Candle[]> {
+  const candles = await fetchCandles("1w", 104, at);
+  const last = candles.at(-1);
+  if (!last || at >= last.time + WEEK) return candles;
+  const inside = (await fetchCandles("1h", 200, at)).filter((c) => c.time >= last.time);
+  if (!inside.length) return candles;
+  const partial = {
+    time: last.time,
+    open: last.open,
+    high: Math.max(...inside.map((c) => c.high)),
+    low: Math.min(...inside.map((c) => c.low)),
+    close: inside.at(-1)!.close,
+  };
+  return [...candles.slice(0, -1), partial];
+}
+
 const signedPct = (v: number) =>
   `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(Math.abs(v).toLocaleString(locale, { maximumFractionDigits: 1 }))}`;
 
@@ -60,6 +81,7 @@ export function AnalysisApp() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   // La tendencia de fondo, aparte: se revisa cada lunes (sin ella, la del análisis, en los anteriores)
   const [trend, setTrend] = useState<Trend | null>(null);
+  const [weekly, setWeekly] = useState<Candle[] | null>(null);
   const [missing, setMissing] = useState(false);
   const [candles, setCandles] = useState<Record<ChartTf, Candle[]> | null>(null);
   // 4 h: las próximas horas y días, con los escenarios · 1D: unos 6 meses, para ver qué niveles se han superado o perdido
@@ -79,7 +101,10 @@ export function AnalysisApp() {
       }, () => setMissing(true));
     fetch(TREND_URL, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then(setTrend, () => {});
+      .then((tr: Trend) => {
+        setTrend(tr);
+        weeklyAt(Date.parse(tr.generated_at)).then(setWeekly, () => {});
+      }, () => {});
   }, []);
 
   const tx = t.analysis;
@@ -160,27 +185,11 @@ export function AnalysisApp() {
         <section className="card an-text">
           <h2>{keepUnits(text.headline)}</h2>
           <p>{keepUnits(text.summary)}</p>
-          {trend ? (
-            <div className="an-trend">
-              <p className="an-outlook">
-                <strong>{tx.trend}</strong> {keepUnits(trend[lang].trend)}
-              </p>
-              <p className="muted small">
-                {tx.trendReviewed(
-                  new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
-                  trend.review.reason === "close_above" || trend.review.reason === "close_below"
-                    ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
-                    : null,
-                )}{" "}
-                {tx.trendLevels(usd(trend.review_above.price), usd(trend.review_below.price))}
-              </p>
-            </div>
-          ) : (
-            text.trend && (
-              <p className="an-outlook">
-                <strong>{tx.trend}</strong> {keepUnits(text.trend)}
-              </p>
-            )
+          {/* La tendencia de fondo va en su tarjeta; en los análisis anteriores a ella, aquí */}
+          {!trend && text.trend && (
+            <p className="an-outlook">
+              <strong>{tx.trend}</strong> {keepUnits(text.trend)}
+            </p>
           )}
           <p className="an-outlook">
             <strong>{tx.nextHours}</strong> {keepUnits(text.outlook)}
@@ -200,6 +209,27 @@ export function AnalysisApp() {
               </ul>
             </>
           )}
+        </section>
+      )}
+
+      {trend && (
+        <section className="card an-trend">
+          <header>
+            <h2>{tx.trendTitle}</h2>
+            <span className={`an-bias ${trend.direction === "lateral" ? "neutral" : trend.direction}`}>
+              {tx.trendDirection[trend.direction]} · {tx.confidence[trend.confidence - 1]}
+            </span>
+          </header>
+          <p className="muted small an-updated">
+            {tx.trendReviewed(
+              new Date(trend.generated_at).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" }),
+              trend.review.reason === "close_above" || trend.review.reason === "close_below"
+                ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
+                : null,
+            )}
+          </p>
+          <p>{keepUnits(trend[lang].trend)}</p>
+          {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}
         </section>
       )}
 

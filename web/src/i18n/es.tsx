@@ -317,8 +317,17 @@ export const es = {
     // La tendencia de fondo se revisa aparte, cada lunes a las 08:00 de Madrid (news/build_analysis.py --weekly)
     trendReviewed: (day: string, early: string | null) =>
       early ? `Revisión anticipada del ${day}: ${early}.` : `Se revisa cada lunes a las 08:00 (hora de Madrid); última revisión: ${day}.`,
+    trendTitle: "Tendencia de fondo",
+    trendDirection: { alcista: "Alcista", bajista: "Bajista", lateral: "Lateral" },
+    trendReviewAbove: (p: string) => `Revisar si cierra por encima de ${p}`,
+    trendReviewBelow: (p: string) => `Revisar si cierra por debajo de ${p}`,
+    trendAth: (p: string) => `Máximo histórico · ${p}`,
+    trendHigh12m: (p: string) => `Máximo de 12 meses · ${p}`,
+    trendLow12m: (p: string) => `Mínimo de 12 meses · ${p}`,
+    trendWeekOf: (d: string) => `Semana del ${d}`,
+    trendLegend: "– – niveles de revisión (cierre diario) · ··· referencias",
+    trendChartAria: "Velas semanales de Bitcoin con los niveles que harían revisar la tendencia de fondo y el máximo histórico",
     trendEarly: (above: boolean, level: string) => `un cierre diario ${above ? "por encima" : "por debajo"} de ${level} la adelantó`,
-    trendLevels: (above: string, below: string) => `Se revisaría antes con un cierre diario por encima de ${above} o por debajo de ${below}.`,
     nextHours: "Próximas horas:",
     nextDays: "1-2 días:",
     points: "Claves",

@@ -751,6 +751,18 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-fib text { fill: var(--accent); font-size: 10px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 .an-tf { margin-top: 10px; }
 .an-candle line { stroke-width: 1; }
+/* Gráfico de la tendencia de fondo: los niveles de revisión, discontinuos (arriba en rojo, abajo en verde: lo que la
+   cambiaría hacia cada lado) y las referencias, punteadas y atenuadas */
+.an-trend > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.an-trend-chart { margin-top: 10px; }
+.an-review line { stroke-width: 1.2; stroke-dasharray: 6 4; }
+.an-review.above line { stroke: var(--band-5); }
+.an-review.below line { stroke: var(--band-1); }
+.an-review text { font-size: 10px; font-weight: 600; }
+.an-review.above text { fill: var(--band-5); }
+.an-review.below text { fill: var(--band-1); }
+.an-ref line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 1 3; }
+.an-ref text { fill: var(--muted); font-size: 10px; }
 .an-candle.up line { stroke: var(--band-1); }
 .an-candle.up rect { fill: var(--band-1); }
 .an-candle.down line { stroke: var(--band-5); }

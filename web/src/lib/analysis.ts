@@ -91,6 +91,8 @@ export interface Trend {
   review_below: { price: number };
   es: { trend: string };
   en: { trend: string };
+  /** Para el gráfico: máximo histórico (cierre diario) y máximo y mínimo de 12 meses (ausente en la primera revisión) */
+  references?: Partial<Record<"all_time_high" | "high_12m" | "low_12m", { price: number; date: string }>>;
 }
 
 export const TREND_URL = `${import.meta.env.BASE_URL}news/trend.json`;
