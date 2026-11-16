@@ -71,17 +71,6 @@ def fred(series_id: str) -> pd.Series:
     return s.dropna().rename(series_id).sort_index()
 
 
-def stablecoin_supply() -> pd.Series:
-    """DefiLlama: capitalización total de stablecoins en USD."""
-    data = _get("https://stablecoins.llama.fi/stablecoincharts/all").json()
-    s = pd.Series(
-        [d["totalCirculatingUSD"].get("peggedUSD", 0) for d in data],
-        index=pd.to_datetime([int(d["date"]) for d in data], unit="s").normalize(),
-        name="stablecoins",
-    )
-    return s.sort_index()
-
-
 def bitview(series: str) -> pd.Series:
     """Bitview (bitview.space), instancia pública de Bitcoin Research Kit, sin clave. Su índice diario empieza el
     2009-01-01 y el último día está aún en curso."""

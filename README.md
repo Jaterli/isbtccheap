@@ -13,7 +13,7 @@ Coste de funcionamiento: solo el dominio (~10 $/año); el hosting y el certifica
 ```
 ┌──────────────── Diario (GitHub Actions, gratis) ────────────────┐
 │ pipeline/build.py                                                │
-│  Coin Metrics · Alternative.me · FRED · DefiLlama · Bitview ·    │
+│  Coin Metrics · Alternative.me · FRED · Bitview ·                │
 │  TFTC (flujos de ETF)                                            │
 │  → métricas → percentiles → web/public/data/latest.json          │
 │                             web/public/data/history.json         │

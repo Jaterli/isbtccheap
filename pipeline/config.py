@@ -29,18 +29,18 @@ METRICS = [
     # curva, crédito, estrés financiero, reservas, VIX…), la única que se sostiene en 2013-2017, 2018-2021 y 2022-2026 con
     # el mismo signo (en 2013-2017, con los tipos en cero, apenas dice nada) y mejora sin empeorar techos ni suelos: categoría
     # a 90 días −0,354 → −0,460; índice 1 M a un año −0,601 → −0,622 (desde 2022 −0,456 → −0,485), 1 semana −0,487 → −0,500
-    {"id": "us2y_chg", "name": "Bono a 2 años de EE. UU. (cambio 13 sem.)", "category": "liquidez", "method": "percentile"},
+    {"id": "us2y_chg", "name": "Bono 2 años EE.\u00A0UU. (13 sem.)", "category": "liquidez", "method": "percentile"},
     # Informativa desde noviembre de 2026: es redundante con la liquidez global, que ya está en dólares (los balances del BCE
     # y del Banco de Japón bajan en dólares cuando el dólar sube; correlación entre las dos 0,59). Backtest desde 2018: la
     # liquidez global sola anticipa mejor como categoría (90 d desde 2022 −0,370 → −0,423) y en el índice en todas las
     # temporalidades (1 M a un año −0,588 → −0,601; a 180 días −0,385 → −0,409), con techos y suelos iguales
     {"id": "dxy_roc", "name": "Dólar DXY amplio (var. 13 sem.)", "category": "liquidez", "method": "percentile", "info": True},
     # Informativas (info): se puntúan para la página de liquidez, pero no cuentan en la categoría ni salen en su tarjeta.
-    # Backtest de noviembre de 2026: M2 anticipa a un año con signo inestable (bien hasta 2020, al revés después) y las
-    # stablecoins con el signo cambiado; sin ellas mejora la anticipación del score (1M a 3 meses −0,19 → −0,21) y los
-    # techos y suelos quedan igual o algo mejor
-    {"id": "m2_yoy", "name": "M2 EE. UU. (var. interanual)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
-    {"id": "stablecoin_roc", "name": "Oferta de stablecoins (var. 90 d)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
+    # Retiradas en noviembre de 2026 por confusas: M2 (var. interanual) y la oferta de stablecoins (var. 90 d) cambiaban de
+    # signo según el periodo (desde 2022, a un año, +0,78 y +0,41: lo contrario de lo que se espera de ellas). En su lugar,
+    # la curva de tipos: con el mismo signo en 2013-2017, 2018-2021 y 2022-2026 (a 90 días −0,32, −0,11 y −0,40). Una curva
+    # que se empina (el bono a 2 años baja frente al de 10, lo habitual cuando se esperan recortes) puntúa bajo
+    {"id": "curve_chg", "name": "Curva de tipos 10a−2a (13 sem.)", "category": "liquidez", "method": "percentile", "invert": True, "info": True},
     # Informativas: el NFCI (condiciones financieras de la Fed de Chicago, crédito, apalancamiento y riesgo, incluido el
     # repo), la aproximación gratuita a la parte privada y de colateral de la liquidez de Michael Howell. Backtest de
     # noviembre de 2026 desde 2018: su nivel invertido (condiciones muy restrictivas = barato) y su cambio en 13 semanas

@@ -362,11 +362,11 @@ export const es = {
     scores: {
       card: "Liquidez y precio: la puntuación del índice",
       info: [
-        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **bono a 2 años** de EE. UU. (lo que espera el mercado de los tipos de la Fed). Son informativas y el índice no las usa: el **dólar** (la liquidez global ya está en dólares y, sola, anticipa mejor), **M2** y **stablecoins** (en el backtest no anticipaban de forma fiable) y el **NFCI** (las condiciones financieras de la Fed de Chicago: crédito, apalancamiento y riesgo), con su nivel y su cambio en 13 semanas. El NFCI se acerca a la parte privada de la liquidez que mide Michael Howell: como liquidez de fondo anticipa bastante mejor, pero dentro del índice no lo mejoraba. Al pasar por el gráfico se ve también el valor real de la métrica.",
+        "Cada línea es una puntuación de 0 a 100, la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Liquidez» es la categoría: la media de la **liquidez global** y el **bono a 2 años** de EE.\u00A0UU. (lo que espera el mercado de los tipos de la Fed). Son informativas y el índice no las usa: el **dólar** (la liquidez global ya está en dólares y, sola, anticipa mejor), la **curva de tipos** (cuánto cambia en 13 semanas la diferencia entre el bono a 10 años y el de 2) y el **NFCI** (las condiciones financieras de la Fed de Chicago: crédito, apalancamiento y riesgo), con su nivel y su cambio en 13 semanas. El NFCI se acerca a la parte privada de la liquidez que mide Michael Howell: como liquidez de fondo anticipa bastante mejor, pero dentro del índice no lo mejoraba. Al pasar por el gráfico se ve también el valor real de la métrica.",
         "Va al revés que la liquidez: más dinero en el sistema (bancos centrales que amplían su balance o un dólar que se debilita) es favorable para BTC y puntúa bajo (barato); menos, alto (caro). Cada métrica se compara con sus 4 años anteriores. Son datos semanales o mensuales: cambian despacio.",
       ],
       category: "Liquidez",
-      short: { global_liquidity_roc: "Liquidez global", us2y_chg: "Bono 2 años", m2_yoy: "M2", dxy_roc: "Dólar DXY", stablecoin_roc: "Stablecoins", nfci: "NFCI", nfci_chg: "NFCI (cambio 13 sem.)" },
+      short: { global_liquidity_roc: "Liquidez global", us2y_chg: "Bono 2 años", dxy_roc: "Dólar DXY", curve_chg: "Curva de tipos", nfci: "NFCI", nfci_chg: "NFCI (cambio 13 sem.)" },
       metricAria: "Puntuación superpuesta al precio",
       infoMetric: "Informativa: el índice no la usa",
       infoGroup: "Informativas: el índice no las usa",
@@ -568,13 +568,8 @@ export const es = {
       what: "Variación en 13 semanas de la liquidez de los grandes bancos centrales en dólares: liquidez neta de la Fed (balance menos cuenta del Tesoro y repos inversos) más los balances del BCE y del Banco de Japón.",
       read: "Si sube, entra liquidez en los mercados y resta al score; si baja, suma. Anticipa la rentabilidad de BTC bastante mejor que la liquidez de la Fed sola.",
     },
-    m2_yoy: {
-      name: "M2 EE. UU. (var. interanual)",
-      what: "Crecimiento interanual de la masa monetaria M2 de EE. UU. (efectivo, depósitos y equivalentes).",
-      read: "La expansión monetaria favorece a los activos escasos como Bitcoin y resta al score.",
-    },
     us2y_chg: {
-      name: "Bono a 2 años de EE. UU. (cambio 13 sem.)",
+      name: "Bono 2 años EE.\u00A0UU. (13 sem.)",
       what: "Cuánto ha cambiado en 13 semanas el rendimiento del bono del Tesoro a 2 años, en puntos porcentuales: refleja lo que espera el mercado de los tipos de la Fed.",
       read: "Si sube deprisa, el mercado descuenta subidas de tipos y suma al score; si baja, descuenta recortes y resta.",
     },
@@ -582,6 +577,11 @@ export const es = {
       name: "Dólar DXY amplio (var. 13 sem.)",
       what: "Variación en 13 semanas del índice amplio del dólar frente a las principales divisas.",
       read: "Un dólar que se fortalece endurece las condiciones financieras globales y puntúa alto. Informativa: la liquidez global ya recoge su efecto (está en dólares) y, sola, anticipa mejor.",
+    },
+    curve_chg: {
+      name: "Curva de tipos 10a−2a (13 sem.)",
+      what: "Cuánto ha cambiado en 13 semanas la diferencia entre el rendimiento del bono de EE.\u00A0UU. a 10 años y el de 2 años, en puntos porcentuales.",
+      read: "Si la curva se empina (sube la diferencia, lo habitual cuando el mercado espera recortes de tipos), puntúa bajo (barato); si se aplana, alto. Informativa: el índice no la usa.",
     },
     nfci: {
       name: "Condiciones financieras NFCI",
@@ -592,11 +592,6 @@ export const es = {
       name: "Condiciones financieras NFCI (cambio 13 sem.)",
       what: "Cuánto ha cambiado el NFCI en 13 semanas: positivo, las condiciones financieras se endurecen; negativo, se relajan.",
       read: "Que se endurezcan es desfavorable para BTC y puntúa alto (caro); que se relajen, bajo. Informativa: el índice no la usa.",
-    },
-    stablecoin_roc: {
-      name: "Oferta de stablecoins (var. 90 d)",
-      what: "Crecimiento en 90 días de la oferta total de stablecoins (USDT, USDC…), dinero listo para entrar en cripto.",
-      read: "Si crece, hay más «pólvora seca» disponible y resta al score.",
     },
     fear_greed: {
       name: "Fear & Greed Index",
@@ -610,7 +605,7 @@ export const es = {
     },
     etf_flows: {
       name: "Flujos ETF al contado (20 ses.)",
-      what: "Entradas menos salidas de los ETF de bitcoin al contado de EE. UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
+      what: "Entradas menos salidas de los ETF de bitcoin al contado de EE.\u00A0UU. en las últimas 20 sesiones (aproximadamente un mes), en BTC. Datos de The Commoner Bitcoin ETF Tracker (TFTC), desde enero de 2024.",
       read: "Percentil frente a su historia. Entradas fuertes, típicas de los techos, suman; salidas, típicas de los mínimos, restan. Con menos de tres años de datos, es una señal todavía poco contrastada.",
     },
     open_interest: {
@@ -748,13 +743,13 @@ export const es = {
   calendar: {
     title: "Agenda económica de la semana",
     info: [
-      "Los datos económicos y decisiones de bancos centrales de esta semana que más pueden mover los mercados y el precio de BTC: los de impacto alto y medio de EE. UU. (más el empleo ADP), el IPC preliminar de la zona euro y las decisiones de tipos del BCE, el Banco de Japón, el Banco de Inglaterra y China.",
-      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio. El dato real de los eventos de EE. UU. sale de FRED en cuanto lo publica, normalmente el mismo día. Nombres de los eventos traducidos con IA.",
+      "Los datos económicos y decisiones de bancos centrales de esta semana que más pueden mover los mercados y el precio de BTC: los de impacto alto y medio de EE.\u00A0UU. (más el empleo ADP), el IPC preliminar de la zona euro y las decisiones de tipos del BCE, el Banco de Japón, el Banco de Inglaterra y China.",
+      "Las horas están en tu zona horaria. Previsión es lo que espera el mercado; anterior, el último dato publicado. Cuando el dato se aleja de la previsión es cuando más se mueve el precio. El dato real de los eventos de EE.\u00A0UU. sale de FRED en cuanto lo publica, normalmente el mismo día. Nombres de los eventos traducidos con IA.",
     ],
     forecast: "Prev.",
     previous: "Ant.",
     actual: "Real",
-    countries: { USD: "EE. UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
+    countries: { USD: "EE.\u00A0UU.", EUR: "Eurozona", JPY: "Japón", GBP: "R. Unido", CNY: "China" } as Record<string, string>,
     note: "Fuentes: Forex Factory y FRED.",
   },
 

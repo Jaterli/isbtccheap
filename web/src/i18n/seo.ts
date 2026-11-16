@@ -85,7 +85,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "¿De dónde salen los datos?",
-        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker de TFTC, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Investing.com, CNBC y BBC.",
+        a: "De fuentes públicas: Coin Metrics, Alternative.me, FRED (Reserva Federal de St. Louis), Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker de TFTC, Binance, Forex Factory y medios como Cointelegraph, CoinDesk, Investing.com, CNBC y BBC.",
       },
       {
         q: "¿Es una recomendación de inversión?",
@@ -121,7 +121,7 @@ export const SEO: Record<"es" | "en", SeoText> = {
       },
       {
         q: "Where does the data come from?",
-        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), DefiLlama, Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker by TFTC, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Investing.com, CNBC and BBC.",
+        a: "From public sources: Coin Metrics, Alternative.me, FRED (Federal Reserve Bank of St. Louis), Bitview (Bitcoin Research Kit), The Commoner Bitcoin ETF Tracker by TFTC, Binance, Forex Factory and outlets such as Cointelegraph, CoinDesk, Investing.com, CNBC and BBC.",
       },
       {
         q: "Is this investment advice?",
@@ -455,7 +455,7 @@ export const SEO_SENTIMENT: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué métricas lo forman?",
-        p: "En el día a día, tres: el Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018; el SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron (por debajo de 1 venden con pérdidas, algo típico de las capitulaciones); y los flujos de los ETF al contado de EE. UU. en las últimas 20 sesiones, desde 2024. Son las mismas en todas las temporalidades. La página muestra además, como informativos, los derivados de Binance (open interest, cuentas en largo y compras a mercado) y las compras al contado, que el índice no usa porque no se ha podido comprobar que anticipen el precio.",
+        p: "En el día a día, tres: el Fear & Greed Index de Alternative.me, de 0 (miedo extremo) a 100 (codicia extrema), desde 2018; el SOPR de corto plazo, que compara el precio al que venden quienes compraron en los últimos 5 meses con el que pagaron (por debajo de 1 venden con pérdidas, algo típico de las capitulaciones); y los flujos de los ETF al contado de EE.\u00A0UU. en las últimas 20 sesiones, desde 2024. Son las mismas en todas las temporalidades. La página muestra además, como informativos, los derivados de Binance (open interest, cuentas en largo y compras a mercado) y las compras al contado, que el índice no usa porque no se ha podido comprobar que anticipen el precio.",
       },
       {
         h: "¿Cómo lo usa el índice?",

@@ -154,8 +154,6 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
 
     if all(k in extra for k in ("WALCL", "WTREGEN", "RRPONTSYD", *GLOBAL_SERIES)):
         m["global_liquidity_roc"] = global_liquidity(extra, idx).pct_change(91, fill_method=None)
-    if "M2SL" in extra:
-        m["m2_yoy"] = _daily(extra["M2SL"], idx).pct_change(365, fill_method=None)
     if "DTWEXBGS" in extra:
         m["dxy_roc"] = _daily(extra["DTWEXBGS"], idx).pct_change(91, fill_method=None)
     if "DGS2" in extra:
@@ -168,8 +166,9 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
         nfci = _daily(extra["NFCI"].set_axis(extra["NFCI"].index + pd.Timedelta(days=5)), idx)
         m["nfci"] = nfci
         m["nfci_chg"] = nfci.diff(91)
-    if "stablecoins" in extra:
-        m["stablecoin_roc"] = _daily(extra["stablecoins"], idx).pct_change(90, fill_method=None)
+    if "T10Y2Y" in extra:
+        # Diferencia entre el bono a 10 años y el de 2 de EE. UU. (en puntos): su cambio en 13 semanas. Publicado al día siguiente
+        m["curve_chg"] = _daily(extra["T10Y2Y"].set_axis(extra["T10Y2Y"].index + pd.Timedelta(days=1)), idx).diff(91)
 
     if "etf_flows" in extra:
         # En BTC, para que la subida del precio no infle los flujos recientes; fines de semana y festivos repiten

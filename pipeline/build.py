@@ -27,13 +27,12 @@ SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
 CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json", "ciclo": "cycle_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
-FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "M2SL", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2"]
+FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2", "T10Y2Y"]
 
 ATTRIBUTION = [
     {"name": "Coin Metrics Community", "url": "https://coinmetrics.io/community-network-data/", "license": "CC BY-NC 4.0"},
     {"name": "Alternative.me Fear & Greed", "url": "https://alternative.me/crypto/fear-and-greed-index/"},
     {"name": "FRED, Federal Reserve Bank of St. Louis", "url": "https://fred.stlouisfed.org/"},
-    {"name": "DefiLlama", "url": "https://defillama.com/stablecoins"},
     {"name": "Bitview (Bitcoin Research Kit)", "url": "https://bitview.space"},
     {"name": "Binance (precio y derivados en vivo)", "url": "https://www.binance.com/"},
 ]
@@ -63,7 +62,6 @@ def fetch_all() -> tuple:
     extra, missing = {}, []
     tasks = {
         "fear_greed": sources.fear_greed,
-        "stablecoins": sources.stablecoin_supply,
         "sth_sopr": lambda: sources.bitview("sth_sopr_1w"),
         "sth_realized_price": lambda: sources.bitview("sth_realized_price"),
         "realized_loss": lambda: sources.bitview("realized_loss_sum_24h"),

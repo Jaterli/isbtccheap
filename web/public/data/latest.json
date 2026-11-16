@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-16T22:10:39+00:00",
+  "updated_at": "2026-11-16T22:39:52+00:00",
   "as_of": "2026-11-15",
   "price": 65189.1107,
   "score_1d": 13.7105,
@@ -64,7 +64,7 @@
         },
         {
           "id": "us2y_chg",
-          "name": "Bono a 2 años de EE. UU. (cambio 13 sem.)",
+          "name": "Bono 2 años EE. UU. (13 sem.)",
           "value": 0.71,
           "score": 92.8816
         }
@@ -193,10 +193,6 @@
     {
       "name": "FRED, Federal Reserve Bank of St. Louis",
       "url": "https://fred.stlouisfed.org/"
-    },
-    {
-      "name": "DefiLlama",
-      "url": "https://defillama.com/stablecoins"
     },
     {
       "name": "Bitview (Bitcoin Research Kit)",

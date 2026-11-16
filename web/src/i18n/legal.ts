@@ -216,7 +216,7 @@ export const LEGAL: Record<LegalPage, Record<"es" | "en", LegalText>> = {
         {
           h: "Proveedores y transferencias internacionales",
           p: [
-            "La web se aloja en un servidor de DigitalOcean, que trata los registros del servidor por cuenta del titular. DigitalOcean, Google, GitHub y Binance pueden tratar datos fuera del Espacio Económico Europeo; en el caso de los proveedores del titular, con las garantías que exige el RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo de la Comisión Europea).",
+            "La web se aloja en un servidor de DigitalOcean, que trata los registros del servidor por cuenta del titular. DigitalOcean, Google, GitHub y Binance pueden tratar datos fuera del Espacio Económico Europeo; en el caso de los proveedores del titular, con las garantías que exige el RGPD (Marco de Privacidad de Datos UE-EE.\u00A0UU. o cláusulas contractuales tipo de la Comisión Europea).",
           ],
         },
         {
