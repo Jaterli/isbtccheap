@@ -251,7 +251,10 @@ mercado (una inflación más alta, por ejemplo); una pérdida no realizada alta 
 solo es capitulación si venden de verdad con pérdidas (pérdida realizada disparada y SOPR claramente por debajo de 1). \
 Su intensidad es la de short_term_holders.capitulation.level, sin exagerarla: con capitulation_levels, "en niveles de \
 capitulación" o "con pérdidas propias de una capitulación" (nunca "plena capitulación" ni "capitulación masiva"); solo \
-con intense_capitulation, "capitulación intensa"; con none, no hables de capitulación.
+con intense_capitulation, "capitulación intensa"; con none, no hables de capitulación. El SOPR compara el precio al que \
+venden con el que pagaron: 0,98 es que venden de media con un 2 % de pérdida; llámalo así ("venden de media con un 2 % \
+de pérdida") o SOPR, nunca "ventas a mercado" ni "índice de ventas", que son otra cosa (las compras y ventas a mercado \
+de los derivados).
 4. Atribuye cada dato a su fuente y no mezcles datos de distinta naturaleza en una misma frase o clave: las \
 probabilidades de las decisiones de la Fed son las del mercado de predicción Kalshi, no la opinión de un miembro de la \
 Fed; las salidas de los ETF son flujos de inversores, no posiciones en derivados.
@@ -263,6 +266,8 @@ con palabras normales: "en la parte baja de su rango habitual" en vez de "%B en 
 valen, con su explicación cuando hace falta.
 6. El precio actual es analysis.price: cita ese.
 7. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
+8. Fechas, no días de la semana: "el mínimo del 15 de noviembre", no "el mínimo del sábado" (los datos llevan fechas sin \
+el día de la semana y es fácil equivocarse). Solo hoy puede nombrarse por su día (context.weekday).
 
 Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 {
@@ -282,7 +287,9 @@ contradicción: por ejemplo, "antes del rebote hacia X $ que prevé la tendencia
 su objetivo.
 - points: de 2 a 4 claves (35 palabras como máximo cada una) de lo que está moviendo el precio. No repitas las métricas \
 de las claves de la tendencia de fondo (data.background_trend.points: se publican en la misma página) salvo que hayan \
-cambiado desde entonces, y entonces di el cambio ("Kalshi ha pasado del 89 al 92 %"). Prioriza lo de horas y días: \
+cambiado desde entonces, y entonces di el cambio ("Kalshi ha pasado del 89 al 92 %"): si ya citan los flujos de los ETF \
+o las pérdidas de los holders de corto plazo y no han cambiado, no los repitas, ni siquiera de pasada en otra clave. \
+Prioriza lo de horas y días: \
 velas de 1 h y 4 h, derivados, la agenda y las noticias del día, la liquidez y los huecos cercanos.
 - "es" en español y "en" en inglés, con el mismo contenido: traduce con cuidado las cifras y su sentido (una subida de \
 tipos mayor no es un recorte).
