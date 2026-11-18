@@ -55,8 +55,9 @@ export interface SentimentSeries {
 
 const HOUR = 3_600_000;
 const PERIOD: Record<SentimentTf, number> = { "1h": HOUR, "4h": 4 * HOUR, "1d": 24 * HOUR };
-// Velas en 1 h y 4 h: lo que cubren los derivados de Binance (500 puntos en 1 h, 30 días en 4 h)
-const INTRADAY_CANDLES: Record<"1h" | "4h", number> = { "1h": 500, "4h": 180 };
+// Velas en 1 h y 4 h. En 4 h, las 1.000 que da Binance en una petición (unos 5,5 meses): las métricas diarias del índice
+// llegan a todas; los derivados, solo a sus últimos 30 días (lo que guarda Binance), y su gráfica empieza ahí
+const INTRADAY_CANDLES: Record<"1h" | "4h", number> = { "1h": 500, "4h": 1000 };
 
 const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 // Ratios como parte del total: 50 % = equilibrio entre largos y cortos, o entre compras y ventas a mercado
