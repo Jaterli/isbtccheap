@@ -308,6 +308,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .segmented button:hover { color: var(--fg); }
 .segmented button.active { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
 .segmented button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.segmented.small { gap: 2px; }
 .segmented.small button { padding: 4px 10px; font-size: 0.85rem; }
 
 /* Selector de temporalidad */
@@ -372,13 +373,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-resize { position: static; height: 14px; margin-bottom: -8px; }
 .price-card .chart-readout { margin: 6px 0 2px; }
 .price-card .chart-readout .refresh { margin-left: auto; }
-/* Zoom: en la cabecera en pantallas grandes; en las pequeñas, sobre el gráfico arriba a la izquierda (con su fondo para
-   leerse sobre la línea), para que la temporalidad y las velas quepan en una fila */
 .price-plot { position: relative; }
-.price-card .price-zoom { position: absolute; top: 4px; left: 4px; z-index: 1; opacity: 0.85; }
-.price-card .price-zoom:hover, .price-card .price-zoom:focus-within { opacity: 1; }
-@media (min-width: 640px) { .price-card .price-zoom { display: none; } }
-@media (max-width: 639px) { .price-card .price-zoom-header { display: none; } }
 /* Gráfico del precio (móvil): área en degradado y, al pasar el dedo, un punto verde o rojo según cerró la vela */
 .price-fill-top { stop-color: var(--price); stop-opacity: 0.22; }
 .price-fill-bottom { stop-color: var(--price); stop-opacity: 0; }
@@ -392,13 +387,38 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
 .price-card svg { display: block; touch-action: pan-y; }
 /* Título y controles en una fila; si no caben (móvil), los controles bajan a la suya, a todo el ancho */
-.price-card header { flex-wrap: wrap; row-gap: 10px; align-items: center; }
-.price-card header h3 { flex: 1 0 auto; white-space: nowrap; line-height: 0; }
+/* .card.price-card: más específicas que las generales de .card header (alineación por la línea base y título flexible),
+   que van después en este archivo y las anularían */
+.card.price-card header { flex-wrap: wrap; row-gap: 10px; align-items: center; }
+.card.price-card header h3 { flex: 1 0 auto; white-space: nowrap; }
+/* Título: «Precio de BTC» en pantallas grandes y el logotipo en las pequeñas, centrado con los botones */
+.price-card .price-title { display: flex; align-items: center; gap: 6px; margin: 0; }
+/* El logotipo, solo en pantallas pequeñas (en lugar del texto), del alto de los botones */
+.price-card .price-title svg.btc-icon { display: none; width: 30px; height: 30px; flex: none; }
+@media (max-width: 639px) {
+  .price-title-text { display: none; }
+  .price-card .price-title svg.btc-icon { display: block; }
+}
 
-.price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 8px; }
+.price-controls { display: flex; flex: 1 1 auto; justify-content: flex-end; gap: 6px; }
+
 .price-controls > .segmented:last-child { flex: none; }
-.price-card .price-tfs { flex: 1; grid-template-columns: repeat(4, 1fr); max-width: none; }
+.price-card .price-tfs { flex: 1; grid-template-columns: repeat(5, 1fr); max-width: none; }
 @media (min-width: 640px) { .price-card .price-tfs { flex: none; width: auto; } }
+/* Zoom sobre el gráfico, arriba a la izquierda (con su fondo para leerse sobre la línea): solo en pantallas pequeñas */
+/* Botones de zoom algo más bajos que el resto (en la cabecera y sobre el gráfico) */
+.price-card .price-zoom button, .price-card .price-zoom-header button { padding-block: 2px; line-height: 1.2; }
+.price-card .price-zoom { position: absolute; top: 4px; left: 4px; z-index: 1; opacity: 0.85; }
+.price-card .price-zoom:hover, .price-card .price-zoom:focus-within { opacity: 1; }
+@media (min-width: 640px) { .price-card .price-zoom { display: none; } }
+/* Pantallas pequeñas (tras las reglas generales de la cabecera, para que no las pisen): el título, la temporalidad y las
+   velas en una sola fila (el zoom va sobre el gráfico), con menos hueco entre grupos */
+@media (max-width: 639px) {
+  .card.price-card header { flex-wrap: nowrap; column-gap: 8px; }
+  .card.price-card header h3 { flex: none; }
+  .price-controls { gap: 4px; min-width: 0; }
+  .price-card .price-zoom-header { display: none; }
+}
 /* Mientras llegan las velas: el gráfico (el anterior, o un hueco de su alto) atenuado y "Cargando…" centrado encima */
 .price-chart { position: relative; }
 .price-chart.pending > :not(.price-loading) { opacity: 0.35; pointer-events: none; transition: opacity 0.2s; }
@@ -438,7 +458,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* Gráfico */
 .chart header { flex-wrap: wrap; row-gap: 10px; }
 .chart header h3 { flex: 1 1 260px; }
-.chart-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.chart-controls { display: flex; flex-wrap: wrap; gap: 6px; }
 .chart-controls button:disabled { opacity: 0.4; cursor: default; }
 .chart-readout { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 4px; font-size: 0.9rem; }
 /* Cada dato (rayita de color, icono y cifra) en una pieza; en móvil, algo más juntos para que quepan en una línea */
@@ -448,6 +468,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
    gráficos lo pondrían en bloque) */
 .chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: text-bottom; cursor: default; }
 .legend::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+/* Con el icono de Bitcoin, la rayita, el icono y la cifra centrados en una misma línea */
+.legend:has(> .btc-icon) { display: inline-flex; align-items: center; gap: 4px; }
+.legend:has(> .btc-icon)::before { margin-right: 2px; }
 .legend-price::before { background: var(--price); }
 .legend-score::before { background: var(--accent); }
 .chart-area { position: relative; }
@@ -850,7 +873,7 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
   border-color: color-mix(in srgb, var(--cycle-2016) 45%, var(--border));
 }
 /* Métrica informativa (el índice no la usa): borde discontinuo, separada de las del índice */
-.sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.sent-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
 /* Pantallas estrechas: cada control con el ancho de su contenido y en su orden (métrica, temporalidad, suavizado y
    periodo), pasando a la línea siguiente lo que no cabe; la métrica solo se recorta si no cabe ni sola */
 @media (max-width: 639px) {

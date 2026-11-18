@@ -127,6 +127,7 @@ export const es = {
     resize: "Alto del gráfico del precio",
     candles: "Ver velas en vez de la línea",
     tfs: {
+      "5m": { label: "5 minutos", short: "5m" },
       "15m": { label: "15 minutos", short: "15m" },
       "1h": { label: "1 hora", short: "1h" },
       "4h": { label: "4 horas", short: "4h" },

@@ -27,7 +27,7 @@ export function ttlFor(url: string): number {
   const end = /endTime=(\d+)/.exec(url)?.[1];
   if (end && Number(end) < Date.now() - 2 * MIN) return 6 * 60 * MIN;
   if (/limit=1(&|$)/.test(url)) return MIN;
-  const byInterval: Record<string, number> = { "1m": 0.5 * MIN, "15m": MIN, "1h": 2 * MIN, "4h": 5 * MIN, "1d": 10 * MIN, "1w": 30 * MIN, "1M": 60 * MIN };
+  const byInterval: Record<string, number> = { "1m": 0.5 * MIN, "5m": 0.5 * MIN, "15m": MIN, "1h": 2 * MIN, "4h": 5 * MIN, "1d": 10 * MIN, "1w": 30 * MIN, "1M": 60 * MIN };
   return interval ? (byInterval[interval] ?? MIN) : MIN;
 }
 

@@ -60,6 +60,17 @@ function loadHeights(): Heights | null {
 const shortUsd = (p: number) => (p >= 1000 ? `$${(p / 1000).toFixed(p < 10_000 ? 1 : 0)}k` : `$${p.toFixed(p < 10 ? 2 : 0)}`);
 
 /** Fecha y hora locales de una vela, en el mismo formato que las fechas diarias ("2026-10-29T08:00"). */
+/** Fecha de la lectura del gráfico en el formato del idioma (16/11/2026; con la hora en las velas de 4 h). Las fechas
+ * son AAAA-MM-DD (diarias) o AAAA-MM-DDTHH:MM (4 h, hora local): se leen sin pasar por UTC para no cambiar de día. */
+function readoutDate(stamp: string | undefined) {
+  if (!stamp) return "";
+  const [d, time] = stamp.split("T");
+  const [y, m, day] = d.split("-").map(Number);
+  const [hh, mm] = (time ?? "").split(":").map(Number);
+  const date = new Date(y, m - 1, day, hh || 0, mm || 0);
+  return date.toLocaleString(locale, { day: "2-digit", month: "2-digit", year: "numeric", ...(time && { hour: "2-digit", minute: "2-digit" }) });
+}
+
 function localStamp(ms: number) {
   const d = new Date(ms);
   const p = (n: number) => String(n).padStart(2, "0");
@@ -379,7 +390,7 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
       </header>
 
       <p className="chart-readout">
-        <span className="muted num">{history.dates[h]?.replace("T", " ")}</span>
+        <span className="muted num">{readoutDate(history.dates[h])}</span>
         <span className="legend legend-price num">
           <BtcIcon size={14} label={t.history.price} /> <strong>{history.price[h]?.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>

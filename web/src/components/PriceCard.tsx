@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
-import { axisPad, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
-import type { CandleTf } from "../lib/series";
+import { axisPad, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import { RefreshStatus } from "./RefreshStatus";
 import { BtcIcon } from "./BtcIcon";
 
@@ -11,7 +10,7 @@ const PAD_T = 6;
 const AXIS_H = 18;
 
 // Temporalidad propia de esta tarjeta, independiente de la del score, y velas que se dibujan en cada una
-const PRICE_TFS = ["15m", "1h", "4h", "1d"] as const;
+const PRICE_TFS = ["5m", "15m", "1h", "4h", "1d"] as const;
 type PriceTf = (typeof PRICE_TFS)[number];
 // (60-90: en un móvil quedan 4-5 px entre cierres, lo justo para que cada punto se distinga). Con − y + se ven más o
 // menos, entre MIN_VISIBLE y todas las descargadas
@@ -20,8 +19,8 @@ const ZOOM = 1.5;
 // Alto del gráfico, ajustable arrastrando la barra de debajo (se guarda)
 const HEIGHT_KEY = "isbtccheap:price-height";
 const HEIGHT_LIMITS = [90, 360] as const;
-const VISIBLE: Record<PriceTf, number> = { "15m": 64, "1h": 72, "4h": 60, "1d": 90 };
-const REFRESH_MS: Record<PriceTf, number> = { "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000 };
+const VISIBLE: Record<PriceTf, number> = { "5m": 72, "15m": 64, "1h": 72, "4h": 60, "1d": 90 };
+const REFRESH_MS: Record<PriceTf, number> = { "5m": 30_000, "15m": 60_000, "1h": 120_000, "4h": 300_000, "1d": 600_000 };
 // Fechas del eje según el tramo visible (cambia con el zoom): con la hora si son pocos días; sin el día, con el año, si
 // pasa de medio año
 const axisFmt = (spanMs: number): Intl.DateTimeFormatOptions =>
@@ -30,8 +29,6 @@ const axisFmt = (spanMs: number): Intl.DateTimeFormatOptions =>
     : spanMs <= 180 * 86_400_000
       ? { day: "numeric", month: "short" }
       : { month: "short", year: "numeric" };
-// Formato de la fecha de la lectura: 15 min como intradía
-const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d" };
 const TF_KEY = "isbtccheap:price-tf";
 // Velas o línea (se guarda): en un gráfico muy bajo la línea se lee mejor
 const CANDLES_KEY = "isbtccheap:price-candles";
@@ -122,8 +119,6 @@ export function PriceCard({ active }: { active: boolean }) {
   const [tf, setTf] = useState<PriceTf>(loadTf);
   const { closes: data, shownTf, pending, nextAt, loading } = useCloses(tf, active);
   const tx = t.priceCard;
-  // Mientras llegan las velas de la nueva temporalidad, las de la anterior se ven como estaban (su tramo y sus fechas)
-  const axisTf = AXIS_TF[shownTf];
 
   const [visible, setVisible] = useState(VISIBLE[tf]);
   const [candles, setCandles] = useState(loadCandles);
@@ -236,7 +231,10 @@ export function PriceCard({ active }: { active: boolean }) {
     <article className="card price-card" id="precio">
       {/* Título y, en la misma fila, temporalidad y zoom (como en el histórico) */}
       <header>
-        <h3>Precio <BtcIcon size={18} label={tx.title} />
+        {/* «Precio de BTC» en pantallas grandes; en las pequeñas, solo el logotipo, del alto de los botones */}
+        <h3 className="price-title">
+          <span className="price-title-text">{tx.title}</span>
+          <BtcIcon size={30} label={tx.title} />
         </h3>
         <div className="price-controls">
           <div className="segmented small timeframes price-tfs" role="radiogroup" aria-label={t.timeframeAria}>
@@ -261,7 +259,8 @@ export function PriceCard({ active }: { active: boolean }) {
               </svg>
             </button>
           </div>
-          {/* Zoom: aquí en pantallas grandes; en las pequeñas, sobre el gráfico (price-zoom), para que la fila quepa */}
+          {/* Zoom: aquí en pantallas grandes; en las pequeñas, sobre el gráfico (price-zoom), para que el título, la
+              temporalidad y las velas quepan en una fila */}
           <div className="segmented small price-zoom-header" role="group" aria-label="Zoom">
             <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
             <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
@@ -274,14 +273,21 @@ export function PriceCard({ active }: { active: boolean }) {
             <div className={pending ? "price-chart pending" : "price-chart"} aria-busy={pending}>
               {pending && <p className="price-loading">{t.loading}</p>}
               <p className="chart-readout">
-                <span className="muted num">{fmtTime(view.time[h], axisTf, true)}</span>
+                {/* Como en el histórico del score: 16/11/2026 y, en las velas de menos de un día, con la hora */}
+                <span className="muted num">
+                  {new Date(view.time[h]).toLocaleString(locale, {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    ...(shownTf !== "1d" && { hour: "2-digit", minute: "2-digit" }),
+                  })}
+                </span>
                 <span className="legend legend-price num">
-                  <strong>{usd(view.close[h])}</strong>
+                  <BtcIcon size={14} label={tx.title} /> <strong>{usd(view.close[h])}</strong>
                 </span>
                 <RefreshStatus nextAt={nextAt} loading={loading} />
               </p>
               <div className="price-plot">
-              {/* En pantallas pequeñas, el zoom va sobre el gráfico, arriba a la izquierda (en las grandes, en la cabecera) */}
               <div className="segmented small price-zoom" role="group" aria-label="Zoom">
                 <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
                 <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>

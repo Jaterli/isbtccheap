@@ -120,6 +120,7 @@ export const en: Messages = {
     resize: "Price chart height",
     candles: "Show candles instead of the line",
     tfs: {
+      "5m": { label: "5 minutes", short: "5m" },
       "15m": { label: "15 minutes", short: "15m" },
       "1h": { label: "1 hour", short: "1h" },
       "4h": { label: "4 hours", short: "4h" },
