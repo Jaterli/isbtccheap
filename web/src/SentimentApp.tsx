@@ -5,6 +5,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
 import { Rich } from "./components/Rich";
+import { MetricHelp } from "./components/MetricHelp";
 import { MetricSelect } from "./components/MetricSelect";
 import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
 import { ScoreChart } from "./components/ScoreChart";
@@ -96,6 +97,9 @@ function Chip({ v }: { v: number | null | undefined }) {
   );
 }
 
+// Descripción de cada métrica (t.metrics): los derivados se llaman distinto en la tarjeta del índice
+const HELP_ID: Partial<Record<SentimentKey, string>> = { long_pct: "long_short", taker_pct: "taker_ratio" };
+
 const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"];
 const isInfo = (k: SentimentKey) => (INFO_METRICS as readonly string[]).includes(k);
 
@@ -182,6 +186,14 @@ export function SentimentApp() {
   const label = (key: SentimentKey) => tx.short[key];
   // El de la serie sin suavizar: el suavizado solo cambia la gráfica
   const lastScore = series ? [...series.scores.sentimiento].reverse().find((v) => v !== null) : undefined;
+  // La métrica elegida: su último valor y su puntuación, sin suavizar (como la tabla)
+  const lastOf = (xs: (number | null)[] | undefined) => (xs ? [...xs].reverse().find((v) => v !== null) : undefined);
+  const metricNow =
+    series && shownK !== "sentimiento"
+      ? { value: lastOf(series.values[shownK]), score: lastOf(series.scores[shownK]) }
+      : null;
+  // En 1 h y 4 h, las métricas diarias (del pipeline y de Bitview) repiten el dato del día
+  const dailyMetric = shownTf !== "1d" && !(["open_interest", "long_pct", "taker_pct", "spot_buy_pct"] as SentimentKey[]).includes(shownK);
 
   return (
     <main className="container">
@@ -248,7 +260,24 @@ export function SentimentApp() {
 
         {series && (
           <p className="vol-stats">
-            {tx.current(t.timeframes[shownTf].label, <Chip v={lastScore} />, TF_METRICS[shownTf].map((m) => tx.short[m]).join(", "))}
+            {metricNow && shownK !== "sentimiento"
+              ? tx.currentMetric(
+                  t.timeframes[shownTf].label,
+                  <>
+                    {tx.names[shownK]}
+                    <MetricHelp id={HELP_ID[shownK] ?? shownK} />
+                  </>,
+                  <strong className="num">{metricNow.value == null ? "—" : FORMAT[shownK](metricNow.value)}</strong>,
+                  <Chip v={metricNow.score} />,
+                  dailyMetric,
+                  isInfo(shownK),
+                )
+              : tx.current(
+                  t.timeframes[shownTf].label,
+                  <Chip v={lastScore} />,
+                  TF_METRICS[shownTf].map((m) => tx.short[m]).join(", "),
+                  <MetricHelp id="sentimiento" kind="category" />,
+                )}
           </p>
         )}
         {shown && shown.time.length > 1 ? (
@@ -278,7 +307,7 @@ export function SentimentApp() {
             )}
           </div>
         ) : (
-          <p className="muted">{error ? t.charts.error : series && !updating ? tx.noData : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{error ? t.charts.error : series && !updating ? tx.noData : t.loading}</p>
         )}
 
         {table && (

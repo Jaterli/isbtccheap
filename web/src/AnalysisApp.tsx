@@ -152,7 +152,7 @@ export function AnalysisApp() {
             <AnalysisChart analysis={analysis} candles={candles[chartTf]} tf={chartTf} />
           </>
         ) : (
-          <p className="muted">{missing ? tx.unavailable : candleError ? t.charts.error : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{missing ? tx.unavailable : candleError ? t.charts.error : t.loading}</p>
         )}
 
         {analysis && (

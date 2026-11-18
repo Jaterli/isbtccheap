@@ -195,17 +195,20 @@ export const es = {
     rest: "La puntuación del sentimiento y de cada una de sus métricas frente al precio de BTC, en 1 h, 4 h y 1 día: cómo se mueve la parte del índice que más pesa en las temporalidades cortas.",
     card: "Sentimiento y precio",
     info: [
-      "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica.",
+      "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica, y el icono junto a su nombre, encima del gráfico, explica qué mide.",
       "El índice usa en todas las temporalidades las mismas métricas diarias: el **Fear & Greed Index**, el **SOPR de corto plazo** y los **flujos de los ETF** (puntuados frente a sus últimos 4 años). En 1 h y 4 h, cada vela muestra el dato de su día.",
-      "Informativas (el índice no las usa): los **derivados de Binance** (**open interest**, **cuentas en largo** y **compras a mercado**, puntuados frente a sus últimos 30 días, que es lo que guarda Binance) dejaron de contar en 1 h y 4 h porque no hay histórico con el que comprobar si anticipan el precio, y con un mes de datos las cuentas en largo apuntaban al revés de como las puntuaba el índice. Se van guardando para un backtest. Sus primeras velas no tienen puntuación hasta reunir 50 datos.",
-      "**Compras al contado** (informativa, el índice no la usa): la parte del volumen al contado de BTC/USDT en Binance que fueron compras a mercado, en las 3 últimas velas; 50 % es equilibrio. Binance guarda todo su histórico (desde 2017): en 1D se puntúa frente a sus 4 años anteriores y en 1 h y 4 h frente a lo descargado. Sirve para comparar el contado con los futuros: si el contado compra mientras los futuros venden, alguien está absorbiendo las ventas apalancadas. Las compras a mercado y al contado cambian mucho de una vela a otra: se muestran las últimas (5 días en 1 h, 10 en 4 h y 1 o 3 meses en 1D) para que se lean mejor.",
-      "**Oferta en pérdidas de corto plazo** (informativa): el porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) que valen menos que cuando se compraron, de Bitview. Se puntúa al revés que el resto: muchas pérdidas es miedo, puntuación baja. Marca mejor que el Fear & Greed los techos y suelos de ciclo, pero en el backtest del índice anticipaba algo peor y mide casi lo mismo, así que no sustituye al Fear & Greed.",
-      "**Pérdida realizada** (informativa): lo que pierden cada día las monedas que se mueven por debajo del precio al que se compraron, de todos los holders (Bitview), frente a su media de 90 días: ×3 es el triple de lo habitual. Se puntúa al revés que el resto, frente a sus 4 años anteriores: mucha pérdida es miedo, puntuación baja. En el backtest no anticipaba en general; tras picos de 5 veces su media, el mes siguiente fue algo mejor que la media.",
-      "**MVRV de corto plazo ajustado** (informativa): el precio frente al coste medio de los holders de corto plazo (precio realizado de Bitview), comparado con su media de 90 días. Se puntúa por desviaciones frente a su último año: 25 y 75 son las bandas de −1σ y +1σ, y 0 y 100, las de −2σ y +2σ. En el backtest seguía al precio en vez de anticiparlo; muy por debajo de su banda inferior (−1,5σ o menos) solía llegar un rebote de 1-2 semanas que a 30 días se deshacía la mayoría de las veces.",
+      "Las **informativas** (derivados de Binance, compras al contado y las métricas on-chain de los holders) no cuentan en el índice: en el backtest no anticipaban el precio lo bastante o no hay histórico para comprobarlo. Los derivados se puntúan frente a sus últimos 30 días, lo que guarda Binance, y sus primeras velas no tienen puntuación hasta reunir 50 datos; las compras a mercado y al contado, que cambian mucho de una vela a otra, se muestran solo en sus últimas velas.",
     ],
-    current: (tf: string, cat: ReactNode, metrics: string) => (
+    current: (tf: string, cat: ReactNode, metrics: string, help?: ReactNode) => (
       <>
-        En la temporalidad de {tf}, la categoría de sentimiento está ahora en {cat}. La forman {metrics}.
+        En la temporalidad de {tf}, la categoría de sentimiento{help} está ahora en {cat}. La forman {metrics}.
+      </>
+    ),
+    // Con una métrica elegida: su último valor y su puntuación (daily: en 1 h o 4 h, el dato es del día)
+    currentMetric: (tf: string, name: ReactNode, value: ReactNode, score: ReactNode, daily: boolean, info: boolean) => (
+      <>
+        En la temporalidad de {tf}, {name} está ahora en {value}
+        {daily ? " (dato del día)" : ""}, con una puntuación de {score}.{info ? " Es informativa: el índice no la usa." : ""}
       </>
     ),
     short: {
@@ -258,7 +261,12 @@ export const es = {
       "Se calcula con las velas de Binance de cada temporalidad, igual que el técnico en vivo del índice; en semanal, completadas con el histórico diario. Cada vela usa solo los datos hasta ella.",
       "**Momentum**: la etiqueta, con su flecha, aparece junto al RSI 14 (en verde o en rojo, como su valor) con el RSI en 80 o más (impulso alcista fuerte) o en 20 o menos (bajista), en 1 h, 4 h y 1 día: en los backtests, esos impulsos tendían a continuar. Es informativa: no cuenta en el score.",
     ],
-    current: (tf: string, cat: ReactNode) => <>En la temporalidad de {tf}, el técnico está ahora en {cat}.</>,
+    current: (tf: string, cat: ReactNode, help?: ReactNode) => <>En la temporalidad de {tf}, el técnico{help} está ahora en {cat}.</>,
+    currentMetric: (tf: string, name: ReactNode, value: ReactNode, score: ReactNode) => (
+      <>
+        En la temporalidad de {tf}, {name} está ahora en {value}, con una puntuación de {score}.
+      </>
+    ),
     short: { tecnico: "Técnico", rsi_14: "RSI 14", bollinger: "Bollinger %B", ma200_ratio: "Precio / MA200" },
     names: {
       tecnico: "Categoría técnica",
@@ -528,6 +536,19 @@ export const es = {
     },
   } satisfies Record<CategoryId, Description & { name: string }>,
   weight: (w: string) => `peso ${w} %`,
+  // Frase sobre las gráficas de puntuaciones de liquidez, valoración y ciclo: lo elegido en el desplegable, con su último dato
+  scoresNow: {
+    category: (name: ReactNode, score: ReactNode) => (
+      <>
+        La categoría {name} está ahora en {score}.
+      </>
+    ),
+    metric: (name: ReactNode, value: ReactNode, score: ReactNode, info: boolean) => (
+      <>
+        {name} está ahora en {value}, con una puntuación de {score}.{info ? " Es informativa: el índice no la usa." : ""}
+      </>
+    ),
+  },
   scoreColumns:
     "Cada línea muestra el valor actual de la métrica y su puntuación de 0 (barato) a 100 (caro), calculada como percentil frente a los últimos 4 años (un ciclo de halving) salvo que se indique otra cosa. Un punto verde junto a la puntuación marca la zona muy barata (10 o menos) y uno rojo, la muy cara (90 o más).",
   extreme: { cheap: "Zona muy barata", expensive: "Zona muy cara" },
@@ -622,6 +643,27 @@ export const es = {
       name: "Compras a mercado",
       what: "Del volumen negociado con órdenes a mercado en los futuros de Binance, qué parte fueron compras (media de las 3 últimas velas). Mide quién tiene prisa por entrar o salir. El 50 % es el equilibrio.",
       read: "Puntúa por su percentil en los últimos 30 días. Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
+    },
+    // Informativas de la página de sentimiento (el índice no las usa)
+    spot_buy_pct: {
+      name: "Compras al contado",
+      what: "Del volumen al contado de BTC/USDT en Binance, qué parte fueron compras a mercado (las 3 últimas velas). El 50 % es el equilibrio entre compras y ventas.",
+      read: "Por encima del 50 % dominan las compras agresivas en el contado. Sirve para compararlo con los futuros: si el contado compra mientras los futuros venden, alguien absorbe las ventas apalancadas. Informativa: el índice no la usa.",
+    },
+    sth_loss_pct: {
+      name: "Oferta en pérdidas de corto plazo",
+      what: "Qué porcentaje de las monedas de los holders de corto plazo (movidas hace menos de 155 días) vale menos que cuando se compró. Datos on-chain de Bitview.",
+      read: "Se puntúa al revés: muchas monedas en pérdidas es miedo y puntúa bajo (barato). Por encima del 75 %, los compradores recientes están bajo estrés. Informativa: el índice no la usa.",
+    },
+    realized_loss_ratio: {
+      name: "Pérdida realizada",
+      what: "Lo que pierden cada día los holders que venden por debajo de lo que pagaron, frente a su media de 90 días: ×3 es el triple de lo habitual. Datos on-chain de Bitview.",
+      read: "Se puntúa al revés: mucha pérdida realizada es miedo y puntúa bajo (barato). Los picos de 5 veces su media o más suelen acompañar a las capitulaciones. Informativa: el índice no la usa.",
+    },
+    sth_mvrv_adj: {
+      name: "MVRV de corto plazo ajustado",
+      what: "El precio frente al coste medio de los holders de corto plazo, comparado con su media de 90 días: cuánto ganan o pierden de media los compradores recientes respecto a lo normal.",
+      read: "Se puntúa por desviaciones frente a su último año: 25 y 75 son las bandas de −1σ y +1σ. Muy por debajo, los compradores recientes pierden más de lo habitual. Informativa: el índice no la usa.",
     },
     rsi_14: {
       name: "RSI 14",

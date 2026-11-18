@@ -82,7 +82,7 @@ export function DrawdownApp() {
               )}
           </p>
         )}
-        {series && series.time.length > 1 ? <DrawdownChart data={series} /> : <p className="muted">{error ? t.charts.error : t.loading}</p>}
+        {series && series.time.length > 1 ? <DrawdownChart data={series} /> : <p className="muted chart-placeholder" role="status">{error ? t.charts.error : t.loading}</p>}
 
         {eps.length > 0 && today !== undefined && (
           <>

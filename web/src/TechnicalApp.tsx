@@ -4,6 +4,7 @@ import { bandColor } from "./components/Gauge";
 import { Header } from "./components/Header";
 import { InfoTip } from "./components/InfoTip";
 import { Rich } from "./components/Rich";
+import { MetricHelp } from "./components/MetricHelp";
 import { MetricSelect } from "./components/MetricSelect";
 import { Momentum } from "./components/Momentum";
 import { ScoreChart } from "./components/ScoreChart";
@@ -180,7 +181,21 @@ export function TechnicalApp() {
 
         {series && current && (
           <p className="vol-stats">
-            {tx.current(t.timeframes[shownTf].label, <Chip v={current.score} />)}{" "}
+            {/* La categoría o, con una métrica elegida, su último valor y su puntuación */}
+            {k === "tecnico"
+              ? tx.current(t.timeframes[shownTf].label, <Chip v={current.score} />, <MetricHelp id="tecnico" kind="category" />)
+              : tx.currentMetric(
+                  t.timeframes[shownTf].label,
+                  <>
+                    {tx.names[k]}
+                    <MetricHelp id={k} />
+                  </>,
+                  <strong className="num">{(() => {
+                    const v = current.metrics.find((m) => m.id === k)?.value;
+                    return v == null ? "—" : FORMAT[k as TechMetric](v);
+                  })()}</strong>,
+                  <Chip v={current.metrics.find((m) => m.id === k)?.score} />,
+                )}{" "}
             <Momentum rsi={current.metrics.find((m) => m.id === "rsi_14")?.value} tf={shownTf} />
           </p>
         )}
@@ -205,7 +220,7 @@ export function TechnicalApp() {
             )}
           </div>
         ) : (
-          <p className="muted">{error ? tx.noData : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{error ? tx.noData : t.loading}</p>
         )}
 
         {series && last >= 0 && (

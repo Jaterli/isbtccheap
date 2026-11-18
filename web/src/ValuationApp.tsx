@@ -102,7 +102,7 @@ export function ValuationApp() {
             )}
           </p>
         )}
-        {series && series.time.length > 1 ? <ValuationChart data={series} /> : <p className="muted">{error ? t.charts.error : t.loading}</p>}
+        {series && series.time.length > 1 ? <ValuationChart data={series} /> : <p className="muted chart-placeholder" role="status">{error ? t.charts.error : t.loading}</p>}
 
         {now && levels && (
           <div className="outlook-table-wrap">
@@ -137,6 +137,7 @@ export function ValuationApp() {
       <CategoryScores
         history={history}
         file="valuation_scores.json"
+        category="valoracion"
         metrics={METRICS}
         tx={tx.scores}
         format={(_, v) => v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

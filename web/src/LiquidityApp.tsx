@@ -67,7 +67,7 @@ export function LiquidityApp() {
             {corr !== null && tx.correlation(<strong className="num">{`${corr > 0 ? "+" : corr < 0 ? "−" : ""}${Math.abs(corr).toLocaleString(locale, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}</strong>)}
           </p>
         )}
-        {series && series.liqTime.length > 1 ? <LiquidityChart data={series} /> : <p className="muted">{error ? t.charts.error : t.loading}</p>}
+        {series && series.liqTime.length > 1 ? <LiquidityChart data={series} /> : <p className="muted chart-placeholder" role="status">{error ? t.charts.error : t.loading}</p>}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
 

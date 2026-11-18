@@ -130,7 +130,7 @@ export function CyclesApp() {
         {all.length ? (
           <CyclesChart cycles={all.filter((c) => !hidden.includes(c.year))} today={today} />
         ) : (
-          <p className="muted">{error ? t.charts.error : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{error ? t.charts.error : t.loading}</p>
         )}
 
         {all.length > 0 && (
@@ -177,6 +177,7 @@ export function CyclesApp() {
       <CategoryScores
         history={history}
         file="cycle_scores.json"
+        category="ciclo"
         metrics={METRICS}
         tx={t.cycles.scores}
         format={cycleValue}

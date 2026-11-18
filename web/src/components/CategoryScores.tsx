@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "../i18n";
 import { getJson } from "../lib/data";
 import { smaNullable } from "../lib/indicators";
-import type { History } from "../types";
+import type { CategoryId, History } from "../types";
 import { bandColor } from "./Gauge";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
+import { MetricHelp } from "./MetricHelp";
 import { MetricSelect } from "./MetricSelect";
 import { LIQUIDITY_RANGES, useRange } from "./RangeSelect";
 import { ScoreChart } from "./ScoreChart";
@@ -42,6 +43,8 @@ interface Props {
   history: History | null;
   /** p. ej. "liquidity_scores.json" */
   file: string;
+  /** La categoría del índice: su nombre y su ayuda en la frase sobre la gráfica */
+  category: CategoryId;
   /** Métricas en el orden de la tarjeta; las informativas (el índice no las usa) al final */
   metrics: readonly string[];
   info?: readonly string[];
@@ -77,7 +80,7 @@ function Chip({ v }: { v: number | null | undefined }) {
  * métricas, como en la página de sentimiento; con la tabla de hoy, hace 1 mes y hace 3 meses. Se llega a ella desde el
  * icono de la tarjeta de la categoría (#metricas).
  */
-export function CategoryScores({ history, file, metrics, info = [], tx, format, storageKey, valueAt, smooth = [] }: Props) {
+export function CategoryScores({ history, file, category, metrics, info = [], tx, format, storageKey, valueAt, smooth = [] }: Props) {
   const [data, setData] = useState<ScoresJson | null>(null);
   const [error, setError] = useState(false);
   const [k, setK] = useState<string>(CAT);
@@ -149,6 +152,15 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
     return { indexRows: keys.filter((x) => !isInfo(x)).map(row), infoRows: keys.filter(isInfo).map(row) };
   }, [full]);
 
+  // El último dato de lo elegido, para la frase sobre la gráfica
+  const now = useMemo(() => {
+    if (!full) return null;
+    let i = full.scores[k].length - 1;
+    while (i >= 0 && full.scores[k][i] === null) i--;
+    if (i < 0) return null;
+    return { score: full.scores[k][i], value: k === CAT ? null : full.values[k][i], time: full.time[i] };
+  }, [full, k]);
+
   const rowCells = (r: { key: string; scores: (number | null)[]; value: number | null }) => (
     <tr key={r.key}>
       <th scope="row">{name(r.key)}</th>
@@ -206,6 +218,28 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
         {range.control}
       </div>
 
+      {/* Como en sentimiento y técnico: lo elegido en el desplegable, con su último dato (sin suavizar) y su ayuda */}
+      {now && (
+        <p className="vol-stats">
+          {k === CAT
+            ? t.scoresNow.category(
+                <>
+                  {t.categories[category].name}
+                  <MetricHelp id={category} kind="category" />
+                </>,
+                <Chip v={now.score} />,
+              )
+            : t.scoresNow.metric(
+                <>
+                  {name(k)}
+                  <MetricHelp id={k} />
+                </>,
+                <strong className="num">{now.value == null ? "—" : format(k, now.value, now.time)}</strong>,
+                <Chip v={now.score} />,
+                isInfo(k),
+              )}
+        </p>
+      )}
       {shown && shown.time.length > 1 ? (
         <ScoreChart
           data={shown}
@@ -219,7 +253,7 @@ export function CategoryScores({ history, file, metrics, info = [], tx, format, 
           aria={tx.chartAria}
         />
       ) : (
-        <p className="muted">{error || (history && data && !full) ? t.charts.error : t.loading}</p>
+        <p className="muted chart-placeholder" role="status">{error || (history && data && !full) ? t.charts.error : t.loading}</p>
       )}
 
       {table && (

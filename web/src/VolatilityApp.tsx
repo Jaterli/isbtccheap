@@ -69,7 +69,7 @@ export function VolatilityApp() {
             )}
           </div>
         ) : (
-          <p className="muted">{cs.error ? t.charts.error : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{cs.error ? t.charts.error : t.loading}</p>
         )}
         <p className="muted small vol-note">{t.charts.note}</p>
       </section>

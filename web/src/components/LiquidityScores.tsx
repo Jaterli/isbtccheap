@@ -19,6 +19,7 @@ export function LiquidityScores({ history }: { history: History | null }) {
     <CategoryScores
       history={history}
       file="liquidity_scores.json"
+      category="liquidez"
       metrics={METRICS}
       info={INFO}
       tx={t.liquidity.scores}

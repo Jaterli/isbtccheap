@@ -188,17 +188,19 @@ export const en: Messages = {
     rest: "The score of sentiment and each of its metrics against the BTC price, in 1h, 4h and 1 day: how the part of the index that weighs most in short timeframes moves.",
     card: "Sentiment and price",
     info: [
-      "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value.",
+      "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value, and the icon next to its name, above the chart, explains what it measures.",
       "The index uses the same daily metrics in every timeframe: the **Fear & Greed Index**, **short-term SOPR** and **ETF flows** (scored against their last 4 years). In 1h and 4h, each candle shows its day's value.",
-      "Informational (not used by the index): **Binance derivatives** (**open interest**, **accounts long** and **market buys**, scored against their last 30 days, which is all Binance keeps) stopped counting in 1h and 4h because there is no history to test whether they lead the price, and with a month of data accounts long pointed the opposite way to how the index scored them. They are being stored for a backtest. Their first candles have no score until 50 data points are available.",
-      "**Spot buys** (informational, not used by the index): the share of BTC/USDT spot volume on Binance that was market buying, over the last 3 candles; 50% is balance. Binance keeps its whole history (since 2017): in 1D it is scored against its previous 4 years and in 1h and 4h against what is downloaded. It helps compare spot with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Market buys and spot buys change a lot from one candle to the next: the latest ones are shown (5 days in 1h, 10 in 4h and 1 or 3 months in 1D) so they read better.",
-      "**Short-term supply in loss** (informational): the share of short-term holders' coins (moved less than 155 days ago) worth less than when bought, from Bitview. It is scored the other way round from the rest: many losses is fear, a low score. It marks cycle tops and bottoms better than the Fear & Greed Index, but in the index backtest it led slightly worse and measures almost the same, so it does not replace Fear & Greed.",
-      "**Realized loss** (informational): what coins moving below the price they were bought at lose each day, across all holders (Bitview), against its 90-day average: ×3 is three times the usual. It is scored the other way round from the rest, against its previous 4 years: heavy losses are fear, a low score. In the backtest it did not lead the price in general; after spikes of 5 times its average, the following month was somewhat better than average.",
-      "**Adjusted short-term MVRV** (informational): the price against the average cost of short-term holders (Bitview realized price), compared with its 90-day average. It is scored by deviations from its last year: 25 and 75 are the −1σ and +1σ bands, and 0 and 100, the −2σ and +2σ ones. In the backtest it followed the price rather than leading it; well below its lower band (−1.5σ or less) a 1-2 week bounce usually came, which had faded 30 days later most of the time.",
+      "The **informational** metrics (Binance derivatives, spot buys and the on-chain holder metrics) do not count in the index: in the backtest they did not lead the price enough, or there is no history to test them. Derivatives are scored against their last 30 days, which is all Binance keeps, and their first candles have no score until 50 data points are available; market buys and spot buys, which change a lot from one candle to the next, are shown over their latest candles only.",
     ],
-    current: (tf: string, cat: ReactNode, metrics: string) => (
+    current: (tf: string, cat: ReactNode, metrics: string, help?: ReactNode) => (
       <>
-        In the {tf} timeframe, the sentiment category currently stands at {cat}. It is made up of {metrics}.
+        In the {tf} timeframe, the sentiment category{help} currently stands at {cat}. It is made up of {metrics}.
+      </>
+    ),
+    currentMetric: (tf: string, name: ReactNode, value: ReactNode, score: ReactNode, daily: boolean, info: boolean) => (
+      <>
+        In the {tf} timeframe, {name} currently stands at {value}
+        {daily ? " (daily figure)" : ""}, with a score of {score}.{info ? " It is informational: the index does not use it." : ""}
       </>
     ),
     short: {
@@ -251,7 +253,12 @@ export const en: Messages = {
       "It is calculated with Binance candles for each timeframe, like the index's live technical score; on the weekly, completed with the daily history. Each candle only uses data up to it.",
       "**Momentum**: the label, with its arrow, appears next to RSI 14 (in green or red, like its value) with RSI at 80 or above (strong bullish momentum) or at 20 or below (bearish), on 1h, 4h and 1 day: in backtests, those moves tended to continue. It is informational: it does not count in the score.",
     ],
-    current: (tf: string, cat: ReactNode) => <>On the {tf} timeframe, the technical score currently stands at {cat}.</>,
+    current: (tf: string, cat: ReactNode, help?: ReactNode) => <>On the {tf} timeframe, the technical score{help} currently stands at {cat}.</>,
+    currentMetric: (tf: string, name: ReactNode, value: ReactNode, score: ReactNode) => (
+      <>
+        On the {tf} timeframe, {name} currently stands at {value}, with a score of {score}.
+      </>
+    ),
     short: { tecnico: "Technical", rsi_14: "RSI 14", bollinger: "Bollinger %B", ma200_ratio: "Price / MA200" },
     names: {
       tecnico: "Technical category",
@@ -514,6 +521,18 @@ export const en: Messages = {
     },
   },
   weight: (w: string) => `weight ${w}%`,
+  scoresNow: {
+    category: (name: ReactNode, score: ReactNode) => (
+      <>
+        The {name} category currently stands at {score}.
+      </>
+    ),
+    metric: (name: ReactNode, value: ReactNode, score: ReactNode, info: boolean) => (
+      <>
+        {name} currently stands at {value}, with a score of {score}.{info ? " It is informational: the index does not use it." : ""}
+      </>
+    ),
+  },
   scoreColumns:
     "Each line shows the metric's current value and its score from 0 (cheap) to 100 (expensive), calculated as a percentile against the last 4 years (one halving cycle) unless stated otherwise. A green dot next to the score marks the very cheap zone (10 or below) and a red one, the very expensive zone (90 or above).",
   extreme: { cheap: "Very cheap zone", expensive: "Very expensive zone" },
@@ -608,6 +627,26 @@ export const en: Messages = {
       name: "Market buys",
       what: "Of the volume traded with market orders on Binance futures, the share that were buys (average of the last 3 candles). Shows who is in a hurry to get in or out. 50% is the balance.",
       read: "Scored by its percentile over the last 30 days. Above 50%, aggressive buying dominates (raises the score); below 50%, selling does (lowers it).",
+    },
+    spot_buy_pct: {
+      name: "Spot buys",
+      what: "Of the BTC/USDT spot volume on Binance, the share that were market buys (last 3 candles). 50% is the balance between buys and sells.",
+      read: "Above 50%, aggressive buying dominates the spot market. Useful to compare with futures: if spot buys while futures sell, someone is absorbing the leveraged selling. Informational: the index does not use it.",
+    },
+    sth_loss_pct: {
+      name: "Short-term supply in loss",
+      what: "The share of short-term holders' coins (moved less than 155 days ago) worth less than when they were bought. On-chain data from Bitview.",
+      read: "Scored in reverse: many coins in loss is fear and scores low (cheap). Above 75%, recent buyers are under stress. Informational: the index does not use it.",
+    },
+    realized_loss_ratio: {
+      name: "Realized loss",
+      what: "What holders who sell below their purchase price lose each day, against its 90-day average: ×3 is three times the usual. On-chain data from Bitview.",
+      read: "Scored in reverse: a large realized loss is fear and scores low (cheap). Spikes of 5 times the average or more tend to come with capitulations. Informational: the index does not use it.",
+    },
+    sth_mvrv_adj: {
+      name: "Adjusted short-term MVRV",
+      what: "The price against short-term holders' average cost, compared with its 90-day average: how much recent buyers gain or lose on average relative to normal.",
+      read: "Scored by deviations over its last year: 25 and 75 are the −1σ and +1σ bands. Far below, recent buyers are losing more than usual. Informational: the index does not use it.",
     },
     rsi_14: {
       name: "RSI 14",

@@ -193,7 +193,7 @@ export function App() {
   const shown = ready ? computed : null;
 
   if (error) return <main className="container"><p className="notice">{error}</p></main>;
-  if (!latest || !computed) return <main className="container"><p className="muted">{t.loading}</p></main>;
+  if (!latest || !computed) return <main className="container"><p className="muted chart-placeholder" role="status">{t.loading}</p></main>;
 
   const result = shown ?? computed;
   const score = shown ? shown.score : null;

@@ -91,7 +91,7 @@ export function CategoriesApp() {
         {series && series.time.length > 1 ? (
           <CategoriesChart data={series} marks={events.filter((e) => e.kind !== "lowSoFar").map((e) => ({ time: e.time, top: e.kind === "top" }))} />
         ) : (
-          <p className="muted">{error || (history && cats && !full) ? t.charts.error : t.loading}</p>
+          <p className="muted chart-placeholder" role="status">{error || (history && cats && !full) ? t.charts.error : t.loading}</p>
         )}
 
         {full && rows.length > 1 && (
