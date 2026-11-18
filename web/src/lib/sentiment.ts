@@ -1,5 +1,6 @@
 import type { History, Timeframe } from "../types";
 import { fetchCandles, fetchDerivativesSeries, fetchSpotFlow } from "./binance";
+import { cachedJson } from "./cache";
 import { percentileOfLast } from "./indicators";
 
 /** Métricas diarias del índice (sentiment.json, del pipeline) */
@@ -185,9 +186,7 @@ const BITVIEW = "https://bitview.space/api/series/{s}/day1?start=0";
 const BITVIEW_START = Date.UTC(2009, 0, 1);
 
 async function bitview(series: string): Promise<Map<string, number>> {
-  const res = await fetch(BITVIEW.replace("{s}", series), { signal: AbortSignal.timeout(15_000) });
-  if (!res.ok) throw new Error(`Bitview ${series} ${res.status}`);
-  const d: { start: number; data: (number | null)[] } = await res.json();
+  const d = await cachedJson<{ start: number; data: (number | null)[] }>(BITVIEW.replace("{s}", series), 15_000, `Bitview ${series}`);
   const out = new Map<string, number>();
   // El último día de Bitview está aún en curso: no se usa
   d.data.slice(0, -1).forEach((v, i) => {

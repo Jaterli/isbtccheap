@@ -1,4 +1,5 @@
 import type { Candle, Timeframe } from "../types";
+import { cachedJson } from "./cache";
 
 // Dominio público de solo datos de mercado: sin clave y con CORS
 const SPOT = "https://data-api.binance.vision/api/v3";
@@ -8,9 +9,7 @@ const TIMEOUT_MS = 10_000;
 /** Últimas `limit` velas, o las anteriores a `endTime` (ms) si se indica. */
 export async function fetchCandles(tf: Timeframe | "15m" | "1m", limit = 1000, endTime?: number): Promise<Candle[]> {
   const end = endTime === undefined ? "" : `&endTime=${endTime}`;
-  const res = await fetch(`${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${limit}${end}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`Binance klines ${res.status}`);
-  const rows: unknown[][] = await res.json();
+  const rows = await cachedJson<unknown[][]>(`${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${limit}${end}`, TIMEOUT_MS, "Binance klines");
   return rows.map((r) => ({
     time: Number(r[0]),
     open: Number(r[1]),
@@ -36,11 +35,11 @@ export async function fetchSpotFlow(tf: Timeframe, count: number): Promise<SpotF
   let end: number | undefined;
   while (out.length < count) {
     const q = end === undefined ? "" : `&endTime=${end}`;
-    const res = await fetch(`${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${Math.min(1000, count - out.length)}${q}`, {
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!res.ok) throw new Error(`Binance klines ${res.status}`);
-    const rows: unknown[][] = await res.json();
+    const rows = await cachedJson<unknown[][]>(
+      `${SPOT}/klines?symbol=BTCUSDT&interval=${tf}&limit=${Math.min(1000, count - out.length)}${q}`,
+      TIMEOUT_MS,
+      "Binance klines",
+    );
     if (!rows.length) break;
     out.unshift(...rows);
     end = Number(rows[0][0]) - 1;
@@ -65,9 +64,11 @@ export interface Derivatives {
 export type DerivativesSeries = Record<keyof Derivatives, { time: number[]; value: number[] }>;
 
 async function futuresData(path: string, field: string, period: Timeframe) {
-  const res = await fetch(`${FUTURES_DATA}/${path}?symbol=BTCUSDT&period=${period}&limit=500`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`Binance ${path} ${res.status}`);
-  const rows: Record<string, string | number>[] = await res.json();
+  const rows = await cachedJson<Record<string, string | number>[]>(
+    `${FUTURES_DATA}/${path}?symbol=BTCUSDT&period=${period}&limit=500`,
+    TIMEOUT_MS,
+    `Binance ${path}`,
+  );
   return { time: rows.map((r) => Number(r.timestamp)), value: rows.map((r) => Number(r[field])) };
 }
 
