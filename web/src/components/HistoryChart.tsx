@@ -364,10 +364,12 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
   };
 
   return (
-    <section className="card chart">
+    <section className="card chart history-card">
       <header>
         <h3>
-          {is4h ? t.history.title4h : t.history.title}
+          {/* El título completo en pantallas grandes; en las pequeñas, el corto, para que quepa junto a los botones */}
+          <span className="title-long">{is4h ? t.history.title4h : t.history.title}</span>
+          <span className="title-short">{is4h ? t.history.title4hShort : t.history.titleShort}</span>
           <InfoTip label={t.history.infoLabel} title={t.history.infoTitle}>
             <p>{t.history.info1}</p>
             <p>{t.history.info2}</p>
@@ -382,7 +384,8 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
               </button>
             ))}
           </div>
-          <div className="segmented small" role="group" aria-label="Zoom">
+          {/* Zoom: aquí en pantallas grandes; en las pequeñas, sobre el gráfico (chart-zoom-overlay), como en el precio */}
+          <div className="segmented small chart-zoom chart-zoom-header" role="group" aria-label="Zoom">
             <button onClick={() => zoomButton(1.5)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={span >= N - 1.5}>−</button>
             <button onClick={() => zoomButton(1 / 1.5)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={span <= minSpan + 0.5}>+</button>
           </div>
@@ -401,6 +404,10 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
       </p>
 
       <div ref={wrapRef} className="chart-area">
+        <div className="segmented small chart-zoom chart-zoom-overlay" role="group" aria-label="Zoom">
+          <button onClick={() => zoomButton(1.5)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={span >= N - 1.5}>−</button>
+          <button onClick={() => zoomButton(1 / 1.5)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={span <= minSpan + 0.5}>+</button>
+        </div>
         <svg
           ref={svgRef}
           width={width}

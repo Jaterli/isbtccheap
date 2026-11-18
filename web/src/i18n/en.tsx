@@ -675,6 +675,8 @@ export const en: Messages = {
   history: {
     title: "Daily score history vs. price",
     title4h: "4h score history vs. price",
+    titleShort: "1D score",
+    title4hShort: "4h score",
     score4h: "4h score",
     loading4h: "Loading 4h candles…",
     info4h: "In “6 months”, 4-hour candles are shown with that timeframe's score, recomputed with what was known at each candle.",

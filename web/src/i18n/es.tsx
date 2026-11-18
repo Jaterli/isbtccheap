@@ -692,6 +692,9 @@ export const es = {
   history: {
     title: "Score diario frente al precio",
     title4h: "Score de 4h frente al precio",
+    // En pantallas pequeñas, para que quepa en la fila de los botones
+    titleShort: "Score 1D",
+    title4hShort: "Score 4h",
     score4h: "Score 4 h",
     loading4h: "Cargando velas de 4 h…",
     info4h: "En «6 meses» se muestran velas de 4 h con el score de esa temporalidad, recalculado con lo que se sabía en cada vela.",
