@@ -372,10 +372,21 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-resize { position: static; height: 14px; margin-bottom: -8px; }
 .price-card .chart-readout { margin: 6px 0 2px; }
 .price-card .chart-readout .refresh { margin-left: auto; }
+/* Zoom: en la cabecera en pantallas grandes; en las pequeñas, sobre el gráfico arriba a la izquierda (con su fondo para
+   leerse sobre la línea), para que la temporalidad y las velas quepan en una fila */
+.price-plot { position: relative; }
+.price-card .price-zoom { position: absolute; top: 4px; left: 4px; z-index: 1; opacity: 0.85; }
+.price-card .price-zoom:hover, .price-card .price-zoom:focus-within { opacity: 1; }
+@media (min-width: 640px) { .price-card .price-zoom { display: none; } }
+@media (max-width: 639px) { .price-card .price-zoom-header { display: none; } }
 /* Gráfico del precio (móvil): área en degradado y, al pasar el dedo, un punto verde o rojo según cerró la vela */
 .price-fill-top { stop-color: var(--price); stop-opacity: 0.22; }
 .price-fill-bottom { stop-color: var(--price); stop-opacity: 0; }
 .price-card-line { stroke-width: 1.6; stroke-linejoin: round; }
+/* Botón de velas: el icono de una vela, del alto del texto de los botones de al lado */
+.price-candles-btn { display: inline-flex; align-items: center; }
+.price-candles-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.price-candles-btn.active svg rect { fill: currentColor; }
 .price-card-now.up { fill: var(--band-1); }
 .price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
@@ -435,7 +446,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 @media (max-width: 399px) { .chart-readout { column-gap: 12px; } }
 /* Logotipo de Bitcoin en lugar de "Precio": alineado con el texto (las reglas ".chart svg" y ".price-card svg" de los
    gráficos lo pondrían en bloque) */
-.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: middle; cursor: default; }
+.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: text-bottom; cursor: default; }
 .legend::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .legend-price::before { background: var(--price); }
 .legend-score::before { background: var(--accent); }

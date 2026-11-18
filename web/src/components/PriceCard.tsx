@@ -33,6 +33,15 @@ const axisFmt = (spanMs: number): Intl.DateTimeFormatOptions =>
 // Formato de la fecha de la lectura: 15 min como intradía
 const AXIS_TF: Record<PriceTf, CandleTf> = { "15m": "1h", "1h": "1h", "4h": "4h", "1d": "1d" };
 const TF_KEY = "isbtccheap:price-tf";
+// Velas o línea (se guarda): en un gráfico muy bajo la línea se lee mejor
+const CANDLES_KEY = "isbtccheap:price-candles";
+function loadCandles(): boolean {
+  try {
+    return localStorage.getItem(CANDLES_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function loadHeight(): number | null {
   try {
@@ -55,6 +64,8 @@ function loadTf(): PriceTf {
 interface Closes {
   time: number[];
   open: number[];
+  high: number[];
+  low: number[];
   close: number[];
 }
 
@@ -71,7 +82,17 @@ function useCloses(tf: PriceTf, active: boolean) {
       setLoading(true);
       try {
         const candles = await fetchCandles(tf);
-        if (!cancelled) setData({ tf, closes: { time: candles.map((c) => c.time), open: candles.map((c) => c.open), close: candles.map((c) => c.close) } });
+        if (!cancelled)
+          setData({
+            tf,
+            closes: {
+              time: candles.map((c) => c.time),
+              open: candles.map((c) => c.open),
+              high: candles.map((c) => c.high),
+              low: candles.map((c) => c.low),
+              close: candles.map((c) => c.close),
+            },
+          });
       } catch {
         /* sin respuesta se mantiene lo último y se reintenta en el siguiente ciclo */
       }
@@ -105,6 +126,17 @@ export function PriceCard({ active }: { active: boolean }) {
   const axisTf = AXIS_TF[shownTf];
 
   const [visible, setVisible] = useState(VISIBLE[tf]);
+  const [candles, setCandles] = useState(loadCandles);
+  const toggleCandles = () => {
+    setCandles((c) => {
+      try {
+        localStorage.setItem(CANDLES_KEY, c ? "0" : "1");
+      } catch {
+        /* almacenamiento no disponible: no pasa nada */
+      }
+      return !c;
+    });
+  };
   const [height, setHeight] = useState<number | null>(loadHeight);
 
   const select = (v: PriceTf) => {
@@ -121,7 +153,13 @@ export function PriceCard({ active }: { active: boolean }) {
   const view = useMemo(() => {
     if (!data || data.close.length < 2) return null;
     const from = Math.max(0, data.close.length - (pending ? VISIBLE[shownTf] : visible));
-    return { time: data.time.slice(from), open: data.open.slice(from), close: data.close.slice(from) };
+    return {
+      time: data.time.slice(from),
+      open: data.open.slice(from),
+      high: data.high.slice(from),
+      low: data.low.slice(from),
+      close: data.close.slice(from),
+    };
   }, [data, visible, pending, shownTf]);
 
   const total = data?.close.length ?? 0;
@@ -165,12 +203,16 @@ export function PriceCard({ active }: { active: boolean }) {
   const plotH = H - PAD_T - AXIS_H;
   const scale = useMemo(() => {
     if (!view) return null;
-    const { y, ticks } = logPriceScale(view.close, PAD_T, plotH);
+    // Con velas, la escala abarca también las mechas
+    const { y, ticks } = logPriceScale(candles ? [...view.high, ...view.low] : view.close, PAD_T, plotH);
     return { y, ticks: ticks.length > 4 ? ticks.filter((_, k) => k % 2 === 0) : ticks };
-  }, [view, plotH]);
+  }, [view, plotH, candles]);
   const plotW = width - PAD_L - axisPad(scale?.ticks.map(shortUsd) ?? []);
   const N = view?.close.length ?? 0;
-  const x = (i: number) => PAD_L + (i / Math.max(1, N - 1)) * plotW;
+  // Línea: de borde a borde. Velas: cada una en el centro de su hueco, para que la primera y la última no queden cortadas
+  const step = plotW / Math.max(1, N);
+  const x = (i: number) => (candles ? PAD_L + (i + 0.5) * step : PAD_L + (i / Math.max(1, N - 1)) * plotW);
+  const bodyW = Math.max(1, step * 0.62);
 
   const chart = useMemo(() => {
     if (!view || !scale) return null;
@@ -179,11 +221,12 @@ export function PriceCard({ active }: { active: boolean }) {
     const area = `${line}L${x(N - 1).toFixed(1)},${PAD_T + plotH}L${x(0).toFixed(1)},${PAD_T + plotH}Z`;
     return { y, ticks, line, area };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, scale, plotW]);
+  }, [view, scale, plotW, candles]);
 
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    setHover(Math.min(N - 1, Math.max(0, Math.round(((e.clientX - r.left - PAD_L) / plotW) * (N - 1)))));
+    const px = e.clientX - r.left - PAD_L;
+    setHover(Math.min(N - 1, Math.max(0, candles ? Math.floor(px / step) : Math.round((px / plotW) * (N - 1)))));
   };
 
   const h = hover ?? N - 1;
@@ -203,7 +246,23 @@ export function PriceCard({ active }: { active: boolean }) {
               </button>
             ))}
           </div>
-          <div className="segmented small" role="group" aria-label="Zoom">
+          {/* Velas o línea: un botón con el icono de una vela, activo cuando se ven velas */}
+          <div className="segmented small">
+            <button
+              className={candles ? "active price-candles-btn" : "price-candles-btn"}
+              aria-pressed={candles}
+              aria-label={tx.candles}
+              title={tx.candles}
+              onClick={toggleCandles}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <line x1="8" y1="1.5" x2="8" y2="14.5" />
+                <rect x="5" y="4.5" width="6" height="7" rx="0.8" />
+              </svg>
+            </button>
+          </div>
+          {/* Zoom: aquí en pantallas grandes; en las pequeñas, sobre el gráfico (price-zoom), para que la fila quepa */}
+          <div className="segmented small price-zoom-header" role="group" aria-label="Zoom">
             <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
             <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
           </div>
@@ -221,6 +280,12 @@ export function PriceCard({ active }: { active: boolean }) {
                 </span>
                 <RefreshStatus nextAt={nextAt} loading={loading} />
               </p>
+              <div className="price-plot">
+              {/* En pantallas pequeñas, el zoom va sobre el gráfico, arriba a la izquierda (en las grandes, en la cabecera) */}
+              <div className="segmented small price-zoom" role="group" aria-label="Zoom">
+                <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
+                <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
+              </div>
               <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
                 {chart.ticks.map((p) => (
                   <g key={p}>
@@ -234,8 +299,22 @@ export function PriceCard({ active }: { active: boolean }) {
                     <stop offset="1" className="price-fill-bottom" />
                   </linearGradient>
                 </defs>
-                <path d={chart.area} fill="url(#price-card-fill)" />
-                <path d={chart.line} className="line-price price-card-line" />
+                {candles ? (
+                  view.close.map((c, i) => {
+                    const o = view.open[i];
+                    return (
+                      <g key={view.time[i]} className={c >= o ? "an-candle up" : "an-candle down"}>
+                        <line x1={x(i)} x2={x(i)} y1={chart.y(view.high[i])} y2={chart.y(view.low[i])} />
+                        <rect x={x(i) - bodyW / 2} width={bodyW} y={chart.y(Math.max(o, c))} height={Math.max(1, Math.abs(chart.y(o) - chart.y(c)))} />
+                      </g>
+                    );
+                  })
+                ) : (
+                  <>
+                    <path d={chart.area} fill="url(#price-card-fill)" />
+                    <path d={chart.line} className="line-price price-card-line" />
+                  </>
+                )}
                 {[0, N - 1].map((i, k) => (
                   <text key={i} x={x(i)} y={H - 4} className="axis" textAnchor={k === 0 ? "start" : "end"}>
                     {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
@@ -244,10 +323,11 @@ export function PriceCard({ active }: { active: boolean }) {
                 {hover !== null && (
                   <>
                     <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />
-                    <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />
+                    {!candles && <circle cx={x(h)} cy={chart.y(view.close[h])} r="3" className={`dot-price price-card-now ${dir(h) ?? ""}`} />}
                   </>
                 )}
               </svg>
+              </div>
             </div>
             <div
               className="resize-handle price-card-resize"

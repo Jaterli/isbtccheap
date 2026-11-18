@@ -118,6 +118,7 @@ export const en: Messages = {
   priceCard: {
     title: "BTC price",
     resize: "Price chart height",
+    candles: "Show candles instead of the line",
     tfs: {
       "15m": { label: "15 minutes", short: "15m" },
       "1h": { label: "1 hour", short: "1h" },

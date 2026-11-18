@@ -125,6 +125,7 @@ export const es = {
   priceCard: {
     title: "Precio de BTC",
     resize: "Alto del gráfico del precio",
+    candles: "Ver velas en vez de la línea",
     tfs: {
       "15m": { label: "15 minutos", short: "15m" },
       "1h": { label: "1 hora", short: "1h" },
