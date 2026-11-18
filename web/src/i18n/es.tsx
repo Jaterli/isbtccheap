@@ -192,11 +192,11 @@ export const es = {
   },
   sentiment: {
     title: "Sentimiento del mercado de Bitcoin",
-    rest: "La puntuación del sentimiento y de cada una de sus métricas frente al precio de BTC, en 1 h, 4 h y 1 día: cómo se mueve la parte del índice que más pesa en las temporalidades cortas.",
+    rest: "La puntuación del sentimiento y de cada una de sus métricas frente al precio de BTC, en 4 h y 1 día: cómo se mueve la parte del índice que más pesa en las temporalidades cortas.",
     card: "Sentimiento y precio",
     info: [
       "Cada línea es una puntuación de 0 (miedo: barato) a 100 (euforia: caro), la misma que usa el índice, superpuesta al precio de BTC (eje derecho, escala logarítmica). «Sentimiento» es la categoría: la media de sus métricas en esa temporalidad. Al pasar por el gráfico se ve también el valor real de la métrica, y el icono junto a su nombre, encima del gráfico, explica qué mide.",
-      "El índice usa en todas las temporalidades las mismas métricas diarias: el **Fear & Greed Index**, el **SOPR de corto plazo** y los **flujos de los ETF** (puntuados frente a sus últimos 4 años). En 1 h y 4 h, cada vela muestra el dato de su día.",
+      "El índice usa en todas las temporalidades las mismas métricas diarias: el **Fear & Greed Index**, el **SOPR de corto plazo** y los **flujos de los ETF** (puntuados frente a sus últimos 4 años). En 4 h, cada vela muestra el dato de su día.",
       "Las **informativas** (derivados de Binance, compras al contado y las métricas on-chain de los holders) no cuentan en el índice: en el backtest no anticipaban el precio lo bastante o no hay histórico para comprobarlo. Los derivados se puntúan frente a sus últimos 30 días, lo que guarda Binance, y sus primeras velas no tienen puntuación hasta reunir 50 datos; las compras a mercado y al contado, que cambian mucho de una vela a otra, se muestran solo en sus últimas velas.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string, help?: ReactNode) => (
@@ -225,7 +225,7 @@ export const es = {
       sth_mvrv_adj: "MVRV CP ajust.",
     },
     names: {
-      sentimiento: "Categoría de sentimiento (1 h)",
+      sentimiento: "Categoría de sentimiento (4 h)",
       fear_greed: "Fear & Greed Index",
       sth_sopr: "SOPR de corto plazo (7 días)",
       etf_flows: "Flujos de los ETF (20 sesiones)",
@@ -244,8 +244,8 @@ export const es = {
     noData: "Sin datos: Binance no responde.",
     infoMetric: "Informativa: el índice no la usa (todavía)",
     infoGroup: "Informativas: el índice no las usa (todavía)",
-    tableTitle: "Puntuación ahora y antes, en 1 h",
-    scoreNote: "De 0 (miedo: barato) a 100 (euforia: caro), como en el índice de 1 h. Hace 4 horas y hace 1 día, en la vela de 1 h de entonces.",
+    tableTitle: "Puntuación ahora y antes, en 4 h",
+    scoreNote: "De 0 (miedo: barato) a 100 (euforia: caro), como en el índice de 4 h. Hace 4 horas y hace 1 día, en la vela de 4 h de entonces.",
     cols: { metric: "Métrica", now: "Ahora", h4: "Hace 4 h", d1: "Hace 1 día" },
     note: "Datos históricos sin mirar al futuro, no una predicción ni una recomendación de inversión.",
     chartAria: "Gráfico del precio de Bitcoin con la puntuación de sentimiento superpuesta",
@@ -398,7 +398,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3M", "6m": "6M", "1y": "1A", "4y": "4A", all: "Todo" } as Record<string, string>,
+    ranges: { "3m": "3M", "6m": "6M", "1y": "1A", "4y": "4A", "8y": "8A", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },

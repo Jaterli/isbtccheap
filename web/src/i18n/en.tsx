@@ -185,11 +185,11 @@ export const en: Messages = {
   },
   sentiment: {
     title: "Bitcoin market sentiment",
-    rest: "The score of sentiment and each of its metrics against the BTC price, in 1h, 4h and 1 day: how the part of the index that weighs most in short timeframes moves.",
+    rest: "The score of sentiment and each of its metrics against the BTC price, in 4h and 1 day: how the part of the index that weighs most in short timeframes moves.",
     card: "Sentiment and price",
     info: [
       "Each line is a score from 0 (fear: cheap) to 100 (euphoria: expensive), the same one the index uses, overlaid on the BTC price (right axis, log scale). “Sentiment” is the category: the average of its metrics in that timeframe. Hovering the chart also shows the metric's actual value, and the icon next to its name, above the chart, explains what it measures.",
-      "The index uses the same daily metrics in every timeframe: the **Fear & Greed Index**, **short-term SOPR** and **ETF flows** (scored against their last 4 years). In 1h and 4h, each candle shows its day's value.",
+      "The index uses the same daily metrics in every timeframe: the **Fear & Greed Index**, **short-term SOPR** and **ETF flows** (scored against their last 4 years). In 4h, each candle shows its day's value.",
       "The **informational** metrics (Binance derivatives, spot buys and the on-chain holder metrics) do not count in the index: in the backtest they did not lead the price enough, or there is no history to test them. Derivatives are scored against their last 30 days, which is all Binance keeps, and their first candles have no score until 50 data points are available; market buys and spot buys, which change a lot from one candle to the next, are shown over their latest candles only.",
     ],
     current: (tf: string, cat: ReactNode, metrics: string, help?: ReactNode) => (
@@ -217,7 +217,7 @@ export const en: Messages = {
       sth_mvrv_adj: "Adj. STH MVRV",
     },
     names: {
-      sentimiento: "Sentiment category (1h)",
+      sentimiento: "Sentiment category (4h)",
       fear_greed: "Fear & Greed Index",
       sth_sopr: "Short-term SOPR (7 days)",
       etf_flows: "ETF flows (20 sessions)",
@@ -236,8 +236,8 @@ export const en: Messages = {
     noData: "No data: Binance is not responding.",
     infoMetric: "Informational: the index does not use it (yet)",
     infoGroup: "Informational: the index does not use them (yet)",
-    tableTitle: "Score now and before, in 1h",
-    scoreNote: "From 0 (fear: cheap) to 100 (euphoria: expensive), as in the 1h index. 4 hours and 1 day ago, in the 1h candle of then.",
+    tableTitle: "Score now and before, in 4h",
+    scoreNote: "From 0 (fear: cheap) to 100 (euphoria: expensive), as in the 4h index. 4 hours and 1 day ago, in the 4h candle of then.",
     cols: { metric: "Metric", now: "Now", h4: "4h ago", d1: "1 day ago" },
     note: "Historical data computed without looking ahead, not a forecast or investment advice.",
     chartAria: "Chart of the Bitcoin price with the sentiment score overlaid",
@@ -384,7 +384,7 @@ export const en: Messages = {
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", all: "All" },
+    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", "8y": "8Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },

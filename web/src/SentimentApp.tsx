@@ -15,7 +15,6 @@ import { getJson } from "./lib/data";
 import { smaNullable } from "./lib/indicators";
 import {
   INFO_METRICS,
-  SENTIMENT_TFS,
   TF_METRICS,
   fromFirstScore,
   indexAgo,
@@ -100,6 +99,9 @@ function Chip({ v }: { v: number | null | undefined }) {
 // Descripción de cada métrica (t.metrics): los derivados se llaman distinto en la tarjeta del índice
 const HELP_ID: Partial<Record<SentimentKey, string>> = { long_pct: "long_short", taker_pct: "taker_ratio" };
 
+// Temporalidades del gráfico: sin 1 h (el sentimiento es diario: en 1 h solo repetía el dato del día en más velas)
+const SHOWN_TFS: readonly SentimentTf[] = ["4h", "1d"];
+
 const KEYS: SentimentKey[] = ["sentimiento", "fear_greed", "sth_sopr", "etf_flows", "open_interest", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"];
 const isInfo = (k: SentimentKey) => (INFO_METRICS as readonly string[]).includes(k);
 
@@ -108,10 +110,10 @@ export function SentimentApp() {
   const [sent, setSent] = useState<SentimentJson | null>(null);
   // La última serie cargada, con su temporalidad: al cambiar de temporalidad se sigue viendo hasta que llega la nueva
   const [loaded, setLoaded] = useState<{ tf: SentimentTf; s: SentimentSeries } | null>(null);
-  // La tabla, siempre en 1 h: el sentimiento pesa más en las temporalidades cortas
+  // La tabla, siempre en 4 h: el sentimiento pesa más en las temporalidades cortas
   const [hourly, setHourly] = useState<SentimentSeries | null>(null);
   const [error, setError] = useState(false);
-  const [tf, setTf] = useStored<SentimentTf>("isbtccheap:sentiment-tf", "1h", SENTIMENT_TFS);
+  const [tf, setTf] = useStored<SentimentTf>("isbtccheap:sentiment-tf", "4h", SHOWN_TFS);
   const [stored, setKey] = useStored<SentimentKey>("isbtccheap:sentiment-key", "sentimiento", KEYS);
   const range = useRange("isbtccheap:sentiment-range", "1y", SENTIMENT_RANGES);
   const [smooth, setSmooth] = useStored<Smooth>("isbtccheap:sentiment-smooth", "0", SMOOTH);
@@ -142,7 +144,7 @@ export function SentimentApp() {
       (s) => {
         if (!alive) return;
         setLoaded({ tf, s });
-        if (tf === "1h") setHourly(s);
+        if (tf === "4h") setHourly(s);
       },
       () => alive && setError(true),
     );
@@ -151,10 +153,10 @@ export function SentimentApp() {
     };
   }, [tf, history, sent]);
 
-  // La tabla necesita la serie de 1 h aunque se esté viendo otra temporalidad
+  // La tabla necesita la serie de 4 h aunque se esté viendo otra temporalidad
   useEffect(() => {
-    if (!history || !sent || hourly || tf === "1h") return;
-    loadSentiment("1h", history, sent).then(setHourly, () => {});
+    if (!history || !sent || hourly || tf === "4h") return;
+    loadSentiment("4h", history, sent).then(setHourly, () => {});
   }, [history, sent, hourly, tf]);
 
   // En 1D, el periodo elegido; desde la primera puntuación de lo elegido
@@ -178,7 +180,7 @@ export function SentimentApp() {
     if (!hourly || !hourly.time.length) return null;
     const cols = [0, 4, 24].map((hours) => indexAgo(hourly, hours * HOUR));
     const row = (key: SentimentKey) => ({ key, scores: cols.map((i) => (i >= 0 ? hourly.scores[key][i] : null)) });
-    return { now: hourly.time.at(-1)!, indexRows: ["sentimiento" as const, ...TF_METRICS["1h"]].map(row), infoRows: INFO_METRICS.map(row) };
+    return { now: hourly.time.at(-1)!, indexRows: ["sentimiento" as const, ...TF_METRICS["4h"]].map(row), infoRows: INFO_METRICS.map(row) };
   }, [hourly]);
 
   const tx = t.sentiment;
@@ -223,7 +225,7 @@ export function SentimentApp() {
             infoGroup={tx.infoGroup}
           />
           <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
-            {SENTIMENT_TFS.map((x) => (
+            {SHOWN_TFS.map((x) => (
               <button
                 key={x}
                 role="radio"
