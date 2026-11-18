@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CATEGORY_KEY, CategoryScores } from "./components/CategoryScores";
+import { RANGES } from "./components/RangeSelect";
 import { CyclesChart, fmtMult } from "./components/CyclesChart";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -177,6 +178,8 @@ export function CyclesApp() {
       <CategoryScores
         history={history}
         file="cycle_scores.json"
+        // Sin 6 meses: el ciclo es de 4 años y en medio año apenas cambia
+        ranges={RANGES}
         category="ciclo"
         metrics={METRICS}
         tx={t.cycles.scores}

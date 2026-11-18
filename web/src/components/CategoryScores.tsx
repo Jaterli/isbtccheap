@@ -55,6 +55,8 @@ interface Props {
   /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
   format: (id: string, v: number, time: number) => string;
   storageKey: string;
+  /** Periodos del selector (por defecto, de 6 meses a todo) */
+  ranges?: { id: string; days: number }[];
   /** Lo que se puede suavizar (CATEGORY_KEY para la categoría): solo lo que zigzaguea de un día a otro */
   smooth?: readonly string[];
 }
@@ -80,11 +82,11 @@ function Chip({ v }: { v: number | null | undefined }) {
  * métricas, como en la página de sentimiento; con la tabla de hoy, hace 1 mes y hace 3 meses. Se llega a ella desde el
  * icono de la tarjeta de la categoría (#metricas).
  */
-export function CategoryScores({ history, file, category, metrics, info = [], tx, format, storageKey, valueAt, smooth = [] }: Props) {
+export function CategoryScores({ history, file, category, metrics, info = [], tx, format, storageKey, valueAt, smooth = [], ranges = LIQUIDITY_RANGES }: Props) {
   const [data, setData] = useState<ScoresJson | null>(null);
   const [error, setError] = useState(false);
   const [k, setK] = useState<string>(CAT);
-  const range = useRange(storageKey, "4y", LIQUIDITY_RANGES);
+  const range = useRange(storageKey, "4y", ranges);
   const keys = [CAT, ...metrics];
   const isInfo = (x: string) => info.includes(x);
   const smoothKey = `${storageKey}-smooth`;
