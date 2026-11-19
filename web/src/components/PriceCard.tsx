@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
-import { axisPad, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { axisPad, axisTextWidth, linePath, logPriceScale, usd, useWidth } from "../lib/chart";
 import { RefreshStatus } from "./RefreshStatus";
 import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 4;
 const PAD_T = 6;
 const AXIS_H = 18;
+// Hueco entre la última vela (o el final de la línea) y las cifras del eje
+const GAP_R = 10;
+// Precios del eje y de la etiqueta del precio actual, completos ($62,500) y no abreviados ($62.5k)
+const fullUsd = (p: number) => "$" + Math.round(p).toLocaleString("en-US");
 
 // Temporalidad propia de esta tarjeta, independiente de la del score, y velas que se dibujan en cada una
 const PRICE_TFS = ["5m", "15m", "1h", "4h", "1d"] as const;
@@ -202,11 +206,17 @@ export function PriceCard({ active }: { active: boolean }) {
     const { y, ticks } = logPriceScale(candles ? [...view.high, ...view.low] : view.close, PAD_T, plotH);
     return { y, ticks: ticks.length > 4 ? ticks.filter((_, k) => k % 2 === 0) : ticks };
   }, [view, plotH, candles]);
-  const plotW = width - PAD_L - axisPad(scale?.ticks.map(shortUsd) ?? []);
+  // La etiqueta del precio actual (en negrita, con 4 px de relleno a cada lado) también tiene que caber a la derecha
+  // Completo ($62,500), como las marcas del eje
+  const lastLabel = view ? fullUsd(view.close[view.close.length - 1]) : "";
+  const lastLabelW = lastLabel ? axisTextWidth(lastLabel, true) + 8 : 0;
+  const plotW = width - PAD_L - Math.max(axisPad(scale?.ticks.map(fullUsd) ?? []), lastLabelW + 4);
   const N = view?.close.length ?? 0;
   // Línea: de borde a borde. Velas: cada una en el centro de su hueco, para que la primera y la última no queden cortadas
-  const step = plotW / Math.max(1, N);
-  const x = (i: number) => (candles ? PAD_L + (i + 0.5) * step : PAD_L + (i / Math.max(1, N - 1)) * plotW);
+  // Los datos dejan GAP_R libres a la derecha, antes del eje; la línea del precio actual sí llega hasta él
+  const dataW = Math.max(1, plotW - GAP_R);
+  const step = dataW / Math.max(1, N);
+  const x = (i: number) => (candles ? PAD_L + (i + 0.5) * step : PAD_L + (i / Math.max(1, N - 1)) * dataW);
   const bodyW = Math.max(1, step * 0.62);
 
   const chart = useMemo(() => {
@@ -221,7 +231,7 @@ export function PriceCard({ active }: { active: boolean }) {
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const px = e.clientX - r.left - PAD_L;
-    setHover(Math.min(N - 1, Math.max(0, candles ? Math.floor(px / step) : Math.round((px / plotW) * (N - 1)))));
+    setHover(Math.min(N - 1, Math.max(0, candles ? Math.floor(px / step) : Math.round((px / dataW) * (N - 1)))));
   };
 
   const h = hover ?? N - 1;
@@ -296,7 +306,7 @@ export function PriceCard({ active }: { active: boolean }) {
                 {chart.ticks.map((p) => (
                   <g key={p}>
                     <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
-                    <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
+                    <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{fullUsd(p)}</text>
                   </g>
                 ))}
                 <defs>
@@ -326,6 +336,17 @@ export function PriceCard({ active }: { active: boolean }) {
                     {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
                   </text>
                 ))}
+                {/* Precio actual: una línea discontinua de lado a lado y su cifra sobre el eje, del color de la última vela */}
+                {(() => {
+                  const yl = chart.y(view.close[N - 1]);
+                  return (
+                    <g className={`price-last ${dir(N - 1) ?? ""}`}>
+                      <line x1={PAD_L} x2={PAD_L + plotW} y1={yl} y2={yl} />
+                      <rect x={PAD_L + plotW + 2} y={yl - 8} width={lastLabelW} height={16} rx={3} />
+                      <text x={PAD_L + plotW + 6} y={yl + 4}>{lastLabel}</text>
+                    </g>
+                  );
+                })()}
                 {hover !== null && (
                   <>
                     <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />

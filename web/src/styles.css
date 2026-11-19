@@ -385,6 +385,14 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-now.up { fill: var(--band-1); }
 .price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
+/* Línea del precio actual: discontinua y fina, con su cifra en una etiqueta sobre el eje (verde o roja según la última vela) */
+.price-last line { stroke: var(--price); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.8; }
+.price-last rect { fill: var(--price); }
+.price-last text { fill: #fff; font-size: 11px; font-weight: 700; }
+.price-last.up line { stroke: var(--band-1); }
+.price-last.up rect { fill: var(--band-1); }
+.price-last.down line { stroke: var(--band-5); }
+.price-last.down rect { fill: var(--band-5); }
 .price-card svg { display: block; touch-action: pan-y; }
 /* Título y controles en una fila; si no caben (móvil), los controles bajan a la suya, a todo el ancho */
 /* .card.price-card: más específicas que las generales de .card header (alineación por la línea base y título flexible),

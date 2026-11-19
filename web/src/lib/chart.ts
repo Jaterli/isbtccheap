@@ -8,7 +8,7 @@ export const shortUsd = (p: number) =>
 
 let measureCtx: CanvasRenderingContext2D | null | undefined;
 /** Ancho en px de un texto de los ejes (.axis: 11 px con la fuente de la página), normal o en negrita */
-function axisTextWidth(s: string, bold = false) {
+export function axisTextWidth(s: string, bold = false) {
   if (measureCtx === undefined) measureCtx = document.createElement("canvas").getContext("2d");
   if (!measureCtx) return s.length * (bold ? 7 : 6.5);
   measureCtx.font = `${bold ? "700 " : ""}11px ${getComputedStyle(document.body).fontFamily}`;
