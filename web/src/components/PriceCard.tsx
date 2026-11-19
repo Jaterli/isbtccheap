@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { fetchCandles } from "../lib/binance";
 import { axisPad, axisTextWidth, linePath, logPriceScale, usd, useWidth } from "../lib/chart";
@@ -162,10 +162,54 @@ export function PriceCard({ active }: { active: boolean }) {
   }, [data, visible, pending, shownTf]);
 
   const total = data?.close.length ?? 0;
+  const fitVisible = (v: number) => Math.round(Math.min(Math.max(total, MIN_VISIBLE), Math.max(MIN_VISIBLE, v)));
   const zoom = (factor: number) => {
     setHover(null);
-    setVisible((v) => Math.round(Math.min(Math.max(total, MIN_VISIBLE), Math.max(MIN_VISIBLE, v * factor))));
+    setVisible((v) => fitVisible(v * factor));
   };
+
+  // Pellizco con dos dedos y Ctrl + rueda (o pellizco del trackpad), como en el histórico del score. Siempre anclado a la
+  // última vela: aquí no hay desplazamiento, solo cuántas se ven
+  const svgRef = useRef<SVGSVGElement>(null);
+  const touches = useRef(new Map<number, number>());
+  const pinch = useRef<{ dist: number; visible: number } | null>(null);
+  const pinchBase = () => {
+    const xs = [...touches.current.values()];
+    pinch.current = xs.length === 2 ? { dist: Math.abs(xs[0] - xs[1]), visible } : null;
+  };
+  const onTouchDown = (e: PointerEvent<SVGSVGElement>) => {
+    if (e.pointerType === "mouse") return;
+    touches.current.set(e.pointerId, e.clientX);
+    pinchBase();
+  };
+  const onTouchEnd = (e: PointerEvent<SVGSVGElement>) => {
+    touches.current.delete(e.pointerId);
+    pinchBase();
+  };
+  const onPinchMove = (e: PointerEvent<SVGSVGElement>) => {
+    if (!touches.current.has(e.pointerId)) return false;
+    touches.current.set(e.pointerId, e.clientX);
+    const p = pinch.current;
+    if (!p || p.dist <= 0) return false;
+    const xs = [...touches.current.values()];
+    // Dedos que se separan: menos velas (se acerca); que se juntan: más
+    setHover(null);
+    setVisible(fitVisible(p.visible * (p.dist / Math.max(1, Math.abs(xs[0] - xs[1])))));
+    return true;
+  };
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return; // la rueda normal sigue haciendo scroll de la página
+      e.preventDefault();
+      setHover(null);
+      setVisible((v) => fitVisible(v * Math.exp(e.deltaY * 0.003)));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, data !== null]);
 
   const H = height ?? (width < 520 ? 130 : 150);
   const saveHeight = (h: number | null) => {
@@ -302,7 +346,18 @@ export function PriceCard({ active }: { active: boolean }) {
                 <button onClick={() => zoom(ZOOM)} aria-label={t.history.zoomOut} title={t.history.zoomOut} disabled={!total || visible >= total}>−</button>
                 <button onClick={() => zoom(1 / ZOOM)} aria-label={t.history.zoomIn} title={t.history.zoomIn} disabled={!total || visible <= MIN_VISIBLE}>+</button>
               </div>
-              <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+              <svg
+                ref={svgRef}
+                width={width}
+                height={H}
+                role="img"
+                aria-label={tx.chartAria}
+                onPointerDown={onTouchDown}
+                onPointerMove={(e) => onPinchMove(e) || onMove(e)}
+                onPointerUp={onTouchEnd}
+                onPointerCancel={onTouchEnd}
+                onPointerLeave={() => setHover(null)}
+              >
                 {chart.ticks.map((p) => (
                   <g key={p}>
                     <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
