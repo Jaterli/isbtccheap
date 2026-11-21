@@ -398,6 +398,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .price-card-now.up { fill: var(--band-1); }
 .price-card-now.down { fill: var(--band-5); }
 .price-card-now { stroke: var(--surface); stroke-width: 1.5; }
+/* Máximo y mínimo del tramo visible del precio: discretos, en gris */
+.price-extreme circle { fill: var(--muted); }
+.price-extreme text { fill: var(--muted); font-size: 10px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 /* Línea del precio actual: discontinua y fina, con su cifra en una etiqueta sobre el eje (verde o roja según la última vela) */
 .price-last line { stroke: var(--price); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.8; }
 .price-last rect { fill: var(--price); }

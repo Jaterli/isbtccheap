@@ -391,6 +391,28 @@ export function PriceCard({ active }: { active: boolean }) {
                     {new Date(view.time[i]).toLocaleString(locale, axisFmt(view.time[N - 1] - view.time[0]))}
                   </text>
                 ))}
+                {/* Máximo y mínimo del tramo visible (con velas, sus mechas): un punto pequeño y su precio al lado, hacia
+                    dentro del gráfico para que no se corte en los bordes */}
+                {(() => {
+                  const hi = candles ? view.high : view.close;
+                  const lo = candles ? view.low : view.close;
+                  const iMax = hi.indexOf(Math.max(...hi));
+                  const iMin = lo.indexOf(Math.min(...lo));
+                  return [
+                    { i: iMax, v: hi[iMax], k: "max" },
+                    { i: iMin, v: lo[iMin], k: "min" },
+                  ].map(({ i, v, k }) => {
+                    const left = x(i) > PAD_L + dataW / 2;
+                    return (
+                      <g key={k} className="price-extreme">
+                        <circle cx={x(i)} cy={chart.y(v)} r="2" />
+                        <text x={x(i) + (left ? -5 : 5)} y={chart.y(v) + 3.5} textAnchor={left ? "end" : "start"}>
+                          {fullUsd(v)}
+                        </text>
+                      </g>
+                    );
+                  });
+                })()}
                 {/* Precio actual: una línea discontinua de lado a lado y su cifra sobre el eje, del color de la última vela */}
                 {(() => {
                   const yl = chart.y(view.close[N - 1]);
