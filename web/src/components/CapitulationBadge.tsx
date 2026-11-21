@@ -19,8 +19,9 @@ export function CapitulationBadge() {
   return (
     // Un punto de color (naranja: niveles de capitulación; rojo: intensa) y, en pantallas grandes, el texto
     <a className={`cap-light ${level}`} href={`${PAGE_PATH.sentiment[lang]}#capitulacion`} title={`${full}: ${t.capitulation.card}`} aria-label={full}>
-      <span className="cap-light-dot" aria-hidden="true" />
+      {/* Como la etiqueta Momentum del técnico: el texto y, detrás, el icono */}
       <span className="cap-light-text">{t.capitulation.badge}</span>
+      <span className="cap-light-dot" aria-hidden="true" />
     </a>
   );
 }

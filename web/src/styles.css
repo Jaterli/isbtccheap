@@ -286,9 +286,10 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cap-badge.small { padding: 1px 8px; font-size: 0.8rem; display: inline-block; }
 /* En la tarjeta de sentimiento del índice: un semáforo tras el nombre (naranja: niveles de capitulación; rojo: intensa),
    con el texto solo en pantallas grandes para que en el móvil quepa en la línea; enlaza a la tarjeta de capitulación */
-.cap-light { display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; font-size: 0.75rem; font-weight: 700; text-decoration: none; white-space: nowrap; vertical-align: middle; color: var(--band-4); }
+/* Del tamaño y el peso de la etiqueta Momentum (el texto de las métricas de las tarjetas, 0,88 rem) */
+.cap-light { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-size: 0.88rem; font-weight: 400; text-decoration: none; white-space: nowrap; vertical-align: middle; color: var(--band-4); }
 .cap-light.intense_capitulation { color: var(--band-5); }
-.cap-light-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
+.cap-light-dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
 .cap-light:hover .cap-light-text { text-decoration: underline; }
 @media (max-width: 639px) { .cap-light-text { display: none; } }
 .cap-table { margin-top: 10px; white-space: normal; }
