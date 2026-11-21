@@ -84,8 +84,9 @@ export interface Trend {
   price: number;
   direction: Direction;
   confidence: 1 | 2 | 3;
-  /** weekly: la revisión de los lunes; close_above / close_below: adelantada por un cierre diario; missing: no había */
-  review: { reason: "weekly" | "missing" | "close_above" | "close_below"; date?: string; close?: number; level?: number };
+  /** weekly: la revisión de los lunes; close_above / close_below: adelantada por un cierre diario; target_reached: el
+   * precio alcanzó el objetivo de 2-4 semanas de la anterior; missing: no había */
+  review: { reason: "weekly" | "missing" | "close_above" | "close_below" | "target_reached"; date?: string; close?: number; level?: number };
   /** Cierres diarios que la harían revisar */
   review_above: { price: number };
   review_below: { price: number };

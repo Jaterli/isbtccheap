@@ -337,7 +337,8 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
         "sth_mvrv_sigma": r(sigma.iloc[-1], 2) if len(sigma) else None,
         "sth_realized_loss_ratio": r(ratio, 2),
         "sth_realized_loss_usd_bn": r(loss[day] / 1e9, 2),
-        "sth_realized_loss_usd_pct_4y": round(usd_pct),
+        # Truncado, no redondeado: 98,6 se muestra como 98, coherente con que no llega al 99 de la capitulación intensa
+        "sth_realized_loss_usd_pct_4y": int(usd_pct),
         "sth_sopr_24h": r(s, 4),
         "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
         "last": _last_capitulation(loss, sopr, day),

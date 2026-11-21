@@ -414,11 +414,13 @@ def capitulation(realized: list[float], ratio: float | None, sopr: float | None)
     """none; capitulation_levels (pérdida realizada ≥ CAPITULATION_RATIO veces su media con SOPR por debajo de 1);
     intense_capitulation (además, SOPR ≤ CAPITULATION_INTENSE_SOPR o pérdida en dólares en el 1 % más alto de 4 años)."""
     valid = [v for v in realized[-STH_LOSS_PCT_DAYS:] if v]
-    usd_pct = round(sum(v < realized[-1] for v in valid) / len(valid) * 100) if valid else None
+    # Sin redondear para el umbral, como el pipeline (21 nov 2026: un 98,6 redondeado a 99 dio "intensa" aquí y "niveles"
+    # en la tarjeta); se muestra truncado
+    usd_pct = sum(v < realized[-1] for v in valid) / len(valid) * 100 if valid else None
     levels = ratio is not None and ratio >= CAPITULATION_RATIO and sopr is not None and sopr < 1
     intense = levels and (sopr <= CAPITULATION_INTENSE_SOPR or (usd_pct is not None and usd_pct >= CAPITULATION_INTENSE_USD_PCT))
     return {"level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
-            "realized_loss_usd_above_pct_of_days_4y": usd_pct, "sopr_24h": sopr}
+            "realized_loss_usd_above_pct_of_days_4y": None if usd_pct is None else int(usd_pct), "sopr_24h": sopr}
 
 
 def sth_context() -> dict:
@@ -1504,7 +1506,9 @@ antes de girar), sobre todo como pico y sin subidas descontadas; el pánico sost
 La tendencia tiene que aguantar la semana: mantén su dirección y su escenario más probable salvo que los datos hayan \
 cambiado de forma clara desde entonces (un nivel roto por un cierre, un cambio de estructura, un dato on-chain o macro \
 que gira…). Si cambias la dirección o el escenario más probable, la primera de tus drivers dice qué ha cambiado y por \
-qué; si no hay revisión anterior, analiza sin ella."""
+qué; si no hay revisión anterior, analiza sin ella. Si trae early_review_because, se revisa antes de tiempo por eso: \
+con target_reached, el escenario más probable anterior ya se cumplió (el precio llegó a su objetivo) y hace falta uno \
+nuevo desde aquí; con close_above o close_below, un cierre diario superó uno de sus niveles de revisión."""
 
 TREND_TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de la tendencia \
 de fondo de BTC (semanas y meses) de un analista ya revisado (direction, confidence, review_above y review_below: los \
@@ -1580,7 +1584,7 @@ TREND_TEXT_SCHEMA = {"type": "object", "properties": {"es": TREND_TEXT, "en": TR
                      "additionalProperties": False}
 
 
-def trend_view(data: dict, previous: dict | None = None) -> dict:
+def trend_view(data: dict, previous: dict | None = None, trigger: dict | None = None) -> dict:
     """Los datos que ve el análisis semanal: solo los de semanas y meses, y la revisión anterior (para no cambiar de
     escenario sin motivo)."""
     view = {k: v for k, v in data.items() if k in TREND_KEYS}
@@ -1588,6 +1592,9 @@ def trend_view(data: dict, previous: dict | None = None) -> dict:
         view["previous_review"] = {k: previous.get(k) for k in ("generated_at", "price", "direction", "confidence", "outlook",
                                                                 "alternative")}
         view["previous_review"].update(review_above=previous["review_above"]["price"], review_below=previous["review_below"]["price"])
+        # Por qué se revisa antes del lunes (un cierre más allá de un nivel o el objetivo alcanzado)
+        if trigger and trigger.get("reason") != "missing":
+            view["previous_review"]["early_review_because"] = trigger
     view["imbalances"] = {tf: v for tf, v in data.get("imbalances", {}).items() if tf in ("1w", "1d")}
     view["liquidity_pools"] = {tf: v for tf, v in data.get("liquidity_pools", {}).items() if tf == "1d"}
     return view
@@ -1667,13 +1674,18 @@ def load_trend() -> dict | None:
 
 
 def review_trigger(trend: dict | None, raw_1d: list[list]) -> dict | None:
-    """Por qué hay que revisar ya la tendencia: no la hay, o un cierre diario posterior a su revisión superó uno de sus
-    niveles (solo velas cerradas). None si sigue valiendo."""
+    """Por qué hay que revisar ya la tendencia: no la hay, un cierre diario posterior a su revisión superó uno de sus
+    niveles, o una vela diaria alcanzó el objetivo de su escenario de 2-4 semanas (solo velas cerradas). None si sigue
+    valiendo."""
     if not trend:
         return {"reason": "missing"}
     since = datetime.fromisoformat(trend["generated_at"]).timestamp() * 1000
     now = datetime.now(timezone.utc).timestamp() * 1000
     above, below = trend["review_above"]["price"], trend["review_below"]["price"]
+    # El objetivo de lo más probable en 2-4 semanas: alcanzado, el escenario ya no sirve (21 nov 2026: el precio pasó del
+    # objetivo bajista de 60.000 $ y el análisis diario seguía citando la tendencia como si apuntara ahí)
+    outlook = trend.get("outlook") or {}
+    target, direction = outlook.get("target"), outlook.get("direction")
     for r in raw_1d:
         close_time, close = r[6], float(r[4])  # r[6]: hora de cierre de la vela (ms)
         if close_time <= since or close_time > now:
@@ -1681,6 +1693,9 @@ def review_trigger(trend: dict | None, raw_1d: list[list]) -> dict | None:
         if close > above or close < below:
             return {"reason": "close_above" if close > above else "close_below", "date": _day(r), "close": round(close),
                     "level": above if close > above else below}
+        high, low = float(r[2]), float(r[3])
+        if target and ((direction == "bajista" and low <= target) or (direction == "alcista" and high >= target)):
+            return {"reason": "target_reached", "date": _day(r), "level": target}
     return None
 
 
@@ -1688,7 +1703,7 @@ def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
     """Analiza y publica la tendencia de fondo (trend.json). Devuelve la publicada o None si ningún modelo sirvió (se
     mantiene la anterior)."""
     previous = load_trend()
-    user = json.dumps(trend_view(data, previous), separators=(",", ":"))
+    user = json.dumps(trend_view(data, previous, trigger), separators=(",", ":"))
     prices: list[float] = []
 
     def check(raw: dict) -> dict:
@@ -1701,7 +1716,7 @@ def build_trend(data: dict, trigger: dict | None = None) -> dict | None:
         log.error("ningún modelo dio una tendencia válida: se mantiene la anterior")
         return None
     price, model = prices[-1], model_name(spec)
-    facts = {k: v for k, v in trend_view(data, previous).items() if not k.startswith("candles_")}
+    facts = {k: v for k, v in trend_view(data, previous, trigger).items() if not k.startswith("candles_")}
     text_user = json.dumps({"analysis": {"price": round(price), **{k: v for k, v in result.items() if k != "notes"}},
                             "notes": result["notes"], "data": facts}, separators=(",", ":"), ensure_ascii=False)
     try:

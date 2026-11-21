@@ -275,6 +275,8 @@ export function AnalysisApp() {
               }),
               trend.review.reason === "close_above" || trend.review.reason === "close_below"
                 ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
+                : trend.review.reason === "target_reached"
+                ? tx.trendTargetReached(usd(trend.review.level ?? 0))
                 : null,
             )}
           </p>

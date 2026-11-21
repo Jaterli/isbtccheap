@@ -343,6 +343,7 @@ export const es = {
     trendLegend: "– – niveles de revisión (cierre diario) · ··· referencias",
     trendChartAria: "Velas semanales de Bitcoin con los niveles que harían revisar la tendencia de fondo y el máximo histórico",
     trendEarly: (above: boolean, level: string) => `un cierre diario ${above ? "por encima" : "por debajo"} de ${level} la adelantó`,
+    trendTargetReached: (level: string) => `el precio alcanzó ${level}, el objetivo de la revisión anterior, y la adelantó`,
     nextHours: "Próximas horas:",
     nextDays: "1-2 días:",
     points: "Claves",

@@ -332,6 +332,7 @@ export const en: Messages = {
     trendLegend: "– – review levels (daily close) · ··· references",
     trendChartAria: "Weekly Bitcoin candles with the levels that would trigger a review of the underlying trend and the all-time high",
     trendEarly: (above: boolean, level: string) => `a daily close ${above ? "above" : "below"} ${level} brought it forward`,
+    trendTargetReached: (level: string) => `the price reached ${level}, the previous review's target, which brought it forward`,
     nextHours: "Next hours:",
     nextDays: "1-2 days:",
     points: "Key points",
