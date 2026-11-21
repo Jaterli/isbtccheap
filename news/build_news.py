@@ -41,10 +41,10 @@ FEEDS = [
     ("Cointelegraph", "https://cointelegraph.com/rss/tag/bitcoin", "cripto"),
     ("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml", "cripto"),
     ("Investing.com", "https://www.investing.com/rss/news_14.rss", "macro"),
-    ("CNBC", "https://www.cnbc.com/id/100003114/device/rss/rss.html", "mercados"),
-    # Bolsa: cómo cierran el S&P 500, el Nasdaq y el Dow y por qué (BTC se mueve a menudo con la tecnológica). La IA
-    # puntúa su impacto en BTC como el resto: lo de "¿compro esta acción?" queda fuera
-    ("CNBC", "https://www.cnbc.com/id/15839135/device/rss/rss.html", "bolsa"),
+    # Mercados y bolsa de EE. UU.: cómo cierran el S&P 500, el Nasdaq y el Dow y por qué (BTC se mueve a menudo con la
+    # tecnológica). Desde el 21 nov 2026, MarketWatch (Dow Jones) en lugar de CNBC, que bloquea las IP del droplet
+    # (DigitalOcean) con un 403; el RSS de Nasdaq.com se descartó: casi todo son artículos de "¿compro esta acción?"
+    ("MarketWatch", "https://feeds.content.dowjones.io/public/rss/mw_topstories", "mercados"),
     ("BBC", "https://feeds.bbci.co.uk/news/world/rss.xml", "geopolítica"),
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "banco central"),
 ]
