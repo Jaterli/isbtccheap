@@ -387,6 +387,8 @@ export const es = {
     chartLink: "Ver la evolución de la liquidez",
     // Cambio de un rendimiento, en puntos porcentuales
     pp: (v: string) => `${v}\u00A0pp`,
+    // Junto a la curva de tipos: el rendimiento de cada bono
+    yields: (y10: string, y2: string) => `10 años ${y10} · 2 años ${y2}`,
     legend: {
       price: "BTC",
       roc: (d: string) => `Liquidez global (13S) a ${d}`,

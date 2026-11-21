@@ -27,7 +27,7 @@ SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
 CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json", "ciclo": "cycle_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
-FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2", "T10Y2Y"]
+FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2", "DGS10", "T10Y2Y"]
 
 ATTRIBUTION = [
     {"name": "Coin Metrics Community", "url": "https://coinmetrics.io/community-network-data/", "license": "CC BY-NC 4.0"},
@@ -163,6 +163,11 @@ def main() -> None:
         }
         for cat, name in CATEGORY_FILES.items()
     }
+    # El rendimiento de cada bono (en %), para leerlo junto a la curva de tipos en la página de liquidez
+    if "us2y" in m and "us10y" in m:
+        category_files["liquidity_scores.json"]["yields"] = {
+            k: [num(v, 2) for v in m[col].reindex(hist.index)] for k, col in (("y2", "us2y"), ("y10", "us10y"))
+        }
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")

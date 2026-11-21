@@ -169,6 +169,10 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
     if "T10Y2Y" in extra:
         # Diferencia entre el bono a 10 años y el de 2 de EE. UU. (en puntos): su cambio en 13 semanas. Publicado al día siguiente
         m["curve_chg"] = _daily(extra["T10Y2Y"].set_axis(extra["T10Y2Y"].index + pd.Timedelta(days=1)), idx).diff(91)
+    # Rendimiento de cada bono (en %, publicado al día siguiente): no se puntúan, solo se muestran junto a la curva
+    for col, sid in (("us2y", "DGS2"), ("us10y", "DGS10")):
+        if sid in extra:
+            m[col] = _daily(extra[sid].set_axis(extra[sid].index + pd.Timedelta(days=1)), idx)
 
     if "etf_flows" in extra:
         # En BTC, para que la subida del precio no infle los flujos recientes; fines de semana y festivos repiten

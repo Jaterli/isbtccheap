@@ -20,10 +20,12 @@ const SMOOTH = ["0", "7", "30"] as const;
 type Smooth = (typeof SMOOTH)[number];
 
 /** Archivo de puntuaciones de una categoría del pipeline (CATEGORY_FILES): mismas fechas que history.json */
-interface ScoresJson {
+export interface ScoresJson {
   start: string;
   category: (number | null)[];
   metrics: Record<string, { value: (number | null)[]; score: (number | null)[] }>;
+  /** Solo en liquidity_scores.json: el rendimiento del bono a 2 y a 10 años (en %), para la curva de tipos */
+  yields?: { y2: (number | null)[]; y10: (number | null)[] };
 }
 
 export interface ScoresText {
@@ -54,6 +56,8 @@ interface Props {
   valueAt?: Record<string, (time: number) => number | null>;
   /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
   format: (id: string, v: number, time: number) => string;
+  /** Datos del último día que acompañan al valor de una métrica en la frase sobre el gráfico (no en la gráfica ni en la tabla) */
+  detail?: (id: string, time: number, data: ScoresJson) => string | null;
   storageKey: string;
   /** Periodos del selector (por defecto, de 6 meses a todo) */
   ranges?: { id: string; days: number }[];
@@ -82,7 +86,7 @@ function Chip({ v }: { v: number | null | undefined }) {
  * métricas, como en la página de sentimiento; con la tabla de hoy, hace 1 mes y hace 3 meses. Se llega a ella desde el
  * icono de la tarjeta de la categoría (#metricas).
  */
-export function CategoryScores({ history, file, category, metrics, info = [], tx, format, storageKey, valueAt, smooth = [], ranges = LIQUIDITY_RANGES }: Props) {
+export function CategoryScores({ history, file, category, metrics, info = [], tx, format, detail, storageKey, valueAt, smooth = [], ranges = LIQUIDITY_RANGES }: Props) {
   const [data, setData] = useState<ScoresJson | null>(null);
   const [error, setError] = useState(false);
   const [k, setK] = useState<string>(CAT);
@@ -236,7 +240,10 @@ export function CategoryScores({ history, file, category, metrics, info = [], tx
                   {name(k)}
                   <MetricHelp id={k} />
                 </>,
-                <strong className="num">{now.value == null ? "—" : format(k, now.value, now.time)}</strong>,
+                <strong className="num">
+                  {now.value == null ? "—" : format(k, now.value, now.time)}
+                  {now.value != null && data && detail?.(k, now.time, data) ? ` · ${detail(k, now.time, data)}` : ""}
+                </strong>,
                 <Chip v={now.score} />,
                 isInfo(k),
               )}

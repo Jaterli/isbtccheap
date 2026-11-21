@@ -373,6 +373,7 @@ export const en: Messages = {
     },
     chartLink: "See how liquidity has evolved",
     pp: (v: string) => `${v}\u00A0pp`,
+    yields: (y10: string, y2: string) => `10-year ${y10} · 2-year ${y2}`,
     legend: {
       price: "BTC",
       roc: (d: string) => `Global liquidity (13w) as of ${d}`,
