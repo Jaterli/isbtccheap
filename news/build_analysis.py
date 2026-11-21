@@ -58,6 +58,7 @@ UA = {"User-Agent": "isbtccheap/0.1 (+https://isbtccheap.com)"}
 # Histórico diario de la web (cierres desde 2011), para los techos y suelos de ciclo
 HISTORY_URL = LATEST_URL.rsplit("/", 1)[0] + "/history.json"
 LIQUIDITY_URL = LATEST_URL.rsplit("/", 1)[0] + "/liquidity_scores.json"
+CAPITULATION_URL = LATEST_URL.rsplit("/", 1)[0] + "/capitulation.json"
 
 # Titulares de news.json que se pasan como contexto: los de impacto medio y alto (naranja y rojo en la web) y recientes
 NEWS_MIN_IMPACT = 5
@@ -185,7 +186,10 @@ la de las grandes capitulaciones, que fueron las mayores de su periodo.
 y su último pico del año (5 veces su media o más). En los mercados alcistas es casi cero; su primer pico tras un periodo \
 así ha marcado el inicio de fases bajistas (2018, 2021, 2025: los compradores del techo venden con pérdidas), no suelos. \
 Contexto de fondo para el sesgo de días y semanas, no para las próximas horas.
-- news_headlines: titulares de impacto medio y alto (hora UTC, medio, impacto de 0 a 10), como contexto."""
+- news_headlines: titulares de impacto medio y alto (hora UTC, medio, impacto de 0 a 10), como contexto.
+- vix: el índice de volatilidad de la bolsa de EE. UU. (Cboe) al último cierre y su cambio en 5 sesiones. Mide el miedo \
+en la bolsa: BTC suele moverse el mismo día que el Nasdaq, y un VIX disparado dice que la venta viene de fuera de cripto. \
+Contexto del entorno de riesgo, no una señal de giro para las próximas horas."""
 
 
 # Las zonas se eligen de zone_candidates por su id: el modelo no copia bordes (los redondeaba o los cambiaba)
@@ -868,8 +872,8 @@ def zone_candidates(data: dict, price: float, atr_1d: float) -> list[dict]:
 
 
 # Lo que se calcula para la validación pero no se envía al modelo: las zonas de reacción ya van en zone_candidates
-# macro_liquidity, solo para el análisis semanal (trend_view): anticipa a meses, no a horas ni días
-MODEL_HIDDEN = ("reaction_zones", "macro_liquidity")
+# macro_liquidity y stock_panic_vix, solo para el análisis semanal (trend_view): anticipan a meses, no a horas ni días
+MODEL_HIDDEN = ("reaction_zones", "macro_liquidity", "stock_panic_vix")
 
 
 def model_view(data: dict) -> dict:
@@ -1086,6 +1090,13 @@ def market() -> dict:
         data["fed_decision_odds"] = fed_odds()
     except Exception as e:  # sin Kalshi el análisis sigue sin este dato
         log.warning("Kalshi no disponible: %s", e)
+    try:
+        vix = (get(CAPITULATION_URL) or {}).get("vix")
+        if vix:
+            data["vix"] = {"date": vix["date"], "close": vix["close"], "change_5_sessions": vix.get("change_5d")}
+            data["stock_panic_vix"] = stock_panic(vix)
+    except Exception as e:  # sin el dato, los análisis siguen sin el VIX
+        log.warning("capitulation.json no disponible: %s", e)
     try:
         data["macro_liquidity"] = macro_liquidity(get(LIQUIDITY_URL))
     except Exception as e:  # sin el dato, el análisis semanal sigue sin la liquidez macro
@@ -1409,7 +1420,8 @@ TREND_FILE = "trend.json"
 TREND_LOG = "trend_log.jsonl"
 # Lo que ve el modelo: la escala de semanas y meses (sin velas de 4 h y 1 h ni derivados de corto plazo)
 TREND_KEYS = ("context", "candles_1w", "candles_1d", "indicators_1w", "indicators_1d", "market_structure", "trend_context",
-              "cycle_context", "imbalances", "liquidity_pools", "macro_liquidity", "long_term_holders", "short_term_holders",
+              "cycle_context", "imbalances", "liquidity_pools", "macro_liquidity", "stock_panic_vix", "long_term_holders",
+              "short_term_holders",
               "spot_etf_net_flows_20_sessions_btc", "fear_greed_14d", "fed_decision_odds")
 # Distancia de los niveles de revisión al precio, en ATR diarios: ni a un paso (saltaría cada pocos días) ni tan lejos
 # que no sirvan
@@ -1481,6 +1493,13 @@ más liquidez y tipos esperados a la baja favorecen a BTC. No es una señal de g
 y en los suelos suele seguir desfavorable (en 2022 los dos suelos llegaron con la Fed subiendo tipos), así que una \
 liquidez restrictiva no basta para esperar más caídas inmediatas; pesa más su cambio de dirección.
 - Flujos de los ETF en 20 sesiones, Fear & Greed de 14 días y probabilidades de la Fed según Kalshi: contexto.
+- stock_panic_vix: el VIX (Cboe) al último cierre y su nivel (high, 35 o más; extreme, 40 o más). Si pasa del umbral: \
+kind (spike: un pico desde la calma; sustained: un miedo que ya llevaba semanas alto), rate_hikes_priced (si el mercado \
+descuenta subidas de la Fed: el bono a 2 años sube más de 0,25 puntos en 13 semanas) y similar_cases, lo que hizo BTC \
+en los casos parecidos desde 2011 (a 90 y 180 días desde el primer cierre por encima del umbral, y lo que llegó a caer \
+antes). Un pánico así ha marcado a menudo zona de suelo de medio plazo, no el día (marzo de 2020: BTC cayó un 44 % más \
+antes de girar), sobre todo como pico y sin subidas descontadas; el pánico sostenido con la Fed subiendo tipos (marzo de \
+2022) fue seguido de más caídas. Son pocos casos: pésalos como contexto, no como certeza.
 - previous_review: la revisión anterior (su fecha y precio, dirección, confianza, escenarios y niveles de revisión). \
 La tendencia tiene que aguantar la semana: mantén su dirección y su escenario más probable salvo que los datos hayan \
 cambiado de forma clara desde entonces (un nivel roto por un cierre, un cambio de estructura, un dato on-chain o macro \
@@ -1741,6 +1760,22 @@ def macro_liquidity(scores: dict) -> dict:
         at = lambda i: None if i < 0 or values[i] is None else round(values[i] * scale, digits)
         out[name] = {"now": at(last), "4w_ago": at(last - 28), "13w_ago": at(last - 91)}
         out["as_of"] = (start + timedelta(days=last)).isoformat()
+    return out
+
+
+def stock_panic(vix: dict) -> dict:
+    """El VIX para el análisis semanal: su nivel y, si pasa del umbral, cómo es el pánico y lo que hizo BTC en los casos
+    parecidos ya cerrados (mismo tipo de pánico y mismo contexto de tipos; calculados en el pipeline, metrics.vix_json)."""
+    ctx = vix.get("context") or {}
+    pct = lambda v: None if v is None else round(v * 100)
+    out = {"date": vix["date"], "close": vix["close"], "level": vix["level"], "thresholds": vix.get("thresholds")}
+    if vix["level"] != "none" and ctx:
+        out.update(kind=ctx.get("kind"), rate_hikes_priced=ctx.get("tightening"), us2y_chg_13w=ctx.get("us2y_chg_13w"))
+        out["similar_cases"] = [
+            {"start": e["start"], "vix_peak": e["peak"], "btc_90d_pct": pct(e["btc_90d"]), "btc_180d_pct": pct(e["btc_180d"]),
+             "btc_max_drop_90d_pct": pct(e["btc_max_drop_90d"])}
+            for e in vix.get("episodes", [])
+            if e["kind"] == ctx.get("kind") and e["tightening"] == ctx.get("tightening") and e["btc_90d"] is not None]
     return out
 
 

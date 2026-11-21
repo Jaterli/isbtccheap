@@ -299,7 +299,8 @@ def vix_json(extra: dict, price: pd.Series) -> dict | None:
                         "btc_max_drop_90d": r(w.min() / b0 - 1, 3) if b0 and len(w) and t + pd.Timedelta(days=90) <= btc.index[-1] else None})
     close = float(vix.iloc[-1])
     level = "extreme" if close >= VIX_EXTREME else "high" if close >= VIX_HIGH else "none"
-    return {"date": day.strftime("%Y-%m-%d"), "close": r(close), "level": level,
+    return {"date": day.strftime("%Y-%m-%d"), "close": r(close), "change_5d": r(close - float(vix.iloc[-6])) if len(vix) > 5 else None,
+            "level": level,
             **({"context": _vix_context(vix, y2, day)} if level != "none" else {}),
             "thresholds": {"high": VIX_HIGH, "extreme": VIX_EXTREME, "tightening": VIX_TIGHTENING},
             "episodes": out_eps}
