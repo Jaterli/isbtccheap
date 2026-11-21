@@ -81,7 +81,9 @@ REGLAS PRINCIPALES
 1. Zonas (supports y resistances): elige de zone_candidates de 1 a 3 de cada lado del precio actual, solo las \
 realmente relevantes, y da su id con strength de 1 (débil) a 3 (fuerte): los soportes, entre las de side "below"; las \
 resistencias, entre las de side "above". Las candidatas ya están calculadas desde las zonas donde el precio ha girado de \
-verdad (afinadas con las de 4 h sólidas y partidas en el precio si lo contienen): no construyas zonas propias.
+verdad (afinadas con las de 4 h sólidas y partidas en el precio si lo contienen): no construyas zonas propias. Si no \
+hay ninguna candidata de un lado (el precio en mínimos o máximos de años), deja ese lado vacío y saca los objetivos de \
+ese lado de otros niveles de los datos (pivotes semanales, huecos semanales, extensiones de Fibonacci) o del ATR.
 - Fuerza: más a las zonas con más reacciones y más recientes; menos a las que los cierres han atravesado varias veces \
 sin girar (crossings), sobre todo desde su última reacción (crossings_since_last): el precio ya no las respeta. Una \
 sola ruptura seguida de una reacción desde el otro lado no resta, porque confirma la zona con el papel cambiado. Las \
@@ -311,6 +313,9 @@ def get(url: str):
 # escenario de las próximas horas en 2 de 3 pruebas: el corto plazo sí las usa
 CANDLES = {"1w": 52, "1d": 180, "4h": 120, "1h": 72}
 CANDLES_FOR_INDICATORS = {"1d": 400}
+# Zonas de reacción diarias, con más historia (desde 2024): con el precio en mínimos de más de un año, en 400 velas no
+# había ninguna por debajo (21 nov 2026: sin soportes, los tres modelos dieron 0 y no se publicó el análisis)
+REACTION_CANDLES = {"1d": 1000}
 DEFAULT_FOR_INDICATORS = 250
 
 
@@ -1045,7 +1050,8 @@ def market() -> dict:
         if tf in LIQUIDITY_RANGE:
             data.setdefault("liquidity_pools", {})[tf] = liquidity_pools(raw, tf)
         if tf in REACTION_RANGE:
-            data.setdefault("reaction_zones", {})[tf] = reaction_zones(raw, tf)
+            long_raw = get(f"{SPOT}/klines?symbol=BTCUSDT&interval={tf}&limit={REACTION_CANDLES[tf]}") if tf in REACTION_CANDLES else raw
+            data.setdefault("reaction_zones", {})[tf] = reaction_zones(long_raw, tf)
     try:
         # Sin funding (11 nov 2026): casi siempre en el 0,01 % neutro de Binance y sin relación con el precio; también se
         # retiró del índice
@@ -1220,8 +1226,13 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         return out[:MAX_LEVELS]
 
     sup, res = zones(a["supports"], "support"), zones(a["resistances"], "resistance")
-    if not sup or not res:
+    # Un lado puede quedar sin zonas solo si no hay ninguna candidata en él (el precio en mínimos o máximos de años)
+    sides = {c["side"] for c in candidates.values()} if candidates else {"below", "above"}
+    if (not sup and "below" in sides) or (not res and "above" in sides) or (not sup and not res):
         raise ValueError(f"faltan zonas: {len(sup)} soportes, {len(res)} resistencias")
+    if not sup or not res:
+        log.warning("Sin candidatas %s del precio: el análisis va sin %s", "por debajo" if not sup else "por encima",
+                    "soportes" if not sup else "resistencias")
 
     def move(m: dict, limit: float) -> dict:
         target = float(m["target"])
