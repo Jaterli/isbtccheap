@@ -453,6 +453,8 @@ export const es = {
       "Las capitulaciones suelen marcar la zona del suelo a corto plazo, no el día: la caída puede seguir (en junio de 2022 cayó un 20 % más). Lo que suele anunciar el giro es la salida: el SOPR que recupera el 1 y la pérdida realizada que vuelve a su media. Datos diarios de Bitview con un día de retraso. Informativa: el índice no la usa.",
     ],
     levels: { none: "Sin capitulación", capitulation_levels: "Niveles de capitulación", intense_capitulation: "Capitulación intensa" },
+    // Etiqueta corta junto a la categoría de sentimiento (tarjeta del índice); el color dice el nivel
+    badge: "Capitulación",
     asOf: (d: string) => `Datos del ${d}`,
     last: (when: string, level: ReactNode, ratio: string) => (
       <>

@@ -124,7 +124,7 @@ export function CapitulationCard() {
   const monthYear = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { month: "short", year: "numeric", timeZone: "UTC" });
   const pctOf = (v: number | null) => (v === null ? "—" : `${signed(v * 100, 0)}\u00A0%`);
   return (
-    <section className="card capitulation">
+    <section className="card capitulation" id="capitulacion">
       <header>
         <h2>
           {tx.card}

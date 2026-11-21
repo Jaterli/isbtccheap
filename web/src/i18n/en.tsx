@@ -438,6 +438,7 @@ export const en: Messages = {
       "Capitulations tend to mark the short-term bottom zone, not the day: the decline can continue (in June 2022 it fell another 20%). What usually announces the turn is the exit: SOPR reclaiming 1 and realized loss returning to its average. Daily Bitview data with a one-day lag. Informational: the index does not use it.",
     ],
     levels: { none: "No capitulation", capitulation_levels: "Capitulation levels", intense_capitulation: "Intense capitulation" },
+    badge: "Capitulation",
     asOf: (d: string) => `Data for ${d}`,
     last: (when: string, level: ReactNode, ratio: string) => (
       <>

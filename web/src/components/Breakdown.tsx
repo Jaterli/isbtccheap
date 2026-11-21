@@ -1,6 +1,7 @@
 import { lang, locale, PAGE_PATH, t } from "../i18n";
 import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
 import type { Category, CategoryId, Timeframe } from "../types";
+import { CapitulationBadge } from "./CapitulationBadge";
 import { InfoTip } from "./InfoTip";
 import { Momentum, momentumDir } from "./Momentum";
 
@@ -123,6 +124,8 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
                   <p>{info.read}</p>
                   <p className="muted">{t.scoreColumns}</p>
                 </InfoTip>
+                {/* Si los compradores recientes capitulan, la etiqueta que lleva a su tarjeta */}
+                {id === "sentimiento" && <CapitulationBadge />}
               </h3>
               {/* Sin la temporalidad: es la de la tarjeta del score, la misma en todas */}
               <span className="muted">{t.weight(w.toFixed(0))}</span>
