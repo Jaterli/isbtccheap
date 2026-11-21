@@ -450,13 +450,24 @@ export const en: Messages = {
         `Recent buyers are selling at a loss at capitulation levels, though without the intensity of the big ones: SOPR is not below 0.97 and the dollar loss, very high (larger than on ${p}% of days in the last 4 years), stays below that of the big capitulations, which were the largest of their period.`,
       intense_capitulation: () => "Recent buyers are selling at heavy losses, as in the big capitulations.",
     },
-    questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?" },
+    questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?", stockPanic: "Is there panic in stocks?" },
     metrics: {
       sthLoss: "Short-term supply in loss",
       mvrv: "Adjusted short-term MVRV",
       realizedLoss: "Short-term realized loss (times its 90-day average)",
       sopr: "Short-term SOPR (day)",
       fearGreed: "Fear & Greed Index",
+      vix: "VIX close",
+    },
+    vix: {
+      threshold: (high: string, extreme: string) => `${high} or more (${extreme}, extreme)`,
+      intro: (kind: "spike" | "sustained", extreme: boolean, tightening: boolean, close: string, day: string) =>
+        `${kind === "spike" ? "Panic spike" : "Sustained panic"}${extreme ? " (extreme)" : ""} in stocks (VIX at ${close} at the close on ${day}), ${tightening ? "with the market pricing in Fed rate hikes" : "with no rate hikes priced in"}.`,
+      precedents: "What BTC did in similar cases since 2011 (same kind of panic and same rate backdrop), from the first close above the threshold:",
+      noPrecedents: "There are no similar cases since 2011 (same kind of panic and same rate backdrop).",
+      episode: (when: string, peak: string, r90: string, r180: string, drop: string | null) =>
+        `${when} (VIX up to ${peak}): ${r90} after 90 days and ${r180} after 180 days${drop ? `; before that it fell as much as ${drop}` : ""}.`,
+      caveat: "Panic like this has often marked a medium-term bottom zone, not the day: the price can keep falling afterwards. These are few cases; it does not change the capitulation level.",
     },
     over: (v: string) => `over ${v}`,
     under: (v: string) => `under ${v}`,

@@ -278,6 +278,11 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cap-badge.capitulation_levels { color: var(--band-4); border-color: var(--band-4); }
 .cap-badge.intense_capitulation { color: #fff; background: var(--band-5); border-color: var(--band-5); }
 .cap-last { margin: -4px 0 10px; }
+/* Pánico en la bolsa: el mensaje y sus precedentes, bajo la tabla */
+.cap-vix { margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--band-5); background: color-mix(in srgb, var(--band-5) 6%, transparent); border-radius: 6px; }
+.cap-vix p { margin: 0 0 6px; }
+.cap-vix-list { margin: 0 0 6px; padding-left: 18px; }
+.cap-vix-list li { margin: 2px 0; }
 .cap-badge.small { padding: 1px 8px; font-size: 0.8rem; display: inline-block; }
 .cap-table { margin-top: 10px; white-space: normal; }
 .cap-table tbody th { font-weight: 500; }

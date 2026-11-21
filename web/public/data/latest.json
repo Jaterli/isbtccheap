@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-21T11:08:49+00:00",
+  "updated_at": "2026-11-21T12:16:58+00:00",
   "as_of": "2026-11-20",
   "price": 58851.0194,
   "score_1d": 8.0406,
@@ -197,6 +197,10 @@
     {
       "name": "Bitview (Bitcoin Research Kit)",
       "url": "https://bitview.space"
+    },
+    {
+      "name": "Cboe (VIX)",
+      "url": "https://www.cboe.com/tradable_products/vix/vix_historical_data/"
     },
     {
       "name": "Binance (precio y derivados en vivo)",

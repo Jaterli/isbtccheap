@@ -19,6 +19,31 @@ interface CapitulationJson {
   /** El último episodio (días seguidos) en niveles de capitulación, con su nivel más alto y su mayor pérdida frente a la media */
   last?: { from: string; to: string; level: "capitulation_levels" | "intense_capitulation"; max_ratio: number } | null;
   thresholds: { realized_loss_ratio: number; sopr: number; intense_sopr: number; sth_loss_pct: number; sth_mvrv_sigma: number; fear_greed: number };
+  /** Pánico en la bolsa (metrics.vix_json): el último cierre del VIX y los episodios anteriores con lo que hizo BTC */
+  vix?: VixJson | null;
+}
+
+interface VixContext {
+  kind: "spike" | "sustained";
+  tightening: boolean;
+}
+interface VixEpisode extends VixContext {
+  start: string;
+  vix: number;
+  peak: number;
+  extreme: boolean;
+  /** Lo que hizo BTC desde el primer día (null mientras no ha pasado el plazo) */
+  btc_90d: number | null;
+  btc_180d: number | null;
+  btc_max_drop_90d: number | null;
+}
+interface VixJson {
+  date: string;
+  close: number;
+  level: "none" | "high" | "extreme";
+  context?: VixContext;
+  thresholds: { high: number; extreme: number };
+  episodes: VixEpisode[];
 }
 
 const num = (v: number, d: number) => v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -79,7 +104,25 @@ export function CapitulationCard() {
       threshold: tx.under(String(th.fear_greed)),
       met: c.fear_greed === null ? null : c.fear_greed < th.fear_greed,
     },
+    ...(c.vix
+      ? [
+          {
+            q: tx.questions.stockPanic,
+            name: tx.metrics.vix,
+            value: num(c.vix.close, 1),
+            threshold: tx.vix.threshold(String(c.vix.thresholds.high), String(c.vix.thresholds.extreme)),
+            met: c.vix.level !== "none",
+          },
+        ]
+      : []),
   ];
+  // Con el VIX por encima del umbral: cómo es el pánico y los precedentes parecidos (mismo tipo y mismo contexto de tipos),
+  // ya cerrados; la lista crece sola con cada episodio nuevo
+  const vix = c.vix;
+  const ctx = vix?.level !== "none" ? vix?.context : undefined;
+  const precedents = ctx ? (vix?.episodes ?? []).filter((e) => e.kind === ctx.kind && e.tightening === ctx.tightening && e.btc_90d !== null) : [];
+  const monthYear = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { month: "short", year: "numeric", timeZone: "UTC" });
+  const pctOf = (v: number | null) => (v === null ? "—" : `${signed(v * 100, 0)}\u00A0%`);
   return (
     <section className="card capitulation">
       <header>
@@ -148,6 +191,24 @@ export function CapitulationCard() {
           </tbody>
         </table>
       </div>
+      {vix && ctx && (
+        <div className="cap-vix">
+          <p>
+            <strong>{tx.vix.intro(ctx.kind, vix.level === "extreme", ctx.tightening, num(vix.close, 1), short(vix.date))}</strong>{" "}
+            {precedents.length ? tx.vix.precedents : tx.vix.noPrecedents}
+          </p>
+          {precedents.length > 0 && (
+            <ul className="cap-vix-list">
+              {precedents.map((e) => (
+                <li key={e.start}>
+                  {tx.vix.episode(monthYear(e.start), num(e.peak, 0), pctOf(e.btc_90d), pctOf(e.btc_180d), e.btc_max_drop_90d === null ? null : pctOf(e.btc_max_drop_90d))}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="muted small">{tx.vix.caveat}</p>
+        </div>
+      )}
       <p className="muted small vol-note">{tx.note}</p>
     </section>
   );

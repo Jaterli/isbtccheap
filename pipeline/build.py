@@ -27,13 +27,14 @@ SENTIMENT_DECIMALS = {"fear_greed": 0, "etf_flows": 0}
 # Categorías con su página de métricas: fichero con el valor y la puntuación de cada una y la de la categoría
 CATEGORY_FILES = {"sentimiento": "sentiment.json", "liquidez": "liquidity_scores.json", "valoracion": "valuation_scores.json", "ciclo": "cycle_scores.json"}
 # Las cuatro últimas, para la liquidez global: balances del BCE y del Banco de Japón y los tipos de cambio
-FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2", "DGS10", "T10Y2Y"]
+FRED_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD", "DTWEXBGS", "ECBASSETSW", "JPNASSETS", "DEXUSEU", "DEXJPUS", "NFCI", "DGS2", "DGS10", "T10Y2Y", "VIXCLS"]
 
 ATTRIBUTION = [
     {"name": "Coin Metrics Community", "url": "https://coinmetrics.io/community-network-data/", "license": "CC BY-NC 4.0"},
     {"name": "Alternative.me Fear & Greed", "url": "https://alternative.me/crypto/fear-and-greed-index/"},
     {"name": "FRED, Federal Reserve Bank of St. Louis", "url": "https://fred.stlouisfed.org/"},
     {"name": "Bitview (Bitcoin Research Kit)", "url": "https://bitview.space"},
+    {"name": "Cboe (VIX)", "url": "https://www.cboe.com/tradable_products/vix/vix_historical_data/"},
     {"name": "Binance (precio y derivados en vivo)", "url": "https://www.binance.com/"},
 ]
 
@@ -71,6 +72,8 @@ def fetch_all() -> tuple:
         "sth_supply_in_loss": lambda: sources.bitview("sth_supply_in_loss"),
         "sth_supply_in_profit": lambda: sources.bitview("sth_supply_in_profit"),
         "etf_flows": sources.etf_flows,
+        # VIX de Cboe, con el cierre del día; si falla, el de FRED (VIXCLS), con un día de retraso
+        "vix_cboe": sources.cboe_vix,
     }
     tasks.update({sid: (lambda sid=sid: sources.fred(sid)) for sid in FRED_SERIES})
     for name, fn in tasks.items():

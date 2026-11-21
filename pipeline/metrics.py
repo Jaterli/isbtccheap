@@ -238,6 +238,73 @@ def _last_capitulation(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) -> d
     }
 
 
+# Pánico en la bolsa (VIX al cierre) para la tarjeta de capitulación. Backtest de noviembre de 2026 desde 1990: un VIX que
+# cierra por encima de 35 (40, extremo) ha marcado zona de suelo de medio plazo, no el día (marzo de 2020: BTC cayó un 44 %
+# más antes de girar), sobre todo como pico desde la calma y sin subidas de tipos descontadas; el pánico sostenido con la
+# Fed subiendo tipos (marzo de 2022) fue seguido de más caídas. Los episodios se recalculan cada día desde el histórico:
+# los nuevos se añaden solos y su evolución posterior se completa sola
+VIX_HIGH = 35
+VIX_EXTREME = 40
+VIX_SPIKE_REL = 2.0  # pico: al menos el doble de su mediana de los 3 meses anteriores…
+VIX_SPIKE_PREV_DAYS = 2  # …y como mucho 2 días por encima de 30 el mes anterior
+VIX_TIGHTENING = 0.25  # subidas de tipos descontadas: el bono a 2 años sube más de 0,25 puntos en 13 semanas
+VIX_EPISODE_GAP = 45  # días sin cerrar por encima del umbral para que empiece otro episodio
+VIX_FROM = "2011-01-01"  # desde que hay precio de BTC con sentido
+
+
+def _vix_context(vix: pd.Series, y2: pd.Series, t: pd.Timestamp) -> dict:
+    """Cómo es el pánico del día t: pico o sostenido, y con o sin subidas de tipos descontadas."""
+    i = vix.index.get_loc(t)
+    med = vix.iloc[max(0, i - 63):i].median()
+    prev30 = int((vix.iloc[max(0, i - 21):i] > 30).sum())
+    y2_t = y2[:t]
+    y2_chg = float(y2_t.iloc[-1] - y2[:t - pd.Timedelta(days=91)].iloc[-1]) if len(y2_t) and len(y2[:t - pd.Timedelta(days=91)]) else None
+    rel = float(vix.iloc[i] / med) if med else None
+    return {"rel": None if rel is None else round(rel, 2), "up_5d": round(float(vix.iloc[i] - vix.iloc[max(0, i - 5)]), 1),
+            "days_above_30_prev_month": prev30, "us2y_chg_13w": None if y2_chg is None else round(y2_chg, 2),
+            "kind": "spike" if rel is not None and rel >= VIX_SPIKE_REL and prev30 <= VIX_SPIKE_PREV_DAYS else "sustained",
+            "tightening": y2_chg is not None and y2_chg > VIX_TIGHTENING}
+
+
+def vix_json(extra: dict, price: pd.Series) -> dict | None:
+    """El VIX del último cierre, cómo es el pánico si pasa de VIX_HIGH y los episodios anteriores desde VIX_FROM, cada uno
+    con lo que hizo BTC después (a 90 y 180 días y lo que llegó a caer en los 90 siguientes; null mientras no ha pasado)."""
+    if not ("vix_cboe" in extra or "VIXCLS" in extra) or "DGS2" not in extra:
+        return None
+    # Cboe (la fuente, con el cierre del día) y, donde no llegue, FRED (que lo copia de Cboe con un día de retraso)
+    vix = extra["vix_cboe"].dropna() if "vix_cboe" in extra else pd.Series(dtype=float)
+    if "VIXCLS" in extra:
+        vix = vix.combine_first(extra["VIXCLS"].dropna())
+    y2, btc = extra["DGS2"].dropna(), price.dropna()
+    day = vix.index[-1]
+    r = lambda v, d=1: None if v is None or pd.isna(v) else round(float(v), d)
+    above = vix[VIX_FROM:] >= VIX_HIGH
+    days = above[above].index
+    episodes, cur = [], None
+    for t in days:
+        if cur is None or (t - cur["last"]).days > VIX_EPISODE_GAP:
+            cur = {"start": t, "last": t}
+            episodes.append(cur)
+        cur["last"] = t
+    out_eps = []
+    for e in episodes:
+        t = e["start"]
+        b0 = btc[:t].iloc[-1] if len(btc[:t]) else None
+        ret = lambda n: (None if b0 is None or t + pd.Timedelta(days=n) > btc.index[-1] else
+                         float(btc[:t + pd.Timedelta(days=n)].iloc[-1] / b0 - 1))
+        w = btc[t:t + pd.Timedelta(days=90)]
+        out_eps.append({"start": t.strftime("%Y-%m-%d"), "vix": r(vix[t]), "peak": r(vix[e["start"]:e["last"]].max()),
+                        "extreme": bool(vix[e["start"]:e["last"]].max() >= VIX_EXTREME), **_vix_context(vix, y2, t),
+                        "btc_90d": r(ret(90), 3), "btc_180d": r(ret(180), 3),
+                        "btc_max_drop_90d": r(w.min() / b0 - 1, 3) if b0 and len(w) and t + pd.Timedelta(days=90) <= btc.index[-1] else None})
+    close = float(vix.iloc[-1])
+    level = "extreme" if close >= VIX_EXTREME else "high" if close >= VIX_HIGH else "none"
+    return {"date": day.strftime("%Y-%m-%d"), "close": r(close), "level": level,
+            **({"context": _vix_context(vix, y2, day)} if level != "none" else {}),
+            "thresholds": {"high": VIX_HIGH, "extreme": VIX_EXTREME, "tightening": VIX_TIGHTENING},
+            "episodes": out_eps}
+
+
 def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
     """capitulation.json: el último día completo de Bitview con el nivel (none, capitulation_levels o
     intense_capitulation) y los datos para leerlo: cuántos compradores recientes pierden, si venden con pérdidas y el
@@ -273,6 +340,7 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
         "sth_sopr_24h": r(s, 4),
         "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
         "last": _last_capitulation(loss, sopr, day),
+        "vix": vix_json(extra, m["price"]),
         "thresholds": {"realized_loss_ratio": CAPITULATION_RATIO, "sopr": 1, "intense_sopr": CAPITULATION_INTENSE_SOPR,
                        "intense_usd_pct": CAPITULATION_INTENSE_USD_PCT, "sth_loss_pct": STH_LOSS_STRESS_PCT,
                        "sth_mvrv_sigma": -1, "fear_greed": FEAR_GREED_PANIC},

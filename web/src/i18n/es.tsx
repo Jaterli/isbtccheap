@@ -465,13 +465,25 @@ export const es = {
         `Los compradores recientes venden con pérdidas en niveles de capitulación, aunque sin la intensidad de las grandes: el SOPR no baja de 0,97 y la pérdida en dólares, muy alta (mayor que en el ${p}\u00A0% de los días de los últimos 4 años), queda por debajo de la de las grandes capitulaciones, que fueron las mayores de su periodo.`,
       intense_capitulation: () => "Los compradores recientes venden con pérdidas fuertes, como en las grandes capitulaciones.",
     },
-    questions: { stress: "¿Cuántos pierden?", selling: "¿Venden con pérdidas?", panic: "¿Hay pánico?" },
+    questions: { stress: "¿Cuántos pierden?", selling: "¿Venden con pérdidas?", panic: "¿Hay pánico?", stockPanic: "¿Hay pánico en la bolsa?" },
     metrics: {
       sthLoss: "Oferta en pérdidas de corto plazo",
       mvrv: "MVRV de corto plazo ajustado",
       realizedLoss: "Pérdida realizada de corto plazo (veces su media de 90 días)",
       sopr: "SOPR de corto plazo (día)",
       fearGreed: "Fear & Greed Index",
+      vix: "VIX al cierre",
+    },
+    // Pánico en la bolsa: el VIX al cierre por encima de 35 (40, extremo), con los precedentes parecidos
+    vix: {
+      threshold: (high: string, extreme: string) => `${high} o más (${extreme}, extremo)`,
+      intro: (kind: "spike" | "sustained", extreme: boolean, tightening: boolean, close: string, day: string) =>
+        `${kind === "spike" ? "Pico de pánico" : "Pánico sostenido"}${extreme ? " extremo" : ""} en la bolsa (VIX en ${close} al cierre del ${day}), ${tightening ? "con el mercado descontando subidas de tipos de la Fed" : "sin subidas de tipos descontadas"}.`,
+      precedents: "Lo que hizo BTC en los casos parecidos desde 2011 (mismo tipo de pánico y mismo contexto de tipos), desde el primer cierre por encima del umbral:",
+      noPrecedents: "No hay casos parecidos desde 2011 (mismo tipo de pánico y mismo contexto de tipos).",
+      episode: (when: string, peak: string, r90: string, r180: string, drop: string | null) =>
+        `${when} (VIX hasta ${peak}): ${r90} a 90 días y ${r180} a 180 días${drop ? `; antes llegó a caer un ${drop}` : ""}.`,
+      caveat: "Un pánico así ha marcado a menudo zona de suelo de medio plazo, no el día: después el precio puede seguir cayendo. Son pocos casos; no cambia el nivel de capitulación.",
     },
     over: (v: string) => `más del ${v}`,
     under: (v: string) => `menos de ${v}`,

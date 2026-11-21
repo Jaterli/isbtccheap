@@ -81,6 +81,14 @@ def bitview(series: str) -> pd.Series:
     return s.where(s > 0).sort_index()
 
 
+def cboe_vix() -> pd.Series:
+    """VIX al cierre de Cboe, que lo calcula: su histórico diario público, con el cierre del mismo día (FRED lo copia con
+    un día de retraso)."""
+    import io
+    df = pd.read_csv(io.StringIO(_get("https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv").text))
+    s = pd.Series(pd.to_numeric(df["CLOSE"], errors="coerce").values, index=pd.to_datetime(df["DATE"], format="%m/%d/%Y"), name="VIX")
+    return s.dropna().sort_index()
+
 def etf_flows() -> pd.DataFrame:
     """ETF de bitcoin al contado de EE. UU., una fila por sesión desde 2024-01-11. The Commoner Bitcoin ETF Tracker
     (TFTC), CC BY 4.0: hay que citar la fuente y la fecha de los datos (etf_credit en build.py)."""
