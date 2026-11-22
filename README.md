@@ -168,6 +168,10 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   sin este histórico propio no se puede comprobar con un backtest si el sentimiento de 1 h y 4 h anticipa el precio: con
   20 días (11 nov 2026) reaccionaba al precio y, si acaso, iba a favor de él, al revés de como lo puntúa el índice. Cada
   ejecución añade solo las velas que faltan; no llama a ningún modelo.
+- `build_liquidations.py`: genera `news/out/liquidations.json` (`/news/liquidations.json`) con las liquidaciones de
+  largos y cortos de los perpetuos de BTC (Binance, Bybit, OKX, Huobi y Bitfinex) en velas diarias desde 2022 y de 4 h
+  (unos 8 meses), con el precio, para la tarjeta informativa de la página de sentimiento. Datos de Coinalyze con la clave
+  gratuita `COINALYZE_API_KEY` de `news/.env`; no llama a ningún modelo. Sin el fichero, la tarjeta no se muestra.
 
 En el droplet, una vez:
 
@@ -204,6 +208,8 @@ crontab -e
 0 6,7 * * 1             [ "$(TZ=Europe/Madrid date +\%H)" = 08 ] && /root/isbtccheap/news/run.sh build_analysis.py --weekly >> /var/log/isbtccheap-news.log 2>&1
 # Histórico de derivados de Binance (solo guarda 30 días): cada 6 h, con margen de sobra
 40 */6 * * *            /root/isbtccheap/news/run.sh collect_derivatives.py >> /var/log/isbtccheap-news.log 2>&1
+# Liquidaciones de futuros (Coinalyze): cada hora, con la vela de 4 h y la diaria en curso
+50 * * * *              /root/isbtccheap/news/run.sh build_liquidations.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
 Coste orientativo: menos de 1 $/mes en noticias y agenda (los duplicados, la tarea que más tokens gasta, van con el nivel gratuito de Gemini), más el análisis (unas 52 consultas al mes: unos 0,50 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que

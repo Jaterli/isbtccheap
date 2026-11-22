@@ -445,6 +445,23 @@ export const es = {
     weightsIn: (tf: string) => `Pesos en ${tf}:`,
   },
 
+  liquidations: {
+    card: "Liquidaciones de futuros",
+    info: [
+      "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
+      "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Informativa: el índice no la usa.",
+      "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
+    ],
+    chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
+    tfAria: "Temporalidad",
+    legend: { price: "Precio", long: "Largos", short: "Cortos" },
+    // Lectura de la vela señalada (o de la última): su media de 90 días, si es alta
+    ratio: (x: string) => ` · ${x} su media`,
+    times: (x: string) => `×${x}`,
+    m: (v: string) => `${v} M$`,
+    note: "Datos de Coinalyze. Informativa: el índice no la usa.",
+  },
+
   gauge: { cheap: "Barato", expensive: "Caro" },
   capitulation: {
     card: "Capitulación de los compradores recientes",

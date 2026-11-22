@@ -703,6 +703,12 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .liq-line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
 .liq-dot { fill: var(--accent); }
 .liq-zero { stroke: var(--muted); stroke-dasharray: 3 3; }
+/* Liquidaciones de futuros (página de sentimiento): largos hacia abajo en rojo, cortos hacia arriba en verde */
+path.lqd-long { fill: var(--band-5); opacity: 0.8; }
+path.lqd-short { fill: var(--band-1); opacity: 0.8; }
+.lqd-zero { stroke: var(--muted); }
+.legend.lqd-long::before { background: var(--band-5); }
+.legend.lqd-short::before { background: var(--band-1); }
 .liq-ahead { fill: var(--accent); opacity: 0.06; }
 .liq-today { fill: var(--fg); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .liq-today-dot { stroke: var(--surface); stroke-width: 1.5; }

@@ -430,6 +430,22 @@ export const en: Messages = {
     weightsIn: (tf: string) => `Weights for ${tf}:`,
   },
 
+  liquidations: {
+    card: "Futures liquidations",
+    info: [
+      "Leveraged positions in BTC perpetual futures that the exchange closes by force because the margin no longer covers the losses. **Longs** (red, downward): they bet on a rise and the price fell. **Shorts** (green, upward): they bet on a fall and the price rose.",
+      "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. Informational: the index does not use it.",
+      "Sum of Binance, Bybit, OKX, Huobi and Bitfinex in dollars (the whole market is larger). Data from Coinalyze, updated every hour; the last candle is in progress.",
+    ],
+    chartAria: "Long and short liquidations of BTC futures against the price",
+    tfAria: "Timeframe",
+    legend: { price: "Price", long: "Longs", short: "Shorts" },
+    ratio: (x: string) => ` · ${x} their average`,
+    times: (x: string) => `${x}×`,
+    m: (v: string) => `$${v}M`,
+    note: "Data from Coinalyze. Informational: the index does not use it.",
+  },
+
   gauge: { cheap: "Cheap", expensive: "Expensive" },
   capitulation: {
     card: "Recent buyers' capitulation",
