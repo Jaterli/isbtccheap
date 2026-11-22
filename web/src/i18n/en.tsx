@@ -788,11 +788,18 @@ export const en: Messages = {
       "A 10% drop is counted when the close falls 10% below the high reached since the previous drop of that size; from there, it is measured again. Rallies work the same way from the low. Since Bitcoin trades 24h, each daily candle opens at the previous close, so this is equivalent to measuring from open to close.",
       "The average time between two moves is not used because these moves come in bursts (several 5% drops in the same sell-off), which makes that average misleadingly short.",
       "The bar shows the share of days in the period that had gone less time without that move than today; the middle mark is the typical value. In orange, those beyond 90% of days.",
+      "Sizes go in steps of 5 up to the largest drop of the selected period (over 4 years, for example, up to 50% if the largest was 53%); rallies use the same ones, because from the low of a long period they reach hundreds of %. With fewer than 3 cases in the period there is no typical value (—) and no highlight: they could only be compared with the days after the first one.",
     ],
     infoNote:
       "Going longer than average without a move does not mean it is about to happen: these moves do not follow a schedule, and quiet phases tend to last.",
     drops: "Drops from highs",
     rallies: "Rallies from lows",
+    now: (drop: ReactNode, high: ReactNode, highDate: string, dropHit: boolean, rise: ReactNode, low: ReactNode, lowDate: string, riseHit: boolean, size: string) => (
+      <>
+        Now: {drop} from {high} ({highDate}), the high {dropHit ? `since the last ${size} drop` : "of the period"}, and {rise} from {low} ({lowDate}), the low{" "}
+        {riseHit ? `since the last ${size} rally` : "of the period"}.
+      </>
+    ),
     cols: { size: "Size", since: "Days since", typical: "Typical" },
     days: (n: number) => (n === 0 ? "Today" : `${n.toLocaleString("en-US")} ${n === 1 ? "day" : "days"}`),
     count: (n: number) => `${n} ${n === 1 ? "time" : "times"} in the period`,

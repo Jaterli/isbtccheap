@@ -550,6 +550,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .moves header { flex-wrap: wrap; row-gap: 10px; }
 .moves header h3 { flex: 1 1 260px; }
 .moves-lead { margin: 12px 0 4px; }
+.moves-now { margin: 4px 0 10px; }
+.moves-now .down { color: var(--band-5); }
+.moves-now .up { color: var(--band-1); }
 .moves-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: 0.9rem; }
 .moves-table th, .moves-table td { padding: 8px 0 8px 24px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: bottom; }
 .moves-table th:first-child { width: 3.4em; padding-left: 0; }

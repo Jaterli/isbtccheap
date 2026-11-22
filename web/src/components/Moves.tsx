@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { locale, t } from "../i18n";
+import { usd } from "../lib/chart";
 import { computeMoves, withLivePrice, type MoveStats } from "../lib/moves";
 import type { History } from "../types";
 import { InfoTip } from "./InfoTip";
 import { PeriodSelector, periodStart, usePeriod } from "./PeriodSelector";
 
+const pctNum = (v: number) => (v * 100).toLocaleString(locale, { maximumFractionDigits: 1 });
 const sizeLabel = (size: number, down: boolean) => t.percent(`${down ? "−" : "+"}${Math.round(size * 100)}`);
 const fmtDate = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 // A partir de aquí se resalta: más tiempo sin producirse que en el 90 % de los días del periodo
@@ -113,6 +115,21 @@ export function Moves({ history, livePrice }: { history: History; livePrice: num
           : [overDrops.length > 0 && tx.overDrops(list(overDrops)), overRallies.length > 0 && tx.overRallies(list(overRallies))]
               .filter(Boolean)
               .join(" ")}
+      </p>
+
+      {/* Dónde está hoy, desde la referencia de la fila más grande de la tabla */}
+      <p className="moves-now">
+        {tx.now(
+          <strong className="num down">{t.percent(`${m.now.drop < 0.0005 ? "" : "−"}${pctNum(m.now.drop)}`)}</strong>,
+          <span className="num">{usd(m.now.high)}</span>,
+          fmtDate(m.now.highDate),
+          m.now.dropSince !== null,
+          <strong className="num up">{t.percent(`${m.now.rise < 0.0005 ? "" : "+"}${pctNum(m.now.rise)}`)}</strong>,
+          <span className="num">{usd(m.now.low)}</span>,
+          fmtDate(m.now.lowDate),
+          m.now.riseSince !== null,
+          t.percent(String(Math.round(m.now.size * 100))),
+        )}
       </p>
 
       <MoveTable drops={m.drops} rallies={m.rallies} />

@@ -811,11 +811,20 @@ export const es = {
       "Una caída del 10 % se cuenta cuando el cierre queda un 10 % por debajo del máximo alcanzado desde la anterior caída de ese tamaño; desde ahí se vuelve a medir. Las subidas, igual desde el mínimo. Como Bitcoin cotiza 24 h, cada vela diaria abre en el cierre de la anterior, así que equivale a medir de apertura a cierre.",
       "No se usa el tiempo medio entre dos casos porque estos movimientos llegan en rachas (varias caídas del 5 % en un mismo desplome) y esa media es engañosamente corta.",
       "La barra indica qué parte de los días del periodo llevaban menos tiempo sin ese movimiento que hoy; la marca central es lo habitual. En naranja, los que superan al 90 % de los días.",
+      "Los tamaños van de 5 en 5 hasta la mayor caída del periodo elegido (en 4 años, por ejemplo, hasta el 50 % si la mayor fue del 53 %); las subidas usan los mismos, porque desde el mínimo de un periodo largo llegan a cientos de %. Con menos de 3 casos en el periodo no hay «habitual» (—) ni se resalta: solo se podría comparar con los días posteriores al primero.",
     ],
     infoNote:
       "Llevar más tiempo que la media sin un movimiento no significa que vaya a producirse pronto: no siguen un calendario y las fases tranquilas tienden a alargarse.",
     drops: "Caídas desde máximo",
     rallies: "Subidas desde mínimo",
+    // Dónde está hoy, desde la referencia de la fila más grande: el máximo desde su última caída y el mínimo desde su última
+    // subida (sin ninguna en el periodo, desde su inicio)
+    now: (drop: ReactNode, high: ReactNode, highDate: string, dropHit: boolean, rise: ReactNode, low: ReactNode, lowDate: string, riseHit: boolean, size: string) => (
+      <>
+        Ahora: {drop} desde {high} ({highDate}), el máximo {dropHit ? `desde la última caída del ${size}` : "del periodo"}, y {rise} desde {low} ({lowDate}), el
+        mínimo {riseHit ? `desde la última subida del ${size}` : "del periodo"}.
+      </>
+    ),
     cols: { size: "Tamaño", since: "Hace", typical: "Habitual" },
     days: (n: number) => (n === 0 ? "Hoy" : `${n.toLocaleString("es-ES")} ${n === 1 ? "día" : "días"}`),
     count: (n: number) => `${n} ${n === 1 ? "vez" : "veces"} en el periodo`,
