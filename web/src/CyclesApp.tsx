@@ -86,6 +86,21 @@ export function CyclesApp() {
     <main className="container">
       <Header title={tx.title} rest={tx.rest} />
 
+      {/* Primero, las métricas que puntúan para el score; después, el gráfico informativo */}
+      <CategoryScores
+        history={history}
+        file="cycle_scores.json"
+        // Sin 6 meses: el ciclo es de 4 años y en medio año apenas cambia
+        ranges={RANGES}
+        category="ciclo"
+        metrics={METRICS}
+        tx={t.cycles.scores}
+        format={cycleValue}
+        valueAt={VALUE_AT}
+        storageKey="isbtccheap:cycle-scores-range"
+        smooth={SMOOTH}
+      />
+
       <section className="card chart vol">
         <header>
           <h2>
@@ -174,20 +189,6 @@ export function CyclesApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
-
-      <CategoryScores
-        history={history}
-        file="cycle_scores.json"
-        // Sin 6 meses: el ciclo es de 4 años y en medio año apenas cambia
-        ranges={RANGES}
-        category="ciclo"
-        metrics={METRICS}
-        tx={t.cycles.scores}
-        format={cycleValue}
-        valueAt={VALUE_AT}
-        storageKey="isbtccheap:cycle-scores-range"
-        smooth={SMOOTH}
-      />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

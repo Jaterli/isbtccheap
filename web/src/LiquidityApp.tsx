@@ -40,6 +40,9 @@ export function LiquidityApp() {
     <main className="container">
       <Header title={tx.title} rest={tx.rest} />
 
+      {/* Primero, las métricas que puntúan para el score; después, el gráfico informativo */}
+      <LiquidityScores history={history} />
+
       <section className="card chart vol">
         <header>
           <h2>
@@ -70,8 +73,6 @@ export function LiquidityApp() {
         {series && series.liqTime.length > 1 ? <LiquidityChart data={series} /> : <p className="muted chart-placeholder" role="status">{error ? t.charts.error : t.loading}</p>}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
-
-      <LiquidityScores history={history} />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

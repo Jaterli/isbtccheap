@@ -76,6 +76,18 @@ export function ValuationApp() {
     <main className="container">
       <Header title={tx.title} rest={tx.rest} />
 
+      {/* Primero, las métricas que puntúan para el score; después, el gráfico informativo */}
+      <CategoryScores
+        history={history}
+        file="valuation_scores.json"
+        category="valoracion"
+        metrics={METRICS}
+        tx={tx.scores}
+        format={(_, v) => v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        storageKey="isbtccheap:valuation-scores-range"
+        smooth={SMOOTH}
+      />
+
       <section className="card chart vol">
         <header>
           <h2>
@@ -133,17 +145,6 @@ export function ValuationApp() {
         )}
         <p className="muted small vol-note">{tx.note}</p>
       </section>
-
-      <CategoryScores
-        history={history}
-        file="valuation_scores.json"
-        category="valoracion"
-        metrics={METRICS}
-        tx={tx.scores}
-        format={(_, v) => v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        storageKey="isbtccheap:valuation-scores-range"
-        smooth={SMOOTH}
-      />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>
