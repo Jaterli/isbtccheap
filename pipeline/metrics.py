@@ -233,6 +233,8 @@ def _capitulation_episodes(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) 
                 "to": prev.strftime("%Y-%m-%d"),
                 "level": "intense_capitulation" if intense[start:prev].any() else "capitulation_levels",
                 "max_ratio": round(float(ratio[start:prev].max()), 2),
+                # Los días en capitulación intensa: el nivel de cada día, como lo daba la tarjeta ese día
+                "intense_days": [d.strftime("%Y-%m-%d") for d in intense[start:prev][intense[start:prev]].index],
             })
             start = None
         if t is not None and start is None:

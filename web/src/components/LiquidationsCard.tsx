@@ -73,10 +73,16 @@ export function LiquidationsCard() {
       .then((r) => (r.ok ? r.json() : null))
       .then(setData, () => {});
     getJson("capitulation.json").then(
-      (c: { episodes?: { from: string; to: string; level: CapLevel }[] }) => {
+      (c: { episodes?: { from: string; to: string; level: CapLevel; intense_days?: string[] }[] }) => {
+        // El nivel de cada día (el que daba la tarjeta de capitulación ese día), no el más alto del episodio
         const days = new Map<string, CapLevel>();
         for (const e of c.episodes ?? []) {
-          for (let d = Date.parse(`${e.from}T00:00:00Z`); d <= Date.parse(`${e.to}T00:00:00Z`); d += DAY) days.set(dayKey(d), e.level);
+          const intense = e.intense_days && new Set(e.intense_days);
+          for (let d = Date.parse(`${e.from}T00:00:00Z`); d <= Date.parse(`${e.to}T00:00:00Z`); d += DAY) {
+            const k = dayKey(d);
+            // Sin intense_days (un capitulation.json anterior), el nivel del episodio
+            days.set(k, !intense ? e.level : intense.has(k) ? "intense_capitulation" : "capitulation_levels");
+          }
         }
         setCapDays(days);
       },
