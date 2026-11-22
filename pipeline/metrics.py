@@ -208,22 +208,44 @@ def compute(cm: pd.DataFrame, extra: dict[str, pd.Series]) -> pd.DataFrame:
 # Capitulación de los holders de corto plazo: la misma regla que el análisis de IA (news/build_analysis.py, capitulation),
 # calibrada con las capitulaciones de 2018-2026. Si se cambia allí, cambiarla aquí
 CAPITULATION_RATIO = 5  # pérdida realizada de corto plazo, veces su media de 90 días (con SOPR por debajo de 1)
+# Intensa: además, SOPR de 0,97 o menos y ventas que llegan al contado de Binance (volumen de 1,5 veces su media de 30 días
+# o más, o un 52 % o más de ventas a mercado). La cadena solo ve monedas que se mueven, no ventas: el 23 ene 2026 dio
+# SOPR 0,946 con el precio plano, volumen normal y ventas al 50 %. Backtest de noviembre de 2026 (news/
+# backtest_capitulation.py, desde 2018): 11 episodios, +25 % a 90 días (8 de 11 positivos) frente a +8 % (14 de 29) con la
+# regla anterior (SOPR 0,97 o pérdida en dólares en el 1 % más alto de 4 años, que en los mercados alcistas salta con
+# cualquier venta porque crece con el precio). Sin datos del contado (antes de agosto de 2017, o si Binance falla), solo SOPR
 CAPITULATION_INTENSE_SOPR = 0.97
-CAPITULATION_INTENSE_USD_PCT = 99  # pérdida en dólares en el 1 % más alto de los últimos 4 años
+CAPITULATION_SPOT_VOLUME = 1.5
+CAPITULATION_SPOT_SELL = 0.52
 # Umbrales de las otras señales de la tarjeta (estrés y pánico): solo se muestran, no cambian el nivel
 STH_LOSS_STRESS_PCT = 75
 FEAR_GREED_PANIC = 20
 
 
-def _capitulation_episodes(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) -> list[dict]:
+def _spot_selling(spot: pd.DataFrame | None, index: pd.Index) -> pd.DataFrame:
+    """Por día: el volumen al contado frente a su media de los 30 días anteriores (con 20 como poco), la parte de ventas a
+    mercado y si confirman que la venta llegó al mercado (confirmed: None sin datos)."""
+    if spot is None or not len(spot):
+        return pd.DataFrame({"vol_ratio": np.nan, "sell": np.nan, "confirmed": None}, index=index)
+    vol = spot["volume"]
+    ratio = (vol / vol.shift(1).rolling(30, min_periods=20).mean()).reindex(index)
+    sell = spot["sell_share"].reindex(index)
+    # bool de Python (np.False_ no es False) o None sin datos
+    confirmed = pd.Series([None if pd.isna(v) and pd.isna(s) else bool(v >= CAPITULATION_SPOT_VOLUME or s >= CAPITULATION_SPOT_SELL)
+                           for v, s in zip(ratio, sell)], index=index, dtype=object)
+    return pd.DataFrame({"vol_ratio": ratio, "sell": sell, "confirmed": confirmed}, index=index)
+
+
+def _capitulation_episodes(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp, spot: pd.DataFrame | None) -> list[dict]:
     """Los episodios (días seguidos) en niveles de capitulación hasta `day`, cada uno con su nivel más alto y su pérdida
     realizada más alta frente a la media. El último es `last` (para que «sin capitulación» no oculte la de ayer) y todos
     se marcan en la gráfica de liquidaciones de la página de sentimiento."""
     loss, sopr = loss[:day], sopr.reindex(loss[:day].index)
     ratio = loss / loss.rolling(90, min_periods=1).mean()
-    usd_pct = loss.rolling(1460, min_periods=1).apply(lambda w: (w[:-1] < w[-1]).mean() * 100 if len(w) > 1 else 0, raw=True)
     levels = (ratio >= CAPITULATION_RATIO) & (sopr < 1)
-    intense = levels & ((sopr <= CAPITULATION_INTENSE_SOPR) | (usd_pct >= CAPITULATION_INTENSE_USD_PCT))
+    # Sin datos del contado, solo el SOPR
+    confirmed = _spot_selling(spot, loss.index)["confirmed"].map(lambda c: c is not False).astype(bool)
+    intense = levels & (sopr <= CAPITULATION_INTENSE_SOPR) & confirmed
     out: list[dict] = []
     start = prev = None
     for t in list(levels[levels].index) + [None]:
@@ -324,17 +346,18 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
     day = min(loss.index[-1], sopr.index[-1], in_loss.dropna().index[-1])
     mean90 = loss[:day].iloc[-90:].mean()
     ratio = float(loss[day] / mean90) if mean90 else None
-    window = loss[:day].iloc[-1460:]
-    usd_pct = float((window.iloc[:-1] < loss[day]).mean() * 100)
     s = float(sopr[day])
+    spot = extra.get("spot_daily")
+    sp = _spot_selling(spot, pd.DatetimeIndex([day])).iloc[0]
     levels = ratio is not None and ratio >= CAPITULATION_RATIO and s < 1
-    intense = levels and (s <= CAPITULATION_INTENSE_SOPR or usd_pct >= CAPITULATION_INTENSE_USD_PCT)
+    # Sin datos del contado (Binance caído), solo el SOPR
+    intense = levels and s <= CAPITULATION_INTENSE_SOPR and sp["confirmed"] is not False
     adj = m["sth_mvrv_adj"].dropna() if "sth_mvrv_adj" in m else pd.Series(dtype=float)
     roll = adj.rolling(365, min_periods=30)
     sigma = ((adj - roll.mean()) / roll.std(ddof=0)).dropna()
     fg = m["fear_greed"].dropna() if "fear_greed" in m else pd.Series(dtype=float)
     r = lambda v, d: None if v is None or pd.isna(v) else round(float(v), d)
-    episodes = _capitulation_episodes(loss, sopr, day)
+    episodes = _capitulation_episodes(loss, sopr, day, spot)
     return {
         "date": day.strftime("%Y-%m-%d"),
         "level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
@@ -343,14 +366,16 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
         "sth_mvrv_sigma": r(sigma.iloc[-1], 2) if len(sigma) else None,
         "sth_realized_loss_ratio": r(ratio, 2),
         "sth_realized_loss_usd_bn": r(loss[day] / 1e9, 2),
-        # Truncado, no redondeado: 98,6 se muestra como 98, coherente con que no llega al 99 de la capitulación intensa
-        "sth_realized_loss_usd_pct_4y": int(usd_pct),
         "sth_sopr_24h": r(s, 4),
+        # ¿Llegan las ventas al mercado? El contado de Binance del mismo día
+        "spot_volume_ratio": r(sp["vol_ratio"], 2),
+        "spot_sell_pct": r(sp["sell"] * 100, 1),
         "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
         "last": episodes[-1] if episodes else None,
         "episodes": episodes,
         "vix": vix_json(extra, m["price"]),
         "thresholds": {"realized_loss_ratio": CAPITULATION_RATIO, "sopr": 1, "intense_sopr": CAPITULATION_INTENSE_SOPR,
-                       "intense_usd_pct": CAPITULATION_INTENSE_USD_PCT, "sth_loss_pct": STH_LOSS_STRESS_PCT,
+                       "spot_volume_ratio": CAPITULATION_SPOT_VOLUME, "spot_sell_pct": CAPITULATION_SPOT_SELL * 100,
+                       "sth_loss_pct": STH_LOSS_STRESS_PCT,
                        "sth_mvrv_sigma": -1, "fear_greed": FEAR_GREED_PANIC},
     }

@@ -71,6 +71,8 @@ def fetch_all() -> tuple:
         "sth_sopr_24h": lambda: sources.bitview("sth_sopr_24h"),
         "sth_supply_in_loss": lambda: sources.bitview("sth_supply_in_loss"),
         "sth_supply_in_profit": lambda: sources.bitview("sth_supply_in_profit"),
+        # Ventas reales al contado (volumen y ventas a mercado), que confirman la capitulación intensa
+        "spot_daily": sources.binance_spot_daily,
         "etf_flows": sources.etf_flows,
         # VIX de Cboe, con el cierre del día; si falla, el de FRED (VIXCLS), con un día de retraso
         "vix_cboe": sources.cboe_vix,

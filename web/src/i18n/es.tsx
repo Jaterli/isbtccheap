@@ -466,8 +466,8 @@ export const es = {
   capitulation: {
     card: "Capitulación de los compradores recientes",
     info: [
-      "Tres preguntas, en orden. **¿Cuántos pierden?** (estrés): la oferta en pérdidas y el MVRV ajustado de los holders de corto plazo (monedas movidas hace menos de 155 días). **¿Venden de verdad con pérdidas?** (la capitulación en sí): su pérdida realizada frente a su media de 90 días y su SOPR del día. **¿Hay pánico?**: el Fear & Greed Index.",
-      "El nivel usa la misma regla que el análisis de IA. **Niveles de capitulación**: pérdida realizada de 5 veces su media o más con el SOPR por debajo de 1. **Capitulación intensa**: además, SOPR de 0,97 o menos o pérdida en dólares en el 1 % más alto de 4 años, como en marzo de 2020, agosto de 2024 o febrero de 2026. Las preguntas de estrés y pánico no cambian el nivel: lo explican.",
+      "Tres preguntas, en orden. **¿Cuántos pierden?** (estrés): la oferta en pérdidas y el MVRV ajustado de los holders de corto plazo (monedas movidas hace menos de 155 días). **¿Venden de verdad con pérdidas?** (la capitulación en sí): su pérdida realizada frente a su media de 90 días y su SOPR del día. **¿Llegan las ventas al mercado?**: el volumen al contado de Binance frente a su media de 30 días y la parte de ventas a mercado; la cadena solo ve monedas que se mueven, no ventas (también cuenta mover monedas entre carteras). **¿Hay pánico?**: el Fear & Greed Index.",
+      "El nivel usa la misma regla que el análisis de IA. **Niveles de capitulación**: pérdida realizada de 5 veces su media o más con el SOPR por debajo de 1. **Capitulación intensa**: además, SOPR de 0,97 o menos y ventas que se notan en el contado (volumen de 1,5 veces su media o más, o un 52 % o más de ventas a mercado), como en marzo de 2020, agosto de 2024, abril de 2025 o febrero de 2026. Las preguntas de estrés y pánico no cambian el nivel: lo explican.",
       "Las capitulaciones suelen marcar la zona del suelo a corto plazo, no el día: la caída puede seguir (en junio de 2022 cayó un 20 % más). Lo que suele anunciar el giro es la salida: el SOPR que recupera el 1 y la pérdida realizada que vuelve a su media. Datos diarios de Bitview con un día de retraso. Informativa: el índice no la usa.",
     ],
     levels: { none: "Sin capitulación", capitulation_levels: "Niveles de capitulación", intense_capitulation: "Capitulación intensa" },
@@ -481,16 +481,20 @@ export const es = {
     ),
     reading: {
       none: () => "Los compradores recientes no están vendiendo con pérdidas en niveles de capitulación.",
-      capitulation_levels: (p: number) =>
-        `Los compradores recientes venden con pérdidas en niveles de capitulación, aunque sin la intensidad de las grandes: el SOPR no baja de 0,97 y la pérdida en dólares, muy alta (mayor que en el ${p}\u00A0% de los días de los últimos 4 años), queda por debajo de la de las grandes capitulaciones, que fueron las mayores de su periodo.`,
+      capitulation_levels: (soprStrong: boolean): string =>
+        soprStrong
+          ? "Los compradores recientes mueven monedas con pérdidas fuertes, en niveles de capitulación, pero esas ventas no se notan en el mercado al contado: ni el volumen ni las ventas a mercado son altos. Puede ser en parte un movimiento de monedas entre carteras y no una venta, así que no llega a capitulación intensa."
+          : "Los compradores recientes venden con pérdidas en niveles de capitulación, aunque sin la intensidad de las grandes: el SOPR no baja de 0,97 (las pérdidas medias de lo que venden son moderadas).",
       intense_capitulation: () => "Los compradores recientes venden con pérdidas fuertes, como en las grandes capitulaciones.",
     },
-    questions: { stress: "¿Cuántos pierden?", selling: "¿Venden con pérdidas?", panic: "¿Hay pánico?", stockPanic: "¿Hay pánico en la bolsa?" },
+    questions: { stress: "¿Cuántos pierden?", selling: "¿Venden con pérdidas?", panic: "¿Hay pánico?", market: "¿Llegan las ventas al mercado?", stockPanic: "¿Hay pánico en la bolsa?" },
     metrics: {
       sthLoss: "Oferta en pérdidas de corto plazo",
       mvrv: "MVRV de corto plazo ajustado",
       realizedLoss: "Pérdida realizada de corto plazo (veces su media de 90 días)",
       sopr: "SOPR de corto plazo (día)",
+      spotVolume: "Volumen al contado de Binance (veces su media de 30 días)",
+      spotSell: "Ventas a mercado al contado",
       fearGreed: "Fear & Greed Index",
       vix: "VIX al cierre",
     },
@@ -509,6 +513,8 @@ export const es = {
     under: (v: string) => `menos de ${v}`,
     atLeast: (v: string) => `${v} o más`,
     soprThreshold: (v: string, intense: string) => `menos de ${v} (${intense} o menos, intensa)`,
+    // Volumen o ventas a mercado: basta uno de los dos para la intensa
+    spotThreshold: (v: string) => `${v} o más (este o el otro, intensa)`,
     cols: { question: "Pregunta", metric: "Métrica", now: "Hoy", threshold: "Umbral" },
     met: "Cumple el umbral",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",

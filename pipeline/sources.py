@@ -81,6 +81,24 @@ def bitview(series: str) -> pd.Series:
     return s.where(s > 0).sort_index()
 
 
+def binance_spot_daily() -> pd.DataFrame:
+    """Velas diarias al contado de BTCUSDT en Binance desde agosto de 2017 (dominio público de solo datos de mercado):
+    volumen (BTC) y la parte de ventas a mercado (0-1), para confirmar que una capitulación on-chain llegó al mercado.
+    El último día va en curso."""
+    rows, start = [], 0
+    while True:
+        page = _get("https://data-api.binance.vision/api/v3/klines",
+                    {"symbol": "BTCUSDT", "interval": "1d", "limit": 1000, "startTime": start}).json()
+        rows += page
+        if len(page) < 1000:
+            break
+        start = page[-1][0] + 1
+    idx = pd.to_datetime([r[0] for r in rows], unit="ms")
+    vol = pd.Series([float(r[5]) for r in rows], index=idx)
+    buy = pd.Series([float(r[9]) for r in rows], index=idx)
+    return pd.DataFrame({"volume": vol, "sell_share": 1 - buy / vol.where(vol > 0)})
+
+
 def cboe_vix() -> pd.Series:
     """VIX al cierre de Cboe, que lo calcula: su histórico diario público, con el cierre del mismo día (FRED lo copia con
     un día de retraso)."""

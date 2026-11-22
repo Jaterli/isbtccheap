@@ -450,8 +450,8 @@ export const en: Messages = {
   capitulation: {
     card: "Recent buyers' capitulation",
     info: [
-      "Three questions, in order. **How many are losing?** (stress): short-term holders' supply in loss and adjusted MVRV (coins moved less than 155 days ago). **Are they actually selling at a loss?** (the capitulation itself): their realized loss against its 90-day average and their daily SOPR. **Is there panic?**: the Fear & Greed Index.",
-      "The level uses the same rule as the AI analysis. **Capitulation levels**: realized loss of 5 times its average or more with SOPR below 1. **Intense capitulation**: in addition, SOPR of 0.97 or less or a dollar loss in the top 1% of 4 years, as in March 2020, August 2024 or February 2026. The stress and panic questions do not change the level: they explain it.",
+      "Three questions, in order. **How many are losing?** (stress): short-term holders' supply in loss and adjusted MVRV (coins moved less than 155 days ago). **Are they actually selling at a loss?** (the capitulation itself): their realized loss against its 90-day average and their daily SOPR. **Do the sales reach the market?**: Binance spot volume against its 30-day average and the share of market sells; the chain only sees coins that move, not sales (moving coins between wallets also counts). **Is there panic?**: the Fear & Greed Index.",
+      "The level uses the same rule as the AI analysis. **Capitulation levels**: realized loss of 5 times its average or more with SOPR below 1. **Intense capitulation**: in addition, SOPR of 0.97 or less and sales that show up in the spot market (volume of 1.5 times its average or more, or 52% or more market sells), as in March 2020, August 2024, April 2025 or February 2026. The stress and panic questions do not change the level: they explain it.",
       "Capitulations tend to mark the short-term bottom zone, not the day: the decline can continue (in June 2022 it fell another 20%). What usually announces the turn is the exit: SOPR reclaiming 1 and realized loss returning to its average. Daily Bitview data with a one-day lag. Informational: the index does not use it.",
     ],
     levels: { none: "No capitulation", capitulation_levels: "Capitulation levels", intense_capitulation: "Intense capitulation" },
@@ -464,16 +464,20 @@ export const en: Messages = {
     ),
     reading: {
       none: () => "Recent buyers are not selling at a loss at capitulation levels.",
-      capitulation_levels: (p: number) =>
-        `Recent buyers are selling at a loss at capitulation levels, though without the intensity of the big ones: SOPR is not below 0.97 and the dollar loss, very high (larger than on ${p}% of days in the last 4 years), stays below that of the big capitulations, which were the largest of their period.`,
+      capitulation_levels: (soprStrong: boolean): string =>
+        soprStrong
+          ? "Recent buyers are moving coins at heavy losses, at capitulation levels, but those sales do not show up in the spot market: neither volume nor market sells are high. It may partly be coins moved between wallets rather than a sale, so it does not reach intense capitulation."
+          : "Recent buyers are selling at a loss at capitulation levels, though without the intensity of the big ones: SOPR is not below 0.97 (the average losses on what they sell are moderate).",
       intense_capitulation: () => "Recent buyers are selling at heavy losses, as in the big capitulations.",
     },
-    questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?", stockPanic: "Is there panic in stocks?" },
+    questions: { stress: "How many are losing?", selling: "Selling at a loss?", panic: "Is there panic?", market: "Do the sales reach the market?", stockPanic: "Is there panic in stocks?" },
     metrics: {
       sthLoss: "Short-term supply in loss",
       mvrv: "Adjusted short-term MVRV",
       realizedLoss: "Short-term realized loss (times its 90-day average)",
       sopr: "Short-term SOPR (day)",
+      spotVolume: "Binance spot volume (times its 30-day average)",
+      spotSell: "Spot market sells",
       fearGreed: "Fear & Greed Index",
       vix: "VIX close",
     },
@@ -491,6 +495,7 @@ export const en: Messages = {
     under: (v: string) => `under ${v}`,
     atLeast: (v: string) => `${v} or more`,
     soprThreshold: (v: string, intense: string) => `under ${v} (${intense} or less, intense)`,
+    spotThreshold: (v: string) => `${v} or more (this or the other, intense)`,
     cols: { question: "Question", metric: "Metric", now: "Today", threshold: "Threshold" },
     met: "Meets the threshold",
     note: "Historical data, not a forecast or investment advice.",

@@ -179,9 +179,11 @@ menor (above_pct_of_days_4y: 97 = mayor que en el 97 % de los días), y SOPR (po
 verdad (pérdida realizada disparada y SOPR claramente por debajo de 1, a menudo con pico de volumen, caída del open \
 interest y miedo extremo), y suele quedar cerca de un suelo. Contexto para el sesgo, no una señal de giro por sí solo. \
 capitulation.level ya lo clasifica: none, capitulation_levels (pérdida realizada de 5 veces su media o más con SOPR por \
-debajo de 1) o intense_capitulation (además, SOPR de 0,97 o menos o pérdida en dólares en el 1 % más alto de 4 años). \
-Con capitulation_levels, una pérdida en dólares mayor que en el 95 % de los días es muy alta pero queda por debajo de \
-la de las grandes capitulaciones, que fueron las mayores de su periodo.
+debajo de 1) o intense_capitulation (además, SOPR de 0,97 o menos y ventas que llegan al mercado al contado ese día: \
+spot_selling, volumen de 1,5 veces su media de 30 días o más o un 52 % o más de ventas a mercado). La cadena solo ve \
+monedas que se mueven, no ventas: con capitulation_levels, SOPR de 0,97 o menos y spot_confirms_selling false, las \
+pérdidas son fuertes pero no se notan en el contado (pueden ser monedas movidas entre carteras); no lo presentes como \
+pánico vendedor.
 - long_term_holders (monedas movidas hace más de 155 días, mismo retraso): pérdida realizada frente a su media de 90 días \
 y su último pico del año (5 veces su media o más). En los mercados alcistas es casi cero; su primer pico tras un periodo \
 así ha marcado el inicio de fases bajistas (2018, 2021, 2025: los compradores del techo venden con pérdidas), no suelos. \
@@ -405,22 +407,42 @@ def _vs_mean(values: list[float]) -> dict:
 # capitulación" con el ratio alto pero un SOPR de 0,985 y la cuarta parte de pérdida en dólares que en febrero)
 CAPITULATION_RATIO = 5  # pérdida realizada, veces su media de 90 días
 CAPITULATION_INTENSE_SOPR = 0.97  # SOPR de 24 h igual o por debajo: venden con un 3 % de pérdida o más
-CAPITULATION_INTENSE_USD_PCT = 99  # o pérdida en dólares en el 1 % más alto de los últimos 4 años
-# Calibrado con las de 2018-2026: así salen intensas marzo de 2020, mayo de 2021, junio de 2022, agosto de 2024 y
-# febrero de 2026; con el percentil 90 lo eran casi todos los días con niveles de capitulación (66 de 74)
+# Y que las ventas lleguen al contado de Binance ese día: volumen de 1,5 veces su media de 30 días o más, o un 52 % o más
+# de ventas a mercado (la cadena solo ve monedas que se mueven: el 23 ene 2026 dio SOPR 0,946 con el precio plano y el
+# contado normal). La misma regla que pipeline/metrics.py, con su backtest (news/backtest_capitulation.py): así salen
+# intensas noviembre de 2018, marzo de 2020, agosto de 2024, abril de 2025 y febrero de 2026. Sin datos del contado, solo SOPR
+CAPITULATION_SPOT_VOLUME = 1.5
+CAPITULATION_SPOT_SELL = 0.52
 
 
-def capitulation(realized: list[float], ratio: float | None, sopr: float | None) -> dict:
+def spot_selling(day: date) -> dict | None:
+    """El contado de BTCUSDT en Binance el día `day`: su volumen frente a la media de los 30 días anteriores y la parte de
+    ventas a mercado. None si no se puede descargar."""
+    try:
+        rows = get(f"{SPOT}/klines?symbol=BTCUSDT&interval=1d&limit=60")
+    except Exception as e:
+        log.warning("binance: sin el contado diario para la capitulación: %s", e)
+        return None
+    days = [datetime.fromtimestamp(r[0] / 1000, timezone.utc).date() for r in rows]
+    if day not in days:
+        return None
+    i = days.index(day)
+    prev = [float(r[5]) for r in rows[max(0, i - 30):i]]
+    vol = float(rows[i][5])
+    return {"volume_ratio_30d": round(vol / (sum(prev) / len(prev)), 2) if len(prev) >= 20 and sum(prev) else None,
+            "sell_pct": round((1 - float(rows[i][9]) / vol) * 100, 1) if vol else None}
+
+
+def capitulation(ratio: float | None, sopr: float | None, spot: dict | None) -> dict:
     """none; capitulation_levels (pérdida realizada ≥ CAPITULATION_RATIO veces su media con SOPR por debajo de 1);
-    intense_capitulation (además, SOPR ≤ CAPITULATION_INTENSE_SOPR o pérdida en dólares en el 1 % más alto de 4 años)."""
-    valid = [v for v in realized[-STH_LOSS_PCT_DAYS:] if v]
-    # Sin redondear para el umbral, como el pipeline (21 nov 2026: un 98,6 redondeado a 99 dio "intensa" aquí y "niveles"
-    # en la tarjeta); se muestra truncado
-    usd_pct = sum(v < realized[-1] for v in valid) / len(valid) * 100 if valid else None
+    intense_capitulation (además, SOPR ≤ CAPITULATION_INTENSE_SOPR y ventas que llegan al contado ese día)."""
     levels = ratio is not None and ratio >= CAPITULATION_RATIO and sopr is not None and sopr < 1
-    intense = levels and (sopr <= CAPITULATION_INTENSE_SOPR or (usd_pct is not None and usd_pct >= CAPITULATION_INTENSE_USD_PCT))
-    return {"level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
-            "realized_loss_usd_above_pct_of_days_4y": None if usd_pct is None else int(usd_pct), "sopr_24h": sopr}
+    vol, sell = (spot or {}).get("volume_ratio_30d"), (spot or {}).get("sell_pct")
+    confirmed = None if vol is None and sell is None else bool(
+        (vol is not None and vol >= CAPITULATION_SPOT_VOLUME) or (sell is not None and sell >= CAPITULATION_SPOT_SELL * 100))
+    intense = levels and sopr <= CAPITULATION_INTENSE_SOPR and confirmed is not False
+    return {"level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none", "sopr_24h": sopr,
+            "spot_selling": spot, "spot_confirms_selling": confirmed}
 
 
 def sth_context() -> dict:
@@ -435,7 +457,8 @@ def sth_context() -> dict:
         out["realized_loss_24h"] = _vs_mean(realized)
         _, sopr = _bitview("sth_sopr_24h", 14)
         out["sopr_24h_last_14d"] = [round(x, 4) if x else None for x in sopr[-14:]]
-        out["capitulation"] = capitulation(realized, out["realized_loss_24h"]["ratio_to_90d_mean"], round(sopr[-1], 4) if sopr[-1] else None)
+        out["capitulation"] = capitulation(out["realized_loss_24h"]["ratio_to_90d_mean"], round(sopr[-1], 4) if sopr[-1] else None,
+                                           spot_selling(last))
     except Exception as e:  # la pérdida no realizada sirve sola
         log.warning("bitview: sin pérdida realizada o SOPR: %s", e)
     return out

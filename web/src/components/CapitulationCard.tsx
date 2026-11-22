@@ -13,12 +13,24 @@ interface CapitulationJson {
   sth_mvrv_sigma: number | null;
   sth_realized_loss_ratio: number | null;
   sth_realized_loss_usd_bn: number | null;
-  sth_realized_loss_usd_pct_4y: number | null;
   sth_sopr_24h: number | null;
+  /** ¿Llegan las ventas al mercado? El contado de Binance del mismo día: volumen frente a su media de 30 días y % de
+   * ventas a mercado (sin el campo, un capitulation.json anterior) */
+  spot_volume_ratio?: number | null;
+  spot_sell_pct?: number | null;
   fear_greed: number | null;
   /** El último episodio (días seguidos) en niveles de capitulación, con su nivel más alto y su mayor pérdida frente a la media */
   last?: { from: string; to: string; level: "capitulation_levels" | "intense_capitulation"; max_ratio: number } | null;
-  thresholds: { realized_loss_ratio: number; sopr: number; intense_sopr: number; sth_loss_pct: number; sth_mvrv_sigma: number; fear_greed: number };
+  thresholds: {
+    realized_loss_ratio: number;
+    sopr: number;
+    intense_sopr: number;
+    spot_volume_ratio?: number;
+    spot_sell_pct?: number;
+    sth_loss_pct: number;
+    sth_mvrv_sigma: number;
+    fear_greed: number;
+  };
   /** Pánico en la bolsa (metrics.vix_json): el último cierre del VIX y los episodios anteriores con lo que hizo BTC */
   vix?: VixJson | null;
 }
@@ -67,6 +79,8 @@ export function CapitulationCard() {
   const short = (d: string) =>
     new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", ...(d.slice(0, 4) !== c.date.slice(0, 4) && { year: "numeric" }), timeZone: "UTC" });
   const last = c.level === "none" && c.last ? c.last : null;
+  // En niveles de capitulación: SOPR de intensa (y no lo es porque las ventas no se notan en el contado) o moderado
+  const soprStrong = c.sth_sopr_24h !== null && c.sth_sopr_24h <= th.intense_sopr;
   // Cada fila: la pregunta a la que responde, el dato de hoy, el umbral y si lo cumple (null: sin dato)
   const rows: { q: string; name: string; value: string; threshold: string; met: boolean | null }[] = [
     {
@@ -97,6 +111,25 @@ export function CapitulationCard() {
       threshold: tx.soprThreshold(num(th.sopr, 0), num(th.intense_sopr, 2)),
       met: c.sth_sopr_24h === null ? null : c.sth_sopr_24h < th.sopr,
     },
+    // Solo para la intensa: que esas ventas se noten en el contado (la cadena ve monedas que se mueven, no ventas)
+    ...(th.spot_volume_ratio !== undefined && th.spot_sell_pct !== undefined && c.spot_volume_ratio !== undefined
+      ? [
+          {
+            q: tx.questions.market,
+            name: tx.metrics.spotVolume,
+            value: c.spot_volume_ratio === null ? "—" : `×${num(c.spot_volume_ratio, 1)}`,
+            threshold: tx.spotThreshold(`×${num(th.spot_volume_ratio, 1)}`),
+            met: c.spot_volume_ratio === null ? null : c.spot_volume_ratio >= th.spot_volume_ratio,
+          },
+          {
+            q: tx.questions.market,
+            name: tx.metrics.spotSell,
+            value: c.spot_sell_pct == null ? "—" : t.percent(num(c.spot_sell_pct, 1)),
+            threshold: tx.spotThreshold(t.percent(num(th.spot_sell_pct, 0))),
+            met: c.spot_sell_pct == null ? null : c.spot_sell_pct >= th.spot_sell_pct,
+          },
+        ]
+      : []),
     {
       q: tx.questions.panic,
       name: tx.metrics.fearGreed,
@@ -141,7 +174,7 @@ export function CapitulationCard() {
         <span className={`cap-badge ${c.level}`}>{tx.levels[c.level]}</span>
         <span className="muted small">{tx.asOf(date)}</span>
       </p>
-      <p>{tx.reading[c.level](c.sth_realized_loss_usd_pct_4y ?? 0)}</p>
+      <p>{c.level === "capitulation_levels" ? tx.reading.capitulation_levels(soprStrong) : tx.reading[c.level]()}</p>
       {/* Sin capitulación hoy: la última, para que no se pierda la de ayer */}
       {last && (
         <p className="cap-last small">
