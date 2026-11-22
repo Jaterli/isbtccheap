@@ -26,8 +26,8 @@ const TFS: Tf[] = ["4h", "1d"];
 const TF_KEY = "isbtccheap:liq-tf";
 // En 4 h solo hay unos 8 meses
 const RANGES: Record<Tf, { id: string; days: number }[]> = {
-  "4h": [{ id: "3m", days: 91 }, { id: "all", days: Infinity }],
-  "1d": [{ id: "3m", days: 91 }, { id: "1y", days: 365 }, { id: "all", days: Infinity }],
+  "4h": [{ id: "6m", days: 182 }, { id: "all", days: Infinity }],
+  "1d": [{ id: "6m", days: 182 }, { id: "1y", days: 365 }, { id: "all", days: Infinity }],
 };
 // La lectura marca lo que pasa de este múltiplo de su media de 90 días
 const RATIO_SHOWN = 2;
@@ -63,7 +63,7 @@ export function LiquidationsCard() {
     }
   };
   const range1d = useRange("isbtccheap:liq-range-1d", "1y", RANGES["1d"]);
-  const range4h = useRange("isbtccheap:liq-range-4h", "3m", RANGES["4h"]);
+  const range4h = useRange("isbtccheap:liq-range-4h", "6m", RANGES["4h"]);
   const range = tf === "1d" ? range1d : range4h;
 
   // Días en niveles de capitulación (capitulation.json del pipeline): se sombrean detrás de las barras
