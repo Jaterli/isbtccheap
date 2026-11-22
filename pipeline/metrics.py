@@ -215,27 +215,30 @@ STH_LOSS_STRESS_PCT = 75
 FEAR_GREED_PANIC = 20
 
 
-def _last_capitulation(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) -> dict | None:
-    """El último episodio (días seguidos) en niveles de capitulación hasta `day`, con su nivel más alto y su pérdida
-    realizada más alta frente a la media: para que «sin capitulación» no oculte la de ayer."""
+def _capitulation_episodes(loss: pd.Series, sopr: pd.Series, day: pd.Timestamp) -> list[dict]:
+    """Los episodios (días seguidos) en niveles de capitulación hasta `day`, cada uno con su nivel más alto y su pérdida
+    realizada más alta frente a la media. El último es `last` (para que «sin capitulación» no oculte la de ayer) y todos
+    se marcan en la gráfica de liquidaciones de la página de sentimiento."""
     loss, sopr = loss[:day], sopr.reindex(loss[:day].index)
     ratio = loss / loss.rolling(90, min_periods=1).mean()
     usd_pct = loss.rolling(1460, min_periods=1).apply(lambda w: (w[:-1] < w[-1]).mean() * 100 if len(w) > 1 else 0, raw=True)
     levels = (ratio >= CAPITULATION_RATIO) & (sopr < 1)
     intense = levels & ((sopr <= CAPITULATION_INTENSE_SOPR) | (usd_pct >= CAPITULATION_INTENSE_USD_PCT))
-    days = levels[levels].index
-    if not len(days):
-        return None
-    end = days[-1]
-    start = end
-    while start - pd.Timedelta(days=1) in days:
-        start -= pd.Timedelta(days=1)
-    return {
-        "from": start.strftime("%Y-%m-%d"),
-        "to": end.strftime("%Y-%m-%d"),
-        "level": "intense_capitulation" if intense[start:end].any() else "capitulation_levels",
-        "max_ratio": round(float(ratio[start:end].max()), 2),
-    }
+    out: list[dict] = []
+    start = prev = None
+    for t in list(levels[levels].index) + [None]:
+        if start is not None and (t is None or t - prev > pd.Timedelta(days=1)):
+            out.append({
+                "from": start.strftime("%Y-%m-%d"),
+                "to": prev.strftime("%Y-%m-%d"),
+                "level": "intense_capitulation" if intense[start:prev].any() else "capitulation_levels",
+                "max_ratio": round(float(ratio[start:prev].max()), 2),
+            })
+            start = None
+        if t is not None and start is None:
+            start = t
+        prev = t
+    return out
 
 
 # Pánico en la bolsa (VIX al cierre) para la tarjeta de capitulación. Backtest de noviembre de 2026 desde 1990: un VIX que
@@ -329,6 +332,7 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
     sigma = ((adj - roll.mean()) / roll.std(ddof=0)).dropna()
     fg = m["fear_greed"].dropna() if "fear_greed" in m else pd.Series(dtype=float)
     r = lambda v, d: None if v is None or pd.isna(v) else round(float(v), d)
+    episodes = _capitulation_episodes(loss, sopr, day)
     return {
         "date": day.strftime("%Y-%m-%d"),
         "level": "intense_capitulation" if intense else "capitulation_levels" if levels else "none",
@@ -341,7 +345,8 @@ def capitulation_json(extra: dict, m: pd.DataFrame) -> dict | None:
         "sth_realized_loss_usd_pct_4y": int(usd_pct),
         "sth_sopr_24h": r(s, 4),
         "fear_greed": r(fg.iloc[-1], 0) if len(fg) else None,
-        "last": _last_capitulation(loss, sopr, day),
+        "last": episodes[-1] if episodes else None,
+        "episodes": episodes,
         "vix": vix_json(extra, m["price"]),
         "thresholds": {"realized_loss_ratio": CAPITULATION_RATIO, "sopr": 1, "intense_sopr": CAPITULATION_INTENSE_SOPR,
                        "intense_usd_pct": CAPITULATION_INTENSE_USD_PCT, "sth_loss_pct": STH_LOSS_STRESS_PCT,

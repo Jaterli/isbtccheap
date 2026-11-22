@@ -709,6 +709,11 @@ path.lqd-short { fill: var(--band-1); opacity: 0.8; }
 .lqd-zero { stroke: var(--muted); }
 .legend.lqd-long::before { background: var(--band-5); }
 .legend.lqd-short::before { background: var(--band-1); }
+/* Días en niveles de capitulación (los colores del semáforo): franja detrás de las barras y etiqueta en la lectura */
+.lqd-cap { fill: var(--band-4); opacity: 0.16; }
+.lqd-cap.intense_capitulation { fill: var(--band-5); opacity: 0.2; }
+.lqd-cap-tag { color: var(--band-4); font-weight: 600; }
+.lqd-cap-tag.intense_capitulation { color: var(--band-5); }
 .liq-ahead { fill: var(--accent); opacity: 0.06; }
 .liq-today { fill: var(--fg); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .liq-today-dot { stroke: var(--surface); stroke-width: 1.5; }

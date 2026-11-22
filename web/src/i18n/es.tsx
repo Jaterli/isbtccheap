@@ -449,7 +449,7 @@ export const es = {
     card: "Liquidaciones de futuros",
     info: [
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
-      "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Informativa: el índice no la usa.",
+      "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Las franjas marcan los días en que, además, los compradores recientes capitulaban (venta on-chain con pérdidas, la misma regla que la tarjeta de capitulación): la liquidación forzosa y la venta real a la vez. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
     ],
     chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
@@ -459,7 +459,7 @@ export const es = {
     ratio: (x: string) => ` · ${x} su media`,
     times: (x: string) => `×${x}`,
     m: (v: string) => `${v} M$`,
-    note: "Datos de Coinalyze. Informativa: el índice no la usa.",
+    note: "Franjas: días en niveles de capitulación de los compradores recientes (naranja) o en capitulación intensa (rojo). Datos de Coinalyze. Informativa: el índice no la usa.",
   },
 
   gauge: { cheap: "Barato", expensive: "Caro" },
