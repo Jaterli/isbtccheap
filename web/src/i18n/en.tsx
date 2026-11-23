@@ -179,6 +179,8 @@ export const en: Messages = {
       tecnico: "Technical",
     },
     priceLegend: "Price",
+    valueLegend: "Value",
+    scoreToggle: "Show or hide the score line",
     tableTitle: "At cycle tops and bottoms",
     cols: { when: "When", price: "Price" },
     kinds: { today: "Today", top: "Top", bottom: "Bottom", lowSoFar: "Current low" },

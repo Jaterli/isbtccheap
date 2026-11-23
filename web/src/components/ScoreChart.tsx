@@ -6,6 +6,30 @@ import type { CandleTf, PriceSeries } from "../lib/series";
 const PAD_T = 10;
 const AXIS_H = 22;
 const SCORE_TICKS = [0, 25, 50, 75, 100];
+// Con la puntuación y el valor real a la vez, si se dibuja la línea de la puntuación (se puede ocultar: va por encima de la
+// del valor y la tapa). Una sola elección para todas las gráficas, recordada en el navegador
+const SCORE_LINE_KEY = "isbtccheap:score-line";
+
+function useScoreLine() {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(SCORE_LINE_KEY) !== "off";
+    } catch {
+      return true;
+    }
+  });
+  const toggle = () => {
+    setOn((v) => {
+      try {
+        localStorage.setItem(SCORE_LINE_KEY, v ? "off" : "on");
+      } catch {
+        /* sin almacenamiento: solo en esta visita */
+      }
+      return !v;
+    });
+  };
+  return [on, toggle] as const;
+}
 
 /**
  * score: solo la puntuación (la categoría). value: solo el valor real, con su escala en el eje izquierdo (métricas
@@ -37,7 +61,9 @@ export function ScoreChart({ data, scores, values, format = (v) => String(v), mo
   const { ref, width } = useWidth();
   const [hover, setHover] = useState<number | null>(null);
   const showValue = mode !== "score" && values !== undefined;
-  const showScore = mode !== "value";
+  const [scoreLine, toggleScoreLine] = useScoreLine();
+  // Solo con el valor real a la vez se puede ocultar la puntuación (sin él, la gráfica se quedaría solo con el precio)
+  const showScore = mode === "score" || (mode === "both" && scoreLine);
 
   const small = width < 600;
   const H0 = small ? 260 : 340;
@@ -52,8 +78,9 @@ export function ScoreChart({ data, scores, values, format = (v) => String(v), mo
     const ticks = niceTicks(lo, hi, 4).filter((v) => v >= lo - pad && v <= hi + pad);
     return { y: (v: number) => PAD_T + H0 - ((v - (lo - pad)) / (hi - lo + 2 * pad)) * H0, ticks, crossesZero: lo < 0 && hi > 0 };
   }, [values, showValue, H0]);
-  // Eje izquierdo: el del valor si solo se dibuja el valor; si no, el de la puntuación
-  const leftLabels = mode === "value" && valueScale ? valueScale.ticks.map((v) => format(v, -1)) : SCORE_TICKS.map(String);
+  // Eje izquierdo: el del valor si solo se dibuja el valor (también con la puntuación oculta); si no, el de la puntuación
+  const valueAxis = valueScale !== null && (mode === "value" || (mode === "both" && !scoreLine));
+  const leftLabels = valueAxis ? valueScale.ticks.map((v) => format(v, -1)) : SCORE_TICKS.map(String);
   const PAD_L = axisPad(leftLabels);
   const plotW = width - PAD_L - axisPad(price.ticks.map(shortUsd));
   const H = PAD_T + H0 + AXIS_H;
@@ -88,17 +115,28 @@ export function ScoreChart({ data, scores, values, format = (v) => String(v), mo
         <span className="legend legend-price num">
           {t.catHistory.priceLegend} <strong>{usd(data.price[h])}</strong>
         </span>
-        <span className={mode === "both" ? "legend etf-fg score-both num" : "legend etf-fg num"}>
-          {label}{" "}
-          {mode === "value" ? (
-            <strong>{v === null ? "—" : format(v, h)}</strong>
-          ) : (
-            <>
-              <strong>{s === null ? "—" : Math.round(s)}</strong>
-              {mode === "both" && v !== null && <span className="muted"> · {format(v, h)}</span>}
-            </>
-          )}
-        </span>
+        {mode === "both" ? (
+          // La puntuación, como botón: muestra u oculta su línea
+          <button
+            type="button"
+            className="legend etf-fg num legend-toggle"
+            aria-pressed={scoreLine}
+            title={t.catHistory.scoreToggle}
+            onClick={toggleScoreLine}
+          >
+            {label} <strong>{s === null ? "—" : Math.round(s)}</strong>
+          </button>
+        ) : (
+          <span className="legend etf-fg num">
+            {label} <strong>{mode === "value" ? (v === null ? "—" : format(v, h)) : s === null ? "—" : Math.round(s)}</strong>
+          </span>
+        )}
+        {/* Con la puntuación, el valor real va aparte, con el color y el trazo discontinuo de su línea */}
+        {mode === "both" && (
+          <span className="legend legend-value num">
+            {t.catHistory.valueLegend} <strong>{v === null ? "—" : format(v, h)}</strong>
+          </span>
+        )}
       </p>
       <svg width={width} height={H} role="img" aria-label={aria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {price.ticks.map((p) => (
@@ -107,7 +145,7 @@ export function ScoreChart({ data, scores, values, format = (v) => String(v), mo
             <text x={PAD_L + plotW + 6} y={price.y(p) + 4} className="axis">{shortUsd(p)}</text>
           </g>
         ))}
-        {mode === "value" && valueScale ? (
+        {valueAxis ? (
           <>
             {valueScale.ticks.map((tv) => (
               <text key={tv} x={PAD_L - 6} y={valueScale.y(tv) + 4} className="axis" textAnchor="end">
@@ -142,6 +180,7 @@ export function ScoreChart({ data, scores, values, format = (v) => String(v), mo
             <circle cx={x(h)} cy={price.y(data.price[h])} r="3.5" className="dot-price" />
             {showScore && s !== null && <circle cx={x(h)} cy={yS(s)} r="3" className="sent-dot" />}
             {mode === "value" && v !== null && valueScale && <circle cx={x(h)} cy={valueScale.y(v)} r="3" className="sent-dot" />}
+            {mode === "both" && v !== null && valueScale && <circle cx={x(h)} cy={valueScale.y(v)} r="3" className="value-dot" />}
           </>
         )}
       </svg>

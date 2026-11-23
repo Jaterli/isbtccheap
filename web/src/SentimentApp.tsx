@@ -12,6 +12,7 @@ import { SENTIMENT_RANGES, useRange } from "./components/RangeSelect";
 import { ScoreChart } from "./components/ScoreChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
+import { compactNum } from "./lib/chart";
 import { getJson } from "./lib/data";
 import { smaNullable } from "./lib/indicators";
 import {
@@ -45,6 +46,16 @@ const FORMAT: Record<SentimentMetric, (v: number) => string> = {
   sth_loss_pct: (v) => pct(v),
   realized_loss_ratio: (v) => `×${v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
   sth_mvrv_adj: (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`,
+};
+
+// En las marcas del eje, más cortas: miles abreviados y porcentajes sin decimales (la lectura lleva la cifra completa)
+const AXIS_FORMAT: Partial<Record<SentimentMetric, (v: number) => string>> = {
+  etf_flows: (v) => t.sentiment.btc(compactNum(v, true)),
+  open_interest: (v) => t.sentiment.btc(compactNum(v)),
+  long_pct: (v) => pct(v, 0),
+  taker_pct: (v) => pct(v, 0),
+  spot_buy_pct: (v) => pct(v, 0),
+  sth_loss_pct: (v) => pct(v, 0),
 };
 
 // Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D no hay periodo a elegir)
@@ -296,6 +307,8 @@ export function SentimentApp() {
               values={shownK === "sentimiento" ? undefined : shown.values[shownK]}
               format={(v, i) => {
                 if (shownK === "sentimiento") return "";
+                // i = -1: marca del eje
+                if (i < 0 && AXIS_FORMAT[shownK]) return AXIS_FORMAT[shownK]!(v);
                 const sc = i >= 0 ? shown.scores[shownK][i] : null;
                 // Puntuación 50 + 25·σ (recortada en ±2σ): a cuántas desviaciones está de su media del último año
                 const sigma = shownK === "sth_mvrv_adj" && sc !== null ? ` · ${tx.sigma((sc - 50) / 25)}` : "";

@@ -186,6 +186,9 @@ export const es = {
       tecnico: "Técnico",
     },
     priceLegend: "Precio",
+    // La línea discontinua del valor real, junto a su puntuación
+    valueLegend: "Valor",
+    scoreToggle: "Mostrar u ocultar la línea de la puntuación",
     tableTitle: "En los techos y suelos de ciclo",
     cols: { when: "Momento", price: "Precio" },
     kinds: { today: "Hoy", top: "Techo", bottom: "Suelo", lowSoFar: "Mínimo actual" },

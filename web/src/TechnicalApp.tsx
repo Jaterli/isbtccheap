@@ -210,7 +210,8 @@ export function TechnicalApp() {
               // La categoría, su puntuación; cada métrica, su puntuación y su valor real
               mode={k === "tecnico" ? "score" : "both"}
               values={shown.values ?? undefined}
-              format={(v) => (k === "tecnico" ? "" : FORMAT[k as TechMetric](v))}
+              // En las marcas del eje (i = -1), la distancia a la media de 200 días sin decimales
+              format={(v, i) => (k === "tecnico" ? "" : i < 0 && k === "ma200_ratio" ? t.percent(`${v > 1 ? "+" : v < 1 ? "−" : ""}${num(Math.abs((v - 1) * 100), 0)}`) : FORMAT[k as TechMetric](v))}
             />
             {updating && (
               <div className="chart-updating" role="status">

@@ -22,6 +22,14 @@ export function axisTextWidth(s: string, bold = false) {
 export const axisPad = (labels: string[], bold: string[] = []) =>
   Math.ceil(6 + Math.max(0, ...labels.map((s) => axisTextWidth(s)), ...bold.map((s) => axisTextWidth(s, true))) + 4);
 
+/** Cifras grandes abreviadas para las marcas de los ejes: 50.000 → 50k, 1.200.000 → 1,2M (con su signo si `signed`) */
+export function compactNum(v: number, signed = false) {
+  const a = Math.abs(v);
+  const [n, suffix] = a >= 1e6 ? [a / 1e6, "M"] : a >= 1e3 ? [a / 1e3, "k"] : [a, ""];
+  const sign = v > 0 ? (signed ? "+" : "") : v < 0 ? "−" : "";
+  return `${sign}${n.toLocaleString(locale, { maximumFractionDigits: 1 })}${suffix}`;
+}
+
 export const usd = (p: number) => p.toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: p < 100 ? 2 : 0 });
 
 export function niceTicks(lo: number, hi: number, count: number) {
