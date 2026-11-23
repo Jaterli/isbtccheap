@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-23T09:16:47+00:00",
+  "updated_at": "2026-11-23T22:11:27+00:00",
   "as_of": "2026-11-22",
   "price": 61103.7073,
-  "score_1d": 10.582,
+  "score_1d": 10.4005,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -54,25 +54,25 @@
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 77.6694,
+      "score": 74.3155,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0307,
-          "score": 70.705
+          "value": -0.0309,
+          "score": 70.9788
         },
         {
           "id": "us2y_chg",
           "name": "Bono 2 años EE. UU. (13 sem.)",
-          "value": 0.52,
-          "score": 84.6338
+          "value": 0.39,
+          "score": 77.6523
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 5.6093,
+      "score": 5.0047,
       "metrics": [
         {
           "id": "fear_greed",
@@ -89,8 +89,8 @@
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
-          "value": -54026.4081,
-          "score": 3.7745
+          "value": -63807.8241,
+          "score": 1.9608
         }
       ]
     },
@@ -207,7 +207,7 @@
       "url": "https://www.binance.com/"
     },
     {
-      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-19",
+      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-20",
       "url": "https://www.tftc.io/bitcoin-etf-flows",
       "license": "CC BY 4.0"
     }
