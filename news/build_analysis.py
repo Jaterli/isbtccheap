@@ -81,8 +81,10 @@ REGLAS PRINCIPALES
 
 1. Zonas (supports y resistances): elige de zone_candidates de 1 a 3 de cada lado del precio actual, solo las \
 realmente relevantes, y da su id con strength de 1 (débil) a 3 (fuerte): los soportes, entre las de side "below"; las \
-resistencias, entre las de side "above". Las candidatas ya están calculadas desde las zonas donde el precio ha girado de \
-verdad (afinadas con las de 4 h sólidas y partidas en el precio si lo contienen): no construyas zonas propias. Si no \
+resistencias, entre las de side "above". Las de side "at_price" contienen el precio: no son soporte ni resistencia (se \
+muestran aparte, como la zona en la que está el precio), pero sus bordes sí valen para objetivos e invalidaciones. Las \
+candidatas ya están calculadas desde las zonas donde el precio ha girado de verdad (afinadas con las de 4 h sólidas): no \
+construyas zonas propias. Si no \
 hay ninguna candidata de un lado (el precio en mínimos o máximos de años), deja ese lado vacío y saca los objetivos de \
 ese lado de otros niveles de los datos (pivotes semanales, huecos semanales, extensiones de Fibonacci) o del ATR.
 - Fuerza: más a las zonas con más reacciones y más recientes; menos a las que los cierres han atravesado varias veces \
@@ -151,7 +153,7 @@ largo: RSI 14 (y en el máximo y el mínimo de 50 velas), %B de Bollinger, dista
 máximos y mínimos de 20 y 50 velas, y ATR 14.
 - zone_candidates: las zonas donde el precio ha girado de verdad, de la más alta a la más baja (ver la regla 1), con las \
 reacciones de cada temporalidad (cuántas, como techo o como suelo, la última y los cruces sin girar), daily_range si es \
-una de 4 h dentro de una diaria, split_at_price si es parte de una zona partida en el precio, y confluences, los niveles \
+una de 4 h dentro de una diaria, side "at_price" si contiene el precio, y confluences, los niveles \
 que caen dentro.
 - market_structure, semanal y diaria: los últimos pivotes (HH, LH, HL, LL, con su RSI), el extremo en curso \
 (current_extreme, aún sin confirmar), la última ruptura de un pivote por un cierre y las divergencias del RSI: \
@@ -241,7 +243,8 @@ TEXT_SCHEMA = {"type": "object", "properties": {"es": TEXT, "en": TEXT}, "requir
 TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,glm-5.3-flash@medium,gemini:gemini-3.5-flash,"
                                   "gemini:gemini-flash-latest")
 TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de un analista ya \
-revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, sesgo, confianza y escenarios con \
+revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, current_zone si el precio está \
+dentro de una zona de reacción, que no es soporte ni resistencia, sesgo, confianza y escenarios con \
 su objetivo, su invalidación y de qué nivel sale cada uno; notes: sus claves) y los datos de mercado que puedes citar \
 (data, con background_trend: la tendencia de fondo de la revisión semanal, que se publica aparte). Redactas sus textos para la web, en español de España y en inglés, sin cambiar el \
 análisis.
@@ -716,9 +719,12 @@ def liquidity_pools(raw: list[list], tf: str) -> list[dict]:
 
 
 # Zonas de reacción: pivotes de tramos de al menos REACTION_ATR (más sensible que la estructura, para no perder giros
-# intermedios), agrupados mientras la zona no pase de REACTION_WIDTH_ATR de ancho, y los más cercanos de cada lado
+# intermedios), agrupados mientras la zona no pase de REACTION_WIDTH_ATR de ancho ni de REACTION_WIDTH_MAX del precio, y
+# los más cercanos de cada lado. Con 1 ATR y sin tope, con el ATR diario en torno al 5 % (25 nov 2026), las zonas medían
+# un 3-5 % y entre todas cubrían el 93 % del gráfico: con volatilidad normal manda el ATR y en los picos, el tope
 REACTION_ATR = {"1d": 1.5, "4h": 2.0}
-REACTION_WIDTH_ATR = 1.0
+REACTION_WIDTH_ATR = 0.5
+REACTION_WIDTH_MAX = 0.025
 REACTION_RANGE = {"1d": 0.25, "4h": 0.10}
 REACTION_MAX = 5
 
@@ -745,8 +751,9 @@ def reaction_zones(raw: list[list], tf: str) -> list[dict]:
     atr, price = _atr(high, low, close), close[-1]
     pivots, _ = _zigzag(high, low, close, REACTION_ATR[tf] * atr)
     zones: list[dict] = []
+    width = min(REACTION_WIDTH_ATR * atr, REACTION_WIDTH_MAX * price)
     for i, kind, level in sorted(pivots, key=lambda p: p[2]):
-        z = zones[-1] if zones and level - zones[-1]["low"] <= REACTION_WIDTH_ATR * atr else None
+        z = zones[-1] if zones and level - zones[-1]["low"] <= width else None
         if z:
             z["high"] = level
             z["touches"].append((i, kind))
@@ -823,7 +830,8 @@ CANDIDATE_MIN_4H = 2
 REFINE_MIN_REACTIONS = 3
 REFINE_MAX_CROSSINGS = 1
 CANDIDATES_PER_SIDE = 4  # las más cercanas al precio: menos opciones, menos razonamiento
-ZONE_MIN_ATR = 0.15  # lo mínimo (en ATR diario) que puede quedar de una zona partida en el precio
+# Lo mínimo (en ATR diario) que puede quedar de una zona recortada al precio si se ha movido desde los datos
+ZONE_MIN_ATR = 0.15
 CONFLUENCE_ATR = 0.1  # margen (en ATR diario) para que un nivel puntual cuente como dentro de una zona
 
 
@@ -858,9 +866,10 @@ def zone_candidates(data: dict, price: float, atr_1d: float) -> list[dict]:
       - cada zona de reacción diaria o, si caen dentro de ella zonas de 4 h sólidas, esas en su lugar (afinadas, con los
         datos de las dos y daily_range, la diaria entera)
       - las de 4 h que no caen dentro de ninguna diaria
-      - las que contienen el precio, partidas en él (si lo que queda de un lado es muy estrecho, ese lado no cuenta)
     con su lado respecto al precio y los niveles que caen dentro (confluences); como mucho CANDIDATES_PER_SIDE de cada
-    lado, las más cercanas."""
+    lado, las más cercanas. Las que contienen el precio van enteras, con side "at_price": no son soporte ni resistencia
+    (partirlas en el precio dejaba un soporte y una resistencia pegados, 25 nov 2026), y la web las marca solo con su
+    borde."""
     zones = data.get("reaction_zones", {})
     daily, h4 = zones.get("1d", []), [q for q in zones.get("4h", []) if q["reactions"] >= CANDIDATE_MIN_4H]
     solid = lambda q: q["reactions"] >= REFINE_MIN_REACTIONS or q["crossings_since_last"] <= REFINE_MAX_CROSSINGS
@@ -875,20 +884,13 @@ def zone_candidates(data: dict, price: float, atr_1d: float) -> list[dict]:
             raw.append({"low": d["low"], "high": d["high"], "timeframe": "1d", "1d": _zone_stats(d)})
     raw += [{"low": q["low"], "high": q["high"], "timeframe": "4h", "4h": _zone_stats(q)} for q in h4 if id(q) not in used]
 
-    out = []
-    for c in raw:
-        if c["low"] < price < c["high"]:
-            parts = [(c["low"], round(price)), (round(price), c["high"])]
-            out += [{**c, "low": lo, "high": hi, "split_at_price": True} for lo, hi in parts if hi - lo >= ZONE_MIN_ATR * atr_1d]
-        else:
-            out.append(c)
+    side = lambda c: "at_price" if c["low"] < price < c["high"] else "above" if c["low"] >= price else "below"
     tol = CONFLUENCE_ATR * atr_1d
-    side = lambda c: (c["low"] + c["high"]) / 2 > price
-    near = lambda up: sorted((c for c in out if side(c) == up), key=lambda c: abs((c["low"] + c["high"]) / 2 - price))
-    out = sorted(near(True)[:CANDIDATES_PER_SIDE] + near(False)[:CANDIDATES_PER_SIDE], key=lambda c: -c["high"])
+    near = lambda s: sorted((c for c in raw if side(c) == s), key=lambda c: abs((c["low"] + c["high"]) / 2 - price))
+    out = sorted(near("above")[:CANDIDATES_PER_SIDE] + near("at_price") + near("below")[:CANDIDATES_PER_SIDE], key=lambda c: -c["high"])
     for i, c in enumerate(out):
         mid = (c["low"] + c["high"]) / 2
-        c.update({"id": f"Z{i + 1}", "side": "above" if mid > price else "below",
+        c.update({"id": f"Z{i + 1}", "side": side(c),
                   "pct_from_price": round((mid / price - 1) * 100, 2),
                   "confluences": _confluences(c["low"], c["high"], data, tol)})
     # El id, los bordes y el lado primero: es lo que el modelo usa para elegir
@@ -1153,7 +1155,7 @@ def basis_levels(data: dict) -> list[tuple[str, str, float, float]]:
     out = []
     for tf, zones in data.get("reaction_zones", {}).items():
         out += [("reaction_zone", tf, z["low"], z["high"]) for z in zones]
-    for c in data.get("zone_candidates", []):  # incluidas las partidas en el precio y las afinadas ("1d+4h": de las dos)
+    for c in data.get("zone_candidates", []):  # incluidas las que contienen el precio y las afinadas ("1d+4h": de las dos)
         out += [("reaction_zone", tf, c["low"], c["high"]) for tf in c["timeframe"].split("+")]
     for tf, pools in data.get("liquidity_pools", {}).items():
         out += [("liquidity_pool", tf, p["price"], p["price"]) for p in pools]
@@ -1236,8 +1238,11 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
             else:
                 log.warning("Zona desconocida: %s", z.get("id"))
                 continue
-            # El precio puede haberse movido desde los datos: lo que quede al otro lado no es soporte o resistencia, y si
-            # lo que queda es muy estrecho, el precio está en la zona y no es ninguna de las dos
+            # El precio puede haberse movido desde los datos: si ha entrado en la zona, ya no es soporte ni resistencia
+            # (va como current_zone); si la ha atravesado, lo que quede al otro lado tampoco
+            if lo < price < hi:
+                log.info("El precio ha entrado en la zona elegida como %s (%.0f-%.0f): no cuenta", kind, lo, hi)
+                continue
             if kind == "support" and hi > price or kind == "resistance" and lo < price:
                 clipped = (lo, price) if kind == "support" else (price, hi)
                 log.info("Zona recortada al precio (%s %.0f-%.0f → %.0f-%.0f)", kind, lo, hi, *clipped)
@@ -1262,6 +1267,9 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         return out[:MAX_LEVELS]
 
     sup, res = zones(a["supports"], "support"), zones(a["resistances"], "resistance")
+    # La zona de reacción en la que está el precio (con el de ahora, no el de los datos): la más estrecha si hay varias
+    inside = sorted((c for c in candidates.values() if c["low"] < price < c["high"]), key=lambda c: c["high"] - c["low"])
+    current = {"low": round(inside[0]["low"]), "high": round(inside[0]["high"]), "candidate": inside[0]["id"]} if inside else None
     # Un lado puede quedar sin zonas solo si no hay ninguna candidata en él (el precio en mínimos o máximos de años)
     sides = {c["side"] for c in candidates.values()} if candidates else {"below", "above"}
     if (not sup and "below" in sides) or (not res and "above" in sides) or (not sup and not res):
@@ -1306,6 +1314,8 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
         "bias": a.get("bias") if a.get("bias") in ("alcista", "bajista", "neutral") else "neutral",
         "confidence": max(1, min(3, int(a.get("confidence") or 1))),
         "levels": sup + res,
+        # Se dibuja solo con su borde: el precio está dentro, no es soporte ni resistencia
+        "current_zone": current,
         "outlook": short,
         "outlook_days": days,
         "alternative": alt,
@@ -1400,7 +1410,7 @@ def dry_run(price: float) -> dict:
 # esfuerzo "high": razona unas 6 veces menos, y falta saber si acierta lo mismo. Vacío (ANALYSIS_SHADOW_MODELS=), no se hace
 SHADOW_MODELS = llm.models_from_env("ANALYSIS_SHADOW_MODELS", "glm-5.3-flash@high")
 SHADOW_LOG = "analysis_shadow_log.jsonl"
-LOG_FIELDS = ("generated_at", "model", "price", "levels", "bias", "confidence", "outlook", "outlook_days", "alternative")
+LOG_FIELDS = ("generated_at", "model", "price", "levels", "current_zone", "bias", "confidence", "outlook", "outlook_days", "alternative")
 
 
 def model_name(spec: str) -> str:

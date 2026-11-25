@@ -339,6 +339,8 @@ export const en: Messages = {
     nextDays: "1-2 days:",
     points: "Key points",
     levelsTitle: "Support and resistance",
+    currentZone: "Current zone",
+    currentZoneInfo: "Price is inside this reaction zone: it is neither support nor resistance until price leaves it.",
     cols: { zone: "Zone", range: "Range", distance: "Distance", strength: "Strength" },
     note: (model: string) =>
       `Analysis, zones and scenarios generated with AI (${model}) with data from Binance, Alternative.me and TFTC; it may contain errors. It is a reading of the moment, not a prediction or investment advice.`,

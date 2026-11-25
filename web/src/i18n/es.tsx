@@ -351,6 +351,8 @@ export const es = {
     nextDays: "1-2 días:",
     points: "Claves",
     levelsTitle: "Soportes y resistencias",
+    currentZone: "Zona actual",
+    currentZoneInfo: "El precio está dentro de esta zona de reacción: no es soporte ni resistencia hasta que salga de ella.",
     cols: { zone: "Zona", range: "Rango", distance: "Distancia", strength: "Fuerza" },
     note: (model: string) =>
       `Análisis, zonas y escenarios generados con IA (${model}) con datos de Binance, Alternative.me y TFTC; puede contener errores. Es una lectura del momento, no una predicción ni una recomendación de inversión.`,

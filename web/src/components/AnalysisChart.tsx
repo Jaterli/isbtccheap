@@ -37,6 +37,7 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
     const vals = [
       ...shown.flatMap((c) => [c.high, c.low]),
       ...near.flatMap((l) => [l.low, l.high]),
+      ...(a.current_zone ? [a.current_zone.low, a.current_zone.high] : []),
       ...(daily
         ? []
         : [a.outlook.target, a.alternative.target, ...(days ? [days.target] : []), ...(a.outlook.invalidation ? [a.outlook.invalidation] : [])]),
@@ -124,6 +125,18 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
               </g>
             );
           })}
+
+        {/* La zona en la que está el precio: solo su borde (no es soporte ni resistencia) */}
+        {a.current_zone && a.current_zone.high >= chart.lo && a.current_zone.low <= chart.hi && (() => {
+          const top = y(Math.min(a.current_zone.high, chart.hi));
+          const bottom = y(Math.max(a.current_zone.low, chart.lo));
+          return (
+            <g className="an-zone current">
+              <rect x={PAD_L} width={plotW} y={top} height={Math.max(2, bottom - top)} />
+              <text x={PAD_L + 6} y={top + 12}>{tx.currentZone}</text>
+            </g>
+          );
+        })()}
 
         {/* Imbalances sin rellenar (bandas) y liquidez pendiente (líneas discontinuas) de esta temporalidad, desde su vela */}
         {gaps.map((g) => {

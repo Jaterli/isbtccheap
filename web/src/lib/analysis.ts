@@ -63,6 +63,11 @@ export interface Analysis {
   confidence: 1 | 2 | 3;
   /** Soportes y resistencias, de cada lado del más cercano al más lejano */
   levels: Level[];
+  /**
+   * La zona de reacción en la que está el precio: no es soporte ni resistencia y se marca solo con su borde (ausente en
+   * análisis anteriores; null si el precio no está dentro de ninguna)
+   */
+  current_zone?: { low: number; high: number } | null;
   outlook: { direction: Direction; target: number; invalidation: number | null; horizon_hours: number };
   /** Ausente en análisis anteriores */
   outlook_days?: { direction: Direction; target: number; invalidation: number | null };

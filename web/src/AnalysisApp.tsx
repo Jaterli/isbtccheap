@@ -226,9 +226,22 @@ export function AnalysisApp() {
                 </tr>
               </thead>
               <tbody>
-                {[...analysis.levels]
+                {[...analysis.levels, ...(analysis.current_zone ? [{ ...analysis.current_zone, id: "current", kind: "current" as const, mid: (analysis.current_zone.low + analysis.current_zone.high) / 2, strength: null }] : [])]
                   .sort((p, q) => q.mid - p.mid)
-                  .map((l) => (
+                  .map((l) =>
+                    l.kind === "current" ? (
+                      // La zona en la que está el precio: sin distancia ni fuerza
+                      <tr key={l.id}>
+                        <th scope="row">
+                          <span className="an-id current" title={tx.currentZoneInfo}>{tx.currentZone}</span>
+                        </th>
+                        <td className="num">
+                          {usd(l.low)} – {usd(l.high)}
+                        </td>
+                        <td className="muted">—</td>
+                        <td className="muted">—</td>
+                      </tr>
+                    ) : (
                     <tr key={l.id}>
                       <th scope="row">
                         <span className={`an-id ${l.kind}`}>{l.id}</span>
@@ -246,7 +259,8 @@ export function AnalysisApp() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    ),
+                  )}
               </tbody>
             </table>
           </div>

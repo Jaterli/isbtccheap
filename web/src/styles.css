@@ -819,6 +819,9 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-zone.support rect { fill: var(--band-1); }
 .an-zone.resistance rect { fill: var(--band-5); }
 .an-zone text { font-size: 10px; font-weight: 600; opacity: 0.8; }
+/* La zona en la que está el precio: solo el borde, discontinuo y neutro */
+.an-zone.current rect { fill: none; opacity: 1; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.an-zone.current text { fill: var(--muted); }
 .an-zone.support text { fill: var(--band-1); }
 .an-zone.resistance text { fill: var(--band-5); }
 .an-ahead { fill: var(--fg); opacity: 0.03; }
@@ -876,6 +879,7 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-id { font-weight: 600; }
 .an-id.support { color: var(--band-1); }
 .an-id.resistance { color: var(--band-5); }
+.an-id.current { color: var(--muted); cursor: help; }
 .an-strength { display: inline-flex; gap: 3px; }
 .an-strength i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .an-strength i.on { background: var(--fg); }
