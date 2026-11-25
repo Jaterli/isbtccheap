@@ -7,8 +7,9 @@ const PAD_T = 10;
 const AXIS_H = 22;
 const DAY = 86_400_000;
 
+// Siempre con `digits` decimales (2 en las lecturas de todas las gráficas: así coinciden entre ellas; 0 en los ejes)
 export const rocPct = (r: number, digits = 2) =>
-  `${r > 0 ? "+" : r < 0 ? "−" : ""}${t.percent(Math.abs(r * 100).toLocaleString(locale, { maximumFractionDigits: digits }))}`;
+  `${r > 0 ? "+" : r < 0 ? "−" : ""}${t.percent(Math.abs(r * 100).toLocaleString(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }))}`;
 
 const date = (ms: number) => new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 

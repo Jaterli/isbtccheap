@@ -7,7 +7,7 @@ import type { VolSeries } from "../lib/volatility";
 const PAD_T = 10;
 const AXIS_H = 22;
 
-const pct = (v: number, digits = 0) => t.percent((v * 100).toLocaleString(locale, { maximumFractionDigits: digits }));
+const pct = (v: number, digits = 0) => t.percent((v * 100).toLocaleString(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }));
 
 export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
   const { ref: wrapRef, width } = useWidth();
@@ -56,7 +56,7 @@ export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
           <strong>{data.price[h].toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>
         <span className="legend legend-score num">
-          {t.vol.volLegend} <strong>{v === null ? "—" : pct(v, 1)}</strong>
+          {t.vol.volLegend} <strong>{v === null ? "—" : pct(v, 2)}</strong>
         </span>
       </p>
       <svg width={width} height={H} role="img" aria-label={t.vol.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>

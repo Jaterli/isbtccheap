@@ -54,8 +54,8 @@ interface Props {
   /** Valor real de las métricas cuyo valor del pipeline no es el real (p. ej., la fase del halving, que guarda su
    * puntuación), calculado con el día */
   valueAt?: Record<string, (time: number) => number | null>;
-  /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms) */
-  format: (id: string, v: number, time: number) => string;
+  /** Valor real de una métrica, con su formato (`time`: el día del dato, en ms; `axis`: marca del eje, más corta) */
+  format: (id: string, v: number, time: number, axis?: boolean) => string;
   /** Datos del último día que acompañan al valor de una métrica en la frase sobre el gráfico (no en la gráfica ni en la tabla) */
   detail?: (id: string, time: number, data: ScoresJson) => string | null;
   storageKey: string;
@@ -258,7 +258,7 @@ export function CategoryScores({ history, file, category, metrics, info = [], tx
           // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
           mode={k === CAT ? "score" : isInfo(k) ? "value" : "both"}
           values={shown.values ?? undefined}
-          format={(v, i) => format(k, v, i >= 0 ? shown.time[i] : shown.time.at(-1)!)}
+          format={(v, i) => format(k, v, i >= 0 ? shown.time[i] : shown.time.at(-1)!, i < 0)}
           aria={tx.chartAria}
         />
       ) : (

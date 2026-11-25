@@ -24,7 +24,7 @@ export function LiquidityScores({ history }: { history: History | null }) {
       metrics={METRICS}
       info={INFO}
       tx={t.liquidity.scores}
-      format={(id, v) => (id === "nfci" || id === "nfci_chg" ? nfci(v) : (id === "us2y_chg" || id === "curve_chg") ? t.liquidity.pp(nfci(v)) : rocPct(v, 1))}
+      format={(id, v, _, axis) => (id === "nfci" || id === "nfci_chg" ? nfci(v) : (id === "us2y_chg" || id === "curve_chg") ? t.liquidity.pp(nfci(v)) : rocPct(v, axis ? 0 : 2))}
       storageKey="isbtccheap:liquidity-scores-range"
       // Con la curva de tipos, el rendimiento de cada bono ese día
       detail={(id, time, data) => {

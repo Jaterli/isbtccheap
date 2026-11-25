@@ -58,11 +58,11 @@ function Chip({ v }: { v: number | null | undefined }) {
 const num = (v: number, d: number) => v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d });
 // Valor real de cada métrica
 const FORMAT: Record<TechMetric, (v: number) => string> = {
-  rsi_14: (v) => num(v, 1),
-  bollinger: (v) => num(v, 0),
+  rsi_14: (v) => num(v, 2),
+  bollinger: (v) => num(v, 2),
   ma200_ratio: (v) => {
     const p = (v - 1) * 100;
-    return t.percent(`${p > 0 ? "+" : p < 0 ? "−" : ""}${num(Math.abs(p), 1)}`);
+    return t.percent(`${p > 0 ? "+" : p < 0 ? "−" : ""}${num(Math.abs(p), 2)}`);
   },
 };
 
@@ -210,8 +210,16 @@ export function TechnicalApp() {
               // La categoría, su puntuación; cada métrica, su puntuación y su valor real
               mode={k === "tecnico" ? "score" : "both"}
               values={shown.values ?? undefined}
-              // En las marcas del eje (i = -1), la distancia a la media de 200 días sin decimales
-              format={(v, i) => (k === "tecnico" ? "" : i < 0 && k === "ma200_ratio" ? t.percent(`${v > 1 ? "+" : v < 1 ? "−" : ""}${num(Math.abs((v - 1) * 100), 0)}`) : FORMAT[k as TechMetric](v))}
+              // En las marcas del eje (i = -1), sin decimales; en la lectura, con 2
+              format={(v, i) =>
+                k === "tecnico"
+                  ? ""
+                  : i >= 0
+                    ? FORMAT[k as TechMetric](v)
+                    : k === "ma200_ratio"
+                      ? t.percent(`${v > 1 ? "+" : v < 1 ? "−" : ""}${num(Math.abs((v - 1) * 100), 0)}`)
+                      : num(v, 0)
+              }
             />
             {updating && (
               <div className="chart-updating" role="status">

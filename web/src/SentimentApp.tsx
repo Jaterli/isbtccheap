@@ -34,7 +34,7 @@ import type { History } from "./types";
 const HOUR = 3_600_000;
 
 // Valor real de cada métrica, con su formato
-const pct = (v: number, d = 1) => `${v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
+const pct = (v: number, d = 2) => `${v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
 const FORMAT: Record<SentimentMetric, (v: number) => string> = {
   fear_greed: (v) => Math.round(v).toLocaleString(locale),
   sth_sopr: (v) => v.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),

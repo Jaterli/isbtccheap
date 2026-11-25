@@ -9,7 +9,8 @@ const GAP = 18;
 const AXIS_H = 22;
 const DD_REFS = [0, -0.2, -0.5, -0.8, -1];
 
-export const ddPct = (f: number) => t.percent(Math.round(f * 100).toLocaleString(locale));
+// Sin decimales en el eje y los textos; con 2 en la lectura de la gráfica, como en todas
+export const ddPct = (f: number, d = 0) => t.percent((f * 100).toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d }));
 
 export function DrawdownChart({ data }: { data: DrawdownSeries }) {
   const { ref, width } = useWidth();
@@ -60,7 +61,7 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
           {tx.legend.ath} <strong>{usd(data.ath[h])}</strong>
         </span>
         <span className="legend dd-fall num">
-          {tx.legend.dd} <strong>{ddPct(data.dd[h])}</strong>
+          {tx.legend.dd} <strong>{ddPct(data.dd[h], 2)}</strong>
         </span>
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>

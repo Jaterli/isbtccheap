@@ -33,7 +33,9 @@ const METRICS = ["halving_phase", "power_law", "wma200_ratio"] as const;
 // es una curva del calendario y ya va lisa
 const SMOOTH = [CATEGORY_KEY, "power_law", "wma200_ratio"];
 const GENESIS = Date.parse("2009-01-03T00:00:00Z");
-const signedPct = (f: number) => t.percent(`${f > 0 ? "+" : f < 0 ? "−" : ""}${Math.abs(f * 100).toLocaleString(locale, { maximumFractionDigits: 1 })}`);
+// 2 decimales en las lecturas, como en todas las gráficas; sin ellos en los ejes
+const signedPct = (f: number, d = 2) =>
+  t.percent(`${f > 0 ? "+" : f < 0 ? "−" : ""}${Math.abs(f * 100).toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d })}`);
 
 /** Parte del ciclo de halving transcurrida un día (0-1): el valor real de la fase, que el pipeline guarda ya puntuada */
 function halvingPhase(time: number) {
@@ -45,10 +47,11 @@ function halvingPhase(time: number) {
 const VALUE_AT = { halving_phase: halvingPhase };
 
 /** Valor real de cada métrica */
-function cycleValue(id: string, v: number) {
-  if (id === "halving_phase") return t.percent(Math.round(v * 100).toLocaleString(locale));
+function cycleValue(id: string, v: number, _time?: number, axis?: boolean) {
+  const d = axis ? 0 : 2;
+  if (id === "halving_phase") return t.percent((v * 100).toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d }));
   // Residuo en log10 frente a la tendencia; cociente frente a la media de 200 semanas
-  return signedPct(id === "power_law" ? 10 ** v - 1 : v - 1);
+  return signedPct(id === "power_law" ? 10 ** v - 1 : v - 1, d);
 }
 
 export function CyclesApp() {
