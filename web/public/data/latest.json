@@ -1,120 +1,120 @@
 {
-  "updated_at": "2026-11-23T22:11:27+00:00",
-  "as_of": "2026-11-22",
-  "price": 61103.7073,
-  "score_1d": 10.4005,
+  "updated_at": "2026-11-25T09:57:55+00:00",
+  "as_of": "2026-11-24",
+  "price": 59790.6556,
+  "score_1d": 8.6281,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
-      "score": 18.4577,
+      "score": 12.8679,
       "metrics": [
         {
           "id": "mvrv",
           "name": "MVRV",
-          "value": 1.1484,
-          "score": 6.2286
+          "value": 1.126,
+          "score": 5.065
         },
         {
           "id": "puell",
           "name": "Puell Multiple",
-          "value": 0.8993,
-          "score": 35.9343
+          "value": 0.7871,
+          "score": 22.8611
         },
         {
           "id": "mayer",
           "name": "Mayer Multiple (precio / MA200d)",
-          "value": 0.8449,
-          "score": 13.2101
+          "value": 0.829,
+          "score": 10.6776
         }
       ]
     },
     "ciclo": {
       "name": "Ciclo",
-      "score": 5.5638,
+      "score": 5.3472,
       "metrics": [
         {
           "id": "halving_phase",
           "name": "Fase del ciclo de halving",
-          "value": 11.2157,
-          "score": 11.2157
+          "value": 11.3874,
+          "score": 11.3874
         },
         {
           "id": "power_law",
           "name": "Desviación de la power law",
-          "value": -0.3797,
-          "score": 0.2053
+          "value": -0.3896,
+          "score": 0.1369
         },
         {
           "id": "wma200_ratio",
           "name": "Precio / MA200 semanas",
-          "value": 0.8967,
-          "score": 5.2704
+          "value": 0.8767,
+          "score": 4.5175
         }
       ]
     },
     "liquidez": {
       "name": "Liquidez",
-      "score": 74.3155,
+      "score": 72.2279,
       "metrics": [
         {
           "id": "global_liquidity_roc",
           "name": "Liquidez global (var. 13 sem.)",
-          "value": -0.0309,
-          "score": 70.9788
+          "value": -0.028,
+          "score": 66.7351
         },
         {
           "id": "us2y_chg",
           "name": "Bono 2 años EE. UU. (13 sem.)",
           "value": 0.39,
-          "score": 77.6523
+          "score": 77.7207
         }
       ]
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 5.0047,
+      "score": 5.7872,
       "metrics": [
         {
           "id": "fear_greed",
           "name": "Fear & Greed Index",
-          "value": 11.0,
-          "score": 11.0
+          "value": 13.0,
+          "score": 13.0
         },
         {
           "id": "sth_sopr",
           "name": "SOPR de corto plazo (7 d)",
-          "value": 0.9872,
-          "score": 2.0534
+          "value": 0.9895,
+          "score": 3.6277
         },
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
-          "value": -63807.8241,
-          "score": 1.9608
+          "value": -74495.7863,
+          "score": 0.7339
         }
       ]
     },
     "tecnico": {
       "name": "Técnico",
-      "score": 12.7818,
+      "score": 11.8902,
       "metrics": [
         {
           "id": "rsi_14",
           "name": "RSI 14",
-          "value": 26.271,
+          "value": 24.7563,
           "score": 0.0
         },
         {
           "id": "bollinger",
           "name": "Bollinger %B (20, 2)",
-          "value": 18.9703,
-          "score": 18.9703
+          "value": 19.0456,
+          "score": 19.0456
         },
         {
           "id": "ma200_ratio",
           "name": "Precio / MA200 (percentil)",
-          "value": 0.8449,
-          "score": 19.375
+          "value": 0.829,
+          "score": 16.625
         }
       ]
     }
@@ -207,7 +207,7 @@
       "url": "https://www.binance.com/"
     },
     {
-      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-20",
+      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-23",
       "url": "https://www.tftc.io/bitcoin-etf-flows",
       "license": "CC BY 4.0"
     }
