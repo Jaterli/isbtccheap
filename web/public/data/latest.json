@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-25T09:57:55+00:00",
+  "updated_at": "2026-11-25T20:04:22+00:00",
   "as_of": "2026-11-24",
   "price": 59790.6556,
-  "score_1d": 8.6281,
+  "score_1d": 8.604,
   "categories": {
     "valoracion": {
       "name": "Valoración on-chain",
@@ -72,7 +72,7 @@
     },
     "sentimiento": {
       "name": "Sentimiento",
-      "score": 5.7872,
+      "score": 5.5752,
       "metrics": [
         {
           "id": "fear_greed",
@@ -89,8 +89,8 @@
         {
           "id": "etf_flows",
           "name": "Flujos de ETF al contado (20 sesiones)",
-          "value": -74495.7863,
-          "score": 0.7339
+          "value": -80557.2109,
+          "score": 0.0978
         }
       ]
     },
@@ -207,7 +207,7 @@
       "url": "https://www.binance.com/"
     },
     {
-      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-23",
+      "name": "The Commoner Bitcoin ETF Tracker by TFTC (tftc.io/bitcoin-etf-flows), data through 2026-11-24",
       "url": "https://www.tftc.io/bitcoin-etf-flows",
       "license": "CC BY 4.0"
     }
