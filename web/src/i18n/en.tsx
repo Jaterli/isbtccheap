@@ -439,7 +439,7 @@ export const en: Messages = {
       "Leveraged positions in BTC perpetual futures that the exchange closes by force because the margin no longer covers the losses. **Longs** (red, downward): they bet on a rise and the price fell. **Shorts** (green, upward): they bet on a fall and the price rose.",
       "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. The bands mark the days when recent buyers were also capitulating (on-chain selling at a loss, the same rule as the capitulation card): forced liquidation and real selling at the same time. Informational: the index does not use it.",
       "Sum of Binance, Bybit, OKX, Huobi and Bitfinex in dollars (the whole market is larger). Data from Coinalyze, updated every hour; the last candle is in progress.",
-      "**Cascade risk**: the warning appears here and, with a red dot, next to the index's sentiment category, when 70% or more of Binance accounts are long and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest (4h candles from January to November 2026) cascades were about 6 times more frequent under those conditions. Informational: the index does not use it.",
+      "**Cascade risk**: the warning appears in the alerts card on the home page when 70% or more of Binance accounts are long and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest (4h candles from January to November 2026) cascades were about 6 times more frequent under those conditions. Informational: the index does not use it.",
     ],
     chartAria: "Long and short liquidations of BTC futures against the price",
     tfAria: "Timeframe",
@@ -450,16 +450,40 @@ export const en: Messages = {
     note: "Bands: days at recent buyers' capitulation levels (orange) or intense capitulation (red). Data from Coinalyze. Informational: the index does not use it.",
   },
 
+  alerts: {
+    title: "Alerts",
+    info: [
+      "Informational warnings, each with its backtest; they do not count in the score. **Long liquidation cascade risk**: 70% or more of Binance accounts long and, in addition, price near its 7-day low or 3 days in a row like this (4h candles). **Capitulation**: recent buyers selling at a loss (the rule of the capitulation card). **Momentum**: RSI 14 of the selected timeframe at 80 or above or at 20 or below (on 1h, 4h and 1 day).",
+      "Each warning gives the current reading and what happened other times, and links to its detail. They are risk or context warnings, not predictions or investment advice.",
+    ],
+    none: "No active alerts.",
+    count: (n: number): string => (n === 0 ? "None active" : n === 1 ? "1 active" : `${n} active`),
+    fold: "Collapse alerts",
+    unfold: "Expand alerts",
+    note: "Informational: they do not count in the score.",
+    cascadeHistory:
+      "In situations like this (4h candles from January to November 2026) there was a sharp drop with massive liquidations in the next 7 days in 3 out of 4 cases, usually after 2 or 3 days of ranging or slow decline. A short sample, almost all bearish: a risk warning, not a prediction.",
+    cascadeLink: "See liquidations",
+    capitulationNow: (ratio: string | null, sopr: string | null): string =>
+      "Recent buyers are selling at a loss" +
+      (ratio || sopr ? `: ${[ratio && `realized loss ${ratio} its 90-day average`, sopr && `SOPR at ${sopr}`].filter(Boolean).join(" and ")}` : "") +
+      ".",
+    capitulationHistory: "Capitulations tend to mark the short-term bottom area, not the day: the decline can continue.",
+    capitulationLink: "See capitulation",
+    momentumTitle: { up: (tf: string): string => `Strong bullish momentum on ${tf}`, down: (tf: string): string => `Strong bearish momentum on ${tf}` },
+    momentumText: {
+      up: (rsi: string): string => `RSI 14 at ${rsi}. Historically, with RSI at 80 or above the rise has tended to continue.`,
+      down: (rsi: string): string => `RSI 14 at ${rsi}. Historically, with RSI at 20 or below the decline has continued slightly more than half the time.`,
+    },
+    momentumLink: "See technical",
+  },
   cascade: {
-    badge: "Cascade risk",
     title: "Long liquidation cascade risk",
     now: (longs: string, min: string, aboveLow: string | null, days: number | null): string =>
       `${longs} of Binance accounts are long (${min} or more)` +
       (aboveLow !== null ? `, with price only ${aboveLow} above its 7-day low, where their stops pile up` : "") +
       (days !== null ? `${aboveLow !== null ? ", and" : ","} it has been like this for ${days} days in a row` : "") +
       ".",
-    history:
-      "In situations like this (4h candles from January to November 2026), sharp drops with massive long liquidations were about 6 times more frequent: there was one in the next 7 days in 3 out of 4 cases, usually after 2 or 3 days of ranging or slow decline, and only 1 in 4 times did price rise first. It is a short sample, almost all of it a bear market: a risk warning, not a prediction. Informational: the index does not use it.",
   },
   gauge: { cheap: "Cheap", expensive: "Expensive" },
   capitulation: {
@@ -470,7 +494,6 @@ export const en: Messages = {
       "Capitulations tend to mark the short-term bottom zone, not the day: the decline can continue (in June 2022 it fell another 20%). What usually announces the turn is the exit: SOPR reclaiming 1 and realized loss returning to its average. Daily Bitview data with a one-day lag. Informational: the index does not use it.",
     ],
     levels: { none: "No capitulation", capitulation_levels: "Capitulation levels", intense_capitulation: "Intense capitulation" },
-    badge: "Capitulation",
     asOf: (d: string) => `Data for ${d}`,
     last: (when: string, level: ReactNode, ratio: string) => (
       <>

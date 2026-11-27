@@ -1,10 +1,8 @@
 import { lang, locale, PAGE_PATH, t } from "../i18n";
 import { LAST_HALVING, NEXT_HALVING } from "../lib/cycles";
 import type { Category, CategoryId, Timeframe } from "../types";
-import { CapitulationBadge } from "./CapitulationBadge";
-import { CascadeBadge } from "./CascadeBadge";
 import { InfoTip } from "./InfoTip";
-import { Momentum, momentumDir } from "./Momentum";
+import { momentumDir } from "./Momentum";
 
 interface Props {
   categories: Record<CategoryId, Category>;
@@ -125,10 +123,6 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
                   <p>{info.read}</p>
                   <p className="muted">{t.scoreColumns}</p>
                 </InfoTip>
-                {/* Si los compradores recientes capitulan, la etiqueta que lleva a su tarjeta */}
-                {id === "sentimiento" && <CapitulationBadge />}
-                {/* Y si hay riesgo de cascada de liquidaciones de largos, la que lleva a la tarjeta de liquidaciones */}
-                {id === "sentimiento" && <CascadeBadge />}
               </h3>
               {/* Sin la temporalidad: es la de la tarjeta del score, la misma en todas */}
               <span className="muted">{t.weight(w.toFixed(0))}</span>
@@ -149,10 +143,8 @@ export function Breakdown({ categories, weights, live, tf, flash }: Props) {
                           <p>{mi.read}</p>
                         </InfoTip>
                       )}
-                      {/* Impulso fuerte: solo con el RSI en vivo de la temporalidad elegida */}
-                      {m.id === "rsi_14" && live && <Momentum rsi={m.value} tf={tf} />}
                     </span>
-                    {/* Con impulso fuerte, el valor del RSI toma el color de la etiqueta Momentum */}
+                    {/* Con impulso fuerte (el aviso Momentum de la tarjeta de alertas), el valor del RSI en verde o en rojo */}
                     <span className={`muted num${m.id === "rsi_14" && live && momentumDir(m.value, tf) ? ` momentum-value ${momentumDir(m.value, tf)}` : ""}`}>
                       {fmt(m.value, m.id)}
                     </span>

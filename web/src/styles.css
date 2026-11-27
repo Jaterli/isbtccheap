@@ -81,6 +81,10 @@ header {position: relative;}
 .notice { margin: 0; padding: 10px 14px; border: 1px solid var(--band-4); border-radius: 8px; font-size: 0.9rem; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; min-width: 0; }
+/* El mismo espacio entre el texto y el borde en todas las tarjetas: el relleno, sin el margen del primer y el último
+   elemento (un párrafo final sumaba su margen abajo) */
+.card > :first-child, .card > :first-child > :first-child { margin-top: 0; }
+.card > :last-child, .card > :last-child > :last-child { margin-bottom: 0; }
 /* Cabecera. Pantallas grandes: el logo (que ya incluye el nombre de la app) y, a su derecha, la descripción; la
    barra con las páginas y el idioma, arriba a la derecha, se fija arriba con un logo pequeño al hacer scroll
    (.stuck, desde Header.tsx). Móvil: la barra va siempre pegada arriba, con el logo pequeño (ver más abajo) */
@@ -235,8 +239,9 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 
 @media (min-width: 1024px) {
   .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashboard .side { grid-column: 3; grid-row: 1 / span 3; }
-  .dashboard.price-open .side { grid-row: 1 / span 4; }
+  /* Una fila más con la tarjeta de alertas */
+  .dashboard .side { grid-column: 3; grid-row: 1 / span 4; }
+  .dashboard.price-open .side { grid-row: 1 / span 5; }
   /* Sin noticias ni agenda la tercera columna queda libre: el gráfico ocupa todo el ancho */
   .dashboard.price-open:has(> .side:empty) .price-card { grid-column: 1 / -1; }
 }
@@ -287,15 +292,44 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 /* En la tarjeta de sentimiento del índice: un semáforo tras el nombre (naranja: niveles de capitulación; rojo: intensa),
    con el texto solo en pantallas grandes para que en el móvil quepa en la línea; enlaza a la tarjeta de capitulación */
 /* Del tamaño y el peso de la etiqueta Momentum (el texto de las métricas de las tarjetas, 0,88 rem) */
-.cap-light { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-size: 0.88rem; font-weight: 400; text-decoration: none; white-space: nowrap; vertical-align: middle; color: var(--band-4); }
-.cap-light.intense_capitulation { color: var(--band-5); }
-.cap-light-dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
-.cap-light:hover .cap-light-text { text-decoration: underline; }
-@media (max-width: 639px) { .cap-light-text { display: none; } }
-/* Riesgo de cascada de liquidaciones de largos: rojo, como los largos del gráfico de liquidaciones */
-.cap-light.cascade { color: var(--band-5); }
-.lqd-cascade { margin: 8px 0 4px; font-size: 0.92rem; line-height: 1.45; }
-.lqd-cascade .cap-light { margin: 0 6px 0 0; }
+/* Tarjeta de alertas: encima del score, a lo ancho de dos columnas (las tarjetas del score van juntas debajo). Una fila
+   por aviso, con su icono en el color del aviso */
+@media (min-width: 640px) {
+  .dashboard .alerts { grid-column: 1 / span 2; }
+}
+.alerts header { margin-bottom: 8px; align-items: center; }
+/* Plegable: el botón a la derecha de la cabecera; plegada, solo la cabecera con el resumen */
+.alerts.folded header { margin-bottom: 0; }
+.alerts-summary { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; }
+.alerts-summary .alert-icon { padding: 0; }
+/* Con margen negativo: el botón no hace la cabecera más alta que la de las demás tarjetas */
+.alerts-toggle { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+/* Más específica que la del último elemento de la tarjeta (.card > :last-child > :last-child), que la anulaba plegada */
+.card.alerts header .alerts-toggle { margin: -6px -6px -6px 0; }
+.alerts-toggle:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); color: var(--fg); }
+.alerts-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
+.alerts.folded .alerts-toggle svg { transform: rotate(-90deg); }
+@media (prefers-reduced-motion: reduce) { .alerts-toggle svg { transition: none; } }
+.alerts h3 { margin: 0; }
+.alerts-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.alert { display: grid; grid-template-columns: 1.4em 1fr; gap: 10px; align-items: start; font-size: 0.92rem; line-height: 1.45; }
+.alert strong { display: block; color: var(--alert-color, var(--fg)); }
+.alert p { margin: 2px 0 0; }
+.alert-icon { display: inline-flex; justify-content: center; padding-top: 0.15em; color: var(--alert-color, var(--fg)); }
+/* El color de cada aviso, en su fila y en el resumen de la tarjeta plegada */
+.alerts .cascade { --alert-color: var(--band-4); }
+.alerts .capitulation_levels { --alert-color: var(--band-4); }
+.alerts .intense_capitulation { --alert-color: var(--band-5); }
+.alerts .momentum.up { --alert-color: var(--band-1); }
+.alerts .momentum.down { --alert-color: var(--band-5); }
+.cascade-icon, .alert-arrow { width: 1.15em; height: 1.15em; }
+.cascade-icon path, .alert-arrow path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.alert-dot { width: 0.7em; height: 0.7em; margin-top: 0.2em; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
+/* El icono parpadea suave para que el aviso no pase desapercibido; quieto si el sistema pide reducir el movimiento */
+.alert-icon > * { animation: alert-blink 1.6s ease-in-out infinite; }
+@keyframes alert-blink { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .alert-icon > * { animation: none; } }
+.alerts-none { margin: 0 0 4px; }
 .cap-table { margin-top: 10px; white-space: normal; }
 .cap-table tbody th { font-weight: 500; }
 .cap-table td { white-space: nowrap; }
@@ -754,7 +788,8 @@ path.lqd-short { fill: var(--band-1); opacity: 0.8; }
 .collapse-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 .chevron { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
 .donate.open .chevron, .collapse-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-.donate:not(.open), .card.collapsed { padding-block: 12px; }
+/* La caja de donación, plegada, más baja; las tarjetas plegadas (noticias y agenda) mantienen el relleno de todas */
+.donate:not(.open) { padding-block: 12px; }
 #donar-body > p { margin: 10px 0 14px; }
 .donate-body { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 32px; }
 .btn-paypal { background: #ffc439; border-color: #ffc439; color: #111; font-weight: 600; padding: 8px 18px; text-decoration: none; }

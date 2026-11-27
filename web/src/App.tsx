@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertsCard } from "./components/AlertsCard";
 import { Breakdown } from "./components/Breakdown";
 import { bandColor, Gauge } from "./components/Gauge";
 import { HistoryChart } from "./components/HistoryChart";
@@ -208,6 +209,10 @@ export function App() {
 
       <section className={priceOpen ? "dashboard price-open" : "dashboard"}>
         <PriceCard active={!wide || priceOpen} />
+
+        {/* Avisos informativos (cascada, capitulación, Momentum), encima del score y a lo ancho de dos columnas: así no
+            separa las tarjetas del score, que van juntas debajo */}
+        <AlertsCard rsi={result.categories.tecnico?.metrics.find((m) => m.id === "rsi_14")?.value} tf={tf} live={!!shown} />
 
         <article className={flash ? "card status score-linked flash" : "card status score-linked"}>
           <div className="hero-top">

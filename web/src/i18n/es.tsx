@@ -455,7 +455,7 @@ export const es = {
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
       "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Las franjas marcan los días en que, además, los compradores recientes capitulaban (venta on-chain con pérdidas, la misma regla que la tarjeta de capitulación): la liquidación forzosa y la venta real a la vez. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
-      "**Riesgo de cascada**: el aviso aparece aquí y, con un punto rojo, junto a la categoría de sentimiento del índice, cuando el 70 % o más de las cuentas de Binance está en largo y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
+      "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
     ],
     chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
     tfAria: "Temporalidad",
@@ -467,16 +467,40 @@ export const es = {
     note: "Franjas: días en niveles de capitulación de los compradores recientes (naranja) o en capitulación intensa (rojo). Datos de Coinalyze. Informativa: el índice no la usa.",
   },
 
+  alerts: {
+    title: "Alertas",
+    info: [
+      "Avisos informativos, cada uno con su backtest; no cuentan en el score. **Riesgo de cascada de liquidaciones de largos**: el 70 % o más de las cuentas de Binance en largo y, además, el precio cerca de su mínimo de 7 días o 3 días seguidos así (velas de 4 h). **Capitulación**: los compradores recientes venden con pérdidas (la regla de la tarjeta de capitulación). **Momentum**: el RSI 14 de la temporalidad elegida en 80 o más o en 20 o menos (en 1 h, 4 h y 1 día).",
+      "Cada aviso dice el dato de ahora y lo que pasó otras veces, y enlaza a su detalle. Son avisos de riesgo o de contexto, no predicciones ni recomendaciones de inversión.",
+    ],
+    none: "Sin alertas activas.",
+    count: (n: number): string => (n === 0 ? "Ninguna activa" : n === 1 ? "1 activa" : `${n} activas`),
+    fold: "Plegar las alertas",
+    unfold: "Desplegar las alertas",
+    note: "Informativas: no cuentan en el score.",
+    cascadeHistory:
+      "En situaciones así (velas de 4 h de enero a noviembre de 2026) hubo una caída brusca con liquidaciones masivas en los 7 días siguientes en 3 de cada 4 casos, normalmente tras 2 o 3 días de rango o de caída lenta. Muestra corta y casi toda bajista: un aviso de riesgo, no una predicción.",
+    cascadeLink: "Ver liquidaciones",
+    capitulationNow: (ratio: string | null, sopr: string | null): string =>
+      "Los compradores recientes venden con pérdidas" +
+      (ratio || sopr ? `: ${[ratio && `pérdida realizada ${ratio} su media de 90 días`, sopr && `SOPR en ${sopr}`].filter(Boolean).join(" y ")}` : "") +
+      ".",
+    capitulationHistory: "Las capitulaciones suelen marcar la zona del suelo a corto plazo, no el día: la caída puede seguir.",
+    capitulationLink: "Ver capitulación",
+    momentumTitle: { up: (tf: string): string => `Impulso alcista fuerte en ${tf}`, down: (tf: string): string => `Impulso bajista fuerte en ${tf}` },
+    momentumText: {
+      up: (rsi: string): string => `RSI 14 en ${rsi}. Históricamente, con el RSI en 80 o más la subida ha tendido a continuar.`,
+      down: (rsi: string): string => `RSI 14 en ${rsi}. Históricamente, con el RSI en 20 o menos la caída ha continuado algo más de la mitad de las veces.`,
+    },
+    momentumLink: "Ver técnico",
+  },
   cascade: {
-    badge: "Riesgo de cascada",
     title: "Riesgo de cascada de liquidaciones de largos",
     now: (longs: string, min: string, aboveLow: string | null, days: number | null): string =>
       `El ${longs} de las cuentas de Binance está en largo (${min} o más)` +
       (aboveLow !== null ? `, con el precio a solo un ${aboveLow} de su mínimo de 7 días, donde se acumulan sus stops` : "") +
       (days !== null ? `${aboveLow !== null ? ", y" : ","} lleva así ${days} días seguidos` : "") +
       ".",
-    history:
-      "En situaciones así (velas de 4 h de enero a noviembre de 2026), las caídas bruscas con liquidaciones masivas de largos eran unas 6 veces más frecuentes: hubo una en los 7 días siguientes en 3 de cada 4 casos, normalmente tras 2 o 3 días de rango o de caída lenta, y solo 1 de cada 4 veces el precio subió antes. Es una muestra corta y casi toda de mercado bajista: un aviso de riesgo, no una predicción. Informativo: el índice no lo usa.",
   },
   gauge: { cheap: "Barato", expensive: "Caro" },
   capitulation: {
@@ -487,8 +511,6 @@ export const es = {
       "Las capitulaciones suelen marcar la zona del suelo a corto plazo, no el día: la caída puede seguir (en junio de 2022 cayó un 20 % más). Lo que suele anunciar el giro es la salida: el SOPR que recupera el 1 y la pérdida realizada que vuelve a su media. Datos diarios de Bitview con un día de retraso. Informativa: el índice no la usa.",
     ],
     levels: { none: "Sin capitulación", capitulation_levels: "Niveles de capitulación", intense_capitulation: "Capitulación intensa" },
-    // Etiqueta corta junto a la categoría de sentimiento (tarjeta del índice); el color dice el nivel
-    badge: "Capitulación",
     asOf: (d: string) => `Datos del ${d}`,
     last: (when: string, level: ReactNode, ratio: string) => (
       <>
