@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { locale, t } from "../i18n";
 import { getJson } from "../lib/data";
+import { useHashScroll } from "../lib/hashScroll";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
 
@@ -71,6 +72,8 @@ export function CapitulationCard() {
   useEffect(() => {
     getJson("capitulation.json").then(setC, () => {});
   }, []);
+  // El enlace de la tarjeta de alertas (#capitulacion): la tarjeta solo existe cuando llegan sus datos
+  useHashScroll("capitulacion", !!c);
   if (!c) return null;
   const tx = t.capitulation;
   const th = c.thresholds;

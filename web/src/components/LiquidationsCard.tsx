@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import { getJson } from "../lib/data";
+import { useHashScroll } from "../lib/hashScroll";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
 import { useRange } from "./RangeSelect";
@@ -109,6 +110,8 @@ export function LiquidationsCard() {
     return { time, long: s.long.slice(from), short: s.short.slice(from), close: s.close.slice(from), avg: avg.slice(from), cap };
   }, [data, tf, range.days, capDays]);
 
+  // El enlace de la tarjeta de alertas (#liquidaciones): la tarjeta solo existe cuando llegan sus datos
+  useHashScroll("liquidaciones", !!data);
   if (!data) return null;
   const tx = t.liquidations;
 
