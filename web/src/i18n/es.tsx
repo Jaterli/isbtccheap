@@ -455,7 +455,7 @@ export const es = {
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
       "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Las franjas marcan los días en que, además, los compradores recientes capitulaban (venta on-chain con pérdidas, la misma regla que la tarjeta de capitulación): la liquidación forzosa y la venta real a la vez. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
-      "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
+      "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo (el dato más reciente, de cada 5 minutos; una vez encendido, se apaga por debajo del 68 %) y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
     ],
     chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
     tfAria: "Temporalidad",
@@ -470,7 +470,7 @@ export const es = {
   alerts: {
     title: "Alertas",
     info: [
-      "Avisos informativos, cada uno con su backtest; no cuentan en el score. **Riesgo de cascada de liquidaciones de largos**: el 70 % o más de las cuentas de Binance en largo y, además, el precio cerca de su mínimo de 7 días o 3 días seguidos así (velas de 4 h). **Capitulación**: los compradores recientes venden con pérdidas (la regla de la tarjeta de capitulación). **Momentum**: el RSI 14 de la temporalidad elegida en 80 o más o en 20 o menos (en 1 h, 4 h y 1 día).",
+      "Avisos informativos, cada uno con su backtest; no cuentan en el score. **Riesgo de cascada de liquidaciones de largos**: el 70 % o más de las cuentas de Binance en largo (dato de cada 5 minutos; se apaga por debajo del 68 %) y, además, el precio cerca de su mínimo de 7 días o 3 días seguidos así (velas de 4 h). Se recalcula cada 5 minutos. **Capitulación**: los compradores recientes venden con pérdidas (la regla de la tarjeta de capitulación). **Momentum**: el RSI 14 de la temporalidad elegida en 80 o más o en 20 o menos (en 1 h, 4 h y 1 día).",
       "Cada aviso dice el dato de ahora y lo que pasó otras veces, y enlaza a su detalle. Son avisos de riesgo o de contexto, no predicciones ni recomendaciones de inversión.",
     ],
     none: "Sin alertas activas.",
@@ -496,8 +496,8 @@ export const es = {
   },
   cascade: {
     title: "Riesgo de cascada de liquidaciones de largos",
-    now: (longs: string, min: string, aboveLow: string | null, days: number | null): string =>
-      `El ${longs} de las cuentas de Binance está en largo (${min} o más)` +
+    now: (longs: string, min: string, aboveLow: string | null, days: number | null, at: string): string =>
+      `El ${longs} de las cuentas de Binance está en largo (dato de las ${at}; el aviso salta con el ${min} o más y se apaga por debajo del 68 %)` +
       (aboveLow !== null ? `, con el precio a solo un ${aboveLow} de su mínimo de 7 días, donde se acumulan sus stops` : "") +
       (days !== null ? `${aboveLow !== null ? ", y" : ","} lleva así ${days} días seguidos` : "") +
       ".",

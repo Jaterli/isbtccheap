@@ -69,8 +69,12 @@ export function AlertsCard({ rsi, tf, live }: Props) {
   const [cap, setCap] = useState<Capitulation | null>(null);
   const [open, toggle] = useOpen();
   useEffect(() => {
-    cascadeRisk().then(setCascade, () => {});
+    // El riesgo de cascada se recalcula cada 5 minutos con la página abierta (sus datos de Binance, también cada 5)
+    const load = () => cascadeRisk().then(setCascade, () => {});
+    load();
     getJson("capitulation.json").then(setCap, () => {});
+    const id = window.setInterval(load, 5 * 60_000);
+    return () => window.clearInterval(id);
   }, []);
 
   const tx = t.alerts;
@@ -82,8 +86,9 @@ export function AlertsCard({ rsi, tf, live }: Props) {
       icon: <CascadeIcon />,
       tone: "cascade",
       title: t.cascade.title,
-      text: `${t.cascade.now(pct(cascade.longs), pct(LONGS_MIN), cascade.near ? t.percent(num(cascade.aboveLow * 100, 1)) : null,
-        cascade.persistent ? Math.floor(cascade.streakBars / 6) : null)} ${tx.cascadeHistory}`,
+      text: `${t.cascade.now(t.percent(num(cascade.longs, 1)), pct(LONGS_MIN), cascade.near ? t.percent(num(cascade.aboveLow * 100, 1)) : null,
+        cascade.persistent ? Math.floor(cascade.streakBars / 6) : null,
+        new Date(cascade.longsAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))} ${tx.cascadeHistory}`,
       href: `${PAGE_PATH.sentiment[lang]}#liquidaciones`,
       link: tx.cascadeLink,
     });
