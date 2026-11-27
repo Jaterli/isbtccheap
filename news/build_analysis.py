@@ -253,7 +253,8 @@ análisis.
 
 REGLAS
 
-1. Los textos cuentan este análisis: las mismas zonas, direcciones, objetivos e invalidaciones, con sus precios. No \
+1. Los textos cuentan este análisis: las mismas zonas (por su id, ver la regla 9), direcciones, objetivos e \
+invalidaciones, con sus precios. No \
 añadas escenarios, niveles ni cifras que no estén en analysis, notes o data.
 2. Cada precio que cites, salvo el actual, dice en pocas palabras qué nivel es y por qué importa, con los datos que lo \
 respaldan: por ejemplo "los mínimos iguales de 4 h en X $, donde se acumulan stops de largos", "el 50 % de Fibonacci del \
@@ -281,6 +282,15 @@ valen, con su explicación cuando hace falta.
 7. Habla de probabilidades y escenarios, nunca de certezas, y no des recomendaciones de compra o venta.
 8. Fechas, no días de la semana: "el mínimo del 15 de noviembre", no "el mínimo del sábado" (los datos llevan fechas sin \
 el día de la semana y es fácil equivocarse). Solo hoy puede nombrarse por su día (context.weekday).
+9. Zonas: nómbralas por su id (S1, S2, R1, R2), que es como aparecen en el gráfico de la web, en vez de dar su rango: \
+"la resistencia R1", "el soporte S2", "si pierde S1" (en inglés, "resistance R1", "support S2"). La zona en la que está \
+el precio (current_zone) es "la zona actual" ("the current zone"). Cuando un objetivo o una invalidación es el borde de \
+una zona, da ese precio y di de qué zona es: "61.320 $, donde empieza R1". No las califiques de débiles, flojas o \
+fuertes: lo que las respalda son sus datos (reacciones, cruces, confluencias).
+10. Fibonacci: cada vez que lo cites, di qué nivel es (el 38,2 %, el 50 %, el 61,8 %, el 78,6 % o la extensión del \
+127,2 % o del 161,8 %) y de qué tramo (el tramo diario principal o su corrección, con su origen si ayuda: "el 61,8 % de \
+Fibonacci de la caída desde 65.618 $"). Nunca "un nivel de Fibonacci" sin más: el ratio está en analysis.fibonacci, en \
+las confluencias de cada zona y en data.market_structure.
 
 Responde solo con un objeto JSON, sin texto antes ni después, con esta forma:
 {
@@ -1378,6 +1388,12 @@ def check_texts(a: dict) -> dict:
         long += [f"points {len(p.split())}/{TEXT_WORDS['points']}" for p in out[lang]["points"] if len(p.split()) > TEXT_WORDS["points"]]
         if long:
             log.warning("Texto demasiado largo (%s): %s", lang, ", ".join(long))
+        # Regla 10 de la redacción: Fibonacci siempre con su nivel (un porcentaje cerca). Solo se avisa, para medirlo
+        texts = [out[lang][k] for k in TEXT_KEYS if k != "points"] + out[lang]["points"]
+        bare = [m.group(0) for x in texts for m in re.finditer(r".{0,40}Fibonacci.{0,40}", x)
+                if not re.search(r"\d+(?:[.,]\d+)?\s?%", m.group(0))]
+        if bare:
+            log.warning("Fibonacci sin su nivel (%s): %s", lang, " | ".join(bare))
         # Una clave de casi el doble es otro texto, no una clave: se pide a otro redactor
         if any(len(p.split()) > POINT_MAX_WORDS for p in out[lang]["points"]):
             raise ValueError(f"claves de más de {POINT_MAX_WORDS} palabras ({lang})")
