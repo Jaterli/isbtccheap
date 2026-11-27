@@ -168,6 +168,10 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   laterales frente a su azar, los cambios de dirección de cada uno y sus motivos. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
   o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio). Con `--shadow`, compara el
   publicado con la sombra de la misma ejecución: el acierto de cada uno y en cuántas coinciden las direcciones.
+- `backtest_zones.py`: backtest de las zonas de soporte y resistencia sin el modelo. Cada día desde 2023 calcula las
+  candidatas con las velas hasta entonces y mide si aguantan frente a su azar (la misma zona en otros momentos), en
+  variantes de ancho, filtros y fuentes de nivel. Solo librería estándar; las velas se guardan en
+  `news/state/zones_cache/`. En local: `python3 news/backtest_zones.py` (unos 2 minutos).
 - `collect_derivatives.py`: va guardando en `news/state/derivatives_{1h,4h}.csv` el open interest, las cuentas en largo y
   las compras a mercado de Binance con el precio de cada vela. Binance solo guarda 30 días (500 puntos en 1 h), así que
   sin este histórico propio no se puede comprobar con un backtest si el sentimiento de 1 h y 4 h anticipa el precio: con
