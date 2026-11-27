@@ -302,12 +302,11 @@ export const es = {
     rest: "La situación de BTC hoy según un análisis con IA: soportes y resistencias, sesgo del mercado y lo más probable en las próximas horas y en 1-2 días.",
     card: "Zonas y previsión",
     info: [
-      "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), más intensas cuanto más fuertes, y el sesgo.",
+      "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), las dos más cercanas de cada lado, y el sesgo.",
       "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las líneas naranjas son los niveles de Fibonacci de los que el modelo saca algún objetivo o invalidación: son niveles calculados, no zonas donde el precio haya reaccionado. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a sábado a las 12:00 y los domingos a las 18:00 (hora de Madrid). La tendencia de fondo (semanas y meses) se analiza aparte, cada lunes a las 08:00, con la vela semanal ya cerrada, y los análisis diarios la usan como contexto; si un cierre diario supera uno de sus niveles de revisión, se revisa antes.",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
     confidence: ["confianza baja", "confianza media", "confianza alta"],
-    strength: ["Débil", "Media", "Fuerte"],
     updated: (when: string, price: string) => `Análisis del ${when}, con BTC a ${price}.`,
     unavailable: "El análisis aún no está disponible.",
     close: "Cierre",
@@ -353,7 +352,7 @@ export const es = {
     levelsTitle: "Soportes y resistencias",
     currentZone: "Zona actual",
     currentZoneInfo: "El precio está dentro de esta zona de reacción: no es soporte ni resistencia hasta que salga de ella.",
-    cols: { zone: "Zona", range: "Rango", distance: "Distancia", strength: "Fuerza" },
+    cols: { zone: "Zona", range: "Rango", distance: "Distancia" },
     note: (model: string) =>
       `Análisis, zonas y escenarios generados con IA (${model}) con datos de Binance, Alternative.me y TFTC; puede contener errores. Es una lectura del momento, no una predicción ni una recomendación de inversión.`,
     chartAria: "Velas de 4 horas de Bitcoin con las zonas de soporte y resistencia y flechas hacia lo más probable en las próximas horas y el escenario alternativo",

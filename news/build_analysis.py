@@ -64,7 +64,9 @@ CAPITULATION_URL = LATEST_URL.rsplit("/", 1)[0] + "/capitulation.json"
 NEWS_MIN_IMPACT = 5
 NEWS_MAX_HOURS = 48
 
-MAX_LEVELS = 3
+# Zonas por lado: con 3, las terceras casi nunca se alcanzaban (63 de 79) y aguantaban menos (3 de 13 resueltas, frente
+# al 44 % de S1/R1; eval_analysis, 74 análisis hasta el 27 nov 2026): ruido en el gráfico y en los textos
+MAX_LEVELS = 2
 # Distancia máxima de un objetivo: un 15 % en horas o un 20 % en 1-2 días ya no es un escenario razonable
 MAX_SHORT = 0.15
 MAX_DAYS = 0.20
@@ -79,7 +81,7 @@ explican; otro modelo redactará después los textos a partir de tu análisis.
 
 REGLAS PRINCIPALES
 
-1. Zonas (supports y resistances): elige de zone_candidates de 1 a 3 de cada lado del precio actual, solo las \
+1. Zonas (supports y resistances): elige de zone_candidates 1 o 2 de cada lado del precio actual, solo las \
 realmente relevantes, y da su id con strength de 1 (débil) a 3 (fuerte): los soportes, entre las de side "below"; las \
 resistencias, entre las de side "above". Las de side "at_price" contienen el precio: no son soporte ni resistencia (se \
 muestran aparte, como la zona en la que está el precio), pero sus bordes sí valen para objetivos e invalidaciones. Las \
@@ -243,7 +245,7 @@ TEXT_SCHEMA = {"type": "object", "properties": {"es": TEXT, "en": TEXT}, "requir
 TEXT_MODELS = llm.models_from_env("ANALYSIS_TEXT_MODELS", "glm-5.3-flash@high,glm-5.3-flash@medium,gemini:gemini-3.5-flash,"
                                   "gemini:gemini-flash-latest")
 TEXT_PROMPT = """Eres un redactor de análisis de mercado de Bitcoin. Recibes en JSON el análisis de un analista ya \
-revisado (analysis: zonas de soporte y resistencia con su fuerza de 1 a 3 y sus datos, current_zone si el precio está \
+revisado (analysis: zonas de soporte y resistencia con sus datos, current_zone si el precio está \
 dentro de una zona de reacción, que no es soporte ni resistencia, sesgo, confianza y escenarios con \
 su objetivo, su invalidación y de qué nivel sale cada uno; notes: sus claves) y los datos de mercado que puedes citar \
 (data, con background_trend: la tendencia de fondo de la revisión semanal, que se publica aparte). Redactas sus textos para la web, en español de España y en inglés, sin cambiar el \
@@ -1387,7 +1389,10 @@ def text_input(result: dict, data: dict, price: float) -> str:
     sin las velas ni las candidatas (lo que se necesita de ellas ya va en las zonas elegidas)."""
     candidates = {c["id"]: c for c in data.get("zone_candidates", [])}
     analysis = {"price": round(price), **{k: v for k, v in result.items() if k != "notes"}}
-    analysis["levels"] = [{**z, "zone": {k: v for k, v in candidates.get(z.get("candidate"), {}).items() if k not in ("id", "side")}}
+    # Sin la fuerza: no distingue las zonas que aguantan (40, 40 y 41 % con fuerza 1, 2 y 3; eval_analysis, 27 nov
+    # 2026) y los textos la contaban como si fuera fiabilidad. Se sigue pidiendo y guardando para medirla
+    analysis["levels"] = [{**{k: v for k, v in z.items() if k != "strength"},
+                           "zone": {k: v for k, v in candidates.get(z.get("candidate"), {}).items() if k not in ("id", "side")}}
                           for z in result["levels"]]
     facts = {k: v for k, v in model_view(data).items() if not k.startswith("candles_") and k != "zone_candidates"}
     return json.dumps({"analysis": analysis, "notes": result.get("notes", {}), "data": facts}, separators=(",", ":"), ensure_ascii=False)

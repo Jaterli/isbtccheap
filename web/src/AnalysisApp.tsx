@@ -222,11 +222,10 @@ export function AnalysisApp() {
                   <th scope="col">{tx.cols.zone}</th>
                   <th scope="col">{tx.cols.range}</th>
                   <th scope="col">{tx.cols.distance}</th>
-                  <th scope="col">{tx.cols.strength}</th>
                 </tr>
               </thead>
               <tbody>
-                {[...analysis.levels, ...(analysis.current_zone ? [{ ...analysis.current_zone, id: "current", kind: "current" as const, mid: (analysis.current_zone.low + analysis.current_zone.high) / 2, strength: null }] : [])]
+                {[...analysis.levels, ...(analysis.current_zone ? [{ ...analysis.current_zone, id: "current", kind: "current" as const, mid: (analysis.current_zone.low + analysis.current_zone.high) / 2 }] : [])]
                   .sort((p, q) => q.mid - p.mid)
                   .map((l) =>
                     l.kind === "current" ? (
@@ -239,7 +238,6 @@ export function AnalysisApp() {
                           {usd(l.low)} – {usd(l.high)}
                         </td>
                         <td className="muted">—</td>
-                        <td className="muted">—</td>
                       </tr>
                     ) : (
                     <tr key={l.id}>
@@ -250,14 +248,6 @@ export function AnalysisApp() {
                         {usd(l.low)} – {usd(l.high)}
                       </td>
                       <td className="num">{price ? signedPct((l.mid / price - 1) * 100) : "—"}</td>
-                      <td>
-                        <span className="an-strength" title={tx.strength[l.strength - 1]}>
-                          {[1, 2, 3].map((k) => (
-                            <i key={k} className={l.strength >= k ? "on" : undefined} />
-                          ))}
-                          <span className="visually-hidden">{tx.strength[l.strength - 1]}</span>
-                        </span>
-                      </td>
                     </tr>
                     ),
                   )}

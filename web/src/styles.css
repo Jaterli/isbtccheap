@@ -813,9 +813,8 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-bias.neutral { color: var(--band-3); }
 .an-updated { margin: 6px 0 0; }
 .an-chart svg { display: block; touch-action: pan-y; }
-.an-zone rect { opacity: 0.08; }
-.an-zone.s2 rect { opacity: 0.15; }
-.an-zone.s3 rect { opacity: 0.24; }
+/* Todas con la misma intensidad: la fuerza que da el modelo no distingue las zonas que aguantan (eval_analysis) */
+.an-zone rect { opacity: 0.15; }
 .an-zone.support rect { fill: var(--band-1); }
 .an-zone.resistance rect { fill: var(--band-5); }
 .an-zone text { font-size: 10px; font-weight: 600; opacity: 0.8; }
@@ -880,9 +879,6 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-id.support { color: var(--band-1); }
 .an-id.resistance { color: var(--band-5); }
 .an-id.current { color: var(--muted); cursor: help; }
-.an-strength { display: inline-flex; gap: 3px; }
-.an-strength i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
-.an-strength i.on { background: var(--fg); }
 
 /* Aviso legal, privacidad y cookies */
 .legal { max-width: 820px; line-height: 1.55; }

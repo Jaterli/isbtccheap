@@ -373,7 +373,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "¿Qué muestra?",
-        p: "Las zonas de soporte y resistencia más cercanas al precio, con su fuerza; el sesgo de corto plazo y la confianza en él; el movimiento más probable en las próximas horas, con el precio que lo invalidaría, y un escenario alternativo. Antes de publicarse se comprueba que todo sea coherente con el precio: zonas a cada lado y objetivos razonables.",
+        p: "Las dos zonas de soporte y las dos de resistencia más cercanas al precio; el sesgo de corto plazo y la confianza en él; el movimiento más probable en las próximas horas, con el precio que lo invalidaría, y un escenario alternativo. Antes de publicarse se comprueba que todo sea coherente con el precio: zonas a cada lado y objetivos razonables.",
       },
       {
         h: "¿Es una predicción?",
@@ -392,7 +392,7 @@ export const SEO_ANALYSIS: Record<"es" | "en", VolSeoText> = {
       },
       {
         h: "What does it show?",
-        p: "The support and resistance zones closest to the price, with their strength; the short-term bias and the confidence in it; the most likely move over the next hours, with the price that would invalidate it, and an alternative scenario. Before publishing, everything is checked for consistency with the price: zones on each side and reasonable targets.",
+        p: "The two support and two resistance zones closest to the price; the short-term bias and the confidence in it; the most likely move over the next hours, with the price that would invalidate it, and an alternative scenario. Before publishing, everything is checked for consistency with the price: zones on each side and reasonable targets.",
       },
       {
         h: "Is it a prediction?",

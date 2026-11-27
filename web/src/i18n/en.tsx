@@ -291,12 +291,11 @@ export const en: Messages = {
     rest: "BTC's situation today according to an AI analysis: support and resistance, market bias and what is most likely over the next hours and 1-2 days.",
     card: "Zones and outlook",
     info: [
-      "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, stronger when they are more solid, and the bias.",
+      "An AI model receives raw market data (weekly, daily, 4h and 1h candles with indicators computed from them plus market structure —highs and lows, breaks, RSI divergences and Fibonacci levels— and unfilled liquidity gaps —RSI, Bollinger, distance to moving averages and volatility—, open interest, long and short positioning, Fear & Greed and ETF flows), along with the medium- and high-impact headlines of the last 48 hours and this week's economic calendar, and makes its own analysis, with no levels or conclusions from this site. With it, it determines the support (green) and resistance (red) zones, the two closest on each side, and the bias.",
       "The solid arrow is what it considers most likely: first over the next hours and, from there, over 1-2 days. The dashed one is the alternative scenario for the next hours, and the short line, the price that would invalidate the main one. The dashed lines mark resting liquidity (highs and lows the price has not yet taken out, where stops build up) and the grey bands, unfilled gaps; the script computes them, not the model. The orange lines are the Fibonacci levels the model takes a target or invalidation from: they are computed levels, not zones where the price has reacted. Candles are 4h (or daily with the 1D selector, about 6 months, to see which levels have been reclaimed or lost) and run up to the time of the analysis, as the model saw them: they do not change until the next one, which runs Monday to Saturday at 12:00 and on Sundays at 18:00 (Madrid time). The underlying trend (weeks and months) is analysed separately, every Monday at 08:00, once the weekly candle has closed, and the daily analyses use it as context; if a daily close breaks one of its review levels, it is reviewed earlier.",
     ],
     bias: { alcista: "Bullish bias", bajista: "Bearish bias", neutral: "Neutral bias" },
     confidence: ["low confidence", "medium confidence", "high confidence"],
-    strength: ["Weak", "Medium", "Strong"],
     updated: (when: string, price: string) => `Analysis from ${when}, with BTC at ${price}.`,
     unavailable: "The analysis is not available yet.",
     close: "Close",
@@ -341,7 +340,7 @@ export const en: Messages = {
     levelsTitle: "Support and resistance",
     currentZone: "Current zone",
     currentZoneInfo: "Price is inside this reaction zone: it is neither support nor resistance until price leaves it.",
-    cols: { zone: "Zone", range: "Range", distance: "Distance", strength: "Strength" },
+    cols: { zone: "Zone", range: "Range", distance: "Distance" },
     note: (model: string) =>
       `Analysis, zones and scenarios generated with AI (${model}) with data from Binance, Alternative.me and TFTC; it may contain errors. It is a reading of the moment, not a prediction or investment advice.`,
     chartAria: "Bitcoin 4-hour candles with support and resistance zones and arrows toward the most likely move over the next hours and the alternative scenario",

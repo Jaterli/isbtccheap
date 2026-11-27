@@ -119,7 +119,7 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
             const top = y(Math.min(l.high, chart.hi));
             const bottom = y(Math.max(l.low, chart.lo));
             return (
-              <g key={l.id} className={`an-zone ${l.kind} s${l.strength}`}>
+              <g key={l.id} className={`an-zone ${l.kind}`}>
                 <rect x={PAD_L} width={plotW} y={top} height={Math.max(2, bottom - top)} />
                 <text x={PAD_L + 6} y={top + 12}>{l.id}</text>
               </g>
