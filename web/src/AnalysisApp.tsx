@@ -157,13 +157,8 @@ export function AnalysisApp() {
 
         {analysis && (
           <ul className="an-scenarios">
-            <li className={`an-scenario primary ${analysis.outlook.direction}`}>
-              <strong>{tx.mostLikely(analysis.outlook.horizon_hours)}</strong>
-              <span>
-                {tx.move(analysis.outlook.direction, usd(analysis.outlook.target))}
-                {analysis.outlook.invalidation !== null && ` ${tx.invalidatedAt(usd(analysis.outlook.invalidation))}`}
-              </span>
-            </li>
+            {/* Primero el de 1-2 días: es el que acierta por encima del azar (71 % frente a 48 %; el de horas, 55 % frente
+                a 53 %: eval_analysis, 74 análisis hasta el 27 nov 2026) */}
             {analysis.outlook_days && (
               <li className={`an-scenario primary ${analysis.outlook_days.direction}`}>
                 <strong>{tx.days}</strong>
@@ -173,6 +168,13 @@ export function AnalysisApp() {
                 </span>
               </li>
             )}
+            <li className={`an-scenario ${analysis.outlook_days ? "" : "primary "}${analysis.outlook.direction}`}>
+              <strong>{tx.mostLikely(analysis.outlook.horizon_hours)}</strong>
+              <span>
+                {tx.move(analysis.outlook.direction, usd(analysis.outlook.target))}
+                {analysis.outlook.invalidation !== null && ` ${tx.invalidatedAt(usd(analysis.outlook.invalidation))}`}
+              </span>
+            </li>
             <li className={`an-scenario ${analysis.alternative.direction}`}>
               <strong>{tx.alternative(analysis.outlook.horizon_hours)}</strong>
               <span>{tx.move(analysis.alternative.direction, usd(analysis.alternative.target))}</span>
@@ -191,14 +193,14 @@ export function AnalysisApp() {
               <strong>{tx.trend}</strong> {keepUnits(text.trend)}
             </p>
           )}
-          <p className="an-outlook">
-            <strong>{tx.nextHours}</strong> {keepUnits(text.outlook)}
-          </p>
           {text.outlook_days && (
             <p className="an-outlook">
               <strong>{tx.nextDays}</strong> {keepUnits(text.outlook_days)}
             </p>
           )}
+          <p className="an-outlook">
+            <strong>{tx.nextHours}</strong> {keepUnits(text.outlook)}
+          </p>
           {!!text.points?.length && (
             <>
               <h3>{tx.points}</h3>

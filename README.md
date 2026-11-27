@@ -154,14 +154,18 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   liquidez, imbalance, pivote, Fibonacci o ATR, y temporalidad); el script comprueba que haya un nivel así a menos de
   0,3 ATR diarios y, si no, lo avisa en el log con el nivel más cercano (solo lo registra, no descarta). Cada análisis se guarda también en
   `news/state/analysis_log.jsonl`, para medir después cuánto acierta. Tras publicar, el mismo análisis se repite en
-  sombra con otra configuración (`ANALYSIS_SHADOW_MODELS`, ahora GLM con esfuerzo `high`, que razona unas 6 veces
-  menos), con los mismos datos, sin textos ni publicación: solo se guarda en `news/state/analysis_shadow_log.jsonl`
-  para comparar su acierto. Si falla, no afecta a lo publicado; vacío, no se hace.
+  sombra con los mismos datos, sin textos ni publicación: solo se guarda en `news/state/analysis_shadow_log.jsonl`
+  para comparar su acierto. Ahora (v2, desde el 27 nov 2026) es el mismo modelo que el publicado
+  (`ANALYSIS_SHADOW_MODELS`, por defecto `glm-5.3-flash`) con dos reglas más: puede elegir un lateral con su rango
+  (acierta si ningún cierre de 1 h sale de él) y recibe su análisis anterior, y si cambia de dirección con el precio
+  casi igual tiene que decir qué ha cambiado. Si falla, no afecta a lo publicado; vacío, no se hace.
 - `eval_analysis.py`: mide el acierto de los análisis del registro con las velas de 1 h de Binance (objetivo antes que
   invalidación en su plazo), frente al que tendría un precio que se moviera al azar con esos objetivos e invalidaciones,
   por modelo, por semana y por la base del objetivo, si los objetivos guardan proporción con lo que se mueve el precio
   y cuántas veces cambia de dirección sin motivo. También cómo se comportan los soportes y resistencias (si se alcanzan,
-  aguantan o se rompen) por su fuerza, su posición (S1/R1…), su ancho y su tipo. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
+  aguantan o se rompen) por su fuerza, su posición (S1/R1…), su ancho y su tipo, frente al azar (la misma zona en otros
+  momentos de los 30 días antes y después). Con `--shadow`, por variante de la sombra: el acierto, las direcciones, los
+  laterales frente a su azar, los cambios de dirección de cada uno y sus motivos. No llama a ningún modelo: `news/run.sh eval_analysis.py` en el droplet,
   o en local tras copiar el registro (`--since AAAA-MM-DD` para evaluar desde un cambio). Con `--shadow`, compara el
   publicado con la sombra de la misma ejecución: el acierto de cada uno y en cuántas coinciden las direcciones.
 - `collect_derivatives.py`: va guardando en `news/state/derivatives_{1h,4h}.csv` el open interest, las cuentas en largo y

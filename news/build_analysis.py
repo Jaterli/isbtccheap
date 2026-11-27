@@ -237,6 +237,26 @@ SCHEMA = {
 }
 
 
+# Análisis en sombra v2: los escenarios admiten un lateral con su rango (range_low y range_high; 0 si no es lateral, y
+# entonces la invalidación es 0: el esquema estricto no admite nulos en todos los proveedores) y las claves llevan
+# direction_change, qué ha cambiado si da otra dirección que su análisis anterior
+MOVE_V2 = {"type": "object",
+           "properties": {**MOVE["properties"], "range_low": {"type": "number"}, "range_high": {"type": "number"}},
+           "required": [*MOVE["required"], "range_low", "range_high"], "additionalProperties": False}
+SHADOW_SCHEMA = {
+    **SCHEMA,
+    "properties": {
+        **SCHEMA["properties"],
+        "outlook": {**MOVE_V2, "properties": {**MOVE_V2["properties"], "horizon_hours": {"type": "integer"}},
+                    "required": [*MOVE_V2["required"], "horizon_hours"]},
+        "outlook_days": MOVE_V2,
+        "notes": {"type": "object", "properties": {"drivers": {"type": "array", "items": {"type": "string"}},
+                                                   "direction_change": {"type": "string"}},
+                  "required": ["drivers", "direction_change"], "additionalProperties": False},
+    },
+}
+
+
 # Los textos, en una segunda llamada con el análisis ya validado: así nunca contradicen lo que se publica (la
 # validación recorta zonas, corrige direcciones o descarta invalidaciones) y cada llamada razona solo su parte
 TEXT_SCHEMA = {"type": "object", "properties": {"es": TEXT, "en": TEXT}, "required": ["es", "en"], "additionalProperties": False}
@@ -1291,6 +1311,12 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
                     "soportes" if not sup else "resistencias")
 
     def move(m: dict, limit: float) -> dict:
+        # Lateral con rango (análisis en sombra v2): el precio debería quedarse entre sus bordes; ellos son la invalidación
+        if m.get("direction") == "lateral" and m.get("range_low") and m.get("range_high"):
+            lo, hi = sorted((float(m["range_low"]), float(m["range_high"])))
+            if not lo < price < hi or max(hi / price - 1, 1 - lo / price) > limit:
+                raise ValueError(f"rango lateral no válido: {lo:.0f}-{hi:.0f} con el precio en {price:.0f}")
+            return {"direction": "lateral", "target": round((lo + hi) / 2), "range": [round(lo), round(hi)], "invalidation": None}
         target = float(m["target"])
         if abs(target / price - 1) > limit:
             raise ValueError(f"objetivo fuera de rango: {target}")
@@ -1337,6 +1363,8 @@ def validate(a: dict, price: float, data: dict | None = None) -> dict:
     }
     notes = a.get("notes") or {}
     result["notes"] = {"drivers": [str(x).strip() for x in notes.get("drivers", []) if str(x).strip()]}
+    if str(notes.get("direction_change", "")).strip():  # análisis en sombra v2
+        result["notes"]["direction_change"] = str(notes["direction_change"]).strip()
     return result
 
 
@@ -1426,10 +1454,35 @@ def dry_run(price: float) -> dict:
             "alternative": {"direction": "alcista", "target": price * 1.015}, "es": text, "en": text}
 
 
-# Análisis en sombra (desde el 11 nov 2026): tras publicar, el mismo análisis con otra configuración, que solo se guarda en
-# SHADOW_LOG (sin textos ni publicación) para que eval_analysis compare su acierto con el publicado. Ahora, GLM con
-# esfuerzo "high": razona unas 6 veces menos, y falta saber si acierta lo mismo. Vacío (ANALYSIS_SHADOW_MODELS=), no se hace
-SHADOW_MODELS = llm.models_from_env("ANALYSIS_SHADOW_MODELS", "glm-5.3-flash@high")
+# Análisis en sombra: tras publicar, el mismo análisis con otra configuración, que solo se guarda en SHADOW_LOG (sin
+# textos ni publicación) para que eval_analysis compare su acierto con el publicado. Vacío (ANALYSIS_SHADOW_MODELS=), no
+# se hace.
+# v2 (desde el 27 nov 2026): el mismo modelo que el publicado con dos reglas más (SHADOW_RULES). Hasta entonces (74
+# análisis) el modelo nunca eligió lateral, y en 41 el precio no tocó ni el objetivo ni la invalidación en el plazo de
+# horas; y en 15 de 35 pares de análisis seguidos con el precio casi igual cambió de dirección. El de horas acertaba como
+# el azar (55 % frente a 53 %). Antes (desde el 11 nov), GLM con esfuerzo "high" y las mismas reglas
+SHADOW_MODELS = llm.models_from_env("ANALYSIS_SHADOW_MODELS", "glm-5.3-flash")
+SHADOW_VARIANT = "v2: lateral con rango y análisis anterior"
+SHADOW_RULES = """
+
+REGLAS ADICIONALES
+
+A. Lateral: en cada plazo (outlook y outlook_days), elige "lateral" cuando lo más probable es que el precio no llegue a \
+ningún nivel relevante y se quede entre dos niveles cercanos: sin un catalizador en la agenda o las noticias, con el \
+precio en mitad de un rango o con las velas de 1 h y 4 h sin dirección. Es frecuente: en más de la mitad de los \
+análisis anteriores el precio no tocó ni el objetivo ni la invalidación en el plazo de horas. Con "lateral": range_low \
+y range_high son los bordes del rango (niveles de los datos, uno por debajo y otro por encima del precio actual, a una \
+distancia acorde con el ATR del plazo), target es el precio actual e invalidation 0 (la invalidación son los bordes: un \
+cierre fuera del rango). Sin "lateral", range_low y range_high son 0. El alternativo de un lateral es la salida del \
+rango más probable, hacia arriba o hacia abajo.
+
+B. previous_analysis, si está, es tu análisis anterior: hace cuántas horas, el precio de entonces y sus escenarios. Si \
+das en un plazo una dirección distinta con el precio a menos de un 1 % del de entonces, di en notes.direction_change qué \
+ha cambiado (una ruptura, un dato, una noticia, un cambio en los derivados), con sus cifras. Si no ha cambiado nada \
+relevante, mantén la dirección o elige "lateral": cambiar de opinión sin motivo resta fiabilidad. Sin cambio de \
+dirección, direction_change es "".
+"""
+SHADOW_PREVIOUS_HOURS = 48  # un análisis anterior más antiguo ya no sirve de referencia
 SHADOW_LOG = "analysis_shadow_log.jsonl"
 LOG_FIELDS = ("generated_at", "model", "price", "levels", "current_zone", "bias", "confidence", "outlook", "outlook_days", "alternative")
 
@@ -1439,10 +1492,33 @@ def model_name(spec: str) -> str:
     return llm.label(spec) + (f"@{spec.partition('@')[2]}" if "@" in spec else "")
 
 
-def shadow(data: dict, user: str, published: dict) -> None:
-    """El análisis en sombra con los mismos datos que el publicado. Si falla, solo se avisa: no afecta a lo publicado."""
-    if not SHADOW_MODELS or published["model"] in map(model_name, SHADOW_MODELS):
-        return  # sin sombra, o lo publicado ya salió con esa configuración (el principal falló)
+def previous_shadow() -> dict | None:
+    """El último análisis en sombra de esta variante, como referencia para el siguiente (previous_analysis)."""
+    try:
+        lines = (STATE_DIR / SHADOW_LOG).read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return None
+    rows = [r for r in map(json.loads, filter(str.strip, lines)) if r.get("variant") == SHADOW_VARIANT]
+    if not rows:
+        return None
+    last = rows[-1]
+    hours = (datetime.now(timezone.utc) - datetime.fromisoformat(last["generated_at"])).total_seconds() / 3600
+    if hours > SHADOW_PREVIOUS_HOURS:
+        return None
+    keep = lambda m: {k: m[k] for k in ("direction", "target", "invalidation", "range") if k in m}
+    return {"hours_ago": round(hours, 1), "price": last["price"], "outlook": keep(last["outlook"]),
+            "outlook_days": keep(last["outlook_days"])}
+
+
+def shadow(data: dict, published: dict) -> None:
+    """El análisis en sombra con los mismos datos que el publicado (y su análisis anterior). Si falla, solo se avisa: no
+    afecta a lo publicado."""
+    if not SHADOW_MODELS:
+        return
+    view = model_view(data)
+    if prev := previous_shadow():
+        view["previous_analysis"] = prev
+    user = json.dumps(view, separators=(",", ":"))
     prices: list[float] = []
 
     def check(raw: dict) -> dict:
@@ -1450,15 +1526,16 @@ def shadow(data: dict, user: str, published: dict) -> None:
         return validate(raw, prices[-1], data)
 
     try:
-        result, spec = llm.complete(PROMPT, user, SCHEMA, "analisis-sombra", SHADOW_MODELS, check, max_tokens=32000)
+        result, spec = llm.complete(PROMPT + SHADOW_RULES, user, SHADOW_SCHEMA, "analisis-sombra", SHADOW_MODELS, check,
+                                    max_tokens=32000)
     except RuntimeError as e:
         log.warning("Análisis en sombra no disponible: %s", e)
         return
     row = {**result, "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "model": model_name(spec),
-           "price": round(prices[-1])}
+           "price": round(prices[-1]), "variant": SHADOW_VARIANT}
     with open(STATE_DIR / SHADOW_LOG, "a", encoding="utf-8") as f:
         f.write(json.dumps({**{k: row[k] for k in LOG_FIELDS}, "published_at": published["generated_at"],
-                            "notes": result.get("notes")}) + "\n")
+                            "variant": SHADOW_VARIANT, "notes": result.get("notes")}) + "\n")
     log.info("Sombra (%s): %s; horas: %s hacia %s; 1-2 días: %s hacia %s", row["model"], result["bias"],
              result["outlook"]["direction"], result["outlook"]["target"], result["outlook_days"]["direction"],
              result["outlook_days"]["target"])
@@ -1922,7 +1999,7 @@ def main() -> None:
              result["outlook"]["direction"], result["outlook"]["target"], result["outlook_days"]["direction"],
              result["outlook_days"]["target"], model, text_model)
     if not args.dry_run:  # después de publicar: no retrasa lo publicado
-        shadow(data, user, out)
+        shadow(data, out)
 
 
 if __name__ == "__main__":
