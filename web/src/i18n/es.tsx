@@ -455,6 +455,7 @@ export const es = {
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
       "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Las franjas marcan los días en que, además, los compradores recientes capitulaban (venta on-chain con pérdidas, la misma regla que la tarjeta de capitulación): la liquidación forzosa y la venta real a la vez. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
+      "**Riesgo de cascada**: el aviso aparece aquí y, con un punto rojo, junto a la categoría de sentimiento del índice, cuando el 70 % o más de las cuentas de Binance está en largo y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
     ],
     chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
     tfAria: "Temporalidad",
@@ -466,6 +467,17 @@ export const es = {
     note: "Franjas: días en niveles de capitulación de los compradores recientes (naranja) o en capitulación intensa (rojo). Datos de Coinalyze. Informativa: el índice no la usa.",
   },
 
+  cascade: {
+    badge: "Riesgo de cascada",
+    title: "Riesgo de cascada de liquidaciones de largos",
+    now: (longs: string, min: string, aboveLow: string | null, days: number | null): string =>
+      `El ${longs} de las cuentas de Binance está en largo (${min} o más)` +
+      (aboveLow !== null ? `, con el precio a solo un ${aboveLow} de su mínimo de 7 días, donde se acumulan sus stops` : "") +
+      (days !== null ? `${aboveLow !== null ? ", y" : ","} lleva así ${days} días seguidos` : "") +
+      ".",
+    history:
+      "En situaciones así (velas de 4 h de enero a noviembre de 2026), las caídas bruscas con liquidaciones masivas de largos eran unas 6 veces más frecuentes: hubo una en los 7 días siguientes en 3 de cada 4 casos, normalmente tras 2 o 3 días de rango o de caída lenta, y solo 1 de cada 4 veces el precio subió antes. Es una muestra corta y casi toda de mercado bajista: un aviso de riesgo, no una predicción. Informativo: el índice no lo usa.",
+  },
   gauge: { cheap: "Barato", expensive: "Caro" },
   capitulation: {
     card: "Capitulación de los compradores recientes",

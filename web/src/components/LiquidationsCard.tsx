@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { cascadeRisk, LONGS_MIN, type CascadeRisk } from "../lib/cascade";
 import { getJson } from "../lib/data";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
@@ -113,7 +114,7 @@ export function LiquidationsCard() {
   const tx = t.liquidations;
 
   return (
-    <section className="card chart vol lqd-card">
+    <section className="card chart vol lqd-card" id="liquidaciones">
       <header>
         <h2>
           {tx.card}
@@ -136,6 +137,7 @@ export function LiquidationsCard() {
         </div>
         {range.control}
       </div>
+      <CascadeNote />
       {view && view.time.length > 1 ? <LiqChart v={view} tf={tf} /> : <p className="muted chart-placeholder">{t.noData}</p>}
       <p className="muted small vol-note">{tx.note}</p>
     </section>
@@ -261,5 +263,26 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
         )}
       </svg>
     </div>
+  );
+}
+
+/** El riesgo de cascada de largos (lib/cascade.ts): solo cuando lo hay, con lo que lo dispara y lo que pasó otras veces */
+function CascadeNote() {
+  const [risk, setRisk] = useState<CascadeRisk | null>(null);
+  useEffect(() => {
+    cascadeRisk().then(setRisk, () => {});
+  }, []);
+  if (!risk?.active) return null;
+  const tx = t.cascade;
+  const pct = (v: number) => t.percent(v.toLocaleString(locale, { maximumFractionDigits: 0 }));
+  const days = Math.floor(risk.streakBars / 6);
+  return (
+    <p className="lqd-cascade" role="status">
+      <span className="cap-light cascade" aria-hidden="true">
+        <span className="cap-light-dot" />
+      </span>
+      <strong>{tx.title}.</strong> {tx.now(pct(risk.longs), pct(LONGS_MIN), risk.near ? t.percent((risk.aboveLow * 100).toLocaleString(locale, { maximumFractionDigits: 1 })) : null, risk.persistent ? days : null)}{" "}
+      {tx.history}
+    </p>
   );
 }

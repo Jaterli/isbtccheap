@@ -439,6 +439,7 @@ export const en: Messages = {
       "Leveraged positions in BTC perpetual futures that the exchange closes by force because the margin no longer covers the losses. **Longs** (red, downward): they bet on a rise and the price fell. **Shorts** (green, upward): they bet on a fall and the price rose.",
       "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. The bands mark the days when recent buyers were also capitulating (on-chain selling at a loss, the same rule as the capitulation card): forced liquidation and real selling at the same time. Informational: the index does not use it.",
       "Sum of Binance, Bybit, OKX, Huobi and Bitfinex in dollars (the whole market is larger). Data from Coinalyze, updated every hour; the last candle is in progress.",
+      "**Cascade risk**: the warning appears here and, with a red dot, next to the index's sentiment category, when 70% or more of Binance accounts are long and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest (4h candles from January to November 2026) cascades were about 6 times more frequent under those conditions. Informational: the index does not use it.",
     ],
     chartAria: "Long and short liquidations of BTC futures against the price",
     tfAria: "Timeframe",
@@ -449,6 +450,17 @@ export const en: Messages = {
     note: "Bands: days at recent buyers' capitulation levels (orange) or intense capitulation (red). Data from Coinalyze. Informational: the index does not use it.",
   },
 
+  cascade: {
+    badge: "Cascade risk",
+    title: "Long liquidation cascade risk",
+    now: (longs: string, min: string, aboveLow: string | null, days: number | null): string =>
+      `${longs} of Binance accounts are long (${min} or more)` +
+      (aboveLow !== null ? `, with price only ${aboveLow} above its 7-day low, where their stops pile up` : "") +
+      (days !== null ? `${aboveLow !== null ? ", and" : ","} it has been like this for ${days} days in a row` : "") +
+      ".",
+    history:
+      "In situations like this (4h candles from January to November 2026), sharp drops with massive long liquidations were about 6 times more frequent: there was one in the next 7 days in 3 out of 4 cases, usually after 2 or 3 days of ranging or slow decline, and only 1 in 4 times did price rise first. It is a short sample, almost all of it a bear market: a risk warning, not a prediction. Informational: the index does not use it.",
+  },
   gauge: { cheap: "Cheap", expensive: "Expensive" },
   capitulation: {
     card: "Recent buyers' capitulation",

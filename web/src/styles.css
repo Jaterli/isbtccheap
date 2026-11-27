@@ -292,6 +292,10 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .cap-light-dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
 .cap-light:hover .cap-light-text { text-decoration: underline; }
 @media (max-width: 639px) { .cap-light-text { display: none; } }
+/* Riesgo de cascada de liquidaciones de largos: rojo, como los largos del gráfico de liquidaciones */
+.cap-light.cascade { color: var(--band-5); }
+.lqd-cascade { margin: 8px 0 4px; font-size: 0.92rem; line-height: 1.45; }
+.lqd-cascade .cap-light { margin: 0 6px 0 0; }
 .cap-table { margin-top: 10px; white-space: normal; }
 .cap-table tbody th { font-weight: 500; }
 .cap-table td { white-space: nowrap; }

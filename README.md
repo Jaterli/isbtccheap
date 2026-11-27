@@ -172,6 +172,11 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   candidatas con las velas hasta entonces y mide si aguantan frente a su azar (la misma zona en otros momentos), en
   variantes de ancho, filtros y fuentes de nivel. Solo librería estándar; las velas se guardan en
   `news/state/zones_cache/`. En local: `python3 news/backtest_zones.py` (unos 2 minutos).
+- `backtest_cascades.py`: cascadas de liquidaciones de largos (velas de 4 h que caen un 3 % o más con liquidaciones de
+  largos de 3 veces su media) y estrujones de cortos: qué había al abrir la vela (cuentas en largo, interés abierto,
+  financiación, volatilidad, distancia al mínimo de 7 días, compras a mercado, prima de Coinbase, hora y fin de semana)
+  y qué combinaciones avisan, con su cobertura y su precisión. Coinalyze solo guarda unos 8 meses en 4 h.
+  `news/run.sh backtest_cascades.py` (usa `COINALYZE_API_KEY`).
 - `collect_derivatives.py`: va guardando en `news/state/derivatives_{1h,4h}.csv` el open interest, las cuentas en largo y
   las compras a mercado de Binance con el precio de cada vela. Binance solo guarda 30 días (500 puntos en 1 h), así que
   sin este histórico propio no se puede comprobar con un backtest si el sentimiento de 1 h y 4 h anticipa el precio: con

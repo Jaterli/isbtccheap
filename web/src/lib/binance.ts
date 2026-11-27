@@ -63,7 +63,7 @@ export interface Derivatives {
 /** Cada serie con la hora (ms) de sus puntos, que no siempre coinciden entre series. */
 export type DerivativesSeries = Record<keyof Derivatives, { time: number[]; value: number[] }>;
 
-async function futuresData(path: string, field: string, period: Timeframe) {
+export async function futuresData(path: string, field: string, period: Timeframe) {
   const rows = await cachedJson<Record<string, string | number>[]>(
     `${FUTURES_DATA}/${path}?symbol=BTCUSDT&period=${period}&limit=500`,
     TIMEOUT_MS,
