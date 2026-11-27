@@ -64,6 +64,29 @@ const PAGES: Record<Page, { input: string; en: string; seo: (lang: "es" | "en") 
 
 const pageMeta = (page: Page, lang: "es" | "en") => ({ ...META[page][lang], SEO: PAGES[page].seo(lang) });
 
+// Páginas con el dato del día: news/build_snapshot.py (cron del droplet) escribe en news/out/snapshot/ un bloque HTML y
+// la meta description, y nginx los inserta con SSI (web/nginx.conf). Sin ellos (o fuera de nginx) queda el texto fijo:
+// el stub de cada include. Solo en la compilación: en desarrollo no hay nginx
+const SNAPSHOT: Partial<Record<Page, string>> = { index: "home", analysis: "analysis" };
+
+function withSnapshot(html: string, page: Page, lang: "es" | "en") {
+  const name = SNAPSHOT[page];
+  if (!name) return html;
+  const file = (ext: string) => `/news/snapshot/${name}-${lang}.${ext}`;
+  const desc = META[page][lang].DESCRIPTION;
+  return html
+    .replace(
+      `<meta name="description" content="${desc}" />`,
+      `<!--# block name="desc" -->${desc}<!--# endblock -->` +
+        `<meta name="description" content='<!--# include virtual="${file("desc")}" stub="desc" -->' />`,
+    )
+    // Tras la introducción del texto para buscadores (dentro de #root: React lo sustituye)
+    .replace(
+      /(<main class="container seo-prerender"><h1>.*?<\/h1><p>.*?<\/p>)/,
+      `$1<!--# block name="none" --><!--# endblock --><!--# include virtual="${file("html")}" stub="none" -->`,
+    );
+}
+
 /** Escribe la versión en inglés de cada página bajo en/, con sus metadatos. */
 function i18nPages(): Plugin {
   const templates = new Map<Page, string>();
@@ -80,14 +103,15 @@ function i18nPages(): Plugin {
         const file = ctx.path.replace(/^\//, "");
         const page = (Object.keys(PAGES) as Page[]).find((p) => PAGES[p].input === file) ?? "index";
         templates.set(page, html);
-        return fillMeta(html, pageMeta(page, "es"));
+        const out = fillMeta(html, pageMeta(page, "es"));
+        return ctx.server ? out : withSnapshot(out, page, "es");
       },
     },
     writeBundle() {
       for (const [page, html] of templates) {
         const file = resolve(outDir, PAGES[page].en);
         mkdirSync(resolve(file, ".."), { recursive: true });
-        writeFileSync(file, fillMeta(html, pageMeta(page, "en")));
+        writeFileSync(file, withSnapshot(fillMeta(html, pageMeta(page, "en")), page, "en"));
       }
     },
   };

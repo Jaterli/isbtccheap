@@ -173,6 +173,12 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   (unos 8 meses), con el precio, para la tarjeta informativa de la página de sentimiento. Datos de Coinalyze con la clave
   gratuita `COINALYZE_API_KEY` de `news/.env`; no llama a ningún modelo. Sin el fichero, la tarjeta no se muestra.
 
+- `build_snapshot.py`: escribe en `news/out/snapshot/` el dato del día para los buscadores (score diario, precio,
+  categorías y último análisis en la portada; titular, resumen, sesgo y zonas en la de análisis) y la meta description
+  de esas dos páginas, en español e inglés. nginx los inserta con SSI en el HTML (`web/nginx.conf`, directivas puestas
+  por `web/vite.config.ts`): sin JavaScript, Google solo veía el texto fijo. Sin los ficheros, queda el texto fijo. Solo
+  librería estándar; no llama a ningún modelo.
+
 En el droplet, una vez:
 
 ```bash
@@ -210,6 +216,8 @@ crontab -e
 40 */6 * * *            /root/isbtccheap/news/run.sh collect_derivatives.py >> /var/log/isbtccheap-news.log 2>&1
 # Liquidaciones de futuros (Coinalyze): cada hora, con la vela de 4 h y la diaria en curso
 50 * * * *              /root/isbtccheap/news/run.sh build_liquidations.py >> /var/log/isbtccheap-news.log 2>&1
+# Dato del día para los buscadores (SSI): cada hora, a los 15 min (el análisis de las 12:00 de Madrid ya ha terminado)
+15 * * * *              /root/isbtccheap/news/run.sh build_snapshot.py >> /var/log/isbtccheap-news.log 2>&1
 ```
 
 Coste orientativo: menos de 1 $/mes en noticias y agenda (los duplicados, la tarea que más tokens gasta, van con el nivel gratuito de Gemini), más el análisis (unas 52 consultas al mes: unos 0,50 $ con GLM-5.3 Flash). En local: `python3 news/build_news.py` (o `--dry-run`, sin modelo) y `npm run dev`, que
