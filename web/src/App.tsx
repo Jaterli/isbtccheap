@@ -17,6 +17,7 @@ import { labelAt, lang, locale, PAGE_PATH, t } from "./i18n";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { getJson } from "./lib/data";
+import { utcToLocal } from "./lib/localTime";
 import { Donate } from "./components/Donate";
 import { InfoTip } from "./components/InfoTip";
 import { Faq } from "./components/Faq";
@@ -257,7 +258,7 @@ export function App() {
               {change !== null && <span className="status-sub muted">{t.status.candle(t.timeframes[tf].short)}</span>}
               <InfoTip label={t.priceInfo.label} title={t.priceInfo.title}>
                 <p>{t.priceInfo.body}</p>
-                <p>{t.priceInfo.changeInfo}</p>
+                <p>{t.priceInfo.changeInfo((({ time, shift }) => time + t.dayShift(shift))(utcToLocal(0)))}</p>
               </InfoTip>
             </div>
           </div>

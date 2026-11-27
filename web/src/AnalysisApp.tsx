@@ -7,6 +7,7 @@ import { InfoTip } from "./components/InfoTip";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
 import { ANALYSIS_URL, type Analysis, type ChartTf, TREND_URL, type Trend } from "./lib/analysis";
+import { madridToLocal, type LocalTime } from "./lib/localTime";
 import { fetchCandles } from "./lib/binance";
 import { usd } from "./lib/chart";
 import type { Candle } from "./types";
@@ -77,6 +78,10 @@ async function weeklyAt(at: number): Promise<Candle[]> {
 const signedPct = (v: number) =>
   `${v > 0 ? "+" : v < 0 ? "−" : ""}${t.percent(Math.abs(v).toLocaleString(locale, { maximumFractionDigits: 1 }))}`;
 
+// Horarios de los análisis (news/build_analysis.py, cron del droplet), en hora de Madrid: en la del visitante
+const localAt = (madridHour: number) => (({ time, shift }: LocalTime) => time + t.dayShift(shift))(madridToLocal(madridHour));
+const schedule = (p: string) => p.replace("{daily}", localAt(12)).replace("{sunday}", localAt(18)).replace("{weekly}", localAt(8));
+
 export function AnalysisApp() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   // La tendencia de fondo, aparte: se revisa cada lunes (sin ella, la del análisis, en los anteriores)
@@ -123,7 +128,7 @@ export function AnalysisApp() {
             {tx.card}
             <InfoTip label={tx.card} title={tx.card}>
               {tx.info.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p}>{schedule(p)}</p>
               ))}
             </InfoTip>
           </h2>
@@ -270,20 +275,20 @@ export function AnalysisApp() {
           </header>
           <p className="muted small an-updated">
             {tx.trendReviewed(
+              // En la hora del visitante, como el resto de horas de la web
               new Date(trend.generated_at).toLocaleString(locale, {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
                 hour: "2-digit",
                 minute: "2-digit",
-                timeZone: "Europe/Madrid",
-                timeZoneName: "short",
               }),
               trend.review.reason === "close_above" || trend.review.reason === "close_below"
                 ? tx.trendEarly(trend.review.reason === "close_above", usd(trend.review.level ?? 0))
                 : trend.review.reason === "target_reached"
                 ? tx.trendTargetReached(usd(trend.review.level ?? 0))
                 : null,
+              localAt(8),
             )}
           </p>
           {weekly && weekly.length > 1 && <TrendChart trend={trend} candles={weekly} />}

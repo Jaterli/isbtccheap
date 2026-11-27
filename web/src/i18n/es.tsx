@@ -303,7 +303,7 @@ export const es = {
     card: "Zonas y previsión",
     info: [
       "Un modelo de IA recibe datos de mercado en bruto (velas semanales, diarias, de 4 h y de 1 h con indicadores calculados con ellas además de la estructura de mercado —máximos y mínimos, rupturas, divergencias del RSI y niveles de Fibonacci— y los huecos de liquidez sin rellenar —RSI, Bollinger, distancia a las medias y volatilidad—, open interest, posiciones largas y cortas, Fear & Greed y flujos de los ETF), junto con los titulares de impacto medio y alto de las últimas 48 h y la agenda económica de la semana, y hace su propio análisis, sin niveles ni conclusiones de esta web. Con él determina las zonas de soporte (verde) y resistencia (rojo), las dos más cercanas de cada lado, y el sesgo.",
-      "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las líneas naranjas son los niveles de Fibonacci de los que el modelo saca algún objetivo o invalidación: son niveles calculados, no zonas donde el precio haya reaccionado. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a sábado a las 12:00 y los domingos a las 18:00 (hora de Madrid). La tendencia de fondo (semanas y meses) se analiza aparte, cada lunes a las 08:00, con la vela semanal ya cerrada, y los análisis diarios la usan como contexto; si un cierre diario supera uno de sus niveles de revisión, se revisa antes.",
+      "La flecha continua es lo que considera más probable: primero en las próximas horas y, desde ahí, en 1-2 días. La discontinua es el escenario alternativo de las próximas horas, y la línea corta, el precio que invalidaría el principal. Las líneas discontinuas marcan la liquidez pendiente (máximos y mínimos que el precio aún no ha superado, donde se acumulan stops) y las bandas grises, los huecos sin rellenar; los calcula el script, no el modelo. Las líneas naranjas son los niveles de Fibonacci de los que el modelo saca algún objetivo o invalidación: son niveles calculados, no zonas donde el precio haya reaccionado. Las velas son de 4 h (o diarias con el selector 1D, unos 6 meses, para ver qué niveles se han superado o perdido) y llegan hasta el momento del análisis, como las vio el modelo: no cambian hasta el siguiente, que se hace de lunes a sábado a las {daily} y los domingos a las {sunday} (hora local). La tendencia de fondo (semanas y meses) se analiza aparte, cada lunes a las {weekly} (hora local), con la vela semanal ya cerrada, y los análisis diarios la usan como contexto; si un cierre diario supera uno de sus niveles de revisión, se revisa antes.",
     ],
     bias: { alcista: "Sesgo alcista", bajista: "Sesgo bajista", neutral: "Sesgo neutral" },
     confidence: ["confianza baja", "confianza media", "confianza alta"],
@@ -328,9 +328,10 @@ export const es = {
       d === "alcista" ? `Subida hacia ${target}.` : d === "bajista" ? `Bajada hacia ${target}.` : `Movimiento lateral en torno a ${target}.`,
     invalidatedAt: (price: string) => `Se invalidaría si llega a ${price}.`,
     trend: "Tendencia de fondo:",
-    // La tendencia de fondo se revisa aparte, cada lunes a las 08:00 de Madrid (news/build_analysis.py --weekly)
-    trendReviewed: (day: string, early: string | null) =>
-      early ? `Revisión anticipada del ${day}: ${early}.` : `Se revisa cada lunes a las 08:00 (hora de Madrid); última revisión: ${day}.`,
+    // La tendencia de fondo se revisa aparte, cada lunes a las 08:00 de Madrid (news/build_analysis.py --weekly): `at`,
+    // esa hora en la del visitante
+    trendReviewed: (day: string, early: string | null, at: string) =>
+      early ? `Revisión anticipada del ${day}: ${early}.` : `Se revisa cada lunes a las ${at} (hora local); última revisión: ${day}.`,
     trendTitle: "Tendencia de fondo",
     trendDirection: { alcista: "Alcista", bajista: "Bajista", lateral: "Lateral" },
     trendReviewAbove: (p: string) => `Revisar si cierra por encima de ${p}`,
@@ -502,6 +503,8 @@ export const es = {
       (days !== null ? `${aboveLow !== null ? ", y" : ","} lleva así ${days} días seguidos` : "") +
       ".",
   },
+  // Una hora fija pasada a la del visitante: su cambio de día, si lo hay (lib/localTime.ts)
+  dayShift: (shift: number): string => (shift < 0 ? " del día anterior" : shift > 0 ? " del día siguiente" : ""),
   gauge: { cheap: "Barato", expensive: "Caro" },
   capitulation: {
     card: "Capitulación de los compradores recientes",
@@ -577,8 +580,9 @@ export const es = {
     label: "el precio",
     title: "Precio",
     body: "Último precio de BTC/USDT en Binance, tomado del cierre de la vela más reciente. Si Binance no está disponible, se muestra el precio diario de Coin Metrics.",
-    changeInfo:
-      "El porcentaje es la variación desde el cierre de la vela anterior de la temporalidad elegida: en 1 hora, desde el inicio de la hora; en 1 día, desde las 00:00 UTC; en 1 mes, en lo que va de mes.",
+    // `dayStart`: las 00:00 UTC (cuando abre la vela diaria) en la hora del visitante
+    changeInfo: (dayStart: string): string =>
+      `El porcentaje es la variación desde el cierre de la vela anterior de la temporalidad elegida: en 1 hora, desde el inicio de la hora; en 1 día, desde las ${dayStart} (hora local; las 00:00 UTC, cuando abre la vela diaria); en 1 mes, en lo que va de mes.`,
     change: (tf: string) => `Variación de la vela actual de ${tf}`,
   },
 
