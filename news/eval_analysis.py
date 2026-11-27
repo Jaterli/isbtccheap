@@ -15,6 +15,15 @@ Además compara la distancia a objetivos e invalidaciones con lo que de verdad s
 cuenta los cambios de dirección entre análisis seguidos con el precio casi igual. No llama a ningún modelo ni modifica
 el registro.
 
+Zonas: cada soporte o resistencia, la primera vez que aparece (las que se repiten en análisis seguidos cuentan una vez),
+por su fuerza, su posición (S1/R1, S2/R2, S3/R3) y su ancho:
+  no alcanzada  el precio no la toca en ZONE_REACH_HOURS
+  aguanta       tras tocarla, rebota ZONE_BOUNCE desde su borde antes de que un cierre de 1 h la atraviese, en
+                ZONE_HOLD_HOURS
+  rota          un cierre de 1 h la atraviesa antes
+  sin resolver  ni una cosa ni la otra en el plazo
+  pendiente     el plazo aún no ha terminado
+
 Con --shadow compara el análisis publicado con el análisis en sombra de la misma ejecución (state/analysis_shadow_log.jsonl:
 otra configuración con los mismos datos, que no se publica), solo en los pares que tienen los dos.
 
@@ -38,17 +47,21 @@ DAYS_HOURS = 48  # plazo del escenario de 1-2 días
 # Dos análisis seguidos "con el precio casi igual": separados menos de esto y con el precio a menos de un 0,5 %
 FLIP_HOURS = 8
 FLIP_PRICE = 0.005
+# Zonas: plazo para llegar a ellas, plazo para resolverse desde el primer toque y rebote que cuenta como «aguanta»
+ZONE_REACH_HOURS = 72
+ZONE_HOLD_HOURS = 48
+ZONE_BOUNCE = 0.015
 
 
-def candles(since_ms: int) -> list[tuple[int, float, float]]:
-    """(apertura, máximo, mínimo) de las velas de 1 h desde `since_ms`, paginando de 1000 en 1000."""
-    out: list[tuple[int, float, float]] = []
+def candles(since_ms: int) -> list[tuple[int, float, float, float]]:
+    """(apertura, máximo, mínimo, cierre) de las velas de 1 h desde `since_ms`, paginando de 1000 en 1000."""
+    out: list[tuple[int, float, float, float]] = []
     start = since_ms
     while True:
         req = urllib.request.Request(KLINES.format(start=start), headers=UA)
         with urllib.request.urlopen(req, timeout=30) as r:
             rows = json.loads(r.read())
-        out += [(row[0], float(row[2]), float(row[3])) for row in rows]
+        out += [(row[0], float(row[2]), float(row[3]), float(row[4])) for row in rows]
         if len(rows) < 1000:
             return out
         start = rows[-1][0] + 1
@@ -56,7 +69,7 @@ def candles(since_ms: int) -> list[tuple[int, float, float]]:
 
 def judge(bars, start: int, hours: float, price: float, direction: str, target: float, inval: float | None) -> str:
     end = start + hours * HOUR
-    for t, high, low in bars:
+    for t, high, low, _ in bars:
         if t + HOUR <= start:
             continue
         if t >= end:
@@ -96,6 +109,69 @@ def chance(price: float, direction: str, target: float, inval: float | None) -> 
         return None
     up, down = abs(target - price), abs(inval - price)
     return down / (up + down) if up + down else None
+
+
+def judge_zone(bars, start: int, z: dict) -> str:
+    """Qué hizo el precio con una zona desde el análisis (ver el docstring del módulo)."""
+    sup, lo, hi = z["kind"] == "support", z["low"], z["high"]
+    first = next((i for i, b in enumerate(bars) if b[0] + HOUR > start), None)
+    if first is None:
+        return "pendiente"
+    reach_end, touched = start + ZONE_REACH_HOURS * HOUR, None
+    for i in range(first, len(bars)):
+        t, high, low, _ = bars[i]
+        if t >= reach_end:
+            break
+        if (low <= hi) if sup else (high >= lo):
+            touched = i
+            break
+    if touched is None:
+        return "pendiente" if reach_end > bars[-1][0] + HOUR else "no alcanzada"
+    end = bars[touched][0] + ZONE_HOLD_HOURS * HOUR
+    for t, high, low, close in bars[touched:]:
+        if t >= end:
+            return "sin resolver"
+        if close < lo if sup else close > hi:
+            return "rota"
+        # El rebote, desde el borde de la zona y sin contar la vela del toque (en ella no se sabe qué fue antes)
+        if t > bars[touched][0] and (high >= hi * (1 + ZONE_BOUNCE) if sup else low <= lo * (1 - ZONE_BOUNCE)):
+            return "aguanta"
+    return "pendiente"
+
+
+def zone_summary(c: Counter) -> str:
+    done = c["aguanta"] + c["rota"]
+    held = f"aguanta {c['aguanta'] / done:.0%} de las resueltas" if done else "sin resueltas"
+    rest = ", ".join(f"{k} {c[k]}" for k in ("aguanta", "rota", "sin resolver", "no alcanzada", "pendiente") if c[k])
+    return f"{sum(c.values()):3} zonas: {held} ({rest})"
+
+
+def zones_report(rows: list[dict], bars) -> None:
+    by: dict[str, dict[str, Counter]] = {"Por fuerza": defaultdict(Counter), "Por posición": defaultdict(Counter),
+                                         "Por ancho": defaultdict(Counter), "Por tipo": defaultdict(Counter)}
+    seen = set()
+    for r in rows:
+        for z in r.get("levels", []):
+            key = (z["kind"], z["low"], z["high"])
+            if key in seen:
+                continue
+            seen.add(key)
+            res = judge_zone(bars, when(r), z)
+            width = (z["high"] - z["low"]) / ((z["high"] + z["low"]) / 2) * 100
+            by["Por fuerza"][f"fuerza {z['strength']}"][res] += 1
+            by["Por posición"][z["id"][1:] if "id" in z else "?"][res] += 1
+            by["Por ancho"]["1: < 2 %" if width < 2 else "2: 2-3 %" if width < 3 else "3: ≥ 3 %"][res] += 1
+            by["Por tipo"]["soporte" if z["kind"] == "support" else "resistencia"][res] += 1
+    if not seen:
+        return
+    print(f"\nZonas (cada una la primera vez que aparece; toque en {ZONE_REACH_HOURS} h, rebote del {ZONE_BOUNCE:.1%}"
+          f" antes de que un cierre de 1 h la atraviese, en {ZONE_HOLD_HOURS} h):")
+    for title, groups in by.items():
+        print(f"  {title}:")
+        for name, c in sorted(groups.items()):
+            # El prefijo de los anchos solo sirve para ordenarlos
+            label = f"S{name}/R{name}" if title == "Por posición" else name.split(": ")[-1]
+            print(f"    {label:14} {zone_summary(c)}")
 
 
 def count(c: Counter, res: str, base: float | None) -> None:
@@ -223,6 +299,7 @@ def main() -> None:
                 and a["outlook"]["direction"] != b["outlook"]["direction"])
     pairs = sum(1 for a, b in zip(rows, rows[1:]) if when(b) - when(a) < FLIP_HOURS * HOUR and abs(b["price"] / a["price"] - 1) < FLIP_PRICE)
     print(f"\nCambios de dirección entre análisis seguidos (< {FLIP_HOURS} h y precio a < {FLIP_PRICE:.1%}): {flips} de {pairs}")
+    zones_report(rows, bars)
 
 
 if __name__ == "__main__":
