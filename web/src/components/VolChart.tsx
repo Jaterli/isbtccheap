@@ -1,9 +1,12 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, useWidth } from "../lib/chart";
+import { dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
 import type { VolSeries } from "../lib/volatility";
 import { BtcIcon } from "./BtcIcon";
+
+const EDGE = 2; // margen a cada lado (las cifras de los ejes van dentro)
+const INSET = 4; // de las cifras de los ejes al borde
 
 const PAD_T = 10;
 const AXIS_H = 22;
@@ -22,8 +25,10 @@ export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
     const { y: yPrice, ticks: priceTicks } = logPriceScale(data.price, PAD_T, plotH);
     return { vMax, yVol: (v: number) => PAD_T + plotH - (v / vMax) * plotH, volTicks: niceTicks(0, vMax, 4), yPrice, priceTicks };
   }, [data, plotH]);
-  const PAD_L = axisPad(scale.volTicks.map((v) => pct(v)));
-  const plotW = width - PAD_L - axisPad(scale.priceTicks.map(shortUsd));
+  // Las cifras de los ejes van dentro del gráfico, pegadas a cada borde y sobre las líneas (con un contorno del color de
+  // la tarjeta, .axis-in): el gráfico ocupa todo el ancho, como las gráficas de métricas (ScoreChart)
+  const PAD_L = EDGE;
+  const plotW = width - 2 * EDGE;
   const N = data.time.length;
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
 
@@ -64,15 +69,19 @@ export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
         {chart.volTicks.map((tv) => (
           <g key={tv}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.yVol(tv)} y2={chart.yVol(tv)} className="grid" />
-            <text x={PAD_L - 6} y={chart.yVol(tv) + 4} className="axis" textAnchor="end">{pct(tv)}</text>
           </g>
-        ))}
-        {chart.priceTicks.map((p) => (
-          <text key={p} x={PAD_L + plotW + 6} y={chart.yPrice(p) + 4} className="axis">{shortUsd(p)}</text>
         ))}
         <path d={chart.volArea} className="vol-area" />
         <path d={chart.volLine} className="line-score" />
         <path d={chart.priceLine} className="line-price" />
+        <g className="axis-in">
+          {chart.volTicks.map((tv) => (
+            <text key={tv} x={PAD_L + INSET} y={chart.yVol(tv) + 4} className="axis">{pct(tv)}</text>
+          ))}
+          {chart.priceTicks.map((p) => (
+            <text key={p} x={PAD_L + plotW - INSET} y={chart.yPrice(p) + 4} className="axis" textAnchor="end">{shortUsd(p)}</text>
+          ))}
+        </g>
         {dateTicks.map((i, k) => (
           <text key={i} x={x(i)} y={H - 6} className="axis" textAnchor={k === 0 ? "start" : k === dateTicks.length - 1 ? "end" : "middle"}>
             {fmtTime(data.time[i], tf, false)}

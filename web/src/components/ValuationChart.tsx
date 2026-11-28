@@ -1,9 +1,12 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { t } from "../i18n";
-import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { ValuationSeries } from "../lib/valuation";
 
-const PAD_L = 8;
+// 2 px a cada lado: las cifras del eje van dentro del gráfico, pegadas al borde derecho y sobre las líneas (con un
+// contorno del color de la tarjeta, .axis-in), como en las gráficas de métricas
+const PAD_L = 2;
+const INSET = 4;
 const PAD_T = 10;
 const AXIS_H = 22;
 
@@ -17,7 +20,7 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
     () => logPriceScale([...data.price, ...data.wma200, ...data.trend, ...data.low].filter((v): v is number => v !== null), PAD_T, plotH),
     [data, plotH],
   );
-  const plotW = width - PAD_L - axisPad(scale.ticks.map(shortUsd));
+  const plotW = width - 2 * PAD_L;
   const H = PAD_T + plotH + AXIS_H;
   const N = data.time.length;
   const x = (i: number) => PAD_L + (N > 1 ? (i / (N - 1)) * plotW : 0);
@@ -81,7 +84,6 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
         {chart.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
-            <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
           </g>
         ))}
         <g clipPath="url(#val-plot)">
@@ -93,6 +95,11 @@ export function ValuationChart({ data }: { data: ValuationSeries }) {
           <path d={chart.realized} className="val-line val-realized" />
           <path d={chart.sth} className="val-line val-sth" />
           <path d={chart.price} className="line-price" />
+        </g>
+        <g className="axis-in">
+          {chart.ticks.map((p) => (
+            <text key={p} x={PAD_L + plotW - INSET} y={chart.y(p) + 4} className="axis" textAnchor="end">{shortUsd(p)}</text>
+          ))}
         </g>
 
         {dateTicks.map((i, k) => (

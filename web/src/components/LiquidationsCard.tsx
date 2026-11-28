@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad, dateTickIndexes, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { dateTickIndexes, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import { useHashScroll } from "../lib/hashScroll";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
@@ -33,6 +33,8 @@ const RANGES: Record<Tf, { id: string; days: number }[]> = {
 // La lectura marca lo que pasa de este múltiplo de su media de 90 días
 const RATIO_SHOWN = 2;
 const PAD_T = 10;
+const EDGE = 2; // margen a cada lado (las cifras de los ejes van dentro)
+const INSET = 4; // de las cifras de los ejes al borde
 const AXIS_H = 22;
 const DAY = 86_400_000;
 
@@ -149,8 +151,10 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
     const { y: yPrice, ticks: priceTicks } = logPriceScale(prices.length ? prices : [1, 2], PAD_T, plotH);
     return { y: (x: number) => y0 - x * k, y0, ticks, yPrice, priceTicks };
   }, [v, plotH]);
-  const PAD_L = axisPad(scale.ticks.map((x) => m(Math.abs(x), 0)));
-  const plotW = width - PAD_L - axisPad(scale.priceTicks.map(shortUsd));
+  // Las cifras de los ejes van dentro del gráfico, pegadas a cada borde y sobre las líneas (con un contorno del color de
+  // la tarjeta, .axis-in): el gráfico ocupa todo el ancho, como las gráficas de métricas (ScoreChart)
+  const PAD_L = EDGE;
+  const plotW = width - 2 * EDGE;
   const slot = plotW / N;
   const x = (i: number) => PAD_L + (i + 0.5) * slot;
 
@@ -199,20 +203,24 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
         {scale.ticks.map((tv) => (
           <g key={tv}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={scale.y(tv)} y2={scale.y(tv)} className="grid" />
-            <text x={PAD_L - 6} y={scale.y(tv) + 4} className="axis" textAnchor="end">
-              {m(Math.abs(tv), 0)}
-            </text>
           </g>
-        ))}
-        {scale.priceTicks.map((p) => (
-          <text key={p} x={PAD_L + plotW + 6} y={scale.yPrice(p) + 4} className="axis">
-            {shortUsd(p)}
-          </text>
         ))}
         <line x1={PAD_L} x2={PAD_L + plotW} y1={scale.y0} y2={scale.y0} className="lqd-zero" />
         <path d={chart.shorts} className="lqd-short" />
         <path d={chart.longs} className="lqd-long" />
         <path d={chart.price} className="line-price" />
+        <g className="axis-in">
+          {scale.ticks.map((tv) => (
+            <text key={tv} x={PAD_L + INSET} y={scale.y(tv) + 4} className="axis">
+              {m(Math.abs(tv), 0)}
+            </text>
+          ))}
+          {scale.priceTicks.map((p) => (
+            <text key={p} x={PAD_L + plotW - INSET} y={scale.yPrice(p) + 4} className="axis" textAnchor="end">
+              {shortUsd(p)}
+            </text>
+          ))}
+        </g>
         {dateTicks.map((i, k) => (
           <text key={i} x={x(i)} y={H - 6} className="axis" textAnchor={k === 0 ? "start" : k === dateTicks.length - 1 ? "end" : "middle"}>
             {fmtTime(v.time[i], tf, false)}

@@ -1,10 +1,13 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
+import { dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { DrawdownSeries } from "../lib/drawdown";
 import { BtcIcon } from "./BtcIcon";
 
-const PAD_L = 8;
+// 2 px a cada lado: las cifras del eje van dentro del gráfico, pegadas al borde derecho y sobre las líneas (con un
+// contorno del color de la tarjeta, .axis-in), como en las gráficas de métricas
+const PAD_L = 2;
+const INSET = 4;
 const PAD_T = 10;
 const GAP = 18;
 const AXIS_H = 22;
@@ -21,7 +24,7 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
   const priceH = small ? 190 : 250;
   const ddH = small ? 130 : 170;
   const scale = useMemo(() => logPriceScale([...data.price, ...data.ath], PAD_T, priceH), [data, priceH]);
-  const plotW = width - PAD_L - axisPad([...scale.ticks.map(shortUsd), ...DD_REFS.map(ddPct)]);
+  const plotW = width - 2 * PAD_L;
   const ddTop = PAD_T + priceH + GAP;
   const H = ddTop + ddH + AXIS_H;
   const N = data.time.length;
@@ -69,7 +72,6 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
         {chart.ticks.map((p) => (
           <g key={p}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(p)} y2={chart.y(p)} className="grid" />
-            <text x={PAD_L + plotW + 6} y={chart.y(p) + 4} className="axis">{shortUsd(p)}</text>
           </g>
         ))}
         <path d={chart.ath} className="dd-ath-line" />
@@ -78,11 +80,18 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
         {DD_REFS.map((f) => (
           <g key={f}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={yDd(f)} y2={yDd(f)} className={f === 0 || f === -1 ? "grid" : "grid grid-ref"} />
-            <text x={PAD_L + plotW + 6} y={yDd(f) + 4} className="axis">{ddPct(f)}</text>
           </g>
         ))}
         <path d={chart.ddArea} className="dd-area" />
         <path d={chart.ddLine} className="dd-line" />
+        <g className="axis-in">
+          {chart.ticks.map((p) => (
+            <text key={p} x={PAD_L + plotW - INSET} y={chart.y(p) + 4} className="axis" textAnchor="end">{shortUsd(p)}</text>
+          ))}
+          {DD_REFS.map((f) => (
+            <text key={f} x={PAD_L + plotW - INSET} y={yDd(f) + 4} className="axis" textAnchor="end">{ddPct(f)}</text>
+          ))}
+        </g>
 
         {dateTicks.map((i, k) => (
           <text key={i} x={x(i)} y={H - 6} className="axis" textAnchor={k === 0 ? "start" : k === dateTicks.length - 1 ? "end" : "middle"}>

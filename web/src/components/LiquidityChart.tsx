@@ -1,10 +1,12 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
+import { fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { LiquiditySeries } from "../lib/liquidity";
 import { BtcIcon } from "./BtcIcon";
 
 const PAD_T = 10;
+const EDGE = 2; // margen a cada lado (las cifras de los ejes van dentro)
+const INSET = 4; // de las cifras de los ejes al borde
 const AXIS_H = 22;
 const DAY = 86_400_000;
 
@@ -59,8 +61,10 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
     const { y: yPrice, ticks: priceTicks } = logPriceScale(prices.length ? prices : [1, 2], PAD_T, plotH);
     return { yRoc, rocTicks: niceTicks(lo, hi, 4), yPrice, priceTicks };
   }, [data, plotH]);
-  const PAD_L = axisPad(scale.rocTicks.map((v) => rocPct(v, 0)));
-  const plotW = width - PAD_L - axisPad(scale.priceTicks.map(shortUsd));
+  // Las cifras de los ejes van dentro del gráfico, pegadas a cada borde y sobre las líneas (con un contorno del color de
+  // la tarjeta, .axis-in): el gráfico ocupa todo el ancho, como las gráficas de métricas (ScoreChart)
+  const PAD_L = EDGE;
+  const plotW = width - 2 * EDGE;
   const H = PAD_T + plotH + AXIS_H;
   const t0 = Math.min(data.liqTime[0] ?? data.end, data.btcTime[0] ?? data.end);
   const t1 = data.end;
@@ -113,15 +117,7 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
         {chart.rocTicks.map((v) => (
           <g key={v}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.yRoc(v)} y2={chart.yRoc(v)} className={v === 0 ? "grid liq-zero" : "grid"} />
-            <text x={PAD_L - 6} y={chart.yRoc(v) + 4} className="axis" textAnchor="end">
-              {rocPct(v, 0)}
-            </text>
           </g>
-        ))}
-        {chart.priceTicks.map((p) => (
-          <text key={p} x={PAD_L + plotW + 6} y={chart.yPrice(p) + 4} className="axis">
-            {shortUsd(p)}
-          </text>
         ))}
         {/* Próximas semanas: la liquidez ya publicada anticipa un precio que aún no ha llegado */}
         {chart.lastPrice >= 0 && lastBtcTime < t1 && (
@@ -146,6 +142,18 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
             </text>
           </>
         )}
+        <g className="axis-in">
+          {chart.rocTicks.map((v) => (
+            <text key={v} x={PAD_L + INSET} y={chart.yRoc(v) + 4} className="axis">
+              {rocPct(v, 0)}
+            </text>
+          ))}
+          {chart.priceTicks.map((p) => (
+            <text key={p} x={PAD_L + plotW - INSET} y={chart.yPrice(p) + 4} className="axis" textAnchor="end">
+              {shortUsd(p)}
+            </text>
+          ))}
+        </g>
 
         {chart.dateTicks.map((tt, k) => (
           <text key={k} x={x(tt)} y={H - 6} className="axis" textAnchor={k === 0 ? "start" : k === chart.dateTicks.length - 1 ? "end" : "middle"}>

@@ -1,9 +1,12 @@
 import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad, linePath, useWidth } from "../lib/chart";
+import { linePath, useWidth } from "../lib/chart";
 import { CYCLE_DAYS, multAt, type Cycle } from "../lib/cycles";
 
-const PAD_L = 8;
+// 2 px a cada lado: las cifras del eje van dentro del gráfico, pegadas al borde derecho y sobre las líneas (con un
+// contorno del color de la tarjeta, .axis-in), como en las gráficas de métricas
+const PAD_L = 2;
+const INSET = 4;
 const PAD_T = 10;
 const AXIS_H = 22;
 
@@ -32,7 +35,7 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
     return { y, ticks };
   }, [cycles, plotH]);
 
-  const plotW = width - PAD_L - axisPad(scale.ticks.map(fmtMult));
+  const plotW = width - 2 * PAD_L;
   const x = (d: number) => PAD_L + (d / CYCLE_DAYS) * plotW;
   const chart = useMemo(
     () => ({ ...scale, lines: cycles.map((c) => linePath(c.mult, (i) => x(c.day[i]), scale.y)) }),
@@ -67,7 +70,6 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
         {chart.ticks.map((v) => (
           <g key={v}>
             <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.y(v)} y2={chart.y(v)} className={v === 1 ? "grid grid-ref" : "grid"} />
-            <text x={PAD_L + plotW + 6} y={chart.y(v) + 4} className="axis">{fmtMult(v)}</text>
           </g>
         ))}
         {[0, 1, 2, 3, 4].map((yr) => (
@@ -98,6 +100,11 @@ export function CyclesChart({ cycles, today }: { cycles: Cycle[]; today: number 
             </circle>
           ))}
 
+        <g className="axis-in">
+          {chart.ticks.map((v) => (
+            <text key={v} x={PAD_L + plotW - INSET} y={chart.y(v) + 4} className="axis" textAnchor="end">{fmtMult(v)}</text>
+          ))}
+        </g>
         {hover !== null && (
           <>
             <line x1={x(h)} x2={x(h)} y1={PAD_T} y2={PAD_T + plotH} className="crosshair" />

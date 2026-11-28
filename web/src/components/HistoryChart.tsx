@@ -1,6 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
-import { axisPad } from "../lib/chart";
 import { load4h } from "../lib/history4h";
 import type { History, Latest } from "../types";
 import { InfoTip } from "./InfoTip";
@@ -16,7 +15,10 @@ const RANGES = [
 const GAP = 18; // es también la barra para cambiar el alto
 const AXIS_H = 20;
 const HANDLE_H = 14;
-const PAD_L = 8;
+// 2 px a cada lado: las cifras de los ejes van dentro del gráfico, pegadas al borde derecho y sobre las líneas (con un
+// contorno del color de la tarjeta, .axis-in), como en las gráficas de métricas
+const PAD_L = 2;
+const INSET = 4;
 const MIN_SPAN = 14; // días
 const MIN_SPAN_4H = 12; // velas de 4 h (2 días)
 const LIMITS = { price: [80, 600], score: [50, 400] } as const;
@@ -128,10 +130,7 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
 
   const auto: Heights = { price: width < 520 ? 140 : width < 900 ? 170 : 220, score: width < 520 ? 80 : 100 };
   const heights = custom ?? auto;
-  // El margen del eje no sigue al zoom (el gráfico saltaría al arrastrar): se mide con el precio más alto del histórico,
-  // cuya etiqueta es la más ancha que puede salir, y con las del score
-  const padR = useMemo(() => axisPad([shortUsd(Math.max(...history.price)), "80"]), [history]);
-  const plotW = Math.max(50, width - PAD_L - padR);
+  const plotW = Math.max(50, width - 2 * PAD_L);
   const scoreTop = heights.price + GAP;
   const scoreBottom = scoreTop + heights.score;
   const H = scoreBottom + AXIS_H + HANDLE_H;
@@ -432,7 +431,6 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
           {chart.priceTicks.map((p, k) => (
             <g key={k}>
               <line x1={PAD_L} x2={PAD_L + plotW} y1={chart.yPrice(p)} y2={chart.yPrice(p)} className="grid" />
-              <text x={PAD_L + plotW + 6} y={chart.yPrice(p) + 4} className="axis">{shortUsd(p)}</text>
             </g>
           ))}
           <path d={chart.pricePath} className="line-price" clipPath={`url(#${uid}p)`} />
@@ -440,13 +438,20 @@ export function HistoryChart({ history: daily, latest }: { history: History; lat
           {[20, 40, 60, 80].map((t) => (
             <g key={t}>
               <line x1={PAD_L} x2={PAD_L + plotW} y1={yScore(t)} y2={yScore(t)} className="grid" />
-              <text x={PAD_L + plotW + 6} y={yScore(t) + 4} className="axis">{t}</text>
             </g>
           ))}
           <rect x={PAD_L} width={plotW} y={yScore(100)} height={yScore(80) - yScore(100)} className="zone-hot" />
           <rect x={PAD_L} width={plotW} y={yScore(20)} height={yScore(0) - yScore(20)} className="zone-cold" />
           {/* Debajo del score y atenuada: el protagonista es el score */}
           <path d={chart.scorePath} className="line-score" clipPath={`url(#${uid}s)`} />
+          <g className="axis-in">
+            {chart.priceTicks.map((p, k) => (
+              <text key={k} x={PAD_L + plotW - INSET} y={chart.yPrice(p) + 4} className="axis" textAnchor="end">{shortUsd(p)}</text>
+            ))}
+            {[20, 40, 60, 80].map((t) => (
+              <text key={t} x={PAD_L + plotW - INSET} y={yScore(t) + 4} className="axis" textAnchor="end">{t}</text>
+            ))}
+          </g>
 
           {/* Sin la marca que quedaría cortada por el borde izquierdo */}
           {ticks.filter((t) => x(t.i) >= PAD_L + 16).map((t) => (
