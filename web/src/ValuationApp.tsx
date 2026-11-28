@@ -4,7 +4,7 @@ import { Footer } from "./components/Footer";
 import { CATEGORY_KEY, CategoryScores } from "./components/CategoryScores";
 import { InfoTip } from "./components/InfoTip";
 import { Rich } from "./components/Rich";
-import { useRange } from "./components/RangeSelect";
+import { useRange, VALUATION_RANGES } from "./components/RangeSelect";
 import { ValuationChart } from "./components/ValuationChart";
 import { lang, locale, t } from "./i18n";
 import { SEO_VALUATION } from "./i18n/seo";
@@ -37,7 +37,7 @@ export function ValuationApp() {
   const [error, setError] = useState(false);
   // Precio para la tarjeta de las métricas de valoración
   const [history, setHistory] = useState<History | null>(null);
-  const range = useRange("isbtccheap:valuation-range");
+  const range = useRange("isbtccheap:valuation-range", "all", VALUATION_RANGES);
 
   useEffect(() => {
     getJson("bands.json").then(setBands, () => setError(true));

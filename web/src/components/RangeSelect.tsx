@@ -7,6 +7,8 @@ export const RANGES = [
   { id: "all", days: Infinity },
 ];
 export const LIQUIDITY_RANGES = [{ id: "6m", days: 182 }, ...RANGES];
+// Precio y niveles de valoración: también 8 años (dos ciclos de halving)
+export const VALUATION_RANGES = [...RANGES.filter((r) => r.id !== "all"), { id: "8y", days: 2922 }, ...RANGES.filter((r) => r.id === "all")];
 // Sentimiento: sin "Todo" (el Fear & Greed empieza en 2018), de 1 a 8 años
 export const SENTIMENT_RANGES = [...RANGES.filter((r) => r.id !== "all"), { id: "8y", days: 2922 }];
 // Para series cortas (flujos de ETF, desde 2024)
