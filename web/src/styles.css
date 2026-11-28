@@ -17,6 +17,10 @@
   --cycle-2016: #1f9aa0;
   --cycle-2020: var(--price);
   --gutter: 16px;
+  /* Ancho máximo de la página (antes 1200: las gráficas quedaban estrechas en pantallas grandes) y lo que las gráficas
+     entran en el relleno de su tarjeta, a cada lado */
+  --page-max: 1320px;
+  --chart-bleed: 8px;
   color-scheme: light;
 }
 
@@ -67,7 +71,7 @@ h1 { font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.1rem); letter-spacing: -0.02em; 
 h3 { font-size: 1rem; }
 header {position: relative;}
 .container {
-  max-width: 1200px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 24px var(--gutter) 40px;
   display: grid;
@@ -104,7 +108,7 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .brand-mini { display: none; flex: none; width: 44px; line-height: 0; }
 .site-bar.stuck {
   position: fixed; top: 0; left: 0; right: 0;
-  padding: 8px max(var(--gutter), calc((100% - 1200px) / 2 + var(--gutter)));
+  padding: 8px max(var(--gutter), calc((100% - var(--page-max)) / 2 + var(--gutter)));
 }
 .site-bar.stuck .brand-mini { display: block; animation: brand-in 0.25s ease-out; }
 @keyframes brand-in { from { opacity: 0; transform: scale(0.6); } }
@@ -523,12 +527,18 @@ html { overflow-x: clip; scroll-padding-top: 76px; }
 .chart-controls { display: flex; flex-wrap: wrap; gap: 6px; }
 .chart-controls button:disabled { opacity: 0.4; cursor: default; }
 .chart-readout { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 4px; font-size: 0.9rem; }
+/* Las gráficas, más anchas: entran var(--chart-bleed) en el relleno de la tarjeta a cada lado; su lectura conserva la
+   sangría, alineada con el resto del texto */
+.vol-chart, .an-chart, .history-card .chart-area { margin-inline: calc(-1 * var(--chart-bleed)); }
+.vol-chart > .chart-readout, .an-chart > .chart-readout { padding-inline: var(--chart-bleed); }
 /* Cada dato (rayita de color, icono y cifra) en una pieza; en móvil, algo más juntos para que quepan en una línea */
 .legend { white-space: nowrap; }
 @media (max-width: 399px) { .chart-readout { column-gap: 12px; } }
+/* En móvil, la lectura algo más pequeña */
+@media (max-width: 639px) { .chart-readout { font-size: 0.82rem; } }
 /* Logotipo de Bitcoin en lugar de "Precio": alineado con el texto (las reglas ".chart svg" y ".price-card svg" de los
    gráficos lo pondrían en bloque) */
-.chart svg.btc-icon, .price-card svg.btc-icon { display: inline-block; vertical-align: text-bottom; cursor: default; }
+.chart svg.btc-icon, .price-card svg.btc-icon, .legend svg.btc-icon { display: inline-block; vertical-align: text-bottom; cursor: default; }
 .legend::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 /* Con el icono de Bitcoin, la rayita, el icono y la cifra centrados en una misma línea */
 .legend:has(> .btc-icon) { display: inline-flex; align-items: center; gap: 4px; }
@@ -754,10 +764,17 @@ path.lqd-short { fill: var(--band-1); opacity: 0.8; }
 .legend.lqd-long::before { background: var(--band-5); }
 .legend.lqd-short::before { background: var(--band-1); }
 /* Días en niveles de capitulación (los colores del semáforo): franja detrás de las barras y etiqueta en la lectura */
-.lqd-cap { fill: var(--band-4); opacity: 0.16; }
-.lqd-cap.intense_capitulation { fill: var(--band-5); opacity: 0.2; }
-.lqd-cap-tag { color: var(--band-4); font-weight: 600; }
-.lqd-cap-tag.intense_capitulation { color: var(--band-5); }
+/* Franjas de las gráficas de métricas (ScoreChart: los días de capitulación en el SOPR y la pérdida realizada) y su
+   etiqueta en la lectura; umbrales del valor real, discontinuos */
+.chart-band { fill: var(--band-4); opacity: 0.16; }
+.chart-band.intense_capitulation { fill: var(--band-5); opacity: 0.2; }
+.band-tag { color: var(--band-4); font-weight: 600; }
+.band-tag.intense_capitulation { color: var(--band-5); }
+.value-ref { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
+.value-ref-label { font-size: 10px; }
+/* Cifras de los ejes dentro de las gráficas de métricas (ScoreChart): un contorno del color de la tarjeta, para que se
+   lean sobre las líneas */
+.axis-in text { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 .liq-ahead { fill: var(--accent); opacity: 0.06; }
 .liq-today { fill: var(--fg); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .liq-today-dot { stroke: var(--surface); stroke-width: 1.5; }
@@ -950,6 +967,8 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
    un subrayado punteado que invita a pulsarla; apagada, atenuada y tachada */
 .legend-toggle { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px; }
 .legend-toggle[aria-pressed="false"] { opacity: 0.5; text-decoration: line-through; }
+/* Muestra de las franjas en la leyenda: un cuadrado con el naranja de los niveles de capitulación */
+.legend.legend-bands::before { width: 10px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--band-4) 45%, transparent); }
 .legend-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 /* Temporalidad: botones del mismo tamaño que el resto. 1D, en turquesa, el mismo fondo que los periodos (velas diarias) */
 .sent-tfs button.daily.active, .sent-daily .segmented button.active {
@@ -1000,6 +1019,18 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .history-card .title-short { display: none; }
 /* Título y botones centrados en la misma línea, como en la tarjeta del precio (.card header los alinea por la base) */
 .card.history-card header { align-items: center; }
+/* Gráficas de métricas (ScoreChart) con zoom, como el score frente al precio: los botones al final de la fila de
+   selectores de la tarjeta en pantallas grandes y sobre la gráfica, arriba a la izquierda, en las pequeñas; el gesto
+   vertical en pantallas táctiles sigue moviendo la página (solo el horizontal mueve la gráfica) */
+.sc-zoom-slot { margin-left: auto; display: inline-flex; }
+.sc-zoom-slot:empty { display: none; }
+.sc-area { position: relative; }
+.sc-zoom-overlay { position: absolute; top: 4px; z-index: 1; opacity: 0.85; }
+.sc-zoom-overlay:hover, .sc-zoom-overlay:focus-within { opacity: 1; }
+@media (min-width: 640px) { .sc-zoom-overlay:not(.always) { display: none; } }
+@media (max-width: 639px) { .sc-zoom-header { display: none; } }
+.sc-pannable { touch-action: pan-y; cursor: grab; }
+.sc-pannable:active { cursor: grabbing; }
 .history-card .chart-zoom-overlay { position: absolute; top: 4px; left: 4px; z-index: 1; opacity: 0.85; }
 .history-card .chart-zoom-overlay:hover, .history-card .chart-zoom-overlay:focus-within { opacity: 1; }
 @media (min-width: 640px) { .history-card .chart-zoom-overlay { display: none; } }

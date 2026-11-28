@@ -2,6 +2,7 @@ import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, shortUsd, usd, useWidth } from "../lib/chart";
 import type { DrawdownSeries } from "../lib/drawdown";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 8;
 const PAD_T = 10;
@@ -55,7 +56,7 @@ export function DrawdownChart({ data }: { data: DrawdownSeries }) {
       <p className="chart-readout">
         <span className="muted num">{fmtTime(data.time[h], "1d", true)}</span>
         <span className="legend legend-price num">
-          {tx.legend.price} <strong>{usd(data.price[h])}</strong>
+          <BtcIcon size={14} label={tx.legend.price} /> <strong>{usd(data.price[h])}</strong>
         </span>
         <span className="legend dd-ath num">
           {tx.legend.ath} <strong>{usd(data.ath[h])}</strong>

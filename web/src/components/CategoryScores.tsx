@@ -222,6 +222,8 @@ export function CategoryScores({ history, file, category, metrics, info = [], tx
           </>
         )}
         {range.control}
+        {/* Los botones de zoom de la gráfica (ScoreChart), en pantallas grandes */}
+        <span id={`${storageKey}-zoom`} className="sc-zoom-slot" />
       </div>
 
       {/* Como en sentimiento y técnico: lo elegido en el desplegable, con su último dato (sin suavizar) y su ayuda */}
@@ -260,6 +262,8 @@ export function CategoryScores({ history, file, category, metrics, info = [], tx
           values={shown.values ?? undefined}
           format={(v, i) => format(k, v, i >= 0 ? shown.time[i] : shown.time.at(-1)!, i < 0)}
           aria={tx.chartAria}
+          zoomSlot={`${storageKey}-zoom`}
+          resetKey={range.nonce}
         />
       ) : (
         <p className="muted chart-placeholder" role="status">{error || (history && data && !full) ? t.charts.error : t.loading}</p>

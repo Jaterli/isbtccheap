@@ -2,6 +2,7 @@ import { useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { axisPad, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { LiquiditySeries } from "../lib/liquidity";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_T = 10;
 const AXIS_H = 22;
@@ -102,7 +103,7 @@ export function LiquidityChart({ data }: { data: LiquiditySeries }) {
       <p className="chart-readout">
         <span className="muted num">{date(th)}</span>
         <span className="legend legend-price num">
-          {tx.legend.price} <strong>{btc === null ? tx.legend.pending : usd(btc)}</strong>
+          <BtcIcon size={14} label={tx.legend.price} /> <strong>{btc === null ? tx.legend.pending : usd(btc)}</strong>
         </span>
         <span className="legend liq-roc num">
           {tx.legend.roc(li >= 0 ? date(data.srcTime[li]) : "—")} <strong>{roc === null ? "—" : rocPct(roc)}</strong>

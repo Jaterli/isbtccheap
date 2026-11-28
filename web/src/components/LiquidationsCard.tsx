@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { locale, t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, logPriceScale, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
-import { getJson } from "../lib/data";
 import { useHashScroll } from "../lib/hashScroll";
 import { InfoTip } from "./InfoTip";
 import { Rich } from "./Rich";
 import { useRange } from "./RangeSelect";
+import { BtcIcon } from "./BtcIcon";
 
 /** liquidations.json de news/build_liquidations.py (Coinalyze, cada hora): millones de dólares por vela, sin huecos */
 interface LiqSeries {
@@ -36,10 +36,6 @@ const PAD_T = 10;
 const AXIS_H = 22;
 const DAY = 86_400_000;
 
-type CapLevel = "capitulation_levels" | "intense_capitulation";
-// Día UTC (AAAA-MM-DD) de una vela: las de 4 h caen en el día de capitulación de su fecha
-const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
-
 const m = (v: number, d = 1) => t.liquidations.m(v.toLocaleString(locale, { maximumFractionDigits: d }));
 
 /**
@@ -67,28 +63,10 @@ export function LiquidationsCard() {
   const range4h = useRange("isbtccheap:liq-range-4h", "6m", RANGES["4h"]);
   const range = tf === "1d" ? range1d : range4h;
 
-  // Días en niveles de capitulación (capitulation.json del pipeline): se sombrean detrás de las barras
-  const [capDays, setCapDays] = useState<Map<string, CapLevel>>(new Map());
   useEffect(() => {
     fetch(URL, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : null))
       .then(setData, () => {});
-    getJson("capitulation.json").then(
-      (c: { episodes?: { from: string; to: string; level: CapLevel; intense_days?: string[] }[] }) => {
-        // El nivel de cada día (el que daba la tarjeta de capitulación ese día), no el más alto del episodio
-        const days = new Map<string, CapLevel>();
-        for (const e of c.episodes ?? []) {
-          const intense = e.intense_days && new Set(e.intense_days);
-          for (let d = Date.parse(`${e.from}T00:00:00Z`); d <= Date.parse(`${e.to}T00:00:00Z`); d += DAY) {
-            const k = dayKey(d);
-            // Sin intense_days (un capitulation.json anterior), el nivel del episodio
-            days.set(k, !intense ? e.level : intense.has(k) ? "intense_capitulation" : "capitulation_levels");
-          }
-        }
-        setCapDays(days);
-      },
-      () => {},
-    );
   }, []);
 
   // La serie elegida, recortada al periodo, con la media de 90 días de los largos (calculada antes de recortar)
@@ -106,9 +84,8 @@ export function LiquidationsCard() {
     const n = s.long.length;
     const from = range.days === Infinity ? 0 : Math.max(0, n - Math.round((range.days * DAY) / s.step));
     const time = Array.from({ length: n - from }, (_, i) => s.start + (from + i) * s.step);
-    const cap = time.map((ms) => capDays.get(dayKey(ms)) ?? null);
-    return { time, long: s.long.slice(from), short: s.short.slice(from), close: s.close.slice(from), avg: avg.slice(from), cap };
-  }, [data, tf, range.days, capDays]);
+    return { time, long: s.long.slice(from), short: s.short.slice(from), close: s.close.slice(from), avg: avg.slice(from) };
+  }, [data, tf, range.days]);
 
   // El enlace de la tarjeta de alertas (#liquidaciones): la tarjeta solo existe cuando llegan sus datos
   useHashScroll("liquidaciones", !!data);
@@ -151,7 +128,6 @@ interface View {
   short: number[];
   close: (number | null)[];
   avg: (number | null)[];
-  cap: (CapLevel | null)[];
 }
 
 function LiqChart({ v, tf }: { v: View; tf: Tf }) {
@@ -191,17 +167,7 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
       d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${scale.yPrice(p).toFixed(1)}`;
       pen = true;
     });
-    // Tramos seguidos con el mismo nivel de capitulación: una franja cada uno, de 3 px como poco para que un solo día se
-    // vea también en el histórico completo
-    const caps: { x: number; w: number; level: CapLevel }[] = [];
-    v.cap.forEach((c, i) => {
-      if (!c) return;
-      const last = caps.at(-1);
-      if (last && last.level === c && v.cap[i - 1] === c) last.w = PAD_L + (i + 1) * slot - last.x;
-      else caps.push({ x: PAD_L + i * slot, w: slot, level: c });
-    });
-    for (const c of caps) if (c.w < 3) Object.assign(c, { x: c.x + c.w / 2 - 1.5, w: 3 });
-    return { shorts: bars(v.short, 1), longs: bars(v.long, -1), price: d, caps };
+    return { shorts: bars(v.short, 1), longs: bars(v.long, -1), price: d };
   }, [v, scale, slot, PAD_L]);
   const dateTicks = useMemo(() => dateTickIndexes(N, plotW), [N, plotW]);
 
@@ -219,7 +185,7 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
       <p className="chart-readout">
         <span className="muted num">{fmtTime(v.time[h], tf, true)}</span>
         <span className="legend legend-price num">
-          {tx.legend.price} <strong>{price === null ? "—" : usd(price)}</strong>
+          <BtcIcon size={14} label={tx.legend.price} /> <strong>{price === null ? "—" : usd(price)}</strong>
         </span>
         <span className="legend lqd-long num">
           {tx.legend.long} <strong>{m(v.long[h])}</strong>
@@ -228,7 +194,6 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
         <span className="legend lqd-short num">
           {tx.legend.short} <strong>{m(v.short[h])}</strong>
         </span>
-        {v.cap[h] && <span className={`lqd-cap-tag ${v.cap[h]}`}>{t.capitulation.levels[v.cap[h]!]}</span>}
       </p>
       <svg width={width} height={H} role="img" aria-label={tx.chartAria} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {scale.ticks.map((tv) => (
@@ -243,9 +208,6 @@ function LiqChart({ v, tf }: { v: View; tf: Tf }) {
           <text key={p} x={PAD_L + plotW + 6} y={scale.yPrice(p) + 4} className="axis">
             {shortUsd(p)}
           </text>
-        ))}
-        {chart.caps.map((c) => (
-          <rect key={c.x} x={c.x} y={PAD_T} width={c.w} height={plotH} className={`lqd-cap ${c.level}`} />
         ))}
         <line x1={PAD_L} x2={PAD_L + plotW} y1={scale.y0} y2={scale.y0} className="lqd-zero" />
         <path d={chart.shorts} className="lqd-short" />

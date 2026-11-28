@@ -74,6 +74,8 @@ export function TechnicalApp() {
   const [tf, setTf] = useStored<TechTf>("isbtccheap:technical-tf", "4h", TECH_TFS);
   const [k, setK] = useStored<TechKey>("isbtccheap:technical-key", "tecnico", KEYS);
   const [smooth, setSmooth] = useStored<Smooth>("isbtccheap:technical-smooth", "0", SMOOTH);
+  // Pulsaciones de la temporalidad: el zoom de la gráfica vuelve a su estado con cada una
+  const [zoomReset, setZoomReset] = useState(0);
   const smoothScore = SMOOTH_SCORE[k];
   // El técnico no tiene valor propio: se suaviza su puntuación
   const smoothable = k === "tecnico" || smoothScore !== undefined;
@@ -153,7 +155,17 @@ export function TechnicalApp() {
           <MetricSelect value={k} onChange={(o) => setK(o as TechKey)} options={KEYS.map((o) => ({ id: o, label: label(o) }))} aria={tx.metricAria} />
           <div className="segmented small sent-tfs" role="radiogroup" aria-label={tx.tfAria}>
             {TECH_TFS.map((x) => (
-              <button key={x} role="radio" aria-checked={tf === x} className={tf === x ? "active" : ""} onClick={() => setTf(x)}>
+              <button
+                key={x}
+                role="radio"
+                aria-checked={tf === x}
+                className={tf === x ? "active" : ""}
+                onClick={() => {
+                  setTf(x);
+                  // También la ya elegida: el zoom de la gráfica vuelve a su estado
+                  setZoomReset((n) => n + 1);
+                }}
+              >
                 {t.timeframes[x].short}
               </button>
             ))}
@@ -177,6 +189,8 @@ export function TechnicalApp() {
               />
             </>
           )}
+          {/* Los botones de zoom de la gráfica (ScoreChart), en pantallas grandes */}
+          <span id="tech-zoom" className="sc-zoom-slot" />
         </div>
 
         {series && current && (
@@ -210,6 +224,8 @@ export function TechnicalApp() {
               // La categoría, su puntuación; cada métrica, su puntuación y su valor real
               mode={k === "tecnico" ? "score" : "both"}
               values={shown.values ?? undefined}
+              zoomSlot="tech-zoom"
+              resetKey={zoomReset}
               // En las marcas del eje (i = -1), sin decimales; en la lectura, con 2
               format={(v, i) =>
                 k === "tecnico"

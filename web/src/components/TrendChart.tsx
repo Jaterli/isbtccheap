@@ -3,6 +3,7 @@ import { t } from "../i18n";
 import type { Direction, Trend } from "../lib/analysis";
 import { axisPad, fmtTime, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { Candle } from "../types";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 4;
 const PAD_T = 10;
@@ -89,7 +90,7 @@ export function TrendChart({ trend, candles }: { trend: Trend; candles: Candle[]
       <p className="chart-readout">
         <span className="muted num">{tx.trendWeekOf(fmtTime(shown[h].time, "1d", true))}</span>
         <span className="legend legend-price num">
-          {tx.close} <strong>{usd(shown[h].close)}</strong>
+          <BtcIcon size={14} label={tx.close} /> <strong>{usd(shown[h].close)}</strong>
         </span>
         <span className="muted small">{tx.trendLegend}</span>
         {ahead && <span className="muted small">{tx.legendStyle}</span>}

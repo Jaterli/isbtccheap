@@ -188,6 +188,8 @@ export const es = {
     priceLegend: "Precio",
     // La línea discontinua del valor real, junto a su puntuación
     valueLegend: "Valor",
+    bandsToggle: "Mostrar u ocultar los días de capitulación",
+    bandsLegend: "Capitulaciones",
     scoreToggle: "Mostrar u ocultar la línea de la puntuación",
     tableTitle: "En los techos y suelos de ciclo",
     cols: { when: "Momento", price: "Precio" },
@@ -454,7 +456,7 @@ export const es = {
     card: "Liquidaciones de futuros",
     info: [
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
-      "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Las franjas marcan los días en que, además, los compradores recientes capitulaban (venta on-chain con pérdidas, la misma regla que la tarjeta de capitulación): la liquidación forzosa y la venta real a la vez. Informativa: el índice no la usa.",
+      "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
       "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo (el dato más reciente, de cada 5 minutos; una vez encendido, se apaga por debajo del 68 %) y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
     ],
@@ -465,7 +467,7 @@ export const es = {
     ratio: (x: string) => ` · ${x} su media`,
     times: (x: string) => `×${x}`,
     m: (v: string) => `${v} M$`,
-    note: "Franjas: días en niveles de capitulación de los compradores recientes (naranja) o en capitulación intensa (rojo). Datos de Coinalyze. Informativa: el índice no la usa.",
+    note: "Datos de Coinalyze. Informativa: el índice no la usa.",
   },
 
   alerts: {
@@ -706,7 +708,7 @@ export const es = {
     sth_sopr: {
       name: "SOPR de corto plazo (7 d)",
       what: "Spent Output Profit Ratio de los holders de corto plazo (monedas de menos de 150 días), media de 7 días: precio de venta entre precio de compra de las monedas que se movieron. +1 % es que vendieron de media con un 1 % de beneficio. Datos on-chain de Bitview.",
-      read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta).",
+      read: "Percentil frente a los últimos 4 años. Alto: los compradores recientes recogen beneficios, típico de mercados eufóricos (suma). Bajo: venden con pérdidas, capitulación típica de los suelos (resta). Las franjas marcan los días de capitulación (naranja: niveles; rojo: intensa), con la regla de la tarjeta de capitulación, que usa el SOPR del día; la línea discontinua es el 1.",
     },
     etf_flows: {
       name: "Flujos ETF al contado (20 ses.)",
@@ -742,7 +744,7 @@ export const es = {
     realized_loss_ratio: {
       name: "Pérdida realizada",
       what: "Lo que pierden cada día los holders que venden por debajo de lo que pagaron, frente a su media de 90 días: ×3 es el triple de lo habitual. Datos on-chain de Bitview.",
-      read: "Se puntúa al revés: mucha pérdida realizada es miedo y puntúa bajo (barato). Los picos de 5 veces su media o más suelen acompañar a las capitulaciones. Informativa: el índice no la usa.",
+      read: "Se puntúa al revés: mucha pérdida realizada es miedo y puntúa bajo (barato). Los picos de 5 veces su media o más suelen acompañar a las capitulaciones. Las franjas marcan los días de capitulación (naranja: niveles; rojo: intensa), con la regla de la tarjeta de capitulación, que usa la pérdida de los holders de corto plazo. Informativa: el índice no la usa.",
     },
     sth_mvrv_adj: {
       name: "MVRV de corto plazo ajustado",

@@ -180,6 +180,8 @@ export const en: Messages = {
     },
     priceLegend: "Price",
     valueLegend: "Value",
+    bandsToggle: "Show or hide capitulation days",
+    bandsLegend: "Capitulations",
     scoreToggle: "Show or hide the score line",
     tableTitle: "At cycle tops and bottoms",
     cols: { when: "When", price: "Price" },
@@ -437,7 +439,7 @@ export const en: Messages = {
     card: "Futures liquidations",
     info: [
       "Leveraged positions in BTC perpetual futures that the exchange closes by force because the margin no longer covers the losses. **Longs** (red, downward): they bet on a rise and the price fell. **Shorts** (green, upward): they bet on a fall and the price rose.",
-      "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. The bands mark the days when recent buyers were also capitulating (on-chain selling at a loss, the same rule as the capitulation card): forced liquidation and real selling at the same time. Informational: the index does not use it.",
+      "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. Informational: the index does not use it.",
       "Sum of Binance, Bybit, OKX, Huobi and Bitfinex in dollars (the whole market is larger). Data from Coinalyze, updated every hour; the last candle is in progress.",
       "**Cascade risk**: the warning appears in the alerts card on the home page when 70% or more of Binance accounts are long (the latest reading, every 5 minutes; once on, it turns off below 68%) and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest (4h candles from January to November 2026) cascades were about 6 times more frequent under those conditions. Informational: the index does not use it.",
     ],
@@ -447,7 +449,7 @@ export const en: Messages = {
     ratio: (x: string) => ` · ${x} their average`,
     times: (x: string) => `${x}×`,
     m: (v: string) => `$${v}M`,
-    note: "Bands: days at recent buyers' capitulation levels (orange) or intense capitulation (red). Data from Coinalyze. Informational: the index does not use it.",
+    note: "Data from Coinalyze. Informational: the index does not use it.",
   },
 
   alerts: {
@@ -682,7 +684,7 @@ export const en: Messages = {
     sth_sopr: {
       name: "Short-term SOPR (7d)",
       what: "Spent Output Profit Ratio of short-term holders (coins younger than 150 days), 7-day average: selling price divided by purchase price of the coins that moved. +1% means they sold at a 1% profit on average. On-chain data from Bitview.",
-      read: "Percentile versus the last 4 years. High: recent buyers are taking profits, typical of euphoric markets (adds). Low: they sell at a loss, the capitulation typical of bottoms (subtracts).",
+      read: "Percentile versus the last 4 years. High: recent buyers are taking profits, typical of euphoric markets (adds). Low: they sell at a loss, the capitulation typical of bottoms (subtracts). The bands mark capitulation days (orange: levels; red: intense), with the capitulation card rule, which uses the daily SOPR; the dashed line is 1.",
     },
     etf_flows: {
       name: "Spot ETF flows (20 sessions)",
@@ -717,7 +719,7 @@ export const en: Messages = {
     realized_loss_ratio: {
       name: "Realized loss",
       what: "What holders who sell below their purchase price lose each day, against its 90-day average: ×3 is three times the usual. On-chain data from Bitview.",
-      read: "Scored in reverse: a large realized loss is fear and scores low (cheap). Spikes of 5 times the average or more tend to come with capitulations. Informational: the index does not use it.",
+      read: "Scored in reverse: a large realized loss is fear and scores low (cheap). Spikes of 5 times the average or more tend to come with capitulations. The bands mark capitulation days (orange: levels; red: intense), with the capitulation card rule, which uses short-term holders' loss. Informational: the index does not use it.",
     },
     sth_mvrv_adj: {
       name: "Adjusted short-term MVRV",

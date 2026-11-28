@@ -3,6 +3,7 @@ import { t } from "../i18n";
 import type { Analysis, ChartTf, Direction } from "../lib/analysis";
 import { axisPad, fmtTime, niceTicks, shortUsd, usd, useWidth } from "../lib/chart";
 import type { Candle } from "../types";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 4;
 const PAD_T = 10;
@@ -92,7 +93,7 @@ export function AnalysisChart({ analysis: a, candles, tf }: { analysis: Analysis
       <p className="chart-readout">
         <span className="muted num">{fmtTime(shown[h].time, tf, true)}</span>
         <span className="legend legend-price num">
-          {tx.close} <strong>{usd(shown[h].close)}</strong>
+          <BtcIcon size={14} label={tx.close} /> <strong>{usd(shown[h].close)}</strong>
         </span>
         {!daily && <span className="muted small">{tx.legendStyle}</span>}
         {(pools.length > 0 || gaps.length > 0) && <span className="muted small">{tx.legendLiquidity}</span>}

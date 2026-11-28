@@ -5,6 +5,7 @@ import type { CategoriesSeries } from "../lib/categories";
 import { ROWS } from "../lib/categories";
 import type { PriceSeries } from "../lib/series";
 import { bandColor } from "./Gauge";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_L = 8;
 const PAD_T = 10;
@@ -85,7 +86,7 @@ export function HeatmapChart({ data, rows, labels, bold, detail, marks = [], ari
       <p className="chart-readout">
         <span className="muted num">{fmtTime(data.time[h], "1d", true)}</span>
         <span className="legend legend-price num">
-          {tx.priceLegend} <strong>{usd(data.price[h])}</strong>
+          <BtcIcon size={14} label={tx.priceLegend} /> <strong>{usd(data.price[h])}</strong>
         </span>
         {rows.map((row) => {
           const v = rowOf(data, row)[h];

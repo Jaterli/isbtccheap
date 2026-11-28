@@ -14,6 +14,7 @@ import { lang, locale, t } from "./i18n";
 import { SEO_SENTIMENT } from "./i18n/seo";
 import { compactNum } from "./lib/chart";
 import { getJson } from "./lib/data";
+import { capitulationDays, dayKey, type CapLevel } from "./lib/capitulationDays";
 import { smaNullable } from "./lib/indicators";
 import {
   INFO_METRICS,
@@ -57,6 +58,12 @@ const AXIS_FORMAT: Partial<Record<SentimentMetric, (v: number) => string>> = {
   spot_buy_pct: (v) => pct(v, 0),
   sth_loss_pct: (v) => pct(v, 0),
 };
+
+// Las dos métricas de la regla de capitulación: en su gráfica, los días en que se cumplía (franjas). Sus umbrales no se
+// dibujan: la regla usa el SOPR del día y la pérdida realizada de los holders de corto plazo, y estas gráficas son la
+// media de 7 días del SOPR y la pérdida de todos los holders. Solo el 1 del SOPR: por debajo, venden de media con pérdidas
+const CAP_BANDS: SentimentKey[] = ["sth_sopr", "realized_loss_ratio"];
+const REF_LINES: Partial<Record<SentimentKey, number[]>> = { sth_sopr: [1] };
 
 // Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D, las de periodo a elegir,
 // las que este diga)
@@ -137,6 +144,11 @@ export function SentimentApp() {
   const optionsFor = (x: SentimentTf): SentimentKey[] => ["sentimiento", ...TF_METRICS[x], ...INFO_METRICS];
   const keyFor = (x: SentimentTf): SentimentKey => (optionsFor(x).includes(stored) ? stored : "sentimiento");
   const options = optionsFor(tf);
+  // Días de capitulación (capitulation.json): franjas en las gráficas del SOPR y de la pérdida realizada, las dos
+  // métricas de su regla
+  const [capDays, setCapDays] = useState<Map<string, CapLevel> | null>(null);
+  // Pulsaciones de la temporalidad: el zoom de la gráfica vuelve a su estado con cada una
+  const [zoomReset, setZoomReset] = useState(0);
   const k = keyFor(tf);
   const series = loaded?.s ?? null;
   // Lo que se dibuja: la serie cargada, con su temporalidad y su elección, aunque ya se haya pedido otra
@@ -149,6 +161,7 @@ export function SentimentApp() {
   useEffect(() => {
     getJson("history.json").then(setHistory, () => setError(true));
     getJson("sentiment.json").then(setSent, () => setError(true));
+    capitulationDays().then(setCapDays, () => {});
   }, []);
 
   useEffect(() => {
@@ -245,7 +258,11 @@ export function SentimentApp() {
                 role="radio"
                 aria-checked={tf === x}
                 className={[x === "1d" && "daily", tf === x && "active"].filter(Boolean).join(" ")}
-                onClick={() => setTf(x)}
+                onClick={() => {
+                  setTf(x);
+                  // También la ya elegida: el zoom de la gráfica vuelve a su estado
+                  setZoomReset((n) => n + 1);
+                }}
               >
                 {t.timeframes[x].short}
               </button>
@@ -272,6 +289,8 @@ export function SentimentApp() {
             </>
           )}
           {tf === "1d" && !NO_RANGE.includes(k) && <div className="sent-daily">{range.control}</div>}
+          {/* Los botones de zoom de la gráfica (ScoreChart), en pantallas grandes */}
+          <span id="sent-zoom" className="sc-zoom-slot" />
         </div>
 
         {series && (
@@ -307,6 +326,12 @@ export function SentimentApp() {
               // La categoría, su puntuación; las informativas (el índice no las usa), su valor; las del índice, las dos
               mode={shownK === "sentimiento" ? "score" : isInfo(shownK) ? "value" : "both"}
               values={shownK === "sentimiento" ? undefined : shown.values[shownK]}
+              bands={CAP_BANDS.includes(shownK) && capDays ? shown.time.map((ms) => capDays.get(dayKey(ms)) ?? null) : undefined}
+              bandLabel={(c) => t.capitulation.levels[c as CapLevel]}
+              bandLegend={t.catHistory.bandsLegend}
+              refLines={REF_LINES[shownK]}
+              zoomSlot="sent-zoom"
+              resetKey={`${zoomReset}-${range.nonce}`}
               format={(v, i) => {
                 if (shownK === "sentimiento") return "";
                 // i = -1: marca del eje

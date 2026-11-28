@@ -26,8 +26,11 @@ export function useRange(key: string, fallback = "all", ranges = RANGES) {
       return fallback;
     }
   });
+  // Cada pulsación, aunque sea el periodo ya elegido: las gráficas con zoom vuelven con ella a verse enteras
+  const [nonce, setNonce] = useState(0);
   const select = (r: string) => {
     setRange(r);
+    setNonce((n) => n + 1);
     try {
       localStorage.setItem(key, r);
     } catch {
@@ -45,5 +48,5 @@ export function useRange(key: string, fallback = "all", ranges = RANGES) {
       </div>
     </div>
   );
-  return { days: ranges.find((r) => r.id === range)!.days, control };
+  return { days: ranges.find((r) => r.id === range)!.days, control, nonce };
 }

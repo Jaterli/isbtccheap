@@ -3,6 +3,7 @@ import { locale, t } from "../i18n";
 import { axisPad, dateTickIndexes, fmtTime, linePath, logPriceScale, niceTicks, shortUsd, useWidth } from "../lib/chart";
 import type { CandleTf } from "../lib/series";
 import type { VolSeries } from "../lib/volatility";
+import { BtcIcon } from "./BtcIcon";
 
 const PAD_T = 10;
 const AXIS_H = 22;
@@ -52,7 +53,7 @@ export function VolChart({ data, tf }: { data: VolSeries; tf: CandleTf }) {
       <p className="chart-readout">
         <span className="muted num">{fmtTime(data.time[h], tf, true)}</span>
         <span className="legend legend-price num">
-          {t.vol.priceLegend}{" "}
+          <BtcIcon size={14} label={t.vol.priceLegend} />{" "}
           <strong>{data.price[h].toLocaleString(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</strong>
         </span>
         <span className="legend legend-score num">
