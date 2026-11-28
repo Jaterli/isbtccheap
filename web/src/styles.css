@@ -927,6 +927,20 @@ footer .credit .support-link:hover { color: var(--fg); text-decoration-color: va
 .an-scenario.bajista { border-color: var(--band-5); }
 .an-scenario.lateral { border-color: var(--band-3); }
 .an-scenario:not(.primary) { opacity: 0.8; }
+/* Escenarios hasta una fecha (ScenariosCard): cada uno con el color de su dirección y su probabilidad en una barra */
+.an-year h2 { margin: 0 0 2px; font-size: 1.15rem; }
+.an-year-list { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 18px; }
+.an-year-item { padding-left: 12px; border-left: 3px solid var(--year-c); }
+.an-year-item.alcista { --year-c: var(--band-1); }
+.an-year-item.bajista { --year-c: var(--band-5); }
+.an-year-item.lateral { --year-c: var(--band-3); }
+.an-year-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.an-year-head strong { font-size: 1.05rem; }
+.an-year-prob { font-weight: 700; color: var(--year-c); }
+.an-year-bar { height: 6px; margin: 6px 0 8px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.an-year-bar i { display: block; height: 100%; border-radius: 3px; background: var(--year-c); }
+.an-year-item p { margin: 6px 0; }
+.an-year-label { font-weight: 600; font-size: 0.92rem; }
 .an-text h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .an-text > p { margin: 0 0 8px; line-height: 1.5; }
 .an-text h3 { margin: 12px 0 4px; font-size: 0.95rem; }

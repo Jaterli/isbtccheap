@@ -4,6 +4,7 @@ import { TrendChart } from "./components/TrendChart";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { InfoTip } from "./components/InfoTip";
+import { ScenariosCard } from "./components/ScenariosCard";
 import { lang, locale, t } from "./i18n";
 import { SEO_ANALYSIS } from "./i18n/seo";
 import { ANALYSIS_URL, type Analysis, type ChartTf, TREND_URL, type Trend } from "./lib/analysis";
@@ -324,6 +325,9 @@ export function AnalysisApp() {
           )}
         </section>
       )}
+
+      {/* Escenarios hasta fin de año (scenarios.json): a más largo plazo, como la tendencia de fondo */}
+      <ScenariosCard />
 
       <section className="card faq">
         <h2>{seo.sections[0].h}</h2>

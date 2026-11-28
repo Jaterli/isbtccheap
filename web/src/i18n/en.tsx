@@ -339,6 +339,13 @@ export const en: Messages = {
     nextHours: "Next hours:",
     nextDays: "1-2 days:",
     points: "Key points",
+    yearEnd: {
+      title: (d: string) => `Scenarios to ${d}`,
+      from: (d: string, price: string) => `Estimated on ${d}, with BTC at ${price}. From most to least likely.`,
+      range: (lo: string, hi: string) => `close between ${lo} and ${hi}`,
+      why: "What would support it:",
+      note: "Probabilities estimated from historical data and the current context: a reading of risk, not a prediction or investment advice.",
+    },
     levelsTitle: "Support and resistance",
     currentZone: "Current zone",
     currentZoneInfo: "Price is inside this reaction zone: it is neither support nor resistance until price leaves it.",

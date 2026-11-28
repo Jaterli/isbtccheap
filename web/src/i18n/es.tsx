@@ -352,6 +352,14 @@ export const es = {
     nextHours: "Próximas horas:",
     nextDays: "1-2 días:",
     points: "Claves",
+    // Escenarios hasta una fecha (scenarios.json)
+    yearEnd: {
+      title: (d: string) => `Escenarios hasta el ${d}`,
+      from: (d: string, price: string) => `Estimados el ${d}, con BTC a ${price}. De más a menos probable.`,
+      range: (lo: string, hi: string) => `cierre entre ${lo} y ${hi}`,
+      why: "Qué lo apoyaría:",
+      note: "Probabilidades estimadas con datos históricos y el contexto del momento: una lectura del riesgo, no una predicción ni una recomendación de inversión.",
+    },
     levelsTitle: "Soportes y resistencias",
     currentZone: "Zona actual",
     currentZoneInfo: "El precio está dentro de esta zona de reacción: no es soporte ni resistencia hasta que salga de ella.",

@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-11-28",
+  "horizon": "2026-12-31",
+  "price": 59124,
+  "scenarios": [
+    {
+      "id": "lateral",
+      "prob": 45,
+      "low": 54000,
+      "high": 65000,
+      "es": {
+        "title": "Rango",
+        "what": "El precio oscila entre el mínimo de noviembre (55.130 $) y la zona de 62.000-65.000 $ sin romper ninguno; las navidades, con poco volumen, frenan los movimientos grandes.",
+        "why": [
+          "Es lo más frecuente en diciembre de los años bajistas.",
+          "Miedo extremo (Fear & Greed en 10) sin capitulación.",
+          "La subida de tipos de la Fed del 9 de diciembre ya está descontada (91 % en Kalshi)."
+        ],
+        "change": "Un cierre diario por debajo de 55.000 $ o por encima de 65.000 $."
+      },
+      "en": {
+        "title": "Range",
+        "what": "Price swings between the November low ($55,130) and the $62,000-65,000 area without breaking either; the holidays, with low volume, damp big moves.",
+        "why": [
+          "It is the most common outcome in December of bear-market years.",
+          "Extreme fear (Fear & Greed at 10) without capitulation.",
+          "The Fed's 9 December rate hike is already priced in (91% on Kalshi)."
+        ],
+        "change": "A daily close below $55,000 or above $65,000."
+      }
+    },
+    {
+      "id": "bajista",
+      "prob": 33,
+      "low": 45000,
+      "high": 53000,
+      "es": {
+        "title": "Bajista",
+        "what": "Se pierde el mínimo de noviembre y salta la cascada de largos: primero, el precio realizado (unos 53.000 $, el coste medio de todo el mercado, perforado en los suelos de 2015, 2018, 2020 y 2022) y, con una capitulación completa, 45.000-50.000 $.",
+        "why": [
+          "El 75 % de las cuentas de Binance en largo desde hace días y el interés abierto en máximos de la semana: la alerta de cascada encendida, que en mercado bajista multiplicó por 3,4 las caídas bruscas.",
+          "En 2014 y 2018 el suelo llegó semanas después de Acción de Gracias, con otro 26-29 % de caída."
+        ],
+        "change": "La señal de final: una capitulación intensa (SOPR del día en 0,97 o menos con ventas en el contado), como en los suelos de 2024 y 2026."
+      },
+      "en": {
+        "title": "Bearish",
+        "what": "The November low gives way and the long cascade fires: first the realized price (about $53,000, the whole market's average cost, broken at the 2015, 2018, 2020 and 2022 bottoms) and, with full capitulation, $45,000-50,000.",
+        "why": [
+          "75% of Binance accounts long for days and open interest at its weekly high: the cascade alert is on, and in bear markets it made sharp drops 3.4 times more frequent.",
+          "In 2014 and 2018 the bottom came weeks after Thanksgiving, with another 26-29% decline."
+        ],
+        "change": "The sign it is over: an intense capitulation (daily SOPR at 0.97 or below with spot selling), as at the 2024 and 2026 bottoms."
+      }
+    },
+    {
+      "id": "alcista",
+      "prob": 22,
+      "low": 66000,
+      "high": 72000,
+      "es": {
+        "title": "Alcista",
+        "what": "Se recupera la zona de 62.000-65.000 $ y el rebote llega a la media de 200 semanas (unos 68.000 $) y, en el mejor caso, a la media de 200 días y al precio realizado de corto plazo (unos 72.000 $).",
+        "why": [
+          "Que el mínimo del 20 de noviembre fuera el suelo, como en 2011 y 2022, cuando llegó justo antes de Acción de Gracias.",
+          "Un estrujón de cortos si sube con tanta gente en largo y la financiación casi neutra.",
+          "Una Fed menos dura de lo esperado el 9 de diciembre."
+        ],
+        "change": "Por qué es el menos probable: desde 2014, en noviembre y diciembre de los años bajistas nunca subió más de un 10 % en este plazo, y el exceso de largos frena los rebotes hasta que se descarga."
+      },
+      "en": {
+        "title": "Bullish",
+        "what": "The $62,000-65,000 area is reclaimed and the rebound reaches the 200-week average (about $68,000) and, at best, the 200-day average and the short-term realized price (about $72,000).",
+        "why": [
+          "The 20 November low turning out to be the bottom, as in 2011 and 2022, when it came just before Thanksgiving.",
+          "A short squeeze if price rises with so many accounts long and funding near neutral.",
+          "A less hawkish Fed than expected on 9 December."
+        ],
+        "change": "Why it is the least likely: since 2014, in November and December of bear-market years it never rose more than 10% over this span, and the excess of longs holds back rebounds until it unwinds."
+      }
+    }
+  ],
+  "es": {
+    "basis": "Base: en 33 días desde un mercado bajista (precio bajo su media de 200 días y más de un 35 % por debajo de su máximo), desde 2014, BTC se quedó en rango (±10 %) el 42 % de las veces, cayó más de un 10 % el 27 % y subió más de un 10 % el 31 %. Los porcentajes de arriba la ajustan con la historia de diciembre en los años bajistas, el posicionamiento cargado de largos y la falta de capitulación.",
+    "watch": "Fechas a vigilar: las aperturas de Wall Street (14:30 UTC), la Fed el 9 de diciembre y los 55.000 $."
+  },
+  "en": {
+    "basis": "Base: over 33 days from a bear market (price below its 200-day average and more than 35% below its high), since 2014, BTC stayed in a range (±10%) 42% of the time, fell more than 10% 27% of the time and rose more than 10% 31% of the time. The percentages above adjust it with the history of December in bear-market years, long-heavy positioning and the lack of capitulation.",
+    "watch": "Dates to watch: the Wall Street opens (14:30 UTC), the Fed on 9 December and $55,000."
+  }
+}
