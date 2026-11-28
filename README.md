@@ -177,6 +177,10 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   financiación, volatilidad, distancia al mínimo de 7 días, compras a mercado, prima de Coinbase, hora y fin de semana)
   y qué combinaciones avisan, con su cobertura y su precisión. Coinalyze solo guarda unos 8 meses en 4 h.
   `news/run.sh backtest_cascades.py` (usa `COINALYZE_API_KEY`).
+- `backtest_cascades_daily.py`: el aviso de riesgo de cascada de la web con más histórico, en velas diarias (cuentas en
+  largo desde 2020 y liquidaciones desde 2021): qué parte de los días con aviso trae una cascada, cuántas avisa y qué
+  pasa en los 7 días siguientes, con el precio sobre y bajo su media de 200 días. Sus cifras son las del texto del aviso.
+  `news/run.sh backtest_cascades_daily.py` (usa `COINALYZE_API_KEY`).
 - `collect_derivatives.py`: va guardando en `news/state/derivatives_{1h,4h}.csv` el open interest, las cuentas en largo y
   las compras a mercado de Binance con el precio de cada vela. Binance solo guarda 30 días (500 puntos en 1 h), así que
   sin este histórico propio no se puede comprobar con un backtest si el sentimiento de 1 h y 4 h anticipa el precio: con

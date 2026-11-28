@@ -441,7 +441,7 @@ export const en: Messages = {
       "Leveraged positions in BTC perpetual futures that the exchange closes by force because the margin no longer covers the losses. **Longs** (red, downward): they bet on a rise and the price fell. **Shorts** (green, upward): they bet on a fall and the price rose.",
       "A spike in long liquidations flushes out leverage and sometimes marks a local bottom (August 2024), but not always: after the record of October 10, 2025 the price fell another 20% within 90 days. In the 2022-2026 backtest it did not anticipate the price, so it is context, not a signal. Informational: the index does not use it.",
       "Sum of Binance, Bybit, OKX, Huobi and Bitfinex in dollars (the whole market is larger). Data from Coinalyze, updated every hour; the last candle is in progress.",
-      "**Cascade risk**: the warning appears in the alerts card on the home page when 70% or more of Binance accounts are long (the latest reading, every 5 minutes; once on, it turns off below 68%) and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest (4h candles from January to November 2026) cascades were about 6 times more frequent under those conditions. Informational: the index does not use it.",
+      "**Cascade risk**: the warning appears in the alerts card on the home page when 70% or more of Binance accounts are long (the latest reading, every 5 minutes; once on, it turns off below 68%) and, in addition, price is near its 7-day low (in the closest 40% of its last 30 days) or that 70% has held for 3 days in a row. In the backtest on daily candles since 2021, cascades (days falling 5% or more with long liquidations of 3 times their average) were about 3 times more frequent with the warning: 3.4 times with price below its 200-day average and 2.2 above it. Informational: the index does not use it.",
     ],
     chartAria: "Long and short liquidations of BTC futures against the price",
     tfAria: "Timeframe",
@@ -463,8 +463,13 @@ export const en: Messages = {
     fold: "Collapse alerts",
     unfold: "Expand alerts",
     note: "Informational: they do not count in the score.",
-    cascadeHistory:
-      "In situations like this (4h candles from January to November 2026) there was a sharp drop with massive liquidations in the next 7 days in 3 out of 4 cases, usually after 2 or 3 days of ranging or slow decline. A short sample, almost all bearish: a risk warning, not a prediction.",
+    cascadeHistory: (bearish: boolean | null): string =>
+      (bearish === null
+        ? "In situations like this, sharp drops with massive long liquidations were about 3 times more frequent than usual: there was one in the next 7 days in 2 out of 5 cases, versus 1 in 5 without the warning."
+        : bearish
+          ? "In a bear market, as now (price below its 200-day average), sharp drops with massive long liquidations were about 3.4 times more frequent than usual: there was one in the next 7 days in 2 out of 5 cases (39%), versus 1 in 5 without the warning."
+          : "In a bull market, as now (price above its 200-day average), the risk is lower than in a bear market, but it exists: sharp drops with massive long liquidations were about 2 times more frequent than usual, and there was one in the next 7 days in slightly more than 1 in 3 cases (37%), versus 1 in 5 without the warning.") +
+      " Daily candles since 2021: a risk warning, not a prediction.",
     cascadeLink: "See liquidations",
     capitulationNow: (ratio: string | null, sopr: string | null): string =>
       "Recent buyers are selling at a loss" +

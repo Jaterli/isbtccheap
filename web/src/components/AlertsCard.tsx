@@ -88,7 +88,7 @@ export function AlertsCard({ rsi, tf, live }: Props) {
       title: t.cascade.title,
       text: `${t.cascade.now(t.percent(num(cascade.longs, 1)), pct(LONGS_MIN), cascade.near ? t.percent(num(cascade.aboveLow * 100, 1)) : null,
         cascade.persistent ? Math.floor(cascade.streakBars / 6) : null,
-        new Date(cascade.longsAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))} ${tx.cascadeHistory}`,
+        new Date(cascade.longsAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))} ${tx.cascadeHistory(cascade.bearish)}`,
       href: `${PAGE_PATH.sentiment[lang]}#liquidaciones`,
       link: tx.cascadeLink,
     });

@@ -458,7 +458,7 @@ export const es = {
       "Posiciones apalancadas en los futuros perpetuos de BTC que el exchange cierra a la fuerza porque el margen ya no cubre las pérdidas. **Largos** (rojo, hacia abajo): apostaban a que subía y el precio cayó. **Cortos** (verde, hacia arriba): apostaban a que bajaba y el precio subió.",
       "Un pico de liquidaciones de largos barre el apalancamiento y a veces marca un suelo local (agosto de 2024), pero no siempre: tras el récord del 10 de octubre de 2025 el precio cayó un 20 % más en 90 días. En el backtest de 2022-2026 no anticipó el precio, así que es contexto, no una señal. Informativa: el índice no la usa.",
       "Suma de Binance, Bybit, OKX, Huobi y Bitfinex en dólares (el total del mercado es mayor). Datos de Coinalyze, actualizados cada hora; la última vela va en curso.",
-      "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo (el dato más reciente, de cada 5 minutos; una vez encendido, se apaga por debajo del 68 %) y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest (velas de 4 h de enero a noviembre de 2026) las cascadas eran unas 6 veces más frecuentes en esas condiciones. Informativo: el índice no lo usa.",
+      "**Riesgo de cascada**: el aviso aparece en la tarjeta de alertas de la página principal cuando el 70 % o más de las cuentas de Binance está en largo (el dato más reciente, de cada 5 minutos; una vez encendido, se apaga por debajo del 68 %) y, además, el precio está cerca de su mínimo de 7 días (en el 40 % más cercano de sus últimos 30 días) o lleva 3 días seguidos con ese 70 %. En el backtest en velas diarias desde 2021, las cascadas (días que caen un 5 % o más con liquidaciones de largos de 3 veces su media) fueron unas 3 veces más frecuentes con el aviso: 3,4 veces con el precio bajo su media de 200 días y 2,2 sobre ella. Informativo: el índice no lo usa.",
     ],
     chartAria: "Liquidaciones de largos y cortos de los futuros de BTC frente al precio",
     tfAria: "Temporalidad",
@@ -481,8 +481,14 @@ export const es = {
     fold: "Plegar las alertas",
     unfold: "Desplegar las alertas",
     note: "Informativas: no cuentan en el score.",
-    cascadeHistory:
-      "En situaciones así (velas de 4 h de enero a noviembre de 2026) hubo una caída brusca con liquidaciones masivas en los 7 días siguientes en 3 de cada 4 casos, normalmente tras 2 o 3 días de rango o de caída lenta. Muestra corta y casi toda bajista: un aviso de riesgo, no una predicción.",
+    // Según el tipo de mercado (precio bajo o sobre su media de 200 días): backtest diario desde 2021
+    cascadeHistory: (bearish: boolean | null): string =>
+      (bearish === null
+        ? "En situaciones así, las caídas bruscas con liquidaciones masivas de largos fueron unas 3 veces más frecuentes de lo normal: hubo una en los 7 días siguientes en 2 de cada 5 casos, frente a 1 de cada 5 sin el aviso."
+        : bearish
+          ? "Con el mercado bajista, como ahora (precio bajo su media de 200 días), las caídas bruscas con liquidaciones masivas de largos fueron unas 3,4 veces más frecuentes de lo normal: hubo una en los 7 días siguientes en 2 de cada 5 casos (39 %), frente a 1 de cada 5 sin el aviso."
+          : "Con el mercado alcista, como ahora (precio sobre su media de 200 días), el riesgo es menor que en un bajista, pero existe: las caídas bruscas con liquidaciones masivas de largos fueron unas 2 veces más frecuentes de lo normal, y hubo una en los 7 días siguientes en algo más de 1 de cada 3 casos (37 %), frente a 1 de cada 5 sin el aviso.") +
+      " Velas diarias desde 2021: un aviso de riesgo, no una predicción.",
     cascadeLink: "Ver liquidaciones",
     capitulationNow: (ratio: string | null, sopr: string | null): string =>
       "Los compradores recientes venden con pérdidas" +

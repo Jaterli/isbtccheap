@@ -1,12 +1,13 @@
-import { fetchCandleHistory, futuresData } from "./binance";
+import { fetchCandleHistory, fetchCandles, futuresData } from "./binance";
 
 /**
- * Riesgo de cascada de liquidaciones de largos (news/backtest_cascades.py, velas de 4 h de enero a noviembre de 2026):
- * con el 70 % o más de las cuentas de Binance en largo y, además, el precio cerca de su mínimo de 7 días o ese 70 %
- * durante 3 días seguidos, las cascadas (velas de 4 h que caen un 3 % o más con liquidaciones de largos de 3 veces su
- * media) eran unas 6 veces más frecuentes que en cualquier vela. Tras el primer aviso de cada racha, hubo una en los 7
- * días siguientes en 3 de cada 4 casos (frente a 1 de cada 3 desde cualquier vela), normalmente tras 2 o 3 días de rango
- * o de caída lenta; solo 1 de cada 4 veces subió antes. Informativo: el índice no lo usa.
+ * Riesgo de cascada de liquidaciones de largos: el 70 % o más de las cuentas de Binance en largo y, además, el precio
+ * cerca de su mínimo de 7 días o ese 70 % durante 3 días seguidos. Backtest en velas diarias desde febrero de 2021
+ * (news/backtest_cascades_daily.py; cascada: un día que cae un 5 % o más con liquidaciones de largos de 3 veces su
+ * media): con el aviso, las cascadas fueron unas 3 veces más frecuentes que cualquier día, más en mercado bajista
+ * (precio bajo su media de 200 días: ×3,4) que en alcista (×2,2); tras el primer día de cada racha de avisos, hubo una
+ * en los 7 días siguientes en el 39 % y el 37 % de los casos, frente a un 22 % y un 21 % desde cualquier día. Por eso
+ * se dice en qué tipo de mercado estamos. Informativo: el índice no lo usa.
  */
 export const LONGS_MIN = 70;
 // Una vez encendido, se apaga por debajo de este (no por debajo del 70): con el dato de 5 minutos, rondando el 70 se
@@ -31,6 +32,8 @@ export interface CascadeRisk {
   persistent: boolean;
   /** Distancia del último cierre al mínimo de 7 días */
   aboveLow: number;
+  /** Mercado bajista: el precio bajo su media de 200 días (null si no se pudo calcular) */
+  bearish: boolean | null;
 }
 
 /** Si el aviso estaba encendido hace poco (en este navegador): entonces se apaga por debajo de LONGS_OFF */
@@ -57,10 +60,12 @@ function remember(on: boolean) {
  * backtest.
  */
 export async function cascadeRisk(): Promise<CascadeRisk | null> {
-  const [ls4h, ls5m, candles] = await Promise.all([
+  const [ls4h, ls5m, candles, daily] = await Promise.all([
     futuresData("globalLongShortAccountRatio", "longAccount", "4h"),
     futuresData("globalLongShortAccountRatio", "longAccount", "5m"),
     fetchCandleHistory("4h", LOW_BARS + PCT_BARS + 2),
+    // La media de 200 días, con las velas diarias cerradas (la última va en curso)
+    fetchCandles("1d", 202).catch(() => null),
   ]);
   const longs4h = ls4h.value.map((v) => v * 100);
   // La última vela de 4 h va en curso: solo las cerradas
@@ -79,5 +84,8 @@ export async function cascadeRisk(): Promise<CascadeRisk | null> {
   const persistent = streakBars >= PERSIST_BARS;
   const active = now >= (wasActive() ? LONGS_OFF : LONGS_MIN) && (near || persistent);
   remember(active);
-  return { active, longs: now, longsAt, streakBars, near, persistent, aboveLow };
+  const closed = daily ? daily.slice(0, -1) : [];
+  const sma = closed.length >= 200 ? closed.slice(-200).reduce((a, c) => a + c.close, 0) / 200 : null;
+  const bearish = sma === null ? null : bars[n].close < sma;
+  return { active, longs: now, longsAt, streakBars, near, persistent, aboveLow, bearish };
 }
