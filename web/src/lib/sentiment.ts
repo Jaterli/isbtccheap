@@ -1,11 +1,10 @@
 import type { History, Timeframe } from "../types";
 import { fetchCandles, fetchDerivativesSeries, fetchSpotFlow } from "./binance";
 import { cachedJson } from "./cache";
-import { percentileOfLast } from "./indicators";
 
 /** Métricas diarias del índice (sentiment.json, del pipeline) */
 export const DAILY_METRICS = ["fear_greed", "sth_sopr", "etf_flows"] as const;
-/** Derivados de Binance (solo guarda 30 días), en directo desde el navegador */
+/** Derivados del perpetuo de Binance: el histórico de Coinalyze (news/derivatives.json) y los últimos puntos de Binance */
 export const DERIV_METRICS = ["open_interest", "long_pct", "taker_pct"] as const;
 /**
  * Informativas: se muestran pero el índice no las usa (todavía). Los derivados de Binance (formaban el sentimiento de 1 h
@@ -57,7 +56,7 @@ export interface SentimentSeries {
 const HOUR = 3_600_000;
 const PERIOD: Record<SentimentTf, number> = { "1h": HOUR, "4h": 4 * HOUR, "1d": 24 * HOUR };
 // Velas en 1 h y 4 h. En 4 h, las 1.000 que da Binance en una petición (unos 5,5 meses): las métricas diarias del índice
-// llegan a todas; los derivados, solo a sus últimos 30 días (lo que guarda Binance), y su gráfica empieza ahí
+// llegan a todas; los derivados, a lo que guarda Coinalyze (en 1 h, unos 3 meses: más que las 500 velas)
 const INTRADAY_CANDLES: Record<"1h" | "4h", number> = { "1h": 500, "4h": 1000 };
 
 const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -79,27 +78,66 @@ function alignTo(time: number[], period: number, pts: { time: number[]; value: C
   return out;
 }
 
+
 /**
- * Puntuación de cada punto como la del índice en su último punto: percentil frente a los anteriores de la serie descargada
- * (hasta 30 días, como hace el índice con la serie entera), con un mínimo de 50 puntos.
+ * news/derivatives.json (build_liquidations.py, cada hora): el histórico de Coinalyze de las cuentas en largo, el interés
+ * abierto y las compras a mercado (en %) del perpetuo BTCUSDT de Binance. Binance solo da 30 días: en 1D no llegaba a los
+ * 50 puntos que pide la puntuación y la página salía sin datos
  */
-function rollingPercentile(xs: number[]): Col {
-  return xs.map((_, i) => percentileOfLast(xs.slice(0, i + 1)));
+interface CoinalyzeTf {
+  start: number;
+  step: number;
+  long_pct: (number | null)[];
+  open_interest: (number | null)[];
+  buy_pct: (number | null)[];
+}
+const DERIV_URL = `${import.meta.env.BASE_URL}news/derivatives.json`;
+// Ventana de la puntuación (informativa) en 1D: el último año; en 1 h y 4 h, toda la serie (unos 3 y 11 meses)
+const DERIV_DAILY_WINDOW = 365;
+type Pts = { time: number[]; value: number[] };
+
+/** El histórico de Coinalyze y, detrás, los puntos de Binance posteriores (el archivo se actualiza cada hora) */
+function merge(hist: CoinalyzeTf | null, key: keyof Omit<CoinalyzeTf, "start" | "step">, live: Pts): Pts {
+  if (!hist) return live;
+  const out: Pts = { time: [], value: [] };
+  hist[key].forEach((v, i) => {
+    if (v === null) return;
+    out.time.push(hist.start + i * hist.step);
+    out.value.push(v);
+  });
+  const last = out.time.at(-1) ?? -Infinity;
+  live.time.forEach((t, i) => {
+    if (t > last) {
+      out.time.push(t);
+      out.value.push(live.value[i]);
+    }
+  });
+  return out;
 }
 
 async function derivativeColumns(tf: SentimentTf, time: number[]) {
-  const d = await fetchDerivativesSeries(tf as Timeframe);
-  const longs = d.longShort.value.map(share);
-  // Como el índice: compras a mercado, media de las 3 últimas velas (desde la tercera)
-  const buys = d.takerRatio.value.map((_, i, xs) => (i < 2 ? null : share((xs[i] + xs[i - 1] + xs[i - 2]) / 3)));
+  const [d, hist] = await Promise.all([
+    fetchDerivativesSeries(tf as Timeframe).catch(() => null),
+    fetch(DERIV_URL, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: Record<string, CoinalyzeTf> | null) => j?.[tf] ?? null)
+      .catch(() => null),
+  ]);
+  if (!d && !hist) throw new Error("sin derivados");
+  const empty: Pts = { time: [], value: [] };
+  // Binance da cocientes (largos / cortos, compras / ventas): como parte del total, en %
+  const pct = (p: { time: number[]; value: number[] } | undefined): Pts => (p ? { time: p.time, value: p.value.map(share) } : empty);
+  const longs = merge(hist, "long_pct", pct(d?.longShort));
+  const oi = merge(hist, "open_interest", d?.openInterest ?? empty);
+  const buyShare = merge(hist, "buy_pct", pct(d?.takerRatio));
+  // Como el índice cuando las usaba: compras a mercado, media de las 3 últimas velas (desde la tercera)
+  const buys: Col = buyShare.value.map((_, i, xs) => (i < 2 ? null : (xs[i] + xs[i - 1] + xs[i - 2]) / 3));
+  const window = tf === "1d" ? DERIV_DAILY_WINDOW : Infinity;
+  const score = (xs: Col) => rollingPercentileWindow(xs, window);
   const col = (pts: { time: number[] }, v: Col) => alignTo(time, PERIOD[tf], { time: pts.time, value: v });
   return {
-    values: { open_interest: col(d.openInterest, d.openInterest.value), long_pct: col(d.longShort, longs), taker_pct: col(d.takerRatio, buys) },
-    scores: {
-      open_interest: col(d.openInterest, rollingPercentile(d.openInterest.value)),
-      long_pct: col(d.longShort, rollingPercentile(longs)),
-      taker_pct: col(d.takerRatio, [null, null, ...rollingPercentile(buys.slice(2) as number[])]),
-    },
+    values: { open_interest: col(oi, oi.value), long_pct: col(longs, longs.value), taker_pct: col(buyShare, buys) },
+    scores: { open_interest: col(oi, score(oi.value)), long_pct: col(longs, score(longs.value)), taker_pct: col(buyShare, score(buys)) },
   };
 }
 

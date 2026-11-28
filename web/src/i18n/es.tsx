@@ -246,7 +246,7 @@ export const es = {
     sigma: (z: number) => `${z > 0 ? "+" : z < 0 ? "−" : ""}${Math.abs(z).toLocaleString("es-ES", { maximumFractionDigits: 1 })}σ`,
     tfAria: "Temporalidad",
     metricAria: "Puntuación superpuesta al precio",
-    noData: "Sin datos: Binance no responde.",
+    noData: "Sin datos suficientes en esta temporalidad, o Binance no responde.",
     infoMetric: "Informativa: el índice no la usa (todavía)",
     infoGroup: "Informativas: el índice no las usa (todavía)",
     tableTitle: "Puntuación ahora y antes, en 4 h",
@@ -716,17 +716,17 @@ export const es = {
     open_interest: {
       name: "Open interest",
       what: "Bitcoins en contratos de futuros perpetuos abiertos en Binance: cuánto apalancamiento hay en el mercado.",
-      read: "Puntúa por su percentil en los últimos 30 días. Alto: mucho apalancamiento acumulado, que suele acabar en movimientos bruscos y liquidaciones (suma). Bajo: el mercado se ha desapalancado (resta).",
+      read: "Informativa (no cuenta en el índice). Su puntuación es su percentil: en 1D, frente al último año; en 1 h y 4 h, frente a todo el histórico de Coinalyze (unos 3 y 11 meses). Alto: mucho apalancamiento acumulado, que suele acabar en movimientos bruscos y liquidaciones (suma). Bajo: el mercado se ha desapalancado (resta).",
     },
     long_short: {
       name: "Cuentas en largo",
       what: "De las cuentas de Binance con posición en futuros de BTC, qué parte apuesta al alza (en largo). El 50 % es el equilibrio entre largos y cortos.",
-      read: "Puntúa por su percentil en los últimos 30 días. Se usa a la contra: cuando casi todos apuestan al alza, el mercado está saturado de compradores (suma); cuando dominan los cortos, al revés (resta).",
+      read: "Informativa (no cuenta en el índice). Su puntuación es su percentil: en 1D, frente al último año; en 1 h y 4 h, frente a todo el histórico de Coinalyze (unos 3 y 11 meses). Se lee a la contra: cuando casi todos apuestan al alza, el mercado está saturado de compradores (suma); cuando dominan los cortos, al revés (resta).",
     },
     taker_ratio: {
       name: "Compras a mercado",
       what: "Del volumen negociado con órdenes a mercado en los futuros de Binance, qué parte fueron compras (media de las 3 últimas velas). Mide quién tiene prisa por entrar o salir. El 50 % es el equilibrio.",
-      read: "Puntúa por su percentil en los últimos 30 días. Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
+      read: "Informativa (no cuenta en el índice). Su puntuación es su percentil: en 1D, frente al último año; en 1 h y 4 h, frente a todo el histórico de Coinalyze (unos 3 y 11 meses). Por encima del 50 % dominan las compras agresivas (suma); por debajo, las ventas (resta).",
     },
     // Informativas de la página de sentimiento (el índice no las usa)
     spot_buy_pct: {

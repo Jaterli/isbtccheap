@@ -186,6 +186,11 @@ salió de la cadena al dejar de estar disponible en DigitalOcean, y gpt-oss-120b
   largos y cortos de los perpetuos de BTC (Binance, Bybit, OKX, Huobi y Bitfinex) en velas diarias desde 2022 y de 4 h
   (unos 8 meses), con el precio, para la tarjeta informativa de la página de sentimiento. Datos de Coinalyze con la clave
   gratuita `COINALYZE_API_KEY` de `news/.env`; no llama a ningún modelo. Sin el fichero, la tarjeta no se muestra.
+  En la misma ejecución escribe `news/out/derivatives.json` (`/news/derivatives.json`): las cuentas en largo, el interés
+  abierto y las compras a mercado del perpetuo BTCUSDT de Binance, en diario desde 2020 y en 4 h y 1 h con lo que guarda
+  Coinalyze (unos 11 y 3 meses). Binance solo da 30 días de estas estadísticas; la página de sentimiento añade sus
+  últimos puntos en vivo. Son informativas: el índice no las usa. Sin el fichero, la página usa solo los 30 días de
+  Binance.
 
 - `build_snapshot.py`: escribe en `news/out/snapshot/` el dato del día para los buscadores (score diario, precio,
   categorías y último análisis en la portada; titular, resumen, sesgo y zonas en la de análisis) y la meta description

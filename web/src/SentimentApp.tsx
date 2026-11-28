@@ -58,24 +58,26 @@ const AXIS_FORMAT: Partial<Record<SentimentMetric, (v: number) => string>> = {
   sth_loss_pct: (v) => pct(v, 0),
 };
 
-// Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D no hay periodo a elegir)
-const MAX_CANDLES: Partial<Record<SentimentKey, Record<SentimentTf, number>>> = {
-  taker_pct: { "1h": 120, "4h": 60, "1d": 30 },
+// Métricas que cambian mucho de una vela a otra: con menos velas se ven más estiradas (en 1D, las de periodo a elegir,
+// las que este diga)
+const MAX_CANDLES: Partial<Record<SentimentKey, Partial<Record<SentimentTf, number>>>> = {
+  taker_pct: { "1h": 120, "4h": 60 },
   spot_buy_pct: { "1h": 120, "4h": 60, "1d": 90 },
 };
-// Derivados en 1D: solo sus ~30 días; tampoco hay periodo a elegir
-const NO_RANGE: SentimentKey[] = ["open_interest", "long_pct", "taker_pct", "spot_buy_pct"];
+// En 1D, sin periodo a elegir: las compras al contado (sus últimos 90 días). Los derivados sí lo tienen desde que llegan
+// con el histórico de Coinalyze (desde 2020)
+const NO_RANGE: SentimentKey[] = ["spot_buy_pct"];
 
 // Suavizado: media de las últimas N velas (en 1D, 7 y 30 días; en 1 h y 4 h, las mismas velas), como en la página técnica.
 // Solo donde cambia algo: en 1 h y 4 h las métricas diarias repiten el dato del día en todas sus velas, así que allí solo
-// se suavizan las que cambian de vela a vela. Fuera quedan los ETF (ya son la suma de 20 sesiones), el interés abierto (es
-// un nivel, no oscila) y, en 1D, los derivados (Binance solo guarda 30 días)
+// se suavizan las que cambian de vela a vela. Fuera quedan los ETF (ya son la suma de 20 sesiones) y el interés abierto
+// (es un nivel, no oscila)
 const SMOOTH = ["0", "7", "30"] as const;
 type Smooth = (typeof SMOOTH)[number];
 const SMOOTHABLE: Record<SentimentTf, SentimentKey[]> = {
   "1h": ["long_pct", "taker_pct", "spot_buy_pct"],
   "4h": ["long_pct", "taker_pct", "spot_buy_pct"],
-  "1d": ["sentimiento", "fear_greed", "sth_sopr", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"],
+  "1d": ["sentimiento", "fear_greed", "sth_sopr", "long_pct", "taker_pct", "spot_buy_pct", "sth_loss_pct", "realized_loss_ratio", "sth_mvrv_adj"],
 };
 
 /** La elección guardada en el navegador (si se puede) */
