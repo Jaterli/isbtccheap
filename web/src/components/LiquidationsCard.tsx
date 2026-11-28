@@ -25,10 +25,10 @@ interface LiqJson {
 const URL = `${import.meta.env.BASE_URL}news/liquidations.json`;
 const TFS: Tf[] = ["4h", "1d"];
 const TF_KEY = "isbtccheap:liq-tf";
-// En 4 h solo hay unos 8 meses
+// En 4 h solo hay unos 8 meses. 1M, para ver de cerca las cascadas recientes
 const RANGES: Record<Tf, { id: string; days: number }[]> = {
-  "4h": [{ id: "6m", days: 182 }, { id: "all", days: Infinity }],
-  "1d": [{ id: "6m", days: 182 }, { id: "1y", days: 365 }, { id: "all", days: Infinity }],
+  "4h": [{ id: "1m", days: 30 }, { id: "6m", days: 182 }, { id: "all", days: Infinity }],
+  "1d": [{ id: "1m", days: 30 }, { id: "6m", days: 182 }, { id: "1y", days: 365 }, { id: "all", days: Infinity }],
 };
 // La lectura marca lo que pasa de este múltiplo de su media de 90 días
 const RATIO_SHOWN = 2;

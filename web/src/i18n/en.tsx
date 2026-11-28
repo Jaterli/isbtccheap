@@ -391,7 +391,7 @@ export const en: Messages = {
   charts: {
     tfAria: "Candle size",
     rangeAria: "Period shown",
-    ranges: { "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", "8y": "8Y", all: "All" },
+    ranges: { "1m": "1M", "3m": "3M", "6m": "6M", "1y": "1Y", "4y": "4Y", "8y": "8Y", all: "All" },
     error: "Could not load data for this timeframe.",
     note: "Historical data, not a prediction or investment advice.",
   },

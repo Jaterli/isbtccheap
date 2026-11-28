@@ -408,7 +408,7 @@ export const es = {
   charts: {
     tfAria: "Tamaño de vela",
     rangeAria: "Periodo mostrado",
-    ranges: { "3m": "3M", "6m": "6M", "1y": "1A", "4y": "4A", "8y": "8A", all: "Todo" } as Record<string, string>,
+    ranges: { "1m": "1M", "3m": "3M", "6m": "6M", "1y": "1A", "4y": "4A", "8y": "8A", all: "Todo" } as Record<string, string>,
     error: "No se pudieron cargar los datos de esta temporalidad.",
     note: "Datos históricos, no una predicción ni una recomendación de inversión.",
   },
